@@ -64,7 +64,7 @@ export const PLANS: {
 ];
 
 export function planOf(id: PlanId) {
-  return PLANS.find((p) => p.id === id) ?? PLANS[0];
+  return PLANS.find((p) => p.id === id) ?? PLANS[0]!;
 }
 
 export function hasFeature(plan: PlanId, feature: Feature) {

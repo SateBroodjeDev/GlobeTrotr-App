@@ -50,8 +50,9 @@ export const Route = createFileRoute("/trips/$tripId")({
 function TripDetail() {
   const { tripId } = Route.useParams();
   const { state, updateTrip, rates } = useWorkspace();
-  const trip = state.trips.find((t) => t.id === tripId);
-  if (!trip) throw notFound();
+  const found = state.trips.find((t) => t.id === tripId);
+  if (!found) throw notFound();
+  const trip = found;
 
   const base = state.baseCurrency;
   const editable = canEdit(state.role);
@@ -72,7 +73,10 @@ function TripDetail() {
   const [item, setItem] = useState({ day: trip.start, title: "" });
 
   function addExpense() {
-    if (!draft.title.trim() || !draft.amount) return toast.error("Vul omschrijving en bedrag in");
+    if (!draft.title.trim() || !draft.amount) {
+      toast.error("Vul omschrijving en bedrag in");
+      return;
+    }
     updateTrip(trip.id, (t) => ({ ...t, expenses: [...t.expenses, { ...draft, id: uid() }] }));
     setDraft({ ...draft, title: "", amount: 0 });
     toast.success("Uitgave geboekt");
@@ -188,7 +192,9 @@ function TripDetail() {
                 </CardContent>
               </Card>
               <WeatherWidget
-                stop={trip.stops[trip.stops.length - 1]}
+                {...(trip.stops.length
+                  ? { stop: trip.stops[trip.stops.length - 1]! }
+                  : {})}
                 enabled={hasFeature(state.plan, "weather")}
               />
             </div>

@@ -21,8 +21,8 @@ export async function searchPlaces(query: string): Promise<GeoResult[]> {
   return rows.map((r) => {
     const parts = r.display_name.split(",").map((p) => p.trim());
     return {
-      name: r.name || parts[0],
-      country: parts[parts.length - 1],
+      name: r.name || parts[0] || query,
+      country: parts[parts.length - 1] ?? "",
       lat: Number(r.lat),
       lon: Number(r.lon),
     };
