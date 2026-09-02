@@ -96,16 +96,6 @@ export const FALLBACK_RATES: Rates = {
   INR: 91, MXN: 19.8, NZD: 1.79, PLN: 4.3, CZK: 25.1, TRY: 35.4,
 };
 
-export async function fetchRates(): Promise<Rates> {
-  const symbols = CURRENCIES.map((c) => c.code)
-    .filter((c) => c !== "EUR")
-    .join(",");
-  const res = await fetch(`https://api.frankfurter.app/latest?from=EUR&to=${symbols}`);
-  if (!res.ok) throw new Error("Koersen ophalen mislukt");
-  const j = await res.json();
-  return { EUR: 1, ...FALLBACK_RATES, ...j.rates };
-}
-
 export function convert(amount: number, from: string, to: string, rates: Rates) {
   const f = rates[from] ?? 1;
   const t = rates[to] ?? 1;
