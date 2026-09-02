@@ -96,7 +96,7 @@ function BrandingPage() {
                 max={360}
                 step={1}
                 value={[b.accent]}
-                onValueChange={([v]) => set({ accent: v })}
+                onValueChange={(v) => set({ accent: v[0] ?? b.accent })}
               />
             </div>
             <Button disabled={!allowed} onClick={() => toast.success("Branding opgeslagen")}>

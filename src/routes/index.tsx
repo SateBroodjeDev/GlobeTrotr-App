@@ -49,8 +49,14 @@ function TripsOverview() {
   const grand = totals.reduce((s, t) => s + t.spent, 0);
 
   function create() {
-    if (!name.trim()) return toast.error("Geef de reis een naam");
-    if (atLimit) return toast.error(`Je Free-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`);
+    if (!name.trim()) {
+      toast.error("Geef de reis een naam");
+      return;
+    }
+    if (atLimit) {
+      toast.error(`Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`);
+      return;
+    }
     const id = addTrip(name.trim(), template);
     setName("");
     toast.success("Reis aangemaakt");

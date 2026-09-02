@@ -21,8 +21,8 @@ export async function searchPlaces(query: string): Promise<GeoResult[]> {
   return rows.map((r) => {
     const parts = r.display_name.split(",").map((p) => p.trim());
     return {
-      name: r.name || parts[0],
-      country: parts[parts.length - 1],
+      name: r.name || parts[0] || query,
+      country: parts[parts.length - 1] ?? "",
       lat: Number(r.lat),
       lon: Number(r.lon),
     };
@@ -95,16 +95,6 @@ export const FALLBACK_RATES: Rates = {
   SEK: 11.3, NOK: 11.6, DKK: 7.46, THB: 39.5, IDR: 17600, BRL: 5.9, ZAR: 20.1,
   INR: 91, MXN: 19.8, NZD: 1.79, PLN: 4.3, CZK: 25.1, TRY: 35.4,
 };
-
-export async function fetchRates(): Promise<Rates> {
-  const symbols = CURRENCIES.map((c) => c.code)
-    .filter((c) => c !== "EUR")
-    .join(",");
-  const res = await fetch(`https://api.frankfurter.app/latest?from=EUR&to=${symbols}`);
-  if (!res.ok) throw new Error("Koersen ophalen mislukt");
-  const j = await res.json();
-  return { EUR: 1, ...FALLBACK_RATES, ...j.rates };
-}
 
 export function convert(amount: number, from: string, to: string, rates: Rates) {
   const f = rates[from] ?? 1;

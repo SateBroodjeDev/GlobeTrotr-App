@@ -98,7 +98,10 @@ function TeamPage() {
             <Button
               disabled={!allowed}
               onClick={() => {
-                if (!name.trim() || !email.trim()) return toast.error("Naam en e-mail invullen");
+                if (!name.trim() || !email.trim()) {
+                  toast.error("Naam en e-mail invullen");
+                  return;
+                }
                 update((s) => ({
                   ...s,
                   members: [...s.members, { id: uid(), name, email, role }],
