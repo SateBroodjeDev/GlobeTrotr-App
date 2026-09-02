@@ -8,7 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FALLBACK_RATES, fetchRates, type Rates } from "./services";
+import { FALLBACK_RATES, type Rates } from "./services";
+import { getRates } from "./fx.functions";
 import { TEMPLATES, type Trip, type TripTemplate, type WorkspaceState } from "./types";
 
 const STORAGE_KEY = "atlasledger.workspace.v1";
@@ -114,7 +115,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const ratesQuery = useQuery({
     queryKey: ["fx-rates"],
-    queryFn: fetchRates,
+    queryFn: () => getRates(),
     staleTime: 1000 * 60 * 60,
     retry: 1,
   });
