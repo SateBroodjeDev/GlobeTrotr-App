@@ -27,6 +27,11 @@ export type Expense = {
   currency: string;
   paidBy: string;
   billable: boolean;
+  /** Namen die meebetalen; leeg = alle reizigers */
+  splitWith?: string[];
+  /** Pad in de receipts-opslag */
+  receiptPath?: string;
+  receiptName?: string;
 };
 
 export type ExpenseCategory =
@@ -79,6 +84,14 @@ export type Member = {
   role: RoleId;
 };
 
+export type TripStatus = "upcoming" | "current" | "archived";
+
+export type PackingItem = {
+  id: string;
+  label: string;
+  done: boolean;
+};
+
 export type Trip = {
   id: string;
   name: string;
@@ -89,7 +102,111 @@ export type Trip = {
   stops: Stop[];
   itinerary: ItineraryItem[];
   expenses: Expense[];
+  travelers?: string[];
+  packing?: PackingItem[];
+  archived?: boolean;
 };
+
+export function tripStatus(trip: Trip, today = new Date()): TripStatus {
+  if (trip.archived) return "archived";
+  const d = today.toISOString().slice(0, 10);
+  if (trip.end && trip.end < d) return "archived";
+  if (trip.start && trip.start <= d) return "current";
+  return "upcoming";
+}
+
+export const STATUS_LABEL: Record<TripStatus, string> = {
+  current: "Huidig",
+  upcoming: "Aankomend",
+  archived: "Gearchiveerd",
+};
+
+export const PACKING_TEMPLATES: { id: string; label: string; emoji: string; items: string[] }[] = [
+  {
+    id: "winter",
+    label: "Winterexpeditie",
+    emoji: "🥶",
+    items: [
+      "Thermo-ondergoed (3x)",
+      "Donsjas -30°C",
+      "Winterschoenen met grip",
+      "Wollen sokken (5 paar)",
+      "Muts, sjaal & wanten",
+      "Skibril / zonnebril",
+      "Handwarmers",
+      "Powerbank (kou = leeg)",
+      "Statief voor noorderlicht",
+      "Hoofdlamp + reservebatterijen",
+      "Zonnebrand & lippenbalsem",
+      "Reisverzekering & winterdekking",
+      "Sneeuwkettingen / winterbanden",
+      "IJskrabber & sleepkabel",
+      "Thermoskan",
+      "EHBO-set",
+      "Paspoort & rijbewijs",
+      "Contant geld in lokale valuta",
+    ],
+  },
+  {
+    id: "citytrip",
+    label: "Stedentrip",
+    emoji: "🏙️",
+    items: [
+      "Comfortabele schoenen",
+      "Regenjas of paraplu",
+      "Powerbank",
+      "Stadsplattegrond / offline kaart",
+      "Museumkaarten & tickets",
+      "Dagrugzak",
+      "Adapter",
+      "Kleine EHBO-set",
+    ],
+  },
+  {
+    id: "beach",
+    label: "Strand & resort",
+    emoji: "🏝️",
+    items: [
+      "Zwemkleding (2x)",
+      "Zonnebrand SPF50",
+      "Strandhanddoek",
+      "Slippers",
+      "Snorkelset",
+      "Aftersun",
+      "Waterdichte telefoonhoes",
+      "Zonnehoed",
+    ],
+  },
+  {
+    id: "roadtrip",
+    label: "Roadtrip",
+    emoji: "🚐",
+    items: [
+      "Rijbewijs & groene kaart",
+      "Telefoonhouder & autolader",
+      "Koelbox",
+      "Gevarendriehoek & veiligheidshesjes",
+      "Bandenspanningsmeter",
+      "Snacks & water",
+      "Offline navigatie",
+      "Parkeerschijf & tolvignetten",
+    ],
+  },
+  {
+    id: "business",
+    label: "Zakenreis",
+    emoji: "💼",
+    items: [
+      "Laptop + lader",
+      "Presentatie op USB/cloud",
+      "Visitekaartjes",
+      "Nette outfit",
+      "Noise-cancelling koptelefoon",
+      "Bonnetjesmapje",
+      "Reisverzekering zakelijk",
+    ],
+  },
+];
 
 export type Branding = {
   brandName: string;
