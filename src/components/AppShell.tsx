@@ -66,6 +66,25 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Badge variant="secondary" className="gap-1">
               <Globe2 className="size-3" /> {plan.name}
             </Badge>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span
+                  className="hidden max-w-[9rem] truncate text-xs text-muted-foreground sm:block"
+                  title={user.email ?? ""}
+                >
+                  {cloud === "saving" ? "Opslaan…" : cloud === "loading" ? "Laden…" : user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={signOut}>
+                  <LogOut className="size-4" /> Uitloggen
+                </Button>
+              </div>
+            ) : (
+              <Button asChild size="sm">
+                <Link to="/auth">
+                  <LogIn className="size-4" /> Inloggen
+                </Link>
+              </Button>
+            )}
             <select
               aria-label="Actieve rol"
               value={state.role}
