@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { WorkspaceProvider } from "@/lib/workspace";
 import { AppShell } from "@/components/AppShell";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -139,6 +140,7 @@ function RootComponent() {
         </AppShell>
         <Toaster richColors position="top-center" />
       </WorkspaceProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
