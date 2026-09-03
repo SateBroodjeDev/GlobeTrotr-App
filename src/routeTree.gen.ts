@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as BrandingRouteImport } from './routes/branding'
 import { Route as TeamRouteImport } from './routes/team'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BillingRoute = BillingRouteImport.update({
@@ -50,6 +56,7 @@ const TripsTripIdRoute = TripsTripIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/billing': typeof BillingRoute
   '/branding': typeof BrandingRoute
   '/team': typeof TeamRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/billing': typeof BillingRoute
   '/branding': typeof BrandingRoute
   '/team': typeof TeamRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auth': typeof AuthRoute
   '/billing': typeof BillingRoute
   '/branding': typeof BrandingRoute
   '/team': typeof TeamRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/analytics' | '/billing' | '/branding' | '/team' | '/trips/$tripId'
+    | '/'
+    | '/analytics'
+    | '/auth'
+    | '/billing'
+    | '/branding'
+    | '/team'
+    | '/trips/$tripId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analytics' | '/billing' | '/branding' | '/team' | '/trips/$tripId'
+  to:
+    | '/'
+    | '/analytics'
+    | '/auth'
+    | '/billing'
+    | '/branding'
+    | '/team'
+    | '/trips/$tripId'
   id:
     | '__root__'
     | '/'
     | '/analytics'
+    | '/auth'
     | '/billing'
     | '/branding'
     | '/team'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  AuthRoute: typeof AuthRoute
   BillingRoute: typeof BillingRoute
   BrandingRoute: typeof BrandingRoute
   TeamRoute: typeof TeamRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/billing': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  AuthRoute: AuthRoute,
   BillingRoute: BillingRoute,
   BrandingRoute: BrandingRoute,
   TeamRoute: TeamRoute,

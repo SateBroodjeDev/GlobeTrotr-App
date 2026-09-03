@@ -1,10 +1,12 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import {
   BarChart3,
   CreditCard,
   Globe2,
   Map,
+  LogIn,
+  LogOut,
   Palette,
   Users,
 } from "lucide-react";
@@ -12,6 +14,10 @@ import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
 import { ROLES } from "@/lib/plans";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const NAV = [
   { to: "/", label: "Reizen", icon: Map },
@@ -22,8 +28,18 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { state, update } = useWorkspace();
+  const { state, update, cloud } = useWorkspace();
   const plan = planOf(state.plan);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-hue", String(state.branding.accent));
@@ -66,6 +82,25 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Badge variant="secondary" className="gap-1">
               <Globe2 className="size-3" /> {plan.name}
             </Badge>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span
+                  className="hidden max-w-[9rem] truncate text-xs text-muted-foreground sm:block"
+                  title={user.email ?? ""}
+                >
+                  {cloud === "saving" ? "Opslaan…" : cloud === "loading" ? "Laden…" : user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={signOut}>
+                  <LogOut className="size-4" /> Uitloggen
+                </Button>
+              </div>
+            ) : (
+              <Button asChild size="sm">
+                <Link to="/auth">
+                  <LogIn className="size-4" /> Inloggen
+                </Link>
+              </Button>
+            )}
             <select
               aria-label="Actieve rol"
               value={state.role}

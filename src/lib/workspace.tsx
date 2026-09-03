@@ -4,12 +4,15 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FALLBACK_RATES, type Rates } from "./services";
 import { getRates } from "./fx.functions";
+import { loadWorkspace, saveWorkspace } from "./cloud.functions";
+import { useAuth } from "./auth";
 import { TEMPLATES, type Trip, type TripTemplate, type WorkspaceState } from "./types";
 
 const STORAGE_KEY = "atlasledger.workspace.v1";
@@ -89,13 +92,20 @@ type Ctx = {
   rates: Rates;
   ratesLive: boolean;
   reset: () => void;
+  cloud: "local" | "loading" | "synced" | "saving";
 };
 
 const WorkspaceContext = createContext<Ctx | null>(null);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WorkspaceState>(() => seed());
+  const { user, loading: authLoading } = useAuth();
+  const [cloud, setCloud] = useState<Ctx["cloud"]>("local");
+  const hydrated = useRef(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
+  // Local hydration (guests + instant paint)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -103,6 +113,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+    hydrated.current = true;
   }, []);
 
   useEffect(() => {
@@ -112,6 +123,46 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
   }, [state]);
+
+  // Cloud hydration when signed in
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setCloud("local");
+      return;
+    }
+    let cancelled = false;
+    setCloud("loading");
+    loadWorkspace()
+      .then(async (row) => {
+        if (cancelled) return;
+        const remote = row?.data as WorkspaceState | undefined;
+        if (remote && Array.isArray(remote.trips)) {
+          setState(remote);
+        } else {
+          await saveWorkspace({ data: { data: stateRef.current } });
+        }
+        if (!cancelled) setCloud("synced");
+      })
+      .catch(() => !cancelled && setCloud("local"));
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading]);
+
+  // Debounced cloud save
+  useEffect(() => {
+    if (cloud !== "synced" || !user || !hydrated.current) return;
+    setCloud("saving");
+    const t = setTimeout(() => {
+      saveWorkspace({ data: { data: stateRef.current } })
+        .then(() => setCloud("synced"))
+        .catch(() => setCloud("synced"));
+    }, 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, user]);
+
 
   const ratesQuery = useQuery({
     queryKey: ["fx-rates"],
@@ -168,8 +219,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       rates: ratesQuery.data ?? FALLBACK_RATES,
       ratesLive: !!ratesQuery.data,
       reset,
+      cloud,
     }),
-    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset],
+    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset, cloud],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
