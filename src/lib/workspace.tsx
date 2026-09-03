@@ -91,13 +91,18 @@ type Ctx = {
   rates: Rates;
   ratesLive: boolean;
   reset: () => void;
+  cloud: "local" | "loading" | "synced" | "saving";
 };
 
 const WorkspaceContext = createContext<Ctx | null>(null);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WorkspaceState>(() => seed());
+  const { user, loading: authLoading } = useAuth();
+  const [cloud, setCloud] = useState<Ctx["cloud"]>("local");
+  const hydrated = useRef(false);
 
+  // Local hydration (guests + instant paint)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -105,6 +110,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+    hydrated.current = true;
   }, []);
 
   useEffect(() => {
@@ -114,6 +120,49 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
   }, [state]);
+
+  // Cloud hydration when signed in
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setCloud("local");
+      return;
+    }
+    let cancelled = false;
+    setCloud("loading");
+    loadWorkspace()
+      .then(async (row) => {
+        if (cancelled) return;
+        const remote = row?.data as WorkspaceState | undefined;
+        if (remote && Array.isArray(remote.trips)) {
+          setState(remote);
+        } else {
+          await saveWorkspace({ data: { data: stateRef.current } });
+        }
+        if (!cancelled) setCloud("synced");
+      })
+      .catch(() => !cancelled && setCloud("local"));
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading]);
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  // Debounced cloud save
+  useEffect(() => {
+    if (cloud !== "synced" || !user || !hydrated.current) return;
+    setCloud("saving");
+    const t = setTimeout(() => {
+      saveWorkspace({ data: { data: stateRef.current } })
+        .then(() => setCloud("synced"))
+        .catch(() => setCloud("synced"));
+    }, 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, user]);
+
 
   const ratesQuery = useQuery({
     queryKey: ["fx-rates"],
