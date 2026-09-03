@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -101,6 +102,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const [cloud, setCloud] = useState<Ctx["cloud"]>("local");
   const hydrated = useRef(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   // Local hydration (guests + instant paint)
   useEffect(() => {
@@ -146,9 +149,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [user, authLoading]);
-
-  const stateRef = useRef(state);
-  stateRef.current = state;
 
   // Debounced cloud save
   useEffect(() => {
@@ -219,8 +219,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       rates: ratesQuery.data ?? FALLBACK_RATES,
       ratesLive: !!ratesQuery.data,
       reset,
+      cloud,
     }),
-    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset],
+    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset, cloud],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
