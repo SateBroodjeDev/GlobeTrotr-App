@@ -10,6 +10,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { FALLBACK_RATES, type Rates } from "./services";
 import { getRates } from "./fx.functions";
+import { loadWorkspace, saveWorkspace } from "./cloud.functions";
+import { useAuth } from "./auth";
 import { TEMPLATES, type Trip, type TripTemplate, type WorkspaceState } from "./types";
 
 const STORAGE_KEY = "atlasledger.workspace.v1";
