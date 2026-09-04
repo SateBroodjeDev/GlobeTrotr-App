@@ -94,3 +94,92 @@ function escapeHtml(s: string) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
   );
 }
+
+/** Volledige back-up van de werkruimte als JSON */
+export function downloadJson(data: unknown, name: string) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${slug(name)}-backup.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Printklare reisgids: schema per dag, bestemmingen, paklijst en navigatielinks */
+export function openGuide(
+  trip: Trip,
+  base: string,
+  rates: Rates,
+  brand: { brandName: string; domain: string },
+) {
+  const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
+  const days = [...new Set(trip.itinerary.map((i) => i.day))].sort();
+  const nav = (lat: number, lon: number) =>
+    `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
+
+  const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8">
+<title>Reisgids — ${escapeHtml(trip.name)}</title>
+<style>
+ body{font-family:ui-sans-serif,system-ui,Helvetica,Arial;margin:36px;color:#12211f}
+ h1{font-size:26px;margin:0 0 4px}
+ h2{font-size:15px;margin:24px 0 8px;border-bottom:1px solid #d8e5e2;padding-bottom:4px}
+ .muted{color:#68807c;font-size:12px}
+ .cover{border-bottom:3px solid #0f9b8e;padding-bottom:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end}
+ ul{margin:0;padding-left:18px} li{font-size:12px;margin-bottom:4px}
+ .day{margin-bottom:10px} .day b{font-size:13px}
+ .grid{display:flex;flex-wrap:wrap;gap:8px}
+ .chip{border:1px solid #d8e5e2;border-radius:8px;padding:6px 10px;font-size:12px}
+ a{color:#0f9b8e}
+ @media print{@page{margin:14mm} a{text-decoration:none}}
+</style></head><body>
+<div class="cover"><div><h1>${escapeHtml(trip.name)}</h1>
+<div class="muted">${trip.start} t/m ${trip.end} · ${trip.stops.length} bestemmingen · budget ${formatMoney(trip.budget, base)}</div></div>
+<div class="muted">${escapeHtml(brand.brandName)}<br>${escapeHtml(brand.domain)}</div></div>
+
+<h2>Route & navigatie</h2>
+<div class="grid">${trip.stops
+    .map(
+      (s, i) =>
+        `<div class="chip"><b>${i + 1}. ${escapeHtml(s.name)}</b> <span class="muted">${escapeHtml(
+          s.country,
+        )}</span><br><a href="${nav(s.lat, s.lon)}">Navigeer met Google Maps</a></div>`,
+    )
+    .join("")}</div>
+
+<h2>Dag voor dag</h2>
+${days
+    .map(
+      (d) =>
+        `<div class="day"><b>${d}</b><ul>${trip.itinerary
+          .filter((i) => i.day === d)
+          .map(
+            (i) =>
+              `<li>${escapeHtml(i.title)}${i.notes ? ` <span class="muted">— ${escapeHtml(i.notes)}</span>` : ""}</li>`,
+          )
+          .join("")}</ul></div>`,
+    )
+    .join("")}
+
+${
+    trip.packing?.length
+      ? `<h2>Paklijst</h2><ul>${trip.packing
+          .map((p) => `<li>${p.done ? "☑" : "☐"} ${escapeHtml(p.label)}</li>`)
+          .join("")}</ul>`
+      : ""
+  }
+
+<h2>Budget</h2>
+<p class="muted">Uitgegeven ${formatMoney(total, base)} van ${formatMoney(trip.budget, base)} · restant ${formatMoney(
+    trip.budget - total,
+    base,
+  )}</p>
+<script>window.onload=()=>window.print()<\/script>
+</body></html>`;
+
+  const w = window.open("", "_blank");
+  if (!w) return false;
+  w.document.write(html);
+  w.document.close();
+  return true;
+}
