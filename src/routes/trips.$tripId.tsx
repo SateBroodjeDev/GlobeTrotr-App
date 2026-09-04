@@ -51,7 +51,7 @@ export const Route = createFileRoute("/trips/$tripId")({
 
 function TripDetail() {
   const { tripId } = Route.useParams();
-  const { state, updateTrip, rates } = useWorkspace();
+  const { state, updateTrip, rates, ratesLive } = useWorkspace();
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
   const trip = found;
