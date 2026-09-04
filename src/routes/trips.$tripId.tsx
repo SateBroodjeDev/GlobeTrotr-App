@@ -11,6 +11,8 @@ import { downloadCsv, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { WeatherWidget } from "@/components/WeatherWidget";
+import { CurrencyConverter, FuelCalculator } from "@/components/TripTools";
+import { Settlement } from "@/components/Settlement";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,7 +51,7 @@ export const Route = createFileRoute("/trips/$tripId")({
 
 function TripDetail() {
   const { tripId } = Route.useParams();
-  const { state, updateTrip, rates } = useWorkspace();
+  const { state, updateTrip, rates, ratesLive } = useWorkspace();
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
   const trip = found;
@@ -133,6 +135,8 @@ function TripDetail() {
           <TabsTrigger value="route">Routekaart</TabsTrigger>
           <TabsTrigger value="plan">Reisschema</TabsTrigger>
           <TabsTrigger value="expenses">Uitgaven</TabsTrigger>
+          <TabsTrigger value="money">Geld-tools</TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="route" className="space-y-4">
@@ -395,7 +399,25 @@ function TripDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="money" className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CurrencyConverter rates={rates} base={base} live={ratesLive} />
+            <FuelCalculator rates={rates} base={base} />
+          </div>
+          <Settlement
+            trip={trip}
+            base={base}
+            rates={rates}
+            fallback={state.members.map((m) => m.name)}
+            editable={editable}
+            onTravelers={(people) =>
+              updateTrip(trip.id, (t) => ({ ...t, travelers: people }))
+            }
+          />
+        </TabsContent>
       </Tabs>
+
     </div>
   );
 }

@@ -6,10 +6,10 @@
 - [ ] Workspace sync naar cloud i.p.v. alleen localStorage
 - [ ] Header toont account / uitloggen
 
-## Fase 2 — Geld-tools
-- [ ] Valuta-omrekenaar (live koersen)
-- [ ] Brandstof- & autocalculator
-- [ ] Slimme verrekening (splitwise, >2 personen)
+## Fase 2 — Geld-tools (klaar)
+- [x] Valuta-omrekenaar (live koersen)
+- [x] Brandstof- & autocalculator
+- [x] Slimme verrekening (splitwise, >2 personen)
 
 ## Fase 3 — Trip-organisatie
 - [ ] Status: huidig / aankomend / gearchiveerd + filters
