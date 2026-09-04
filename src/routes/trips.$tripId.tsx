@@ -11,6 +11,8 @@ import { downloadCsv, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { WeatherWidget } from "@/components/WeatherWidget";
+import { CurrencyConverter, FuelCalculator } from "@/components/TripTools";
+import { Settlement } from "@/components/Settlement";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
