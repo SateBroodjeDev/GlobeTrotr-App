@@ -135,6 +135,8 @@ function TripDetail() {
           <TabsTrigger value="route">Routekaart</TabsTrigger>
           <TabsTrigger value="plan">Reisschema</TabsTrigger>
           <TabsTrigger value="expenses">Uitgaven</TabsTrigger>
+          <TabsTrigger value="money">Geld-tools</TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="route" className="space-y-4">
