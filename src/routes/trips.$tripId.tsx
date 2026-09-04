@@ -399,7 +399,25 @@ function TripDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="money" className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CurrencyConverter rates={rates} base={base} live={ratesLive} />
+            <FuelCalculator rates={rates} base={base} />
+          </div>
+          <Settlement
+            trip={trip}
+            base={base}
+            rates={rates}
+            fallback={state.members.map((m) => m.name)}
+            editable={editable}
+            onTravelers={(people) =>
+              updateTrip(trip.id, (t) => ({ ...t, travelers: people }))
+            }
+          />
+        </TabsContent>
       </Tabs>
+
     </div>
   );
 }
