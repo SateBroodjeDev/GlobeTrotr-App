@@ -11,12 +11,12 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/billing")({
   head: () => ({
     meta: [
-      { title: "Abonnement & facturatie — AtlasLedger" },
+      { title: "Abonnement & facturatie — GlobeTrotr" },
       {
         name: "description",
-        content: "Vergelijk Free, Pro en Business/Agency en beheer je AtlasLedger-abonnement.",
+        content: "Vergelijk Free, Pro en Business/Agency en beheer je GlobeTrotr-abonnement.",
       },
-      { property: "og:title", content: "Abonnement & facturatie — AtlasLedger" },
+      { property: "og:title", content: "Abonnement & facturatie — GlobeTrotr" },
       {
         property: "og:description",
         content: "Feature-gating, prijzen en facturen in één billing portal.",

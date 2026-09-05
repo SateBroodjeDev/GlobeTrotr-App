@@ -21,12 +21,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const Route = createFileRoute("/analytics")({
   head: () => ({
     meta: [
-      { title: "SaaS analytics — AtlasLedger" },
+      { title: "SaaS analytics — GlobeTrotr" },
       {
         name: "description",
         content: "MRR, actieve workspaces, opslagverbruik en uitgavenverdeling in één dashboard.",
       },
-      { property: "og:title", content: "SaaS analytics — AtlasLedger" },
+      { property: "og:title", content: "SaaS analytics — GlobeTrotr" },
       {
         property: "og:description",
         content: "Business-inzicht in omzet, conversie en gebruik van je reisplatform.",

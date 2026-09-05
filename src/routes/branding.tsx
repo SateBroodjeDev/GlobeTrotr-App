@@ -11,13 +11,13 @@ import { Slider } from "@/components/ui/slider";
 export const Route = createFileRoute("/branding")({
   head: () => ({
     meta: [
-      { title: "White-label branding — AtlasLedger" },
+      { title: "White-label branding — GlobeTrotr" },
       {
         name: "description",
         content:
           "Geef de reisplanner je eigen merknaam, domein, tagline en accentkleur voor je agency.",
       },
-      { property: "og:title", content: "White-label branding — AtlasLedger" },
+      { property: "og:title", content: "White-label branding — GlobeTrotr" },
       {
         property: "og:description",
         content: "Custom branding voor touroperators en travel agencies.",

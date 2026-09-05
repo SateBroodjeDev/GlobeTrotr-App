@@ -81,13 +81,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AtlasLedger — Multi-Trip & Expense Planner" },
+      { title: "GlobeTrotr — Multi-Trip & Expense Planner" },
       {
         name: "description",
         content:
           "Wereldwijde reisplanner met routekaart, multi-valuta uitgaven, live weer en SaaS workspace tools.",
       },
-      { property: "og:title", content: "AtlasLedger — Multi-Trip & Expense Planner" },
+      { property: "og:title", content: "GlobeTrotr — Multi-Trip & Expense Planner" },
       {
         property: "og:description",
         content: "Plan elke reis ter wereld en verantwoord elke euro.",
