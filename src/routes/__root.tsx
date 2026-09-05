@@ -81,13 +81,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AtlasLedger — Multi-Trip & Expense Planner" },
+      { title: "GlobeTrotr — Multi-Trip & Expense Planner" },
       {
         name: "description",
         content:
           "Wereldwijde reisplanner met routekaart, multi-valuta uitgaven, live weer en SaaS workspace tools.",
       },
-      { property: "og:title", content: "AtlasLedger — Multi-Trip & Expense Planner" },
+      { property: "og:title", content: "GlobeTrotr — Multi-Trip & Expense Planner" },
       {
         property: "og:description",
         content: "Plan elke reis ter wereld en verantwoord elke euro.",
@@ -104,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap",
       },
       { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
   shellComponent: RootShell,

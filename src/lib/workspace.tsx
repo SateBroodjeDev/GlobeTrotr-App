@@ -25,14 +25,14 @@ function seed(): WorkspaceState {
     role: "owner",
     baseCurrency: "EUR",
     branding: {
-      brandName: "AtlasLedger",
-      domain: "atlasledger.app",
+      brandName: "GlobeTrotr",
+      domain: "globetrotr.nl",
       accent: 172,
       tagline: "Plan elke reis. Verantwoord elke euro.",
     },
     members: [
-      { id: uid(), name: "Domenic Rokers", email: "domenic@atlasledger.app", role: "owner" },
-      { id: uid(), name: "Lena Vos", email: "lena@atlasledger.app", role: "editor" },
+      { id: uid(), name: "Domenic Rokers", email: "domenic@globetrotr.nl", role: "owner" },
+      { id: uid(), name: "Lena Vos", email: "lena@globetrotr.nl", role: "editor" },
       { id: uid(), name: "Sam de Boer", email: "sam@boekhouding.nl", role: "accountant" },
     ],
     trips: [

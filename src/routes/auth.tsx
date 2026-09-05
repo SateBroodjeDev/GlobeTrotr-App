@@ -11,13 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Inloggen — AtlasLedger workspace" },
+      { title: "Inloggen — GlobeTrotr workspace" },
       {
         name: "description",
         content:
           "Log in of maak een gratis account om je reizen, budgetten en bonnetjes in de cloud te bewaren.",
       },
-      { property: "og:title", content: "Inloggen — AtlasLedger workspace" },
+      { property: "og:title", content: "Inloggen — GlobeTrotr workspace" },
       {
         property: "og:description",
         content: "Bewaar je reisplanning en uitgaven veilig in je eigen cloud-workspace.",

@@ -17,13 +17,13 @@ import { Progress } from "@/components/ui/progress";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reizen — AtlasLedger Multi-Trip Planner" },
+      { title: "Reizen — GlobeTrotr Multi-Trip Planner" },
       {
         name: "description",
         content:
           "Overzicht van al je reizen: budget, uitgaven in elke valuta en bestemmingen wereldwijd.",
       },
-      { property: "og:title", content: "Reizen — AtlasLedger Multi-Trip Planner" },
+      { property: "og:title", content: "Reizen — GlobeTrotr Multi-Trip Planner" },
       {
         property: "og:description",
         content: "Beheer al je reizen, budgetten en declaraties op één plek.",

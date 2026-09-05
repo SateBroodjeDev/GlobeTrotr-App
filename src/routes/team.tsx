@@ -13,13 +13,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/team")({
   head: () => ({
     meta: [
-      { title: "Team, rollen & rechten — AtlasLedger" },
+      { title: "Team, rollen & rechten — GlobeTrotr" },
       {
         name: "description",
         content:
           "Nodig medereizigers, boekhouders en kijkers uit met een fijnmazige rollen- en rechtenmatrix.",
       },
-      { property: "og:title", content: "Team, rollen & rechten — AtlasLedger" },
+      { property: "og:title", content: "Team, rollen & rechten — GlobeTrotr" },
       {
         property: "og:description",
         content: "Multi-user samenwerking met owner, editor, accountant en viewer.",

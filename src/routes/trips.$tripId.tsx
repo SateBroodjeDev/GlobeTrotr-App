@@ -28,12 +28,12 @@ const TripMap = lazy(() => import("@/components/TripMap"));
 export const Route = createFileRoute("/trips/$tripId")({
   head: () => ({
     meta: [
-      { title: "Reisdetail — AtlasLedger" },
+      { title: "Reisdetail — GlobeTrotr" },
       {
         name: "description",
         content: "Routekaart, dagplanning en multi-valuta uitgaven van deze reis.",
       },
-      { property: "og:title", content: "Reisdetail — AtlasLedger" },
+      { property: "og:title", content: "Reisdetail — GlobeTrotr" },
       {
         property: "og:description",
         content: "Routekaart, dagplanning en multi-valuta uitgaven van deze reis.",
