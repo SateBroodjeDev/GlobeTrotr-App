@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import logoIcon from "@/assets/logo-icon.asset.json";
 
 const NAV = [
   { to: "/", label: "Reizen", icon: Map },
