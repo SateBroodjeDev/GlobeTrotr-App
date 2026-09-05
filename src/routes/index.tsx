@@ -211,8 +211,10 @@ function TripsOverview() {
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
                   {trip.start} → {trip.end}
+                  {tripStatus(trip) === "upcoming" && <Countdown date={trip.start} compact />}
                 </p>
               </CardHeader>
               <CardContent className="mt-auto space-y-3">
