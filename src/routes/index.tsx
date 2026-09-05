@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2, MapPin, Wallet, Lock } from "lucide-react";
+import { Plus, Trash2, MapPin, Wallet, Lock, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
 import { canEdit, planOf } from "@/lib/plans";
-import { TEMPLATES, type TripTemplate } from "@/lib/types";
+import { TEMPLATES, STATUS_LABEL, tripStatus, type TripStatus, type TripTemplate } from "@/lib/types";
 import { convert, formatMoney } from "@/lib/services";
+import { downloadJson } from "@/lib/exporters";
+import { Countdown } from "@/components/Countdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
