@@ -94,11 +94,22 @@ function TripDetail() {
             ← Alle reizen
           </Link>
           <h1 className="font-display text-2xl font-semibold">{trip.name}</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
             {trip.start} → {trip.end} · {trip.stops.length} bestemmingen
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            disabled={!editable}
+            onClick={() => {
+              updateTrip(trip.id, (t) => ({ ...t, archived: !t.archived }));
+              toast.success(trip.archived ? "Reis heractiveerd" : "Reis gearchiveerd");
+            }}
+          >
+            <Archive className="size-4" /> {trip.archived ? "Heractiveren" : "Archiveren"}
+          </Button>
           <Button
             variant="outline"
             disabled={!canExport(state.role)}
@@ -108,6 +119,16 @@ function TripDetail() {
             }}
           >
             <FileDown className="size-4" /> CSV
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!canExport(state.role)}
+            onClick={() => {
+              if (!openGuide(trip, base, rates, state.branding))
+                toast.error("Sta pop-ups toe om de reisgids te openen.");
+            }}
+          >
+            <BookOpen className="size-4" /> Reisgids
           </Button>
           <Button
             disabled={!canExport(state.role)}
@@ -125,6 +146,17 @@ function TripDetail() {
         </div>
       </div>
 
+      {tripStatus(trip) === "upcoming" && (
+        <Card className="surface">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Aftellen tot vertrek</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Countdown date={trip.start} />
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-3">
         <Stat label="Uitgegeven" value={formatMoney(spent, base)} />
         <Stat label="Budget" value={formatMoney(trip.budget, base)} />
@@ -138,8 +170,17 @@ function TripDetail() {
           <TabsTrigger value="plan">Reisschema</TabsTrigger>
           <TabsTrigger value="expenses">Uitgaven</TabsTrigger>
           <TabsTrigger value="money">Geld-tools</TabsTrigger>
-
+          <TabsTrigger value="packing">Paklijst</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="packing">
+          <Packing
+            items={trip.packing ?? []}
+            editable={editable}
+            onChange={(next) => updateTrip(trip.id, (t) => ({ ...t, packing: next }))}
+          />
+        </TabsContent>
+
 
         <TabsContent value="route" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
