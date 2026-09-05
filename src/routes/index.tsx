@@ -40,6 +40,7 @@ function TripsOverview() {
   const editable = canEdit(state.role);
   const [name, setName] = useState("");
   const [template, setTemplate] = useState<TripTemplate>("citytrip");
+  const [filter, setFilter] = useState<TripStatus | "all">("all");
 
   const atLimit = state.trips.length >= plan.tripLimit;
   const base = state.baseCurrency;
@@ -49,6 +50,14 @@ function TripsOverview() {
     spent: t.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0),
   }));
   const grand = totals.reduce((s, t) => s + t.spent, 0);
+
+  const counts: Record<TripStatus, number> = { current: 0, upcoming: 0, archived: 0 };
+  for (const t of state.trips) counts[tripStatus(t)] += 1;
+  const visible = state.trips.filter((t) => filter === "all" || tripStatus(t) === filter);
+  const nextTrip = state.trips
+    .filter((t) => tripStatus(t) === "upcoming")
+    .sort((a, b) => a.start.localeCompare(b.start))[0];
+
 
   function create() {
     if (!name.trim()) {
