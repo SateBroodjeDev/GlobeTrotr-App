@@ -1,11 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2, MapPin, Wallet, Lock } from "lucide-react";
+import { Plus, Trash2, MapPin, Wallet, Lock, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
 import { canEdit, planOf } from "@/lib/plans";
-import { TEMPLATES, type TripTemplate } from "@/lib/types";
+import { TEMPLATES, STATUS_LABEL, tripStatus, type TripStatus, type TripTemplate } from "@/lib/types";
 import { convert, formatMoney } from "@/lib/services";
+import { downloadJson } from "@/lib/exporters";
+import { Countdown } from "@/components/Countdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +40,7 @@ function TripsOverview() {
   const editable = canEdit(state.role);
   const [name, setName] = useState("");
   const [template, setTemplate] = useState<TripTemplate>("citytrip");
+  const [filter, setFilter] = useState<TripStatus | "all">("all");
 
   const atLimit = state.trips.length >= plan.tripLimit;
   const base = state.baseCurrency;
@@ -47,6 +50,14 @@ function TripsOverview() {
     spent: t.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0),
   }));
   const grand = totals.reduce((s, t) => s + t.spent, 0);
+
+  const counts: Record<TripStatus, number> = { current: 0, upcoming: 0, archived: 0 };
+  for (const t of state.trips) counts[tripStatus(t)] += 1;
+  const visible = state.trips.filter((t) => filter === "all" || tripStatus(t) === filter);
+  const nextTrip = state.trips
+    .filter((t) => tripStatus(t) === "upcoming")
+    .sort((a, b) => a.start.localeCompare(b.start))[0];
+
 
   function create() {
     if (!name.trim()) {
@@ -128,8 +139,48 @@ function TripsOverview() {
         </CardContent>
       </Card>
 
+      {nextTrip && (
+        <Card className="surface">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">
+              Aftellen naar {nextTrip.name} · {nextTrip.start}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Countdown date={nextTrip.start} />
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        {(["all", "current", "upcoming", "archived"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+              filter === f
+                ? "border-primary bg-accent text-accent-foreground"
+                : "border-border hover:bg-muted"
+            }`}
+          >
+            {f === "all" ? `Alles (${state.trips.length})` : `${STATUS_LABEL[f]} (${counts[f]})`}
+          </button>
+        ))}
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={() => {
+            downloadJson(state, state.branding.brandName);
+            toast.success("Back-up gedownload");
+          }}
+        >
+          <Download className="size-4" /> JSON back-up
+        </Button>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {state.trips.map((trip) => {
+        {visible.map((trip) => {
           const spent = totals.find((t) => t.id === trip.id)!.spent;
           const pct = trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0;
           const tpl = TEMPLATES.find((t) => t.id === trip.template);
@@ -160,8 +211,10 @@ function TripsOverview() {
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
                   {trip.start} → {trip.end}
+                  {tripStatus(trip) === "upcoming" && <Countdown date={trip.start} compact />}
                 </p>
               </CardHeader>
               <CardContent className="mt-auto space-y-3">
