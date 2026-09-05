@@ -139,8 +139,48 @@ function TripsOverview() {
         </CardContent>
       </Card>
 
+      {nextTrip && (
+        <Card className="surface">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">
+              Aftellen naar {nextTrip.name} · {nextTrip.start}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Countdown date={nextTrip.start} />
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        {(["all", "current", "upcoming", "archived"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+              filter === f
+                ? "border-primary bg-accent text-accent-foreground"
+                : "border-border hover:bg-muted"
+            }`}
+          >
+            {f === "all" ? `Alles (${state.trips.length})` : `${STATUS_LABEL[f]} (${counts[f]})`}
+          </button>
+        ))}
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto"
+          onClick={() => {
+            downloadJson(state, state.branding.brandName);
+            toast.success("Back-up gedownload");
+          }}
+        >
+          <Download className="size-4" /> JSON back-up
+        </Button>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {state.trips.map((trip) => {
+        {visible.map((trip) => {
           const spent = totals.find((t) => t.id === trip.id)!.spent;
           const pct = trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0;
           const tpl = TEMPLATES.find((t) => t.id === trip.template);
