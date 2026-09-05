@@ -1,25 +1,25 @@
 # Roadmap — AtlasLedger SaaS
 
-## Fase 1 — Accounts & cloud (in uitvoering)
+## Fase 1 — Accounts & cloud (klaar)
 - [x] Cloud aan: profiles, workspaces, receipts bucket, RLS
-- [ ] Auth-pagina (e-mail + Google) + sessie-context
-- [ ] Workspace sync naar cloud i.p.v. alleen localStorage
-- [ ] Header toont account / uitloggen
+- [x] Auth-pagina (e-mail) + sessie-context
+- [x] Workspace sync naar cloud
+- [x] Header toont account / uitloggen
 
 ## Fase 2 — Geld-tools (klaar)
 - [x] Valuta-omrekenaar (live koersen)
 - [x] Brandstof- & autocalculator
 - [x] Slimme verrekening (splitwise, >2 personen)
 
-## Fase 3 — Trip-organisatie
-- [ ] Status: huidig / aankomend / gearchiveerd + filters
-- [ ] Afteltimer
-- [ ] Paklijst-templates + checklist met voortgang
+## Fase 3 — Trip-organisatie (klaar)
+- [x] Status: huidig / aankomend / gearchiveerd + filters
+- [x] Afteltimer
+- [x] Paklijst-templates + checklist met voortgang
 
 ## Fase 4 — Documenten & export
 - [ ] Bonnetjes upload per uitgave (receipts bucket)
-- [ ] Printklare PDF-reisgids
-- [ ] CSV + JSON back-up/export
+- [x] Printklare PDF-reisgids (met Google Maps-navigatie per stop)
+- [x] CSV + JSON back-up/export
 
 ## Fase 5 — Delen & toegang
 - [ ] Publieke deelpagina via token
