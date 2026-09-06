@@ -2,7 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Trip, WorkspaceState } from "@/lib/types";
 
-type UntypedSupabase = { from: (relation: string) => any };
+type UntypedSupabase = {
+  from: (relation: string) => any;
+  rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+};
 type StoredTrip = { id: string; trip_uuid: string };
 
 function isIsoDate(value: string) {
@@ -527,9 +530,37 @@ export const saveTrip = createServerFn({ method: "POST" })
     const trip = normalizeTripForPersistence(data.trip);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
-    const saved = await saveRelationalTrip(db, context.userId, trip);
-    await updateTripJsonBackup(db, context.userId, trip, saved.id);
-    return { tripId: saved.trip_uuid };
+    const { data: saved, error } = await db.rpc("save_trip_snapshot", {
+      p_workspace_user_id: context.userId,
+      p_trip: trip,
+    });
+
+    if (error) {
+      // De code kan veilig eerder dan de SQL-migratie worden uitgerold. Alleen
+      // in dat geval blijft de bestaande overgangsroute bruikbaar; andere
+      // databasefouten worden nooit verborgen of half herhaald.
+      const message =
+        error instanceof Error
+          ? error.message
+          : error && typeof error === "object" && "message" in error && typeof error.message === "string"
+            ? error.message
+            : String(error);
+      const code =
+        error && typeof error === "object" && "code" in error && typeof error.code === "string"
+          ? error.code
+          : undefined;
+      if (code !== "PGRST202" && (!message.includes("save_trip_snapshot") || !message.includes("function"))) {
+        throw error;
+      }
+      const fallback = await saveRelationalTrip(db, context.userId, trip);
+      await updateTripJsonBackup(db, context.userId, trip, fallback.id);
+      return { tripId: fallback.trip_uuid };
+    }
+
+    const row = Array.isArray(saved) ? saved[0] : saved;
+    const tripId = row && typeof row === "object" && "trip_uuid" in row ? row.trip_uuid : undefined;
+    if (typeof tripId !== "string") throw new Error("Reis kon niet atomair worden opgeslagen.");
+    return { tripId };
   });
 
 export const deleteTrip = createServerFn({ method: "POST" })
