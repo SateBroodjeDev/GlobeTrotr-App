@@ -115,6 +115,11 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [ ] Wachtwoord wijzigen via Supabase Auth
 - [ ] Overzicht van gekoppelde inlogmethodes (e-mail/wachtwoord, Google en toekomstige providers)
 - [ ] OAuth-identiteit koppelen/ontkoppelen, alleen wanneer de provider in Supabase is geconfigureerd
+- [ ] Inlog-, registratie- en profielpagina geschikt maken voor Lovable/Supabase OAuth met **Apple**, **Google** en **Microsoft**
+- [ ] Per provider de OAuth-app, redirect-URL’s, client-ID en secret veilig configureren in Lovable Cloud / Supabase Auth; secrets nooit in browsercode opslaan
+- [ ] Knoppen tonen voor alleen de providers die werkelijk zijn geconfigureerd, met een duidelijke fallback naar e-mail en wachtwoord
+- [ ] Bij eerste OAuth-login profielnaam en e-mail veilig aanvullen zonder een bestaand account of workspace te dupliceren
+- [ ] Op de profielpagina gekoppelde Apple-, Google- en Microsoft-identiteiten tonen en veilig koppelen/ontkoppelen; voorkom dat de laatste bruikbare inlogmethode wordt verwijderd
 - [ ] Actieve sessies en uitloggen op andere apparaten, als de gekozen Auth-configuratie dit ondersteunt
 - [ ] Account verwijderen met expliciete bevestiging, gegevens-export en duidelijke bewaartermijn
 
