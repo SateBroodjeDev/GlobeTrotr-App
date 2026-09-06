@@ -39,4 +39,5 @@ Wijzigingen moeten daarom:
 - overzichtelijk blijven;
 - bestaande componenten zoveel mogelijk hergebruiken;
 - geen onnodige dependencies toevoegen;
+- geen onnodige dependencies toevoegen;
 - geen grote architectuurwijzigingen maken zonder toestemming.

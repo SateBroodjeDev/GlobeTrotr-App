@@ -28,8 +28,6 @@ export type PublicTripResult =
 type Row = {
   data: unknown;
   public_token: string;
-  share_financials: boolean;
-  share_pin_hash: string | null;
 };
 
 type AnyTrip = Record<string, unknown>;
@@ -68,9 +66,8 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("workspaces")
-    .select("data, public_token, share_financials, share_pin_hash")
-    .eq("share_enabled", true)
-    .limit(50);
+    .select("data, public_token")
+    .limit(100);
   if (error) return [] as PublicTripCard[];
   const out: PublicTripCard[] = [];
   for (const row of (data ?? []) as Row[]) {
@@ -85,17 +82,17 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("workspaces")
-      .select("data, public_token, share_financials, share_pin_hash")
+      .select("data, public_token")
       .eq("public_token", input.token)
-      .eq("share_enabled", true)
       .maybeSingle();
     if (error || !data) return { status: "not_found" } as PublicTripResult;
     const row = data as Row;
-    if (row.share_pin_hash && (await hashPin(input.pin ?? "")) !== row.share_pin_hash) {
-      return { status: "pin_required" } as PublicTripResult;
-    }
     const trip = tripsOf(row).find((t) => String(t['id']) === input.tripId);
     if (!trip) return { status: "not_found" } as PublicTripResult;
+    const pinHash = typeof trip["sharePinHash"] === "string" ? trip["sharePinHash"] : null;
+    if (pinHash && (await hashPin(input.pin ?? "")) !== pinHash) {
+      return { status: "pin_required" } as PublicTripResult;
+    }
     const detail: PublicTripDetail = {
       ...card(row, trip),
       itinerary: (Array.isArray(trip['itinerary']) ? (trip['itinerary'] as AnyTrip[]) : []).map(
@@ -106,7 +103,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
         }),
       ),
     };
-    if (row.share_financials) {
+    if (trip["shareFinancials"] === true) {
       detail.budget = Number(trip['budget'] ?? 0);
       detail.currency = "EUR";
     }

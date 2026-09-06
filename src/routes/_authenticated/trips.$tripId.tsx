@@ -1,11 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Archive, BookOpen, CalendarDays, FileDown, FileText, Globe2, Plus, Trash2 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
-import { getSharing, updateSharing } from "@/lib/cloud.functions";
 import { canEdit, canExport, hasFeature } from "@/lib/plans";
 import { CATEGORIES, STATUS_LABEL, tripStatus, type Expense, type ExpenseCategory } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
@@ -56,7 +54,6 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 function TripDetail() {
   const { tripId } = Route.useParams();
   const { state, updateTrip, rates, ratesLive } = useWorkspace();
-  const queryClient = useQueryClient();
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
   const trip = found;
@@ -80,10 +77,6 @@ function TripDetail() {
   });
   const [item, setItem] = useState({ day: trip.start, title: "" });
   const [sharePin, setSharePin] = useState("");
-  const sharing = useQuery({
-    queryKey: ["sharing"],
-    queryFn: () => getSharing(),
-  });
 
   function addExpense() {
     if (!draft.title.trim() || !draft.amount) {
@@ -115,21 +108,6 @@ function TripDetail() {
     updateTrip(trip.id, (current) => ({ ...current, end }));
   }
 
-  async function saveSharing(
-    changes: Partial<{ share_enabled: boolean; share_financials: boolean; pin: string | null }>,
-  ) {
-    const settings = sharing.data;
-    const next = await updateSharing({
-      data: {
-        share_enabled: changes.share_enabled ?? settings?.share_enabled ?? trip.public,
-        share_financials: changes.share_financials ?? settings?.share_financials ?? false,
-        ...(changes.pin === undefined ? {} : { pin: changes.pin }),
-      },
-    });
-    queryClient.setQueryData(["sharing"], next);
-    return next;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -150,7 +128,6 @@ function TripDetail() {
             onClick={async () => {
               const next = !trip.public;
               try {
-                await saveSharing({ share_enabled: next || Boolean(sharing.data?.share_enabled) });
                 updateTrip(trip.id, (t) => ({ ...t, public: next }));
                 toast.success(
                   next
@@ -267,16 +244,19 @@ function TripDetail() {
               <span>
                 <span className="block font-medium">Budget delen</span>
                 <span className="block text-muted-foreground">
-                  Toon het reisbudget op alle openbare reizen in dit account.
+                  Toon alleen het budget van deze reis op de openbare reispagina.
                 </span>
               </span>
               <input
                 type="checkbox"
-                checked={sharing.data?.share_financials ?? false}
-                disabled={!editable || sharing.isLoading}
+                checked={trip.shareFinancials ?? false}
+                disabled={!editable}
                 onChange={async (event) => {
                   try {
-                    await saveSharing({ share_financials: event.target.checked });
+                    updateTrip(trip.id, (current) => ({
+                      ...current,
+                      shareFinancials: event.target.checked,
+                    }));
                     toast.success(event.target.checked ? "Budget wordt gedeeld." : "Budget is weer privé.");
                   } catch {
                     toast.error("De deelinstelling kon niet worden opgeslagen.");
@@ -288,7 +268,7 @@ function TripDetail() {
             <div className="space-y-2">
               <p className="font-medium">PIN-beveiliging</p>
               <p className="text-muted-foreground">
-                Beveilig alle openbare reizen in dit account met een PIN van 6 tot 12 cijfers.
+                Beveilig alleen deze openbare reis met een PIN van 6 tot 12 cijfers.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Input
@@ -301,14 +281,15 @@ function TripDetail() {
                   value={sharePin}
                   disabled={!editable}
                   onChange={(event) => setSharePin(event.target.value.replace(/\D/g, ""))}
-                  placeholder={sharing.data?.has_pin ? "Nieuwe PIN" : "Kies een PIN"}
+                  placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
                 />
                 <Button
                   variant="outline"
                   disabled={!editable || sharePin.length < 6}
                   onClick={async () => {
                     try {
-                      await saveSharing({ pin: sharePin });
+                      const sharePinHash = await hashSharingPin(sharePin);
+                      updateTrip(trip.id, (current) => ({ ...current, sharePinHash }));
                       setSharePin("");
                       toast.success("PIN-beveiliging ingeschakeld.");
                     } catch (error) {
@@ -316,15 +297,18 @@ function TripDetail() {
                     }
                   }}
                 >
-                  {sharing.data?.has_pin ? "PIN wijzigen" : "PIN instellen"}
+                  {trip.sharePinHash ? "PIN wijzigen" : "PIN instellen"}
                 </Button>
-                {sharing.data?.has_pin && (
+                {trip.sharePinHash && (
                   <Button
                     variant="ghost"
                     disabled={!editable}
                     onClick={async () => {
                       try {
-                        await saveSharing({ pin: null });
+                        updateTrip(trip.id, (current) => {
+                          const { sharePinHash: _sharePinHash, ...rest } = current;
+                          return rest;
+                        });
                         toast.success("PIN-beveiliging verwijderd.");
                       } catch {
                         toast.error("PIN kon niet worden verwijderd.");
@@ -652,4 +636,11 @@ function Stat({ label, value }: { label: string; value: string }) {
       </CardContent>
     </Card>
   );
+}
+
+async function hashSharingPin(pin: string) {
+  const bytes = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pin)),
+  );
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }

@@ -17,13 +17,13 @@ GlobeTrotr richt zich in de eerste plaats op vriendengroepen, koppels en familie
 - [x] Tripstatus, afteller, paklijsten en voortgang
 - [x] Start- en einddatum van een reis aanpassen
 
-## Fase 3 — Delen (deels klaar)
+## Fase 3 — Delen (klaar)
 
 - [x] Reis per keuze openbaar maken of weer privé zetten
 - [x] Publieke reispagina via een niet-voorspelbare token-URL
 - [x] Openbare reizen tonen op de homepage
-- [ ] PIN-beveiliging voor een gedeelde reis
-- [ ] Keuze om budget of financiële samenvatting op de publieke reispagina te delen
+- [x] PIN-beveiliging per gedeelde reis
+- [x] Keuze om het budget per openbare reis te delen
 
 ## Fase 4 — Documenten & export (deels klaar)
 

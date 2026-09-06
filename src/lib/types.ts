@@ -107,6 +107,10 @@ export type Trip = {
   archived?: boolean;
   /** Openbaar zichtbaar op de homepage */
   public?: boolean;
+  /** Toon het budget op de openbare reispagina */
+  shareFinancials?: boolean;
+  /** SHA-256-hash van de optionele PIN voor deze openbare reis */
+  sharePinHash?: string;
 };
 
 export function tripStatus(trip: Trip, today = new Date()): TripStatus {
