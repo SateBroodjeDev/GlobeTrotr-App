@@ -21,12 +21,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
 
 const NAV = [
-  { to: "/", label: "Reizen", icon: Map },
+  { to: "/dashboard", label: "Reizen", icon: Map },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/team", label: "Team & rollen", icon: Users },
   { to: "/branding", label: "White-label", icon: Palette },
   { to: "/billing", label: "Abonnement", icon: CreditCard },
 ] as const;
+
+const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { state, update, cloud } = useWorkspace();
@@ -67,7 +69,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="order-3 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
-            {NAV.map((item) => (
+            {(user ? NAV : PUBLIC_NAV).map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -82,9 +84,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <Badge variant="secondary" className="gap-1">
-              <Globe2 className="size-3" /> {plan.name}
-            </Badge>
+            {user && (
+              <Badge variant="secondary" className="gap-1">
+                <Globe2 className="size-3" /> {plan.name}
+              </Badge>
+            )}
             {user ? (
               <div className="flex items-center gap-2">
                 <span
@@ -100,10 +104,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             ) : (
               <Button asChild size="sm">
                 <Link to="/auth">
-                  <LogIn className="size-4" /> Inloggen
+                  <LogIn className="size-4" /> Inloggen / registreren
                 </Link>
               </Button>
             )}
+            {user && (
             <select
               aria-label="Actieve rol"
               value={state.role}
@@ -118,6 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </option>
               ))}
             </select>
+            )}
           </div>
         </div>
       </header>
