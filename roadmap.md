@@ -91,14 +91,15 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 ## Definitieve uitvoeringsvolgorde
 
 1. **SQL-validatie & unieke reis-ID**: afgerond; relationele reizen hebben een globale UUID en de controles zijn uitgevoerd.
-2. **SQL als bron van waarheid**: eerstvolgend. Serverfuncties en schermen gecontroleerd van JSON naar relationele tabellen verplaatsen.
-3. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
-4. **Accountinstellingen**: resterende beveiliging, voorkeuren, OAuth-identiteiten en abonnement logisch afronden.
-5. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
-6. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
-7. **Reis onderweg**: routeoptimalisatie, offline toegang, meldingen, taalkeuze en dark mode.
-8. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
-9. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+2. **Relationele reisopslag**: afgerond en handmatig gevalideerd; laden en wijzigen van reizen en kindgegevens loopt via SQL, met JSON als tijdelijke compatibiliteitskopie.
+3. **Accountvoorkeuren**: eerstvolgend. Taal, tijdzone en dark-modevoorkeur veilig per profiel opslaan en toepassen.
+4. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
+5. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
+6. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
+7. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
+8. **Reis onderweg**: routeoptimalisatie, offline toegang en meldingen.
+9. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
+10. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
 
 ## Huidige technische stand â€” 6 september 2026
 
@@ -107,8 +108,10 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Een herstelmigratie is beschikbaar voor reizen die tijdens de overgang alleen in `workspaces.data` waren beland: `20260906160000_repair_missing_trips_and_json_ids.sql`.
 - [x] Nieuwe reizen worden op de server als UUID in `trips` aangemaakt; publicatie gebruikt dezelfde UUID en wordt direct relationeel bevestigd.
 - [x] Reizen worden bij laden uit `trips` en alle relationele kindtabellen opgebouwd. Reismutaties schrijven rechtstreeks naar SQL en werken daarna de JSON-kopie bij.
+- [x] Handmatige productiecontrole: relationeel laden en wijzigen werkt na het laden van de laatste Lovable-commit.
 - [ ] `workspaces.data` blijft voorlopig de bron voor workspace-instellingen en als compatibiliteitskopie van reizen. Verwijder deze kopie pas na relationele transacties, collaboratieve RLS-tests en productiecontrole.
-- [ ] Volgende technische mijlpaal: relationele transacties/optimistic concurrency voor gelijktijdige wijzigingen, daarna toegang voor geaccepteerde reisleden met een eigen account.
+- [ ] Eerstvolgende implementatie: profielvoorkeuren voor taal, tijdzone en dark mode. Dit staat los van reisopslag en is daardoor veilig naast de huidige testfase te bouwen.
+- [ ] Volgende data-mijlpaal daarna: relationele transacties/optimistic concurrency voor gelijktijdige wijzigingen, daarna toegang voor geaccepteerde reisleden met een eigen account.
 
 ## P0 — Accountinstellingen
 
@@ -121,7 +124,9 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [x] Profielfoto uploaden en vervangen via private Storage onder de eigen gebruikersmap (na SQL-import)
 - [x] Primair e-mailadres wijzigen via Supabase Auth, inclusief de bestaande bevestigingsstroom
 - [x] Telefoonnummer opslaan voor contact en optionele notificaties; nooit publiek tonen
-- [ ] Taal, tijdzone en dark-modevoorkeur opslaan
+- [ ] Taal-, tijdzone- en dark-modevoorkeur opslaan in `profiles` (niet meer in `workspaces.data`)
+- [ ] Voeg een `timezone`-kolom met veilige standaardwaarde toe, en gebruik de bestaande `locale`- en `theme`-kolommen
+- [ ] Pas de gekozen weergavemodus direct toe, inclusief systeemmodus via `prefers-color-scheme`; vertalingen volgen in een afzonderlijke stap
 
 ### Beveiliging & inloggen
 
@@ -348,14 +353,14 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 
 - [ ] Taalinfrastructuur met Nederlandse en Engelse vertaalbestanden; geen losse hardcoded Engelse labels
 - [ ] Taalkeuze in accountinstellingen en bij eerste bezoek, standaard Nederlands
-- [ ] Taalkeuze ook opslaan in het workspace-`data`-document en toepassen op e-mails, publieke reispagina’s en exports
+- [ ] Taalkeuze uit `profiles.locale` toepassen op e-mails, publieke reispagina’s en exports
 - [ ] Datums, bedragen, valuta en tijdzones tonen volgens de gekozen locale
 - [ ] Nieuwe teksten alleen via vertaalkeys toevoegen; controle op ontbrekende vertalingen in de build
 
 ## P1 — Weergave & dark mode
 
 - [ ] Dark mode en light mode voor de volledige app
-- [ ] Keuze: systeeminstelling volgen, licht of donker; opslaan in het workspace-`data`-document
+- [ ] Keuze: systeeminstelling volgen, licht of donker; opslaan in `profiles.theme`
 - [ ] Donkere variant voor kaarten, formulieren, tabellen, openbare reispagina’s en lege statussen
 - [ ] Contrast, focusstatussen en foutmeldingen controleren op toegankelijkheid in beide modi
 - [ ] PDF- en printweergave bewust licht houden voor leesbaarheid en papierverbruik
