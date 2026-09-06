@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
-export const Route = createFileRoute("/branding")({
+export const Route = createFileRoute("/_authenticated/branding")({
   head: () => ({
     meta: [
       { title: "White-label branding — GlobeTrotr" },

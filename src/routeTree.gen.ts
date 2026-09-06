@@ -10,21 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as BillingRouteImport } from './routes/billing'
-import { Route as BrandingRouteImport } from './routes/branding'
-import { Route as TeamRouteImport } from './routes/team'
-import { Route as TripsTripIdRouteImport } from './routes/trips.$tripId'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
+import { Route as AuthenticatedBrandingRouteImport } from './routes/_authenticated/branding'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
+import { Route as ReisTokenTripIdRouteImport } from './routes/reis.$token.$tripId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -32,93 +34,120 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BillingRoute = BillingRouteImport.update({
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const BrandingRoute = BrandingRouteImport.update({
+const AuthenticatedBrandingRoute = AuthenticatedBrandingRouteImport.update({
   id: '/branding',
   path: '/branding',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const TeamRoute = TeamRouteImport.update({
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   id: '/team',
   path: '/team',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const TripsTripIdRoute = TripsTripIdRouteImport.update({
-  id: '/trips/$tripId',
-  path: '/trips/$tripId',
+const AuthenticatedTripsTripIdRoute =
+  AuthenticatedTripsTripIdRouteImport.update({
+    id: '/trips/$tripId',
+    path: '/trips/$tripId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ReisTokenTripIdRoute = ReisTokenTripIdRouteImport.update({
+  id: '/reis/$token/$tripId',
+  path: '/reis/$token/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
-  '/billing': typeof BillingRoute
-  '/branding': typeof BrandingRoute
-  '/team': typeof TeamRoute
-  '/trips/$tripId': typeof TripsTripIdRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/billing': typeof AuthenticatedBillingRoute
+  '/branding': typeof AuthenticatedBrandingRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/team': typeof AuthenticatedTeamRoute
+  '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
+  '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
-  '/billing': typeof BillingRoute
-  '/branding': typeof BrandingRoute
-  '/team': typeof TeamRoute
-  '/trips/$tripId': typeof TripsTripIdRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/billing': typeof AuthenticatedBillingRoute
+  '/branding': typeof AuthenticatedBrandingRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/team': typeof AuthenticatedTeamRoute
+  '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
+  '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/analytics': typeof AnalyticsRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/billing': typeof BillingRoute
-  '/branding': typeof BrandingRoute
-  '/team': typeof TeamRoute
-  '/trips/$tripId': typeof TripsTripIdRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/billing': typeof AuthenticatedBillingRoute
+  '/_authenticated/branding': typeof AuthenticatedBrandingRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
+  '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/analytics'
     | '/auth'
+    | '/analytics'
     | '/billing'
     | '/branding'
+    | '/dashboard'
     | '/team'
     | '/trips/$tripId'
+    | '/reis/$token/$tripId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/analytics'
     | '/auth'
+    | '/analytics'
     | '/billing'
     | '/branding'
+    | '/dashboard'
     | '/team'
     | '/trips/$tripId'
+    | '/reis/$token/$tripId'
   id:
     | '__root__'
     | '/'
-    | '/analytics'
+    | '/_authenticated'
     | '/auth'
-    | '/billing'
-    | '/branding'
-    | '/team'
-    | '/trips/$tripId'
+    | '/_authenticated/analytics'
+    | '/_authenticated/billing'
+    | '/_authenticated/branding'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/team'
+    | '/_authenticated/trips/$tripId'
+    | '/reis/$token/$tripId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AnalyticsRoute: typeof AnalyticsRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  BillingRoute: typeof BillingRoute
-  BrandingRoute: typeof BrandingRoute
-  TeamRoute: typeof TeamRoute
-  TripsTripIdRoute: typeof TripsTripIdRoute
+  ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,11 +159,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -144,45 +173,84 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/billing': {
-      id: '/billing'
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/billing': {
+      id: '/_authenticated/billing'
       path: '/billing'
       fullPath: '/billing'
-      preLoaderRoute: typeof BillingRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/branding': {
-      id: '/branding'
+    '/_authenticated/branding': {
+      id: '/_authenticated/branding'
       path: '/branding'
       fullPath: '/branding'
-      preLoaderRoute: typeof BrandingRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedBrandingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/team': {
-      id: '/team'
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/team': {
+      id: '/_authenticated/team'
       path: '/team'
       fullPath: '/team'
-      preLoaderRoute: typeof TeamRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/trips/$tripId': {
-      id: '/trips/$tripId'
+    '/_authenticated/trips/$tripId': {
+      id: '/_authenticated/trips/$tripId'
       path: '/trips/$tripId'
       fullPath: '/trips/$tripId'
-      preLoaderRoute: typeof TripsTripIdRouteImport
+      preLoaderRoute: typeof AuthenticatedTripsTripIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/reis/$token/$tripId': {
+      id: '/reis/$token/$tripId'
+      path: '/reis/$token/$tripId'
+      fullPath: '/reis/$token/$tripId'
+      preLoaderRoute: typeof ReisTokenTripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
+  AuthenticatedBrandingRoute: typeof AuthenticatedBrandingRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedBillingRoute: AuthenticatedBillingRoute,
+  AuthenticatedBrandingRoute: AuthenticatedBrandingRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AnalyticsRoute: AnalyticsRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  BillingRoute: BillingRoute,
-  BrandingRoute: BrandingRoute,
-  TeamRoute: TeamRoute,
-  TripsTripIdRoute: TripsTripIdRoute,
+  ReisTokenTripIdRoute: ReisTokenTripIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

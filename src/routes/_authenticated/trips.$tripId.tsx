@@ -2,8 +2,9 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
 import { toast } from "sonner";
-import { Archive, BookOpen, FileDown, FileText, Plus, Trash2 } from "lucide-react";
+import { Archive, BookOpen, FileDown, FileText, Globe2, Plus, Trash2 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
+import { updateSharing } from "@/lib/cloud.functions";
 import { canEdit, canExport, hasFeature } from "@/lib/plans";
 import { CATEGORIES, STATUS_LABEL, tripStatus, type Expense, type ExpenseCategory } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
@@ -25,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
 
-export const Route = createFileRoute("/trips/$tripId")({
+export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   head: () => ({
     meta: [
       { title: "Reisdetail — GlobeTrotr" },
@@ -44,7 +45,7 @@ export const Route = createFileRoute("/trips/$tripId")({
   notFoundComponent: () => (
     <p className="text-sm text-muted-foreground">
       Reis niet gevonden.{" "}
-      <Link to="/" className="underline">
+      <Link to="/dashboard" className="underline">
         Terug naar overzicht
       </Link>
     </p>
@@ -90,7 +91,7 @@ function TripDetail() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Link to="/" className="text-xs text-muted-foreground hover:underline">
+          <Link to="/dashboard" className="text-xs text-muted-foreground hover:underline">
             ← Alle reizen
           </Link>
           <h1 className="font-display text-2xl font-semibold">{trip.name}</h1>
@@ -100,6 +101,28 @@ function TripDetail() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button
+            variant={trip.public ? "default" : "outline"}
+            disabled={!editable}
+            onClick={async () => {
+              const next = !trip.public;
+              updateTrip(trip.id, (t) => ({ ...t, public: next }));
+              try {
+                await updateSharing({
+                  data: { share_enabled: true, share_financials: false },
+                });
+                toast.success(
+                  next
+                    ? "Reis staat nu openbaar op de homepage"
+                    : "Reis is weer privé",
+                );
+              } catch {
+                toast.error("Delen kon niet worden bijgewerkt");
+              }
+            }}
+          >
+            <Globe2 className="size-4" /> {trip.public ? "Openbaar" : "Openbaar delen"}
+          </Button>
           <Button
             variant="outline"
             disabled={!editable}
