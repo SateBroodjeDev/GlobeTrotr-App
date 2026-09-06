@@ -189,6 +189,70 @@ async function replaceTripChildren(
   }
 }
 
+async function saveRelationalTrip(client: UntypedSupabase, userId: string, trip: Trip) {
+  const { data: existingByUuid } = await client
+    .from("trips")
+    .select("id, trip_uuid")
+    .eq("workspace_user_id", userId)
+    .eq("trip_uuid", trip.id)
+    .maybeSingle();
+  const legacyId = (existingByUuid as StoredTrip | null)?.id ?? trip.id;
+  const { data: savedTrip, error } = await client
+    .from("trips")
+    .upsert(
+      {
+        workspace_user_id: userId,
+        id: legacyId,
+        trip_uuid: trip.id,
+        name: trip.name,
+        template: trip.template,
+        start_date: trip.start || null,
+        end_date: trip.end || null,
+        budget: trip.budget,
+        travelers: trip.travelers ?? [],
+        archived: trip.archived ?? false,
+        is_public: trip.public ?? false,
+        share_financials: trip.shareFinancials ?? false,
+        share_pin_hash: trip.sharePinHash ?? null,
+      },
+      { onConflict: "workspace_user_id,id" },
+    )
+    .select("id, trip_uuid")
+    .single();
+  if (error) throw error;
+  const saved = savedTrip as StoredTrip;
+  await replaceTripChildren(client, userId, trip, saved.id, saved.trip_uuid);
+  return saved;
+}
+
+async function updateTripJsonBackup(
+  client: UntypedSupabase,
+  userId: string,
+  trip: Trip,
+  legacyTripId: string,
+) {
+  const { data: workspace, error } = await client
+    .from("workspaces")
+    .select("data")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  const current = (workspace?.data ?? {}) as Partial<WorkspaceState>;
+  const trips = Array.isArray(current.trips) ? current.trips : [];
+  const normalized = { ...trip, id: trip.id };
+  const exists = trips.some((item) => item.id === trip.id || item.id === legacyTripId);
+  const data = {
+    ...current,
+    trips: exists
+      ? trips.map((item) => (item.id === trip.id || item.id === legacyTripId ? normalized : item))
+      : [...trips, normalized],
+  };
+  const { error: updateError } = await client
+    .from("workspaces")
+    .upsert({ user_id: userId, data }, { onConflict: "user_id" });
+  if (updateError) throw updateError;
+}
+
 function withDatabaseTripIds(data: unknown, rows: StoredTrip[]): unknown {
   if (!data || typeof data !== "object") return data;
   const workspace = data as WorkspaceState;
@@ -205,6 +269,123 @@ function withDatabaseTripIds(data: unknown, rows: StoredTrip[]): unknown {
   } satisfies WorkspaceState;
 }
 
+async function loadRelationalTrips(client: UntypedSupabase, userId: string): Promise<Trip[]> {
+  const { data: parents, error } = await client
+    .from("trips")
+    .select(
+      "trip_uuid, name, template, start_date, end_date, budget, travelers, archived, is_public, share_financials, share_pin_hash",
+    )
+    .eq("workspace_user_id", userId)
+    .order("start_date", { ascending: true });
+  if (error) throw error;
+  const rows = (parents ?? []) as Record<string, any>[];
+  const ids = rows.map((row) => String(row.trip_uuid));
+  if (!ids.length) return [];
+  const [stops, itinerary, expenses, travelItems, packing, members] = await Promise.all([
+    client.from("trip_stops").select("*").in("trip_uuid", ids).order("position"),
+    client.from("trip_itinerary_items").select("*").in("trip_uuid", ids).order("position"),
+    client.from("trip_expenses").select("*").in("trip_uuid", ids),
+    client.from("trip_travel_items").select("*").in("trip_uuid", ids),
+    client.from("trip_packing_items").select("*").in("trip_uuid", ids).order("position"),
+    client.from("trip_members").select("*").in("trip_uuid", ids),
+  ]);
+  const childError = [stops, itinerary, expenses, travelItems, packing, members].find(
+    (result) => result.error,
+  )?.error;
+  if (childError) throw childError;
+  const grouped = (result: { data?: unknown }, key = "trip_uuid") => {
+    const map = new Map<string, Record<string, any>[]>();
+    for (const row of (result.data ?? []) as Record<string, any>[]) {
+      const id = String(row[key]);
+      map.set(id, [...(map.get(id) ?? []), row]);
+    }
+    return map;
+  };
+  const stopsByTrip = grouped(stops);
+  const itineraryByTrip = grouped(itinerary);
+  const expensesByTrip = grouped(expenses);
+  const travelByTrip = grouped(travelItems);
+  const packingByTrip = grouped(packing);
+  const membersByTrip = grouped(members);
+  return rows.map((row) => {
+    const id = String(row.trip_uuid);
+    return {
+      id,
+      name: String(row.name ?? "Reis"),
+      template: row.template,
+      start: row.start_date ?? "",
+      end: row.end_date ?? "",
+      budget: Number(row.budget ?? 0),
+      travelers: Array.isArray(row.travelers) ? row.travelers : [],
+      archived: Boolean(row.archived),
+      public: Boolean(row.is_public),
+      shareFinancials: Boolean(row.share_financials),
+      ...(row.share_pin_hash ? { sharePinHash: String(row.share_pin_hash) } : {}),
+      stops: (stopsByTrip.get(id) ?? []).map((stop) => ({
+        id: String(stop.id),
+        name: String(stop.name),
+        country: String(stop.country ?? ""),
+        lat: Number(stop.lat),
+        lon: Number(stop.lon),
+        arrive: stop.arrive_date ?? undefined,
+        nights: stop.nights ?? undefined,
+      })),
+      itinerary: (itineraryByTrip.get(id) ?? []).map((item) => ({
+        id: String(item.id),
+        day: String(item.day),
+        title: String(item.title),
+        notes: item.notes ?? undefined,
+      })),
+      expenses: (expensesByTrip.get(id) ?? []).map((expense) => ({
+        id: String(expense.id),
+        date: String(expense.expense_date),
+        title: String(expense.title),
+        category: expense.category,
+        amount: Number(expense.amount),
+        currency: String(expense.currency),
+        paidBy: String(expense.paid_by),
+        billable: Boolean(expense.billable),
+        splitWith: Array.isArray(expense.split_with) ? expense.split_with : [],
+        receiptPath: expense.receipt_path ?? undefined,
+        receiptName: expense.receipt_name ?? undefined,
+      })),
+      travelItems: (travelByTrip.get(id) ?? []).map((item) => ({
+        id: String(item.id),
+        type: item.item_type,
+        title: String(item.title),
+        date: String(item.start_date),
+        endDate: item.end_date ?? undefined,
+        provider: item.provider ?? undefined,
+        bookingReference: item.booking_reference ?? undefined,
+        flightNumber: item.flight_number ?? undefined,
+        flightStatus: item.flight_status ?? undefined,
+        departure: item.departure ?? undefined,
+        arrival: item.arrival ?? undefined,
+        location: item.location ?? undefined,
+        amount: item.amount === null ? undefined : Number(item.amount),
+        currency: item.currency ?? undefined,
+        expenseId: item.expense_id ?? undefined,
+        notes: item.notes ?? undefined,
+      })),
+      packing: (packingByTrip.get(id) ?? []).map((item) => ({
+        id: String(item.id),
+        label: String(item.label),
+        done: Boolean(item.done),
+      })),
+      members: (membersByTrip.get(id) ?? [])
+        .filter((member) => member.role !== "owner")
+        .map((member) => ({
+          id: String(member.id),
+          name: String(member.name),
+          email: String(member.email),
+          role: member.role,
+          status: member.status,
+          invitedAt: String(member.invited_at),
+        })),
+    } as Trip;
+  });
+}
+
 export const loadWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -218,6 +399,11 @@ export const loadWorkspace = createServerFn({ method: "GET" })
     if (!data) return null;
     try {
       const db = supabase as unknown as UntypedSupabase;
+      const relationalTrips = await loadRelationalTrips(db, userId);
+      const jsonWorkspace = data.data as WorkspaceState;
+      if (relationalTrips.length || !jsonWorkspace?.trips?.length) {
+        return { ...data, data: { ...jsonWorkspace, trips: relationalTrips } };
+      }
       const { data: trips, error: tripsError } = await db
         .from("trips")
         .select("id, trip_uuid")
@@ -301,6 +487,52 @@ export const syncTripPublication = createServerFn({ method: "POST" })
     return { synced: Boolean(byLegacyId) };
   });
 
+/** Primary write path for a private trip and all of its child records. */
+export const saveTrip = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { trip: Trip }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as unknown as UntypedSupabase;
+    const saved = await saveRelationalTrip(db, context.userId, data.trip);
+    await updateTripJsonBackup(db, context.userId, data.trip, saved.id);
+    return { tripId: saved.trip_uuid };
+  });
+
+export const deleteTrip = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { tripId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as unknown as UntypedSupabase;
+    const { data: stored, error } = await db
+      .from("trips")
+      .delete()
+      .eq("workspace_user_id", context.userId)
+      .eq("trip_uuid", data.tripId)
+      .select("id")
+      .maybeSingle();
+    if (error) throw error;
+    const { data: workspace, error: workspaceError } = await db
+      .from("workspaces")
+      .select("data")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (workspaceError) throw workspaceError;
+    const current = (workspace?.data ?? {}) as Partial<WorkspaceState>;
+    const dataCopy = {
+      ...current,
+      trips: (current.trips ?? []).filter(
+        (trip) => trip.id !== data.tripId && trip.id !== (stored as StoredTrip | null)?.id,
+      ),
+    };
+    const { error: backupError } = await db
+      .from("workspaces")
+      .upsert({ user_id: context.userId, data: dataCopy }, { onConflict: "user_id" });
+    if (backupError) throw backupError;
+    return { deleted: Boolean(stored) };
+  });
+
 export const saveWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { data: unknown }) => input)
@@ -311,19 +543,7 @@ export const saveWorkspace = createServerFn({ method: "POST" })
       .from("workspaces")
       .upsert({ user_id: context.userId, data: data.data as never }, { onConflict: "user_id" });
     if (error) throw error;
-    try {
-      await withinTimeout(
-        syncTripsFromWorkspaceJson(db, context.userId, data.data as WorkspaceState),
-        4_000,
-      );
-      return { ok: true, relationalSynced: true };
-    } catch (syncError) {
-      // De JSON-opslag blijft de veilige terugval totdat de UUID-migratie in
-      // Lovable is uitgevoerd. Falen van alleen de nieuwe tabellen mag geen
-      // bestaande reiswijziging ongedaan maken.
-      console.warn("Relationele reissync nog niet beschikbaar", syncError);
-      return { ok: true, relationalSynced: false };
-    }
+    return { ok: true };
   });
 
 export const updateSharing = createServerFn({ method: "POST" })

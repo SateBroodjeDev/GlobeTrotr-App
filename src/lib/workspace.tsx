@@ -13,7 +13,9 @@ import { FALLBACK_RATES, type Rates } from "./services";
 import { getRates } from "./fx.functions";
 import {
   createTrip as createTripInDatabase,
+  deleteTrip as deleteTripInDatabase,
   loadWorkspace,
+  saveTrip as saveTripInDatabase,
   saveWorkspace,
 } from "./cloud.functions";
 import { useAuth } from "./auth";
@@ -62,6 +64,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const stateRef = useRef(state);
   const cloudPersistenceReady = useRef(false);
   const saveSequence = useRef(0);
+  const pendingTripIds = useRef(new Set<string>());
+  const workspaceDirty = useRef(false);
+  const [saveRevision, setSaveRevision] = useState(0);
   stateRef.current = state;
 
   const cacheKey = user ? `${STORAGE_KEY}.${user.id}` : null;
@@ -120,22 +125,39 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     };
   }, [user, authLoading]);
 
-  // Debounced cloud save
+  // Workspace-instellingen en reizen gebruiken verschillende schrijfpunten:
+  // reisdata gaat direct naar de relationele tabellen, overige instellingen
+  // blijven tijdelijk in het workspace-document.
   useEffect(() => {
     if (!user || !hydrated.current || !cloudPersistenceReady.current) return;
+    if (!workspaceDirty.current && !pendingTripIds.current.size) return;
     const t = setTimeout(() => {
       const sequence = ++saveSequence.current;
+      const tripIds = [...pendingTripIds.current];
+      const shouldSaveWorkspace = workspaceDirty.current;
+      pendingTripIds.current.clear();
+      workspaceDirty.current = false;
+      const trips = tripIds
+        .map((id) => stateRef.current.trips.find((trip) => trip.id === id))
+        .filter((trip): trip is Trip => Boolean(trip));
       setCloud("saving");
-      saveWorkspace({ data: { data: stateRef.current } })
+      (async () => {
+        if (shouldSaveWorkspace) await saveWorkspace({ data: { data: stateRef.current } });
+        // Achter elkaar opslaan houdt de JSON-compatibiliteitskopie consistent
+        // wanneer twee verschillende reizen vlak na elkaar wijzigen.
+        for (const trip of trips) await saveTripInDatabase({ data: { trip } });
+      })()
         .then(() => {
           if (sequence === saveSequence.current) setCloud("synced");
         })
         .catch(() => {
+          if (shouldSaveWorkspace) workspaceDirty.current = true;
+          tripIds.forEach((id) => pendingTripIds.current.add(id));
           if (sequence === saveSequence.current) setCloud("synced");
         });
     }, 900);
     return () => clearTimeout(t);
-  }, [state, user]);
+  }, [saveRevision, user]);
 
   const ratesQuery = useQuery({
     queryKey: ["fx-rates"],
@@ -145,11 +167,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   });
 
   const update = useCallback((fn: (s: WorkspaceState) => WorkspaceState) => {
+    workspaceDirty.current = true;
     setState((s) => fn(s));
+    setSaveRevision((revision) => revision + 1);
   }, []);
 
   const updateTrip = useCallback((id: string, fn: (t: Trip) => Trip) => {
+    pendingTripIds.current.add(id);
     setState((s) => ({ ...s, trips: s.trips.map((trip) => (trip.id === id ? fn(trip) : trip)) }));
+    setSaveRevision((revision) => revision + 1);
   }, []);
 
   const addTrip = useCallback(
@@ -186,14 +212,25 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           },
         ],
       }));
+      pendingTripIds.current.add(id);
+      setSaveRevision((revision) => revision + 1);
       return id;
     },
     [user],
   );
 
-  const removeTrip = useCallback((id: string) => {
-    setState((s) => ({ ...s, trips: s.trips.filter((t) => t.id !== id) }));
-  }, []);
+  const removeTrip = useCallback(
+    (id: string) => {
+      setState((s) => ({ ...s, trips: s.trips.filter((t) => t.id !== id) }));
+      if (user) {
+        void deleteTripInDatabase({ data: { tripId: id } }).catch(() => {
+          // Een volgende herlaadactie gebruikt de relationele bron en herstelt
+          // de reis wanneer verwijderen op de server werkelijk mislukt.
+        });
+      }
+    },
+    [user],
+  );
 
   const reset = useCallback(() => setState(seed()), []);
 

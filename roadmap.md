@@ -106,8 +106,9 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] De UUID-controles zijn uitgevoerd zonder lege UUIDâ€™s, verweesde kindrijen of dubbele UUIDâ€™s.
 - [x] Een herstelmigratie is beschikbaar voor reizen die tijdens de overgang alleen in `workspaces.data` waren beland: `20260906160000_repair_missing_trips_and_json_ids.sql`.
 - [x] Nieuwe reizen worden op de server als UUID in `trips` aangemaakt; publicatie gebruikt dezelfde UUID en wordt direct relationeel bevestigd.
-- [ ] `workspaces.data` blijft voorlopig de runtimebron voor het grootste deel van de interface. De relationele tabellen worden nog vanuit die JSON bijgewerkt en zijn dus nog geen exclusieve bron van waarheid.
-- [ ] Volgende technische mijlpaal: één relationele lees-/schrijfroute voor de privé-reispagina, daarna JSON uitsluitend als gecontroleerde back-up/fallback.
+- [x] Reizen worden bij laden uit `trips` en alle relationele kindtabellen opgebouwd. Reismutaties schrijven rechtstreeks naar SQL en werken daarna de JSON-kopie bij.
+- [ ] `workspaces.data` blijft voorlopig de bron voor workspace-instellingen en als compatibiliteitskopie van reizen. Verwijder deze kopie pas na relationele transacties, collaboratieve RLS-tests en productiecontrole.
+- [ ] Volgende technische mijlpaal: relationele transacties/optimistic concurrency voor gelijktijdige wijzigingen, daarna toegang voor geaccepteerde reisleden met een eigen account.
 
 ## P0 — Accountinstellingen
 
@@ -174,11 +175,12 @@ De huidige sleutel is `(workspace_user_id, id)`: dubbele reisnamen zijn dus al t
 
 De UUID-migratie is pas klaar wanneer ieder pad dezelfde sleutel gebruikt. Tijdens deze stap mag geen route, query, opslagpad of permissie meer een reis op naam vinden.
 
-- [x] **Privéweergave (deels)**: `/trips/$tripId`, dashboardlinks, `updateTrip` en nieuwe reizen gebruiken de UUID uit de overgangslaag. De data voor de pagina komt nog uit JSON en moet relationeel gelezen worden.
+- [x] **Privéweergave**: `/trips/$tripId`, dashboardlinks, `updateTrip` en nieuwe reizen gebruiken de UUID. Reizen en kindgegevens worden relationeel geladen en gewijzigd.
 - [x] **Publieke weergave (deels)**: `/reis/$token/$tripId`, `listPublicTrips` en `getPublicTrip` gebruiken relationele `trip_uuid`; tijdelijke fallback houdt oude URLs en JSON-data bruikbaar.
-- [ ] **Serverfuncties**: voltooi relationele lees-, update- en verwijderacties met UUID-invoer en atomair opslaan van parent plus kindgegevens. Alleen aanmaken en publicatie zijn nu direct relationeel.
+- [x] **Serverfuncties (basis)**: relationeel laden, aanmaken, wijzigen, publicatie en verwijderen gebruiken UUID-invoer. Elke reiswijziging werkt ook de JSON-compatibiliteitskopie bij.
+- [ ] **Serverfuncties (hardening)**: vervang de huidige parent- plus kindwrites door een database-transactie/RPC met optimistic concurrency, zodat gelijktijdige wijzigingen niet kunnen overschrijven.
 - [x] **Kindgegevens (schema)**: stops, dagplanning, uitgaven, boekingen, paklijst, reisgenoten en documenten hebben een foreign key naar dezelfde reis-UUID.
-- [ ] **Kindgegevens (runtime)**: lees en schrijf deze gegevens direct relationeel; nu worden ze nog vanuit JSON gesynchroniseerd.
+- [x] **Kindgegevens (runtime)**: stops, planning, uitgaven, boekingen, paklijst en reisgenoten worden relationeel geladen en via de reisschrijfroute bijgewerkt.
 - [ ] **Delen en bestanden**: maak publieke tokens en Storage-paden (`avatars` uitgezonderd) onafhankelijk van reisnaam; documenten krijgen een reis-UUID-pad en publieke data bevat alleen expliciet deelbare velden.
 - [ ] **Uitnodigingen en rechten**: `trip_members`, `trip_invitations`, RLS-helpers en activiteitenlog gebruiken de reis-UUID als enige reisreferentie.
 - [ ] **Compatibiliteit**: map bestaande JSON-`trip.id` éénmalig op de nieuwe UUID. Houd deze mapping alleen gedurende de overgang, toon hem niet aan gebruikers en verwijder hem pas na de SQL-omzetting.
