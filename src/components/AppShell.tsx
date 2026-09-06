@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
@@ -30,6 +30,11 @@ const AGENCY_NAV = [
 ] as const;
 
 const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
+type ThemePreference = "system" | "light" | "dark";
+
+function asThemePreference(value: unknown): ThemePreference {
+  return value === "light" || value === "dark" ? value : "system";
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -47,6 +52,20 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const themeQuery = useQuery({
+    queryKey: ["profile-theme", user?.id],
+    enabled: Boolean(user),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("theme")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return asThemePreference(data?.theme);
+    },
+  });
+  const theme = user ? (themeQuery.data ?? "system") : "system";
   const navItems = user
     ? [
         ...CORE_NAV,
@@ -66,6 +85,19 @@ function AppShellContent({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-hue", String(state.branding.accent));
   }, [state.branding.accent]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyTheme = () => {
+      const isDark = theme === "dark" || (theme === "system" && mediaQuery.matches);
+      document.documentElement.classList.toggle("dark", isDark);
+      document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+    };
+    applyTheme();
+    if (theme !== "system") return;
+    mediaQuery.addEventListener("change", applyTheme);
+    return () => mediaQuery.removeEventListener("change", applyTheme);
+  }, [theme]);
 
   return (
     <div className="min-h-screen bg-background">

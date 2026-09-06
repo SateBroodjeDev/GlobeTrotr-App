@@ -1,6 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, CreditCard, KeyRound, Mail, ShieldCheck, UserRound } from "lucide-react";
+import {
+  Camera,
+  Clock3,
+  CreditCard,
+  KeyRound,
+  Languages,
+  Mail,
+  Monitor,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +32,33 @@ type Profile = {
   email: string | null;
   phone: string | null;
   avatar_path: string | null;
+  locale: string | null;
+  theme: string | null;
+  timezone: string | null;
 };
+
+type ThemePreference = "system" | "light" | "dark";
+
+const LANGUAGES = [
+  { value: "nl-NL", label: "Nederlands" },
+  { value: "en-GB", label: "English" },
+] as const;
+
+const TIMEZONES = [
+  { value: "Europe/Amsterdam", label: "Amsterdam (CET/CEST)" },
+  { value: "Europe/London", label: "London (GMT/BST)" },
+  { value: "Europe/Paris", label: "Paris (CET/CEST)" },
+  { value: "America/New_York", label: "New York (ET)" },
+  { value: "America/Los_Angeles", label: "Los Angeles (PT)" },
+  { value: "Asia/Singapore", label: "Singapore (SGT)" },
+  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
+  { value: "Australia/Sydney", label: "Sydney (AEST/AEDT)" },
+  { value: "UTC", label: "UTC" },
+] as const;
+
+function asThemePreference(value: string | null | undefined): ThemePreference {
+  return value === "light" || value === "dark" ? value : "system";
+}
 
 function AccountPage() {
   const { user } = useAuth();
@@ -33,7 +69,7 @@ function AccountPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, email, phone, avatar_path")
+        .select("display_name, email, phone, avatar_path, locale, theme, timezone")
         .eq("id", user!.id)
         .maybeSingle();
       if (error) throw error;
@@ -44,14 +80,21 @@ function AccountPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [locale, setLocale] = useState("nl-NL");
+  const [timezone, setTimezone] = useState("Europe/Amsterdam");
+  const [theme, setTheme] = useState<ThemePreference>("system");
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [saving, setSaving] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     setName(profile?.display_name ?? String(user.user_metadata.full_name ?? ""));
     setEmail(profile?.email ?? user.email ?? "");
     setPhone(profile?.phone ?? String(user.user_metadata.phone ?? ""));
+    setLocale(profile?.locale === "en-GB" ? "en-GB" : "nl-NL");
+    setTimezone(profile?.timezone || "Europe/Amsterdam");
+    setTheme(asThemePreference(profile?.theme));
   }, [profile, user]);
 
   useEffect(() => {
@@ -106,6 +149,36 @@ function AccountPage() {
       toast.error(error instanceof Error ? error.message : "Opslaan lukte niet.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function savePreferences() {
+    if (!timezone.trim()) {
+      toast.error("Kies een tijdzone.");
+      return;
+    }
+    setSavingPreferences(true);
+    try {
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        locale,
+        timezone,
+        theme,
+      });
+      if (error) throw error;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["profile", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] }),
+      ]);
+      toast.success("Weergavevoorkeuren opgeslagen.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Voorkeuren opslaan lukte niet. Voer eerst de tijdzone-migratie uit.",
+      );
+    } finally {
+      setSavingPreferences(false);
     }
   }
 
@@ -211,6 +284,78 @@ function AccountPage() {
           </div>
           <Button disabled={saving || profileQuery.isLoading} onClick={saveProfile}>
             {saving ? "Opslaan…" : "Profiel opslaan"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="surface">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Monitor className="size-4" /> Taal & weergave
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="space-y-1.5">
+              <Label htmlFor="account-locale" className="flex items-center gap-2">
+                <Languages className="size-4" /> Taal
+              </Label>
+              <select
+                id="account-locale"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={locale}
+                disabled={savingPreferences}
+                onChange={(event) => setLocale(event.target.value)}
+              >
+                {LANGUAGES.map((language) => (
+                  <option key={language.value} value={language.value}>
+                    {language.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1.5">
+              <Label htmlFor="account-timezone" className="flex items-center gap-2">
+                <Clock3 className="size-4" /> Tijdzone
+              </Label>
+              <select
+                id="account-timezone"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={timezone}
+                disabled={savingPreferences}
+                onChange={(event) => setTimezone(event.target.value)}
+              >
+                {!TIMEZONES.some((option) => option.value === timezone) && (
+                  <option value={timezone}>{timezone}</option>
+                )}
+                {TIMEZONES.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1.5">
+              <Label htmlFor="account-theme">Weergave</Label>
+              <select
+                id="account-theme"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={theme}
+                disabled={savingPreferences}
+                onChange={(event) => setTheme(asThemePreference(event.target.value))}
+              >
+                <option value="system">Systeeminstelling volgen</option>
+                <option value="light">Lichte modus</option>
+                <option value="dark">Donkere modus</option>
+              </select>
+            </label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            De taalkeuze wordt nu opgeslagen; de volledige Engelse vertaling volgt in een aparte
+            productstap. Tijdzones worden daarna gebruikt voor boekingen, meldingen en exports.
+          </p>
+          <Button disabled={savingPreferences || profileQuery.isLoading} onClick={savePreferences}>
+            {savingPreferences ? "Opslaan…" : "Voorkeuren opslaan"}
           </Button>
         </CardContent>
       </Card>

@@ -126,9 +126,10 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [x] Profielfoto uploaden en vervangen via private Storage onder de eigen gebruikersmap (na SQL-import)
 - [x] Primair e-mailadres wijzigen via Supabase Auth, inclusief de bestaande bevestigingsstroom
 - [x] Telefoonnummer opslaan voor contact en optionele notificaties; nooit publiek tonen
-- [ ] Taal-, tijdzone- en dark-modevoorkeur opslaan in `profiles` (niet meer in `workspaces.data`)
-- [ ] Voeg een `timezone`-kolom met veilige standaardwaarde toe, en gebruik de bestaande `locale`- en `theme`-kolommen
-- [ ] Pas de gekozen weergavemodus direct toe, inclusief systeemmodus via `prefers-color-scheme`; vertalingen volgen in een afzonderlijke stap
+- [x] Taal-, tijdzone- en dark-modevoorkeur kunnen vanuit Accountinstellingen in `profiles` worden opgeslagen (niet meer in `workspaces.data`)
+- [x] Tijdzone-migratie toegevoegd: `supabase/migrations/20260906170000_add_profile_timezone.sql`; veilige standaard is `Europe/Amsterdam`
+- [ ] Voer `20260906170000_add_profile_timezone.sql` eenmalig uit in Lovable Cloud / Supabase SQL Editor
+- [x] De gekozen weergavemodus wordt direct appbreed toegepast, inclusief systeemmodus via `prefers-color-scheme`; vertalingen volgen in een afzonderlijke stap
 
 ### Beveiliging & inloggen
 
@@ -362,9 +363,9 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 
 ## P1 — Weergave & dark mode
 
-- [ ] Dark mode en light mode voor de volledige app
-- [ ] Keuze: systeeminstelling volgen, licht of donker; opslaan in `profiles.theme`
-- [ ] Donkere variant voor kaarten, formulieren, tabellen, openbare reispagina’s en lege statussen
+- [x] Dark mode en light mode voor de app-shell en standaard UI-componenten via de bestaande kleurvariabelen
+- [x] Keuze: systeeminstelling volgen, licht of donker; opgeslagen in `profiles.theme`
+- [ ] Donkere kaarttegels voor Leaflet en een visuele controle van uitzonderlijke schermen en lege statussen
 - [ ] Contrast, focusstatussen en foutmeldingen controleren op toegankelijkheid in beide modi
 - [ ] PDF- en printweergave bewust licht houden voor leesbaarheid en papierverbruik
 

@@ -19,6 +19,7 @@ export type Database = {
           notification_preferences: Json;
           phone: string | null;
           theme: string;
+          timezone: string;
           updated_at: string;
         };
         Insert: {
@@ -31,6 +32,7 @@ export type Database = {
           notification_preferences?: Json;
           phone?: string | null;
           theme?: string;
+          timezone?: string;
           updated_at?: string;
         };
         Update: {
@@ -43,6 +45,7 @@ export type Database = {
           notification_preferences?: Json;
           phone?: string | null;
           theme?: string;
+          timezone?: string;
           updated_at?: string;
         };
         Relationships: [];
