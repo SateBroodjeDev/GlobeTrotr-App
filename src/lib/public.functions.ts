@@ -17,7 +17,6 @@ export type PublicTripCard = {
 export type PublicTripDetail = PublicTripCard & {
   itinerary: PublicDay[];
   budget?: number;
-  spent?: number;
   currency?: string;
 };
 
@@ -100,8 +99,6 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     };
     if (row.share_financials) {
       detail.budget = Number(trip['budget'] ?? 0);
-      const exp = Array.isArray(trip['expenses']) ? (trip['expenses'] as AnyTrip[]) : [];
-      detail.spent = exp.reduce((s, e) => s + Number(e['amount'] ?? 0), 0);
       detail.currency = "EUR";
     }
     return detail;
