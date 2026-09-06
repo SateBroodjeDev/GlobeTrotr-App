@@ -144,6 +144,8 @@ De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup
 
 De huidige sleutel is `(workspace_user_id, id)`: dubbele reisnamen zijn dus al toegestaan en de app gebruikt de naam niet als sleutel. De huidige `id` is echter een korte browser-ID (`uid()`), geen database-gegarandeerde globale UUID. Voor gedeelde reizen en meerdere accounts is één onveranderlijke UUID per reis nodig.
 
+- [x] Uitvoerbare vervolgscript toegevoegd: `supabase/migrations/20260906150000_add_global_trip_uuid_and_collaboration_rls.sql`
+- [ ] Vervolgscript uitvoeren in Lovable Cloud / Supabase SQL Editor, daarna de controlequeries onderaan het script uitvoeren.
 - [ ] Voeg een globale, database-gegenereerde UUID toe aan elke bestaande en nieuwe reis; deze UUID verandert nooit als naam, eigenaar of datum wijzigt.
 - [ ] Voeg de UUID tijdelijk naast de huidige tekst-ID toe, backfill alle kindtabellen (stops, planning, kosten, boekingen, paklijst, documenten en leden) en voeg foreign keys op die UUID toe.
 - [ ] Maak de UUID na controle de primaire referentie voor app, API-routes, openbare deelpagina, uitnodigingen en opslagpaden; behoud de huidige tekst-ID alleen zolang de JSON-terugval bestaat.
@@ -186,6 +188,8 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 - [x] Een éénmalige backfill kopieerde bestaande `workspaces.data.trips[]` naar de nieuwe tabellen, zonder JSON te verwijderen.
 - [ ] Voer nu controlequery’s uit en leg de uitkomsten vast: aantal workspaces, reizen, stops, uitgaven, boekingen, paklijstitems en reisgenoten vóór/na import.
 - [ ] Maak vóór elke volgende wijziging een export/back-up. De eerste import is geen doorlopende synchronisatie: kindtabellen gebruiken `ON CONFLICT DO NOTHING` en worden niet automatisch bijgewerkt bij latere JSON-wijzigingen.
+- [x] Overgangslaag toegevoegd: na de UUID-migratie schrijft een bestaande JSON-save ook de relationele reis en kindgegevens bij; vóór die migratie blijft JSON zonder foutmelding werken.
+- [x] Publieke serverweergave leest relationele reizen via `trip_uuid`, met tijdelijke fallback voor bestaande JSON-data en oude deel-URLs.
 - [ ] Bouw serverfuncties die relationele reizen atomair lezen en schrijven. Gebruik JSON alleen als tijdelijke, alleen-lezen fallback voor nog niet gemigreerde records; voorkom onbeheerde dual writes die kunnen divergeren.
 - [ ] Zet per onderdeel een featureflag om nadat lees-, schrijf- en RLS-tests slagen; begin met privé-reizen van de eigenaar, daarna leden, kosten en documenten.
 - [ ] Na productiecontrole wordt SQL de bron van waarheid; daarna wordt de JSON-compatibiliteitskopie in een aparte, goedgekeurde migratie verwijderd.

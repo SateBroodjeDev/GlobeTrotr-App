@@ -4,7 +4,13 @@ import { Plus, Trash2, MapPin, Wallet, Lock, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
 import { canEdit, planOf } from "@/lib/plans";
-import { TEMPLATES, STATUS_LABEL, tripStatus, type TripStatus, type TripTemplate } from "@/lib/types";
+import {
+  TEMPLATES,
+  STATUS_LABEL,
+  tripStatus,
+  type TripStatus,
+  type TripTemplate,
+} from "@/lib/types";
 import { convert, formatMoney } from "@/lib/services";
 import { downloadJson } from "@/lib/exporters";
 import { Countdown } from "@/components/Countdown";
@@ -58,8 +64,7 @@ function TripsOverview() {
     .filter((t) => tripStatus(t) === "upcoming")
     .sort((a, b) => a.start.localeCompare(b.start))[0];
 
-
-  function create() {
+  async function create() {
     if (!name.trim()) {
       toast.error("Geef de reis een naam");
       return;
@@ -68,7 +73,7 @@ function TripsOverview() {
       toast.error(`Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`);
       return;
     }
-    const id = addTrip(name.trim(), template);
+    const id = await addTrip(name.trim(), template);
     setName("");
     toast.success("Reis aangemaakt");
     navigate({ to: "/trips/$tripId", params: { tripId: id } });

@@ -11,15 +11,13 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { FALLBACK_RATES, type Rates } from "./services";
 import { getRates } from "./fx.functions";
-import { loadWorkspace, saveWorkspace } from "./cloud.functions";
-import { useAuth } from "./auth";
 import {
-  TEMPLATES,
-  type PlanId,
-  type Trip,
-  type TripTemplate,
-  type WorkspaceState,
-} from "./types";
+  createTrip as createTripInDatabase,
+  loadWorkspace,
+  saveWorkspace,
+} from "./cloud.functions";
+import { useAuth } from "./auth";
+import { TEMPLATES, type PlanId, type Trip, type TripTemplate, type WorkspaceState } from "./types";
 
 const STORAGE_KEY = "atlasledger.workspace.v1";
 
@@ -45,7 +43,7 @@ type Ctx = {
   state: WorkspaceState;
   update: (fn: (s: WorkspaceState) => WorkspaceState) => void;
   updateTrip: (id: string, fn: (t: Trip) => Trip) => void;
-  addTrip: (name: string, template: TripTemplate) => string;
+  addTrip: (name: string, template: TripTemplate) => Promise<string>;
   removeTrip: (id: string) => void;
   rates: Rates;
   ratesLive: boolean;
@@ -131,7 +129,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, user]);
 
-
   const ratesQuery = useQuery({
     queryKey: ["fx-rates"],
     queryFn: () => getRates(),
@@ -147,29 +144,43 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, trips: s.trips.map((t) => (t.id === id ? fn(t) : t)) }));
   }, []);
 
-  const addTrip = useCallback((name: string, template: TripTemplate) => {
-    const id = uid();
-    const tpl = TEMPLATES.find((t) => t.id === template)!;
-    const today = new Date().toISOString().slice(0, 10);
-    setState((s) => ({
-      ...s,
-      trips: [
-        ...s.trips,
-        {
-          id,
-          name,
-          template,
-          start: today,
-          end: today,
-          budget: 1500,
-          stops: [],
-          itinerary: tpl.itinerary.map((title) => ({ id: uid(), day: today, title })),
-          expenses: [],
-        },
-      ],
-    }));
-    return id;
-  }, []);
+  const addTrip = useCallback(
+    async (name: string, template: TripTemplate) => {
+      const tpl = TEMPLATES.find((t) => t.id === template)!;
+      const today = new Date().toISOString().slice(0, 10);
+      let id = uid();
+      if (user) {
+        try {
+          const created = await createTripInDatabase({
+            data: { name, template, start: today, budget: 1500 },
+          });
+          id = created.tripId;
+        } catch {
+          // Vóór de UUID-migratie kan de database deze reis nog niet maken.
+          // De bestaande JSON-opslag blijft dan compatibel werken.
+        }
+      }
+      setState((s) => ({
+        ...s,
+        trips: [
+          ...s.trips,
+          {
+            id,
+            name,
+            template,
+            start: today,
+            end: today,
+            budget: 1500,
+            stops: [],
+            itinerary: tpl.itinerary.map((title) => ({ id: uid(), day: today, title })),
+            expenses: [],
+          },
+        ],
+      }));
+      return id;
+    },
+    [user],
+  );
 
   const removeTrip = useCallback((id: string) => {
     setState((s) => ({ ...s, trips: s.trips.filter((t) => t.id !== id) }));
