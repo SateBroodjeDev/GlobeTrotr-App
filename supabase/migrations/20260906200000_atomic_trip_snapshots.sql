@@ -221,7 +221,17 @@ BEGIN
     CASE WHEN jsonb_typeof(p_trip->'members') = 'array' THEN p_trip->'members' ELSE '[]'::JSONB END
   ) AS item(value)
   WHERE NULLIF(item.value->>'id', '') IS NOT NULL
-    AND item.value->>'role' IN ('traveler', 'viewer', 'advisor', 'finance', 'client');
+    AND item.value->>'role' IN ('traveler', 'viewer', 'advisor', 'finance', 'client')
+  ON CONFLICT (workspace_user_id, trip_id, id) DO UPDATE
+  SET
+    name = EXCLUDED.name,
+    email = EXCLUDED.email,
+    role = EXCLUDED.role,
+    status = EXCLUDED.status,
+    invited_at = EXCLUDED.invited_at
+  -- Een geaccepteerd account is relationele toegangsdata, geen JSON-draft.
+  -- Laat die koppeling en accepted_at daarom altijd ongemoeid.
+  WHERE public.trip_members.user_id IS NULL;
 
   -- Houd de tijdelijke JSON-kopie in exact dezelfde transactie bij. Dit is
   -- alleen een overgangsback-up; SQL blijft de runtimebron voor reisdelen.

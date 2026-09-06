@@ -224,6 +224,7 @@ De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup
 - [x] `trip_documents`: metadata-tabel voor private tickets, bonnetjes en boekingsbevestigingen is aangemaakt; bestanden zelf blijven in Storage.
 - [ ] Voer `20260906180000_booking_details_and_clean_members.sql` uit: `trip_travel_items.details`, `trip_expenses.notes`, huurauto-type, legacy-planningkoppelingen en opschoning van oude workspace-demoleden.
 - [ ] Voer `20260906190000_restrict_receipts_to_agency.sql` uit: de bestaande JSON-planwaarde wordt eenmalig met `workspaces.plan` gesynchroniseerd; Storage-RLS voor de `receipts`-bucket staat daarna alleen lezen, uploaden, wijzigen en verwijderen toe wanneer `workspaces.plan = 'agency'`.
+- [ ] Voer `20260906200000_atomic_trip_snapshots.sql` uit: één server-only RPC slaat de parent-reis, alle kindgegevens en de JSON-compatibiliteitskopie in één database-transactie op. Een fout laat dus geen half opgeslagen reis achter.
 - [ ] Genereer na deze import de Supabase TypeScript-types opnieuw en werk de lokale type-definities bij.
 - [ ] `referrals`, `subscription_events`, `invoices` en `payment_events` pas toevoegen wanneer referrals/Stripe daadwerkelijk worden gebouwd.
 
@@ -247,7 +248,8 @@ De UUID-migratie is pas klaar wanneer ieder pad dezelfde sleutel gebruikt. Tijde
 - [x] **Privéweergave**: `/trips/$tripId`, dashboardlinks, `updateTrip` en nieuwe reizen gebruiken de UUID. Reizen en kindgegevens worden relationeel geladen en gewijzigd.
 - [x] **Publieke weergave (deels)**: `/reis/$token/$tripId`, `listPublicTrips` en `getPublicTrip` gebruiken relationele `trip_uuid`; tijdelijke fallback houdt oude URLs en JSON-data bruikbaar.
 - [x] **Serverfuncties (basis)**: relationeel laden, aanmaken, wijzigen, publicatie en verwijderen gebruiken UUID-invoer. Elke reiswijziging werkt ook de JSON-compatibiliteitskopie bij.
-- [ ] **Serverfuncties (hardening)**: vervang de huidige parent- plus kindwrites door een database-transactie/RPC met optimistic concurrency, zodat gelijktijdige wijzigingen niet kunnen overschrijven.
+- [x] **Serverfuncties (atomaire basis)**: `saveTrip` gebruikt na SQL-import `save_trip_snapshot`: parent, kindgegevens en JSON-kopie worden onder een parent-lock in één transactie opgeslagen. Vóór de import blijft alleen als compatibiliteit de oude route actief.
+- [ ] **Serverfuncties (concurrency)**: voeg daarna `updated_at`/versiecontrole in de interface toe, zodat een tweede gelijktijdige wijziging een duidelijke conflictmelding krijgt in plaats van stil overschrijven.
 - [x] **Kindgegevens (schema)**: stops, dagplanning, uitgaven, boekingen, paklijst, reisgenoten en documenten hebben een foreign key naar dezelfde reis-UUID.
 - [x] **Kindgegevens (runtime)**: stops, planning, uitgaven, boekingen, paklijst en reisgenoten worden relationeel geladen en via de reisschrijfroute bijgewerkt.
 - [ ] **Delen en bestanden**: maak publieke tokens en Storage-paden (`avatars` uitgezonderd) onafhankelijk van reisnaam; documenten krijgen een reis-UUID-pad en publieke data bevat alleen expliciet deelbare velden.
@@ -283,7 +285,8 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 - [ ] Maak vóór elke volgende wijziging een export/back-up. De eerste import is geen doorlopende synchronisatie: kindtabellen gebruiken `ON CONFLICT DO NOTHING` en worden niet automatisch bijgewerkt bij latere JSON-wijzigingen.
 - [x] Overgangslaag toegevoegd: na de UUID-migratie schrijft een bestaande JSON-save ook de relationele reis en kindgegevens bij; vóór die migratie blijft JSON zonder foutmelding werken.
 - [x] Publieke serverweergave leest relationele reizen via `trip_uuid`, met tijdelijke fallback voor bestaande JSON-data en oude deel-URLs.
-- [ ] Bouw serverfuncties die relationele reizen atomair lezen en schrijven. Gebruik JSON alleen als tijdelijke, alleen-lezen fallback voor nog niet gemigreerde records; voorkom onbeheerde dual writes die kunnen divergeren.
+- [x] Een atomaire serverwrite is voorbereid in `20260906200000_atomic_trip_snapshots.sql`; na uitvoering worden relationele data en JSON-kopie samen bevestigd of samen teruggedraaid.
+- [ ] Test na die SQL-import één reis met stops, planning, boeking, uitgave, paklijst en reisgenoot. Forceer daarna bewust een ongeldige kindrij en controleer dat de vorige volledige reis intact blijft.
 - [ ] Start die omzetting met één eigenaar en één privéreis als eerste testpad; migreer daarna stops, planning, uitgaven, boekingen, paklijst en leden afzonderlijk.
 - [ ] Zet per onderdeel een featureflag om nadat lees-, schrijf- en RLS-tests slagen; begin met privé-reizen van de eigenaar, daarna leden, kosten en documenten.
 - [ ] Na productiecontrole wordt SQL de bron van waarheid; daarna wordt de JSON-compatibiliteitskopie in een aparte, goedgekeurde migratie verwijderd.
