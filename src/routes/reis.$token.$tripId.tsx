@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { CalendarDays, MapPin, Wallet } from "lucide-react";
 import { getPublicTrip } from "@/lib/public.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/reis/$token/$tripId")({
   head: () => ({
@@ -27,14 +29,47 @@ export const Route = createFileRoute("/reis/$token/$tripId")({
 
 function PublicTrip() {
   const { token, tripId } = Route.useParams();
+  const [pin, setPin] = useState("");
+  const [submittedPin, setSubmittedPin] = useState<string | undefined>();
   const q = useQuery({
-    queryKey: ["public-trip", token, tripId],
-    queryFn: () => getPublicTrip({ data: { token, tripId } }),
+    queryKey: ["public-trip", token, tripId, submittedPin],
+    queryFn: () => getPublicTrip({ data: { token, tripId, pin: submittedPin } }),
   });
 
   if (q.isLoading) return <p className="text-sm text-muted-foreground">Reis laden…</p>;
-  const trip = q.data;
-  if (!trip) {
+  if (q.data?.status === "pin_required") {
+    return (
+      <div className="mx-auto max-w-md space-y-4">
+        <h1 className="font-display text-2xl font-semibold">Deze reis is beveiligd</h1>
+        <p className="text-sm text-muted-foreground">
+          Vraag de 6- tot 12-cijferige PIN aan de eigenaar van deze reis.
+        </p>
+        <form
+          className="flex gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setSubmittedPin(pin);
+          }}
+        >
+          <Input
+            aria-label="PIN voor deze reis"
+            type="password"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            minLength={6}
+            maxLength={12}
+            required
+            value={pin}
+            onChange={(event) => setPin(event.target.value.replace(/\D/g, ""))}
+            placeholder="PIN"
+          />
+          <Button type="submit">Openen</Button>
+        </form>
+      </div>
+    );
+  }
+
+  if (q.data?.status !== "ok") {
     return (
       <div className="space-y-4">
         <h1 className="font-display text-2xl font-semibold">Deze reis is niet (meer) openbaar</h1>
@@ -45,6 +80,7 @@ function PublicTrip() {
     );
   }
 
+  const trip = q.data.trip;
   return (
     <div className="space-y-6">
       <header className="space-y-1">
@@ -65,9 +101,9 @@ function PublicTrip() {
             {trip.stops.length === 0 && (
               <p className="text-muted-foreground">Geen bestemmingen gedeeld.</p>
             )}
-            {trip.stops.map((s, i) => (
-              <p key={`${s.name}-${i}`}>
-                {s.name} <span className="text-muted-foreground">— {s.country}</span>
+            {trip.stops.map((stop, index) => (
+              <p key={stop.name + "-" + index}>
+                {stop.name} <span className="text-muted-foreground">— {stop.country}</span>
               </p>
             ))}
           </CardContent>
@@ -83,12 +119,12 @@ function PublicTrip() {
             {trip.itinerary.length === 0 && (
               <p className="text-muted-foreground">Nog geen dagplanning gedeeld.</p>
             )}
-            {trip.itinerary.map((d, i) => (
-              <div key={`${d.day}-${i}`}>
+            {trip.itinerary.map((day, index) => (
+              <div key={day.day + "-" + index}>
                 <p className="font-medium">
-                  {d.day} · {d.title}
+                  {day.day} · {day.title}
                 </p>
-                {d.notes && <p className="text-muted-foreground">{d.notes}</p>}
+                {day.notes && <p className="text-muted-foreground">{day.notes}</p>}
               </div>
             ))}
           </CardContent>

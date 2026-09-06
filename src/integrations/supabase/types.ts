@@ -45,6 +45,7 @@ export type Database = {
           public_token: string
           share_enabled: boolean
           share_financials: boolean
+          share_pin_hash: string | null
           updated_at: string
           user_id: string
         }
@@ -54,6 +55,7 @@ export type Database = {
           public_token?: string
           share_enabled?: boolean
           share_financials?: boolean
+          share_pin_hash?: string | null
           updated_at?: string
           user_id: string
         }
@@ -63,6 +65,7 @@ export type Database = {
           public_token?: string
           share_enabled?: boolean
           share_financials?: boolean
+          share_pin_hash?: string | null
           updated_at?: string
           user_id?: string
         }

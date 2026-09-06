@@ -20,10 +20,16 @@ export type PublicTripDetail = PublicTripCard & {
   currency?: string;
 };
 
+export type PublicTripResult =
+  | { status: "not_found" }
+  | { status: "pin_required" }
+  | { status: "ok"; trip: PublicTripDetail };
+
 type Row = {
   data: unknown;
   public_token: string;
   share_financials: boolean;
+  share_pin_hash: string | null;
 };
 
 type AnyTrip = Record<string, unknown>;
@@ -62,7 +68,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("workspaces")
-    .select("data, public_token, share_financials")
+    .select("data, public_token, share_financials, share_pin_hash")
     .eq("share_enabled", true)
     .limit(50);
   if (error) return [] as PublicTripCard[];
@@ -74,19 +80,22 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
 });
 
 export const getPublicTrip = createServerFn({ method: "GET" })
-  .inputValidator((input: { token: string; tripId: string }) => input)
+  .inputValidator((input: { token: string; tripId: string; pin?: string }) => input)
   .handler(async ({ data: input }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("workspaces")
-      .select("data, public_token, share_financials")
+      .select("data, public_token, share_financials, share_pin_hash")
       .eq("public_token", input.token)
       .eq("share_enabled", true)
       .maybeSingle();
-    if (error || !data) return null;
+    if (error || !data) return { status: "not_found" } as PublicTripResult;
     const row = data as Row;
+    if (row.share_pin_hash && (await hashPin(input.pin ?? "")) !== row.share_pin_hash) {
+      return { status: "pin_required" } as PublicTripResult;
+    }
     const trip = tripsOf(row).find((t) => String(t['id']) === input.tripId);
-    if (!trip) return null;
+    if (!trip) return { status: "not_found" } as PublicTripResult;
     const detail: PublicTripDetail = {
       ...card(row, trip),
       itinerary: (Array.isArray(trip['itinerary']) ? (trip['itinerary'] as AnyTrip[]) : []).map(
@@ -101,5 +110,10 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       detail.budget = Number(trip['budget'] ?? 0);
       detail.currency = "EUR";
     }
-    return detail;
+    return { status: "ok", trip: detail } as PublicTripResult;
   });
+
+async function hashPin(pin: string) {
+  const bytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pin)));
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
