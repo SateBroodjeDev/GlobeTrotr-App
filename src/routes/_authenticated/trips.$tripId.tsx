@@ -1,15 +1,15 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
 import { toast } from "sonner";
 import {
   Archive,
   BookOpen,
-  CalendarDays,
   FileDown,
   FileText,
   Globe2,
   Plus,
+  Settings2,
   Trash2,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
@@ -17,6 +17,7 @@ import { canEdit, canExport, hasFeature } from "@/lib/plans";
 import {
   CATEGORIES,
   STATUS_LABEL,
+  TEMPLATES,
   tripStatus,
   type Expense,
   type ExpenseCategory,
@@ -71,7 +72,8 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 
 function TripDetail() {
   const { tripId } = Route.useParams();
-  const { state, updateTrip, rates, ratesLive } = useWorkspace();
+  const { state, updateTrip, removeTrip, rates, ratesLive } = useWorkspace();
+  const navigate = useNavigate();
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
   const trip = found;
@@ -203,33 +205,6 @@ function TripDetail() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
-            variant={trip.public ? "default" : "outline"}
-            disabled={!editable}
-            onClick={async () => {
-              const next = !trip.public;
-              try {
-                updateTrip(trip.id, (t) => ({ ...t, public: next }));
-                toast.success(
-                  next ? "Reis staat nu openbaar op de homepage" : "Reis is weer privé",
-                );
-              } catch {
-                toast.error("Delen kon niet worden bijgewerkt");
-              }
-            }}
-          >
-            <Globe2 className="size-4" /> {trip.public ? "Openbaar" : "Openbaar delen"}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={!editable}
-            onClick={() => {
-              updateTrip(trip.id, (t) => ({ ...t, archived: !t.archived }));
-              toast.success(trip.archived ? "Reis heractiveerd" : "Reis gearchiveerd");
-            }}
-          >
-            <Archive className="size-4" /> {trip.archived ? "Heractiveren" : "Archiveren"}
-          </Button>
-          <Button
             variant="outline"
             disabled={!canExport(state.role)}
             onClick={() => {
@@ -283,129 +258,6 @@ function TripDetail() {
       </div>
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
 
-      <Card className="surface">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <CalendarDays className="size-4" /> Reisdata
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <label className="space-y-1.5 text-sm">
-            <span className="text-muted-foreground">Startdatum</span>
-            <Input
-              type="date"
-              value={trip.start}
-              disabled={!editable}
-              onChange={(e) => changeStartDate(e.target.value)}
-            />
-          </label>
-          <label className="space-y-1.5 text-sm">
-            <span className="text-muted-foreground">Einddatum</span>
-            <Input
-              type="date"
-              value={trip.end}
-              min={trip.start || undefined}
-              disabled={!editable}
-              onChange={(e) => changeEndDate(e.target.value)}
-            />
-          </label>
-        </CardContent>
-      </Card>
-
-      {trip.public && (
-        <Card className="surface">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Openbaar delen</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <label className="flex items-start justify-between gap-4">
-              <span>
-                <span className="block font-medium">Budget delen</span>
-                <span className="block text-muted-foreground">
-                  Toon alleen het budget van deze reis op de openbare reispagina.
-                </span>
-              </span>
-              <input
-                type="checkbox"
-                checked={trip.shareFinancials ?? false}
-                disabled={!editable}
-                onChange={async (event) => {
-                  try {
-                    updateTrip(trip.id, (current) => ({
-                      ...current,
-                      shareFinancials: event.target.checked,
-                    }));
-                    toast.success(
-                      event.target.checked ? "Budget wordt gedeeld." : "Budget is weer privé.",
-                    );
-                  } catch {
-                    toast.error("De deelinstelling kon niet worden opgeslagen.");
-                  }
-                }}
-              />
-            </label>
-
-            <div className="space-y-2">
-              <p className="font-medium">PIN-beveiliging</p>
-              <p className="text-muted-foreground">
-                Beveilig alleen deze openbare reis met een PIN van 6 tot 12 cijfers.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Input
-                  className="max-w-48"
-                  type="password"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  minLength={6}
-                  maxLength={12}
-                  value={sharePin}
-                  disabled={!editable}
-                  onChange={(event) => setSharePin(event.target.value.replace(/\D/g, ""))}
-                  placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
-                />
-                <Button
-                  variant="outline"
-                  disabled={!editable || sharePin.length < 6}
-                  onClick={async () => {
-                    try {
-                      const sharePinHash = await hashSharingPin(sharePin);
-                      updateTrip(trip.id, (current) => ({ ...current, sharePinHash }));
-                      setSharePin("");
-                      toast.success("PIN-beveiliging ingeschakeld.");
-                    } catch (error) {
-                      toast.error(
-                        error instanceof Error ? error.message : "PIN kon niet worden opgeslagen.",
-                      );
-                    }
-                  }}
-                >
-                  {trip.sharePinHash ? "PIN wijzigen" : "PIN instellen"}
-                </Button>
-                {trip.sharePinHash && (
-                  <Button
-                    variant="ghost"
-                    disabled={!editable}
-                    onClick={async () => {
-                      try {
-                        updateTrip(trip.id, (current) => {
-                          const { sharePinHash: _sharePinHash, ...rest } = current;
-                          return rest;
-                        });
-                        toast.success("PIN-beveiliging verwijderd.");
-                      } catch {
-                        toast.error("PIN kon niet worden verwijderd.");
-                      }
-                    }}
-                  >
-                    PIN verwijderen
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Tabs defaultValue="route">
         <TabsList>
           <TabsTrigger value="route">Routekaart</TabsTrigger>
@@ -413,7 +265,201 @@ function TripDetail() {
           <TabsTrigger value="expenses">Uitgaven</TabsTrigger>
           <TabsTrigger value="money">Geld-tools</TabsTrigger>
           <TabsTrigger value="packing">Paklijst</TabsTrigger>
+          <TabsTrigger value="settings">Instellingen</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="settings" className="space-y-4">
+          <Card className="surface">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Settings2 className="size-4" /> Reisinstellingen
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <label className="space-y-1.5 text-sm sm:col-span-2">
+                <span className="text-muted-foreground">Reisnaam</span>
+                <Input
+                  value={trip.name}
+                  disabled={!editable}
+                  onChange={(e) => updateTrip(trip.id, (t) => ({ ...t, name: e.target.value }))}
+                />
+              </label>
+              <label className="space-y-1.5 text-sm">
+                <span className="text-muted-foreground">Startdatum</span>
+                <Input
+                  type="date"
+                  value={trip.start}
+                  disabled={!editable}
+                  onChange={(e) => changeStartDate(e.target.value)}
+                />
+              </label>
+              <label className="space-y-1.5 text-sm">
+                <span className="text-muted-foreground">Einddatum</span>
+                <Input
+                  type="date"
+                  value={trip.end}
+                  min={trip.start || undefined}
+                  disabled={!editable}
+                  onChange={(e) => changeEndDate(e.target.value)}
+                />
+              </label>
+              <label className="space-y-1.5 text-sm">
+                <span className="text-muted-foreground">Budget ({base})</span>
+                <Input
+                  type="number"
+                  min="0"
+                  value={trip.budget}
+                  disabled={!editable}
+                  onChange={(e) =>
+                    updateTrip(trip.id, (t) => ({
+                      ...t,
+                      budget: Math.max(0, Number(e.target.value) || 0),
+                    }))
+                  }
+                />
+              </label>
+              <label className="space-y-1.5 text-sm">
+                <span className="text-muted-foreground">Reistemplate</span>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={trip.template}
+                  disabled={!editable}
+                  onChange={(e) =>
+                    updateTrip(trip.id, (t) => ({
+                      ...t,
+                      template: e.target.value as typeof t.template,
+                    }))
+                  }
+                >
+                  {TEMPLATES.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.emoji} {template.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </CardContent>
+          </Card>
+
+          <Card className="surface">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Globe2 className="size-4" /> Openbaar delen
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <ToggleSetting
+                label="Reis openbaar maken"
+                description="Toon deze reis op de homepage via een unieke link."
+                checked={trip.public ?? false}
+                disabled={!editable}
+                onChange={(checked) => updateTrip(trip.id, (t) => ({ ...t, public: checked }))}
+              />
+              {trip.public && (
+                <>
+                  <ToggleSetting
+                    label="Budget delen"
+                    description="Toon het budget op de openbare reispagina."
+                    checked={trip.shareFinancials ?? false}
+                    disabled={!editable}
+                    onChange={(checked) =>
+                      updateTrip(trip.id, (t) => ({ ...t, shareFinancials: checked }))
+                    }
+                  />
+                  <div className="space-y-2">
+                    <p className="font-medium">PIN-beveiliging</p>
+                    <p className="text-muted-foreground">
+                      Beveilig deze openbare reis met een PIN van 6 tot 12 cijfers.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Input
+                        className="max-w-48"
+                        type="password"
+                        inputMode="numeric"
+                        minLength={6}
+                        maxLength={12}
+                        value={sharePin}
+                        disabled={!editable}
+                        onChange={(e) => setSharePin(e.target.value.replace(/\D/g, ""))}
+                        placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
+                      />
+                      <Button
+                        variant="outline"
+                        disabled={!editable || sharePin.length < 6}
+                        onClick={async () => {
+                          const sharePinHash = await hashSharingPin(sharePin);
+                          updateTrip(trip.id, (t) => ({ ...t, sharePinHash }));
+                          setSharePin("");
+                          toast.success("PIN-beveiliging ingeschakeld.");
+                        }}
+                      >
+                        {trip.sharePinHash ? "PIN wijzigen" : "PIN instellen"}
+                      </Button>
+                      {trip.sharePinHash && (
+                        <Button
+                          variant="ghost"
+                          disabled={!editable}
+                          onClick={() => {
+                            updateTrip(trip.id, ({ sharePinHash: _hash, ...t }) => t);
+                            toast.success("PIN-beveiliging verwijderd.");
+                          }}
+                        >
+                          PIN verwijderen
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-destructive/40 surface">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Gevarenzone</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm">
+              <p className="text-muted-foreground">
+                Archiveer de reis of verwijder hem definitief.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  disabled={!editable}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        trip.archived ? "Deze reis weer actief maken?" : "Deze reis archiveren?",
+                      )
+                    ) {
+                      updateTrip(trip.id, (t) => ({ ...t, archived: !t.archived }));
+                      toast.success(trip.archived ? "Reis heractiveerd" : "Reis gearchiveerd");
+                    }
+                  }}
+                >
+                  <Archive className="size-4" /> {trip.archived ? "Heractiveren" : "Archiveren"}
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={!editable}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`,
+                      )
+                    ) {
+                      removeTrip(trip.id);
+                      toast.success("Reis verwijderd");
+                      navigate({ to: "/dashboard" });
+                    }
+                  }}
+                >
+                  <Trash2 className="size-4" /> Verwijderen
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="packing">
           <Packing
@@ -717,6 +763,35 @@ function Stat({ label, value }: { label: string; value: string }) {
         <p className="font-display text-2xl font-semibold">{value}</p>
       </CardContent>
     </Card>
+  );
+}
+
+function ToggleSetting({
+  label,
+  description,
+  checked,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label className="flex items-start justify-between gap-4">
+      <span>
+        <span className="block font-medium">{label}</span>
+        <span className="block text-muted-foreground">{description}</span>
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+    </label>
   );
 }
 
