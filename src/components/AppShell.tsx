@@ -11,7 +11,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { useWorkspace } from "@/lib/workspace";
+import { WorkspaceProvider, useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
 import { ROLES } from "@/lib/plans";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,16 @@ const AGENCY_NAV = [
 const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <WorkspaceProvider>
+      <AppShellContent>{children}</AppShellContent>
+    </WorkspaceProvider>
+  );
+}
+
+// Keep the provider and its consumer in the same module. This also prevents a
+// partial Vite/Lovable hot reload from rendering the shell with a stale context.
+function AppShellContent({ children }: { children: ReactNode }) {
   const { state, update, cloud } = useWorkspace();
   const plan = planOf(state.plan);
   const { user } = useAuth();
