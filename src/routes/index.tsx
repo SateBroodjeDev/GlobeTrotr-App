@@ -21,7 +21,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "GlobeTrotr — Reisplanner & kostenverdeler" },
       {
         property: "og:description",
-        content: "Multi-trip planner met live koersen, kaarten, paklijsten en eerlijke verrekening.",
+        content:
+          "Multi-trip planner met live koersen, kaarten, paklijsten en eerlijke verrekening.",
       },
     ],
   }),
@@ -29,10 +30,26 @@ export const Route = createFileRoute("/")({
 });
 
 const FEATURES = [
-  { icon: MapPin, title: "Route & kaart", text: "Bestemmingen zoeken wereldwijd, dag-voor-dag schema en navigatie per stop." },
-  { icon: Wallet, title: "Budget & valuta", text: "Uitgaven in elke munt met live koersen, budget versus werkelijk." },
-  { icon: Users, title: "Eerlijk verdelen", text: "Kosten 50/50 of per persoon, met het minimale aantal overboekingen." },
-  { icon: ShieldCheck, title: "Privé per account", text: "Je reizen staan veilig in je eigen account. Delen doe je alleen als je dat wilt." },
+  {
+    icon: MapPin,
+    title: "Route & kaart",
+    text: "Bestemmingen zoeken wereldwijd, dag-voor-dag schema en navigatie per stop.",
+  },
+  {
+    icon: Wallet,
+    title: "Budget & valuta",
+    text: "Uitgaven in elke munt met live koersen, budget versus werkelijk.",
+  },
+  {
+    icon: Users,
+    title: "Eerlijk verdelen",
+    text: "Kosten 50/50 of per persoon, met het minimale aantal overboekingen.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Privé per account",
+    text: "Je reizen staan veilig in je eigen account. Delen doe je alleen als je dat wilt.",
+  },
 ];
 
 function Landing() {
@@ -69,7 +86,12 @@ function Landing() {
                 <Button asChild size="lg">
                   <Link to="/auth">Gratis account maken</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline">
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="text-foreground hover:text-accent-foreground"
+                >
                   <Link to="/auth">Inloggen</Link>
                 </Button>
               </>
@@ -130,7 +152,10 @@ function Landing() {
                 <CardContent className="mt-auto space-y-2 text-sm text-muted-foreground">
                   <p className="flex items-center gap-1">
                     <MapPin className="size-4" />
-                    {t.stops.map((s) => s.name).slice(0, 4).join(" · ") || "Nog geen bestemmingen"}
+                    {t.stops
+                      .map((s) => s.name)
+                      .slice(0, 4)
+                      .join(" · ") || "Nog geen bestemmingen"}
                   </p>
                 </CardContent>
               </Card>
