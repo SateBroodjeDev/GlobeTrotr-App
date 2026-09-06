@@ -55,7 +55,7 @@ function Landing() {
           </h1>
           <p className="mt-4 max-w-xl text-sm opacity-90 md:text-base">
             GlobeTrotr bundelt je route, dagplanning, paklijst en alle kosten in één overzicht —
-            voor jezelf, je reisgenoten of je hele bedrijf.
+            voor jezelf, je reisgenoten en je hele vriendengroep.
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             {user ? (

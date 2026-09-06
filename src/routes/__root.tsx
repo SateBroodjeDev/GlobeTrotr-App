@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Wereldwijde reisplanner met routekaart, multi-valuta uitgaven, live weer en SaaS workspace tools.",
+          "Wereldwijde reisplanner voor vriendengroepen met routekaart, gedeelde uitgaven, live weer en paklijsten.",
       },
       { property: "og:title", content: "GlobeTrotr — Multi-Trip & Expense Planner" },
       {

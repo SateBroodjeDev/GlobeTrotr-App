@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
 import { toast } from "sonner";
-import { Archive, BookOpen, FileDown, FileText, Globe2, Plus, Trash2 } from "lucide-react";
+import { Archive, BookOpen, CalendarDays, FileDown, FileText, Globe2, Plus, Trash2 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { updateSharing } from "@/lib/cloud.functions";
 import { canEdit, canExport, hasFeature } from "@/lib/plans";
@@ -61,6 +61,7 @@ function TripDetail() {
 
   const base = state.baseCurrency;
   const editable = canEdit(state.role);
+  const canMarkBillable = hasFeature(state.plan, "billable_expenses");
   const spent = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const billable = trip.expenses
     .filter((e) => e.billable)
@@ -82,9 +83,29 @@ function TripDetail() {
       toast.error("Vul omschrijving en bedrag in");
       return;
     }
-    updateTrip(trip.id, (t) => ({ ...t, expenses: [...t.expenses, { ...draft, id: uid() }] }));
+    updateTrip(trip.id, (t) => ({
+      ...t,
+      expenses: [...t.expenses, { ...draft, billable: canMarkBillable && draft.billable, id: uid() }],
+    }));
     setDraft({ ...draft, title: "", amount: 0 });
     toast.success("Uitgave geboekt");
+  }
+
+  function changeStartDate(start: string) {
+    updateTrip(trip.id, (current) => ({
+      ...current,
+      start,
+      // Keep the date range valid when the start date moves past the old end date.
+      end: current.end && current.end < start ? start : current.end,
+    }));
+  }
+
+  function changeEndDate(end: string) {
+    if (end && trip.start && end < trip.start) {
+      toast.error("De einddatum kan niet vóór de startdatum liggen.");
+      return;
+    }
+    updateTrip(trip.id, (current) => ({ ...current, end }));
   }
 
   return (
@@ -180,12 +201,41 @@ function TripDetail() {
         </Card>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={`grid gap-4 ${canMarkBillable ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         <Stat label="Uitgegeven" value={formatMoney(spent, base)} />
         <Stat label="Budget" value={formatMoney(trip.budget, base)} />
-        <Stat label="Declarabel" value={formatMoney(billable, base)} />
+        {canMarkBillable && <Stat label="Declarabel" value={formatMoney(billable, base)} />}
       </div>
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
+
+      <Card className="surface">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <CalendarDays className="size-4" /> Reisdata
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-1.5 text-sm">
+            <span className="text-muted-foreground">Startdatum</span>
+            <Input
+              type="date"
+              value={trip.start}
+              disabled={!editable}
+              onChange={(e) => changeStartDate(e.target.value)}
+            />
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="text-muted-foreground">Einddatum</span>
+            <Input
+              type="date"
+              value={trip.end}
+              min={trip.start || undefined}
+              disabled={!editable}
+              onChange={(e) => changeEndDate(e.target.value)}
+            />
+          </label>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="route">
         <TabsList>
@@ -393,15 +443,17 @@ function TripDetail() {
                   </option>
                 ))}
               </select>
-              <label className="flex items-center gap-2 text-sm md:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={draft.billable}
-                  disabled={!editable}
-                  onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
-                />
-                Declarabel bij klant
-              </label>
+              {canMarkBillable && (
+                <label className="flex items-center gap-2 text-sm md:col-span-2">
+                  <input
+                    type="checkbox"
+                    checked={draft.billable}
+                    disabled={!editable}
+                    onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
+                  />
+                  Declarabel bij klant
+                </label>
+              )}
               <div className="md:col-span-4 md:text-right">
                 <Button onClick={addExpense} disabled={!editable}>
                   <Plus className="size-4" /> Boeken (
@@ -430,7 +482,7 @@ function TripDetail() {
                       <td className="p-3 whitespace-nowrap">{e.date}</td>
                       <td className="p-3">
                         {e.title}
-                        {e.billable && (
+                        {canMarkBillable && e.billable && (
                           <Badge variant="secondary" className="ml-2">
                             declarabel
                           </Badge>

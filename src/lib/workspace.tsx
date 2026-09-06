@@ -13,7 +13,13 @@ import { FALLBACK_RATES, type Rates } from "./services";
 import { getRates } from "./fx.functions";
 import { loadWorkspace, saveWorkspace } from "./cloud.functions";
 import { useAuth } from "./auth";
-import { TEMPLATES, type Trip, type TripTemplate, type WorkspaceState } from "./types";
+import {
+  TEMPLATES,
+  type PlanId,
+  type Trip,
+  type TripTemplate,
+  type WorkspaceState,
+} from "./types";
 
 const STORAGE_KEY = "atlasledger.workspace.v1";
 
@@ -44,6 +50,7 @@ type Ctx = {
   rates: Rates;
   ratesLive: boolean;
   reset: () => void;
+  changePlan: (plan: PlanId) => Promise<boolean>;
   cloud: "local" | "loading" | "synced" | "saving";
 };
 
@@ -170,6 +177,30 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => setState(seed()), []);
 
+  const changePlan = useCallback(
+    async (plan: PlanId) => {
+      if (!user) return false;
+
+      const previous = stateRef.current;
+      const next = { ...previous, plan };
+      stateRef.current = next;
+      setState(next);
+      setCloud("saving");
+
+      try {
+        await saveWorkspace({ data: { data: next } });
+        setCloud("synced");
+        return true;
+      } catch {
+        stateRef.current = previous;
+        setState(previous);
+        setCloud("synced");
+        return false;
+      }
+    },
+    [user],
+  );
+
   const value = useMemo<Ctx>(
     () => ({
       state,
@@ -180,9 +211,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       rates: ratesQuery.data ?? FALLBACK_RATES,
       ratesLive: !!ratesQuery.data,
       reset,
+      changePlan,
       cloud,
     }),
-    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset, cloud],
+    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset, changePlan, cloud],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

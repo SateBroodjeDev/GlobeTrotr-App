@@ -20,12 +20,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
 
-const NAV = [
+const CORE_NAV = [
   { to: "/dashboard", label: "Reizen", icon: Map },
+] as const;
+
+const AGENCY_NAV = [
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/team", label: "Team & rollen", icon: Users },
   { to: "/branding", label: "White-label", icon: Palette },
-  { to: "/billing", label: "Abonnement", icon: CreditCard },
 ] as const;
 
 const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
@@ -36,6 +38,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const navItems = user
+    ? [
+        ...CORE_NAV,
+        ...(state.plan === "agency" ? AGENCY_NAV : []),
+        { to: "/billing", label: "Abonnement", icon: CreditCard },
+      ]
+    : PUBLIC_NAV;
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -69,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="order-3 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
-            {(user ? NAV : PUBLIC_NAV).map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
