@@ -22,9 +22,9 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Start- en einddatum van een reis wijzigen, met validatie van de datums
 - [x] Reisinstellingen pas opslaan na expliciete actie en serverbevestiging; naam, datums en budget kunnen niet leeg of ongeldig worden opgeslagen
 - [x] Bestemmingen zoeken en toevoegen op de Leaflet-routekaart
-- [x] Dagplanning, afteller, paklijsten en reisstatus
+- [x] Dagplanning als chronologische timeline, met hele-reis- en per-dagweergave, afteller, paklijsten en reisstatus
 - [x] Weerinformatie per bestemming
-- [x] Reisonderdelen toevoegen: vlucht, overnachting, vervoer/reis en activiteit
+- [x] Reisonderdelen toevoegen en wijzigen: vlucht, overnachting, vervoer/reis, huurauto en activiteit
 - [x] Aanbieder, boekingsnummer, datum(s), notities, kosten en valuta opslaan per reisonderdeel
 - [x] Geselecteerde vertrek-, aankomst- en verblijflocaties automatisch met de kaart synchroniseren
 
@@ -45,6 +45,8 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Brandstof- en autokostencalculator
 - [x] Kosten bij een reisonderdeel direct ook als gekoppelde uitgave opslaan
 - [x] Gekoppelde kosten automatisch opruimen wanneer het reisonderdeel wordt verwijderd
+- [x] Uitgaven wijzigen, inclusief verdeling, betaler, valuta en notitie; verrekening berekent direct opnieuw
+- [x] Brandstofprognose per autorit, zichtbaar los van werkelijke uitgaven om dubbeltelling te voorkomen
 
 ## Fase 5 — Delen (klaar)
 
@@ -94,7 +96,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 1. **SQL-validatie & unieke reis-ID**: afgerond; relationele reizen hebben een globale UUID en de controles zijn uitgevoerd.
 2. **Relationele reisopslag**: afgerond en handmatig gevalideerd; laden en wijzigen van reizen en kindgegevens loopt via SQL, met JSON als tijdelijke compatibiliteitskopie.
-3. **Accountvoorkeuren**: eerstvolgend. Taal, tijdzone en dark-modevoorkeur veilig per profiel opslaan en toepassen.
+3. **Interface & boekingsbasis**: gebouwd; voer de nieuwe SQL-migratie uit en controleer huurauto's, timeline, kosten en leden in productie.
 4. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
 5. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
 6. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
@@ -112,8 +114,25 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Reizen worden bij laden uit `trips` en alle relationele kindtabellen opgebouwd. Reismutaties schrijven rechtstreeks naar SQL en werken daarna de JSON-kopie bij.
 - [x] Handmatige productiecontrole: relationeel laden en wijzigen werkt na het laden van de laatste Lovable-commit.
 - [ ] `workspaces.data` blijft voorlopig de bron voor workspace-instellingen en als compatibiliteitskopie van reizen. Verwijder deze kopie pas na relationele transacties, collaboratieve RLS-tests en productiecontrole.
-- [ ] Eerstvolgende implementatie: profielvoorkeuren voor taal, tijdzone en dark mode. Dit staat los van reisopslag en is daardoor veilig naast de huidige testfase te bouwen.
+- [x] Profielvoorkeuren voor taal, tijdzone en dark mode zijn gebouwd; de tijdzone-migratie moet nog per omgeving worden uitgevoerd.
 - [ ] Volgende data-mijlpaal daarna: relationele transacties/optimistic concurrency voor gelijktijdige wijzigingen, daarna toegang voor geaccepteerde reisleden met een eigen account.
+
+## Huidige interface- en boekingsupdate — klaar na SQL-import
+
+- [x] Light mode is omgezet naar neutraal wit/lichtgrijs met donker leesbare tekst, subtiele borders en accentkleur alleen voor kleine accenten.
+- [x] Dark mode blijft beschikbaar en is neutraler gemaakt; de globale zon/maan-knop werkt ook voor bezoekers zonder account.
+- [x] De header toont geen permanente eigenaar-/rolselector meer. Een ingelogde gebruiker krijgt een avatar met Account, Abonnement en Uitloggen; een bezoeker krijgt Inloggen en Registreren.
+- [x] Profielfoto gebruikt een veilige signed URL met initialen als fallback.
+- [x] Reisinstellingen, reisgenoten, kosten en verrekening gebruiken de profielnaam/eigenaar en echte `trip_members`, niet langer de oude workspace-demoleden.
+- [x] Reisonderdelen kunnen worden toegevoegd én gewijzigd; gekoppelde kosten worden bij wijzigen direct bijgewerkt.
+- [x] Uitgaven zijn bewerkbaar, inclusief datum, categorie, betaler, verdeling, valuta en notitie. Verwijderen maakt een gekoppeld boekingsbedrag los zodat geen verkeerde kosten blijven staan.
+- [x] Reisschema is een chronologische timeline met totale reis- en dagweergave, datumkiezer en navigatie naar vorige/volgende dag.
+- [x] Meerdaagse accommodaties en huurauto's krijgen inchecken/ophalen, doorlopende dagen en uitchecken/inleveren in de timeline.
+- [x] Huurauto is als reisonderdeel toegevoegd, met verhuurder, auto/categorie, borg, verzekering, eigen risico, locaties, tijden, prijs en reserveringsnummer.
+- [x] Autoritten kunnen afstand, verbruik en brandstofprijs bevatten; de brandstofprognose staat los van werkelijke uitgaven om dubbeltelling te voorkomen.
+- [x] Toegevoegde boekingen maken geen los planningrecord meer. Verwijderen ruimt ook oudere automatisch gemaakte planningrecords op.
+- [ ] Voer eerst `supabase/migrations/20260906180000_booking_details_and_clean_members.sql` uit in Lovable Cloud / Supabase SQL Editor. Deze voegt boekingsdetails/notities toe, markeert oude planningkoppelingen en verwijdert de verouderde workspace-level demoleden.
+- [ ] Na de SQL-import: Supabase TypeScript-types opnieuw genereren en een productiecontrole uitvoeren voor nieuwe huurauto, wijziging/verwijdering van een boeking, wijziging van een uitgave en een meerdaags hotel.
 
 ## P0 — Accountinstellingen
 
@@ -164,6 +183,8 @@ De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup
 - [x] `trip_members`: tabel voor lid, e-mail, rol, uitnodigingsstatus en latere Auth-koppeling is aangemaakt.
 - [x] `trip_stops`, `trip_itinerary_items`, `trip_expenses`, `trip_travel_items` en `trip_packing_items`: relationele tabellen zijn aangemaakt en gevuld.
 - [x] `trip_documents`: metadata-tabel voor private tickets, bonnetjes en boekingsbevestigingen is aangemaakt; bestanden zelf blijven in Storage.
+- [ ] Voer `20260906180000_booking_details_and_clean_members.sql` uit: `trip_travel_items.details`, `trip_expenses.notes`, huurauto-type, legacy-planningkoppelingen en opschoning van oude workspace-demoleden.
+- [ ] Genereer na deze import de Supabase TypeScript-types opnieuw en werk de lokale type-definities bij.
 - [ ] `referrals`, `subscription_events`, `invoices` en `payment_events` pas toevoegen wanneer referrals/Stripe daadwerkelijk worden gebouwd.
 
 ### Directe vervolgmigratie — globale, unieke reis-ID
@@ -238,6 +259,19 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 - [x] Toon na serverbevestiging een succesmelding bij openbaar/privé maken, budget delen en PIN-wijzigingen; herstel de vorige status bij een fout.
 - [x] Reisnaam, datums, budget en template gebruiken een gevalideerde, expliciete opslagactie met serverbevestiging en fout-herstel.
 - [ ] Breid deze bevestigingen uit naar leden, archiveren/verwijderen, reisonderdelen, uitgaven, stops en dagplanning zodra deze ieder een eigen relationele schrijfroute hebben.
+
+## P0 — Planning, boekingen & kosten
+
+- [x] Timeline met overzicht van de hele reis én een specifieke dag, inclusief datumkiezer en vorige/volgende-dagnavigatie.
+- [x] Vlucht-, hotel-, activiteit-, vervoer- en huurauto-iconen en relevante status, locatie, tijd, boekingsnummer en prijs.
+- [x] Type-specifieke, responsieve formuliergrids: vlucht, hotel, activiteit, vervoer en huurauto tonen alleen relevante velden.
+- [x] Vlucht heeft één datum; vluchtnummer en live-opvraagknop staan op dezelfde desktoprij.
+- [x] Activiteiten, boekingen en uitgaven zijn bewerkbaar; gekoppelde kosten synchroniseren direct met budget en verrekening.
+- [x] Huurauto's en doorlopende accommodaties worden slim, zonder dubbele volledige boekingen, per dag weergegeven.
+- [x] Brandstofprognose per autorit, met liters en kosten op basis van afstand, verbruik en brandstofprijs.
+- [ ] Voeg serverbevestiging + herstel van de vorige staat toe aan snelle wijzigingen van boekingen, uitgaven, stops, leden en planning (nu nog debounced/optimistisch).
+- [ ] Koppel kostenverdeling aan `trip_member`-IDs in plaats van namen voordat actieve leden met gelijke namen of naamswijzigingen kunnen samenwerken.
+- [ ] Voeg werkelijke tankbonnen toe en laat een gebruiker expliciet kiezen of een brandstofprognose wordt vervangen, zodat prognose en realisatie nooit dubbel meetellen.
 
 ## P0 — Fundament voor samenwerking
 

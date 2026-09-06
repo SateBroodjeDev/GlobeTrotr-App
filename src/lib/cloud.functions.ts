@@ -137,6 +137,7 @@ async function replaceTripChildren(
       day: item.day,
       title: item.title,
       notes: item.notes ?? null,
+      source_travel_item_id: item.sourceTravelItemId ?? null,
       position,
     })),
   );
@@ -155,6 +156,7 @@ async function replaceTripChildren(
       split_with: expense.splitWith ?? [],
       receipt_path: expense.receiptPath ?? null,
       receipt_name: expense.receiptName ?? null,
+      notes: expense.notes ?? null,
     })),
   );
   await replace(
@@ -177,6 +179,7 @@ async function replaceTripChildren(
       currency: item.currency ?? null,
       expense_id: item.expenseId ?? null,
       notes: item.notes ?? null,
+      details: item.details ?? {},
     })),
   );
   await replace(
@@ -355,6 +358,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         day: String(item.day),
         title: String(item.title),
         notes: item.notes ?? undefined,
+        sourceTravelItemId: item.source_travel_item_id ?? undefined,
       })),
       expenses: (expensesByTrip.get(id) ?? []).map((expense) => ({
         id: String(expense.id),
@@ -368,6 +372,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         splitWith: Array.isArray(expense.split_with) ? expense.split_with : [],
         receiptPath: expense.receipt_path ?? undefined,
         receiptName: expense.receipt_name ?? undefined,
+        notes: expense.notes ?? undefined,
       })),
       travelItems: (travelByTrip.get(id) ?? []).map((item) => ({
         id: String(item.id),
@@ -386,6 +391,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         currency: item.currency ?? undefined,
         expenseId: item.expense_id ?? undefined,
         notes: item.notes ?? undefined,
+        details: item.details ?? undefined,
       })),
       packing: (packingByTrip.get(id) ?? []).map((item) => ({
         id: String(item.id),

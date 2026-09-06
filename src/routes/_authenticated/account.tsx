@@ -144,7 +144,10 @@ function AccountPage() {
       } else {
         toast.success("Accountinstellingen opgeslagen.");
       }
-      await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["profile", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] }),
+      ]);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Opslaan lukte niet.");
     } finally {
@@ -203,7 +206,10 @@ function AccountPage() {
         .from("profiles")
         .upsert({ id: user.id, avatar_path: avatarPath });
       if (profileError) throw profileError;
-      await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["profile", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] }),
+      ]);
       toast.success("Profielfoto opgeslagen.");
     } catch (error) {
       toast.error(

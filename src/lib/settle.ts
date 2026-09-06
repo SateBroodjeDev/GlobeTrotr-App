@@ -5,13 +5,10 @@ export type Balance = { name: string; paid: number; owes: number; net: number };
 export type Transfer = { from: string; to: string; amount: number };
 
 export function travelersOf(trip: Trip, fallback: string[]): string[] {
-  // Reisgenoten worden per reis beheerd. Zodra deze lijst bestaat, is die
-  // leidend voor de verrekening; de fallback bevat onder meer de eigenaar.
-  const list = trip.members?.length
-    ? [...fallback, ...trip.members.map((member) => member.name)]
-    : trip.travelers?.length
-      ? trip.travelers
-      : fallback;
+  // `trip.travelers` is legacy JSON without identity or permission data and
+  // may contain the old sample names. The profile owner plus trip_members is
+  // the only authoritative participant list for money and settlement.
+  const list = [...fallback, ...(trip.members ?? []).map((member) => member.name)];
   return Array.from(new Set(list.filter(Boolean)));
 }
 

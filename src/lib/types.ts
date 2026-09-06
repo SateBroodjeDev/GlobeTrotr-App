@@ -18,9 +18,11 @@ export type ItineraryItem = {
   day: string;
   title: string;
   notes?: string;
+  /** Set for the legacy planning row that belongs to a booked travel item. */
+  sourceTravelItemId?: string;
 };
 
-export type TravelItemType = "flight" | "lodging" | "transport" | "activity";
+export type TravelItemType = "flight" | "lodging" | "transport" | "car_rental" | "activity";
 
 export type TravelLocation = {
   name: string;
@@ -48,6 +50,20 @@ export type TravelItem = {
   /** Gekoppelde uitgave die automatisch bij dit onderdeel is aangemaakt. */
   expenseId?: string;
   notes?: string;
+  /** Type-specific, non-sensitive booking details. */
+  details?: {
+    startTime?: string;
+    endTime?: string;
+    vehicle?: string;
+    vehicleCategory?: string;
+    deposit?: number;
+    insurance?: string;
+    excess?: number;
+    distanceKm?: number;
+    consumptionPer100Km?: number;
+    fuelPricePerLiter?: number;
+    fuelCurrency?: string;
+  };
 };
 
 export type Expense = {
@@ -64,6 +80,7 @@ export type Expense = {
   /** Pad in de receipts-opslag */
   receiptPath?: string;
   receiptName?: string;
+  notes?: string;
 };
 
 export type ExpenseCategory =

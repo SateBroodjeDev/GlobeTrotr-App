@@ -33,11 +33,15 @@ export function TripMembers({
   plan,
   editable,
   onChange,
+  ownerName = "Jij",
+  ownerEmail = "Eigenaar van deze reis",
 }: {
   members: TripMember[];
   plan: PlanId;
   editable: boolean;
   onChange: (members: TripMember[]) => void;
+  ownerName?: string;
+  ownerEmail?: string;
 }) {
   const roles = plan === "agency" ? AGENCY_ROLES : PERSONAL_ROLES;
   const maxMembers = plan === "free" ? 2 : Infinity;
@@ -123,7 +127,7 @@ export function TripMembers({
           </Button>
         </div>
         <div className="space-y-2">
-          <MemberRow name="Jij" email="Eigenaar van deze reis" role="owner" status="active" owner />
+          <MemberRow name={ownerName} email={ownerEmail} role="owner" status="active" owner />
           {members.map((member) => (
             <MemberRow
               key={member.id}

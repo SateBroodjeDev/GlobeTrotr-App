@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Archive,
@@ -8,6 +9,7 @@ import {
   FileDown,
   FileText,
   Globe2,
+  Pencil,
   Plus,
   Settings2,
   Trash2,
@@ -38,6 +40,9 @@ import { Packing } from "@/components/Packing";
 import { Countdown } from "@/components/Countdown";
 import { TripBookings } from "@/components/TripBookings";
 import { TripMembers } from "@/components/TripMembers";
+import { TripTimeline } from "@/components/TripTimeline";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -101,7 +106,23 @@ function TripDetail() {
   const trip = found;
 
   const base = state.baseCurrency;
-  const ownerName = state.members.find((member) => member.role === "owner")?.name ?? "Ik";
+  const { user } = useAuth();
+  const profileQuery = useQuery({
+    queryKey: ["profile-owner-name", user?.id],
+    enabled: Boolean(user),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.display_name as string | null | undefined;
+    },
+  });
+  const ownerName =
+    profileQuery.data?.trim() ||
+    String(user?.user_metadata.full_name ?? user?.email?.split("@")[0] ?? "Jij");
   const financialTravelers = travelersOf(trip, [ownerName]);
   const editable = canEdit(state.role);
   const canMarkBillable = hasFeature(state.plan, "billable_expenses");
@@ -109,6 +130,19 @@ function TripDetail() {
   const billable = trip.expenses
     .filter((e) => e.billable)
     .reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
+  const estimatedFuel = (trip.travelItems ?? [])
+    .filter((travelItem) => travelItem.type === "transport")
+    .reduce((sum, travelItem) => {
+      const details = travelItem.details;
+      const local =
+        (Number(details?.distanceKm ?? 0) *
+          Number(details?.consumptionPer100Km ?? 0) *
+          Number(details?.fuelPricePerLiter ?? 0)) /
+        100;
+      return (
+        sum + convert(local, details?.fuelCurrency ?? travelItem.currency ?? base, base, rates)
+      );
+    }, 0);
 
   const [draft, setDraft] = useState<Omit<Expense, "id">>({
     date: new Date().toISOString().slice(0, 10),
@@ -119,7 +153,7 @@ function TripDetail() {
     paidBy: ownerName,
     billable: false,
   });
-  const [item, setItem] = useState({ day: trip.start, title: "" });
+  const [editingExpenseId, setEditingExpenseId] = useState<string>();
   const [sharePin, setSharePin] = useState("");
   const [sharingSaving, setSharingSaving] = useState(false);
   const [settings, setSettings] = useState<TripSettingsDraft>(() => settingsFromTrip(trip));
@@ -219,23 +253,48 @@ function TripDetail() {
   }
 
   function addExpense() {
-    if (!draft.title.trim() || !draft.amount) {
-      toast.error("Vul omschrijving en bedrag in");
+    if (!draft.title.trim() || !Number.isFinite(draft.amount) || draft.amount <= 0) {
+      toast.error("Vul een omschrijving en bedrag groter dan nul in.");
       return;
     }
     updateTrip(trip.id, (t) => ({
       ...t,
-      expenses: [
-        ...t.expenses,
-        { ...draft, billable: canMarkBillable && draft.billable, id: uid() },
-      ],
+      expenses: editingExpenseId
+        ? t.expenses.map((expense) =>
+            expense.id === editingExpenseId
+              ? { ...draft, billable: canMarkBillable && draft.billable, id: editingExpenseId }
+              : expense,
+          )
+        : [...t.expenses, { ...draft, billable: canMarkBillable && draft.billable, id: uid() }],
+      travelItems: editingExpenseId
+        ? (t.travelItems ?? []).map((travelItem) =>
+            travelItem.expenseId === editingExpenseId
+              ? {
+                  ...travelItem,
+                  title: draft.title.trim(),
+                  date: draft.date,
+                  amount: draft.amount,
+                  currency: draft.currency,
+                }
+              : travelItem,
+          )
+        : t.travelItems,
     }));
-    setDraft({ ...draft, title: "", amount: 0 });
-    toast.success("Uitgave geboekt");
+    setDraft({ ...draft, title: "", amount: 0, notes: undefined, splitWith: undefined });
+    setEditingExpenseId(undefined);
+    toast.success(editingExpenseId ? "Uitgave bijgewerkt" : "Uitgave geboekt");
   }
 
-  function addTravelItem(item: TravelItem, locations: GeoResult[], paidBy: string) {
-    const expenseId = item.amount ? uid() : undefined;
+  function saveTravelItem(
+    item: TravelItem,
+    locations: GeoResult[],
+    paidBy: string,
+    previousId?: string,
+  ) {
+    const previous = previousId
+      ? (trip.travelItems ?? []).find((current) => current.id === previousId)
+      : undefined;
+    const expenseId = item.amount ? (previous?.expenseId ?? uid()) : undefined;
     const category: ExpenseCategory =
       item.type === "lodging" ? "lodging" : item.type === "activity" ? "activities" : "transport";
     updateTrip(trip.id, (current) => {
@@ -250,14 +309,16 @@ function TripDetail() {
       return {
         ...current,
         stops,
-        travelItems: [...(current.travelItems ?? []), { ...item, expenseId }],
-        itinerary: [...current.itinerary, { id: uid(), day: item.date, title: item.title }].sort(
-          (a, b) => a.day.localeCompare(b.day),
-        ),
+        travelItems: previousId
+          ? (current.travelItems ?? []).map((travelItem) =>
+              travelItem.id === previousId ? { ...item, expenseId } : travelItem,
+            )
+          : [...(current.travelItems ?? []), { ...item, expenseId }],
+        itinerary: current.itinerary,
         expenses:
           item.amount && expenseId
             ? [
-                ...current.expenses,
+                ...current.expenses.filter((expense) => expense.id !== expenseId),
                 {
                   id: expenseId,
                   date: item.date,
@@ -269,13 +330,19 @@ function TripDetail() {
                   billable: false,
                 },
               ]
-            : current.expenses,
+            : previous?.expenseId
+              ? current.expenses.filter((expense) => expense.id !== previous.expenseId)
+              : current.expenses,
       };
     });
     toast.success(
       item.amount
-        ? "Onderdeel, kaartlocatie en kosten opgeslagen."
-        : "Onderdeel en kaartlocatie opgeslagen.",
+        ? previousId
+          ? "Onderdeel en gekoppelde kosten bijgewerkt."
+          : "Onderdeel, kaartlocatie en kosten opgeslagen."
+        : previousId
+          ? "Reisonderdeel bijgewerkt."
+          : "Onderdeel en kaartlocatie opgeslagen.",
     );
   }
 
@@ -284,6 +351,11 @@ function TripDetail() {
     updateTrip(trip.id, (current) => ({
       ...current,
       travelItems: (current.travelItems ?? []).filter((travelItem) => travelItem.id !== id),
+      itinerary: current.itinerary.filter(
+        (planningItem) =>
+          planningItem.sourceTravelItemId !== id &&
+          !(planningItem.day === item?.date && planningItem.title === item?.title),
+      ),
       expenses: item?.expenseId
         ? current.expenses.filter((expense) => expense.id !== item.expenseId)
         : current.expenses,
@@ -354,9 +426,14 @@ function TripDetail() {
         </Card>
       )}
 
-      <div className={`grid gap-4 ${canMarkBillable ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+      <div
+        className={`grid gap-4 ${canMarkBillable || estimatedFuel > 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
+      >
         <Stat label="Uitgegeven" value={formatMoney(spent, base)} />
         <Stat label="Budget" value={formatMoney(trip.budget, base)} />
+        {estimatedFuel > 0 && (
+          <Stat label="Brandstofprognose" value={formatMoney(estimatedFuel, base)} />
+        )}
         {canMarkBillable && <Stat label="Declarabel" value={formatMoney(billable, base)} />}
       </div>
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
@@ -557,6 +634,8 @@ function TripDetail() {
             members={trip.members ?? []}
             plan={state.plan}
             editable={editable}
+            ownerName={ownerName}
+            ownerEmail={user?.email ?? "Eigenaar van deze reis"}
             onChange={(members) =>
               updateTrip(trip.id, (current) => ({
                 ...current,
@@ -690,157 +769,167 @@ function TripDetail() {
             trip={trip}
             editable={editable}
             payers={financialTravelers}
-            onAdd={addTravelItem}
+            onSave={saveTravelItem}
             onRemove={removeTravelItem}
           />
-          <Card className="surface">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Dagplanning</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  type="date"
-                  value={item.day}
-                  disabled={!editable}
-                  onChange={(e) => setItem({ ...item, day: e.target.value })}
-                  className="sm:w-44"
-                />
-                <Input
-                  value={item.title}
-                  disabled={!editable}
-                  placeholder="Programma-onderdeel"
-                  onChange={(e) => setItem({ ...item, title: e.target.value })}
-                />
-                <Button
-                  disabled={!editable}
-                  onClick={() => {
-                    if (!item.title.trim()) return;
-                    updateTrip(trip.id, (t) => ({
-                      ...t,
-                      itinerary: [...t.itinerary, { id: uid(), ...item }].sort((a, b) =>
-                        a.day.localeCompare(b.day),
-                      ),
-                    }));
-                    setItem({ ...item, title: "" });
-                  }}
-                >
-                  <Plus className="size-4" /> Toevoegen
-                </Button>
-              </div>
-              <ul className="divide-y rounded-xl border border-border">
-                {trip.itinerary.map((i) => (
-                  <li key={i.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                    <span>
-                      <Badge variant="secondary" className="mr-2">
-                        {i.day}
-                      </Badge>
-                      {i.title}
-                      {i.notes && (
-                        <span className="ml-2 text-xs text-muted-foreground">{i.notes}</span>
-                      )}
-                    </span>
-                    {editable && (
-                      <button
-                        aria-label="Verwijder onderdeel"
-                        onClick={() =>
-                          updateTrip(trip.id, (t) => ({
-                            ...t,
-                            itinerary: t.itinerary.filter((x) => x.id !== i.id),
-                          }))
-                        }
-                      >
-                        <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <TripTimeline
+            trip={trip}
+            baseCurrency={base}
+            editable={editable}
+            onAdd={(next) =>
+              updateTrip(trip.id, (current) => ({
+                ...current,
+                itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) =>
+                  a.day.localeCompare(b.day),
+                ),
+              }))
+            }
+            onRemove={(id) =>
+              updateTrip(trip.id, (current) => ({
+                ...current,
+                itinerary: current.itinerary.filter((planningItem) => planningItem.id !== id),
+              }))
+            }
+          />
         </TabsContent>
 
         <TabsContent value="expenses" className="space-y-4">
           <Card className="surface">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Uitgave boeken (elke valuta)</CardTitle>
+              <CardTitle className="text-sm">
+                {editingExpenseId ? "Uitgave wijzigen" : "Uitgave boeken (elke valuta)"}
+              </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-2 md:grid-cols-7">
+            <CardContent className="space-y-3">
+              <div className="grid items-end gap-3 md:grid-cols-7">
+                <Input
+                  type="date"
+                  value={draft.date}
+                  disabled={!editable}
+                  onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                />
+                <Input
+                  className="md:col-span-2"
+                  value={draft.title}
+                  disabled={!editable}
+                  placeholder="Omschrijving"
+                  onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                />
+                <select
+                  aria-label="Categorie"
+                  className="rounded-lg border border-input bg-card px-3 text-sm"
+                  value={draft.category}
+                  disabled={!editable}
+                  onChange={(e) =>
+                    setDraft({ ...draft, category: e.target.value as ExpenseCategory })
+                  }
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  aria-label="Betaald door"
+                  className="rounded-lg border border-input bg-card px-3 text-sm"
+                  value={draft.paidBy}
+                  disabled={!editable}
+                  onChange={(e) => setDraft({ ...draft, paidBy: e.target.value })}
+                >
+                  {financialTravelers.map((payer) => (
+                    <option key={payer} value={payer}>
+                      Betaald door: {payer}
+                    </option>
+                  ))}
+                </select>
+                <Input
+                  type="number"
+                  value={draft.amount || ""}
+                  disabled={!editable}
+                  placeholder="Bedrag"
+                  onChange={(e) => setDraft({ ...draft, amount: Number(e.target.value) })}
+                />
+                <select
+                  aria-label="Valuta"
+                  className="rounded-lg border border-input bg-card px-3 text-sm"
+                  value={draft.currency}
+                  disabled={!editable}
+                  onChange={(e) => setDraft({ ...draft, currency: e.target.value })}
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.label}
+                    </option>
+                  ))}
+                </select>
+                {canMarkBillable && (
+                  <label className="flex items-center gap-2 text-sm md:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={draft.billable}
+                      disabled={!editable}
+                      onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
+                    />
+                    Declarabel bij klant
+                  </label>
+                )}
+              </div>
+              <div className="rounded-xl border border-border bg-muted/25 p-3">
+                <p className="mb-2 text-xs font-medium text-muted-foreground">Verdelen tussen</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                  {financialTravelers.map((traveler) => {
+                    const selected = !draft.splitWith?.length || draft.splitWith.includes(traveler);
+                    return (
+                      <label key={traveler} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          disabled={!editable}
+                          onChange={(event) => {
+                            const current = draft.splitWith?.length
+                              ? draft.splitWith
+                              : [...financialTravelers];
+                            const splitWith = event.target.checked
+                              ? Array.from(new Set([...current, traveler]))
+                              : current.filter((person) => person !== traveler);
+                            setDraft({ ...draft, splitWith });
+                          }}
+                        />
+                        {traveler}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
               <Input
-                type="date"
-                value={draft.date}
+                value={draft.notes ?? ""}
                 disabled={!editable}
-                onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+                placeholder="Notitie (optioneel)"
+                onChange={(event) => setDraft({ ...draft, notes: event.target.value || undefined })}
               />
-              <Input
-                className="md:col-span-2"
-                value={draft.title}
-                disabled={!editable}
-                placeholder="Omschrijving"
-                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              />
-              <select
-                aria-label="Categorie"
-                className="rounded-lg border border-input bg-card px-3 text-sm"
-                value={draft.category}
-                disabled={!editable}
-                onChange={(e) =>
-                  setDraft({ ...draft, category: e.target.value as ExpenseCategory })
-                }
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                aria-label="Betaald door"
-                className="rounded-lg border border-input bg-card px-3 text-sm"
-                value={draft.paidBy}
-                disabled={!editable}
-                onChange={(e) => setDraft({ ...draft, paidBy: e.target.value })}
-              >
-                {financialTravelers.map((payer) => (
-                  <option key={payer} value={payer}>
-                    Betaald door: {payer}
-                  </option>
-                ))}
-              </select>
-              <Input
-                type="number"
-                value={draft.amount || ""}
-                disabled={!editable}
-                placeholder="Bedrag"
-                onChange={(e) => setDraft({ ...draft, amount: Number(e.target.value) })}
-              />
-              <select
-                aria-label="Valuta"
-                className="rounded-lg border border-input bg-card px-3 text-sm"
-                value={draft.currency}
-                disabled={!editable}
-                onChange={(e) => setDraft({ ...draft, currency: e.target.value })}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} — {c.label}
-                  </option>
-                ))}
-              </select>
-              {canMarkBillable && (
-                <label className="flex items-center gap-2 text-sm md:col-span-2">
-                  <input
-                    type="checkbox"
-                    checked={draft.billable}
-                    disabled={!editable}
-                    onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
-                  />
-                  Declarabel bij klant
-                </label>
-              )}
-              <div className="md:col-span-4 md:text-right">
+              <div className="flex flex-wrap justify-end gap-2">
+                {editingExpenseId && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditingExpenseId(undefined);
+                      setDraft({
+                        date: new Date().toISOString().slice(0, 10),
+                        title: "",
+                        category: "food",
+                        amount: 0,
+                        currency: base,
+                        paidBy: ownerName,
+                        billable: false,
+                      });
+                    }}
+                  >
+                    Annuleren
+                  </Button>
+                )}
                 <Button onClick={addExpense} disabled={!editable}>
-                  <Plus className="size-4" /> Boeken (
+                  <Plus className="size-4" /> {editingExpenseId ? "Opslaan" : "Boeken"} (
                   {formatMoney(convert(draft.amount || 0, draft.currency, base, rates), base)})
                 </Button>
               </div>
@@ -883,17 +972,35 @@ function TripDetail() {
                       </td>
                       <td className="p-3 text-right">
                         {editable && (
-                          <button
-                            aria-label="Verwijder uitgave"
-                            onClick={() =>
-                              updateTrip(trip.id, (t) => ({
-                                ...t,
-                                expenses: t.expenses.filter((x) => x.id !== e.id),
-                              }))
-                            }
-                          >
-                            <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
-                          </button>
+                          <span className="inline-flex">
+                            <button
+                              aria-label="Wijzig uitgave"
+                              className="p-1 text-muted-foreground hover:text-foreground"
+                              onClick={() => {
+                                setEditingExpenseId(e.id);
+                                setDraft({ ...e });
+                              }}
+                            >
+                              <Pencil className="size-4" />
+                            </button>
+                            <button
+                              aria-label="Verwijder uitgave"
+                              className="p-1 text-muted-foreground hover:text-destructive"
+                              onClick={() =>
+                                updateTrip(trip.id, (t) => ({
+                                  ...t,
+                                  expenses: t.expenses.filter((x) => x.id !== e.id),
+                                  travelItems: (t.travelItems ?? []).map((travelItem) =>
+                                    travelItem.expenseId === e.id
+                                      ? { ...travelItem, expenseId: undefined, amount: undefined }
+                                      : travelItem,
+                                  ),
+                                }))
+                              }
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
+                          </span>
                         )}
                       </td>
                     </tr>
