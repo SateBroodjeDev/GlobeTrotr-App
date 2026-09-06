@@ -124,12 +124,15 @@ export function TripTimeline({
   trip: Trip;
   baseCurrency: string;
   editable: boolean;
-  onAdd: (item: Omit<ItineraryItem, "id">) => void;
-  onRemove: (id: string) => void;
+  onAdd: (item: Omit<ItineraryItem, "id">) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
 }) {
-  const [mode, setMode] = useState<"all" | "day">("all");
+  // A long trip stays usable by opening one day at a time. The complete
+  // itinerary remains one click away for overview and printing.
+  const [mode, setMode] = useState<"all" | "day">("day");
   const [selectedDay, setSelectedDay] = useState(trip.start);
   const [title, setTitle] = useState("");
+  const [saving, setSaving] = useState(false);
   const entries = useMemo(() => {
     const bookingIds = new Set((trip.travelItems ?? []).map((item) => item.id));
     const manual = trip.itinerary
@@ -165,6 +168,31 @@ export function TripTimeline({
     setSelectedDay(
       dates[Math.max(0, Math.min(dates.length - 1, current + direction))] ?? selectedDay,
     );
+  }
+
+  async function addManualItem() {
+    if (!title.trim() || !selectedDay) return;
+    setSaving(true);
+    try {
+      await onAdd({ day: selectedDay, title: title.trim() });
+      setTitle("");
+    } catch {
+      // The parent displays the server error and restores the previous state.
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function removeManualItem(id: string) {
+    if (!window.confirm("Dit programma-item verwijderen?")) return;
+    setSaving(true);
+    try {
+      await onRemove(id);
+    } catch {
+      // The parent displays the server error and restores the previous state.
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -233,13 +261,12 @@ export function TripTimeline({
               />
             </label>
             <Button
+              disabled={saving}
               onClick={() => {
-                if (!title.trim() || !selectedDay) return;
-                onAdd({ day: selectedDay, title: title.trim() });
-                setTitle("");
+                void addManualItem();
               }}
             >
-              <Plus className="size-4" /> Toevoegen
+              <Plus className="size-4" /> {saving ? "Opslaan…" : "Toevoegen"}
             </Button>
           </div>
         )}
@@ -294,7 +321,8 @@ export function TripTimeline({
                                   size="icon"
                                   variant="ghost"
                                   aria-label="Verwijder programma-item"
-                                  onClick={() => onRemove(entry.manual!.id)}
+                                  disabled={saving}
+                                  onClick={() => void removeManualItem(entry.manual!.id)}
                                 >
                                   <Trash2 className="size-4" />
                                 </Button>

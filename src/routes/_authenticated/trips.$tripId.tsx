@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
-import { Suspense, lazy, useEffect, useState, type FormEvent } from "react";
+import { Suspense, lazy, useCallback, useEffect, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -9,6 +9,7 @@ import {
   FileDown,
   FileText,
   Globe2,
+  Paperclip,
   Pencil,
   Plus,
   Settings2,
@@ -154,10 +155,16 @@ function TripDetail() {
     billable: false,
   });
   const [editingExpenseId, setEditingExpenseId] = useState<string>();
+  const [expenseSaving, setExpenseSaving] = useState(false);
+  const [uploadingReceiptId, setUploadingReceiptId] = useState<string>();
   const [sharePin, setSharePin] = useState("");
   const [sharingSaving, setSharingSaving] = useState(false);
   const [settings, setSettings] = useState<TripSettingsDraft>(() => settingsFromTrip(trip));
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [showAllStops, setShowAllStops] = useState(false);
+  const [activeStopId, setActiveStopId] = useState<string>();
+  const visibleStops = showAllStops ? trip.stops : trip.stops.slice(0, 4);
+  const selectStop = useCallback((id: string) => setActiveStopId(id), []);
 
   useEffect(() => {
     setSettings(settingsFromTrip(trip));
@@ -252,40 +259,47 @@ function TripDetail() {
     }
   }
 
-  function addExpense() {
+  async function addExpense() {
     if (!draft.title.trim() || !Number.isFinite(draft.amount) || draft.amount <= 0) {
       toast.error("Vul een omschrijving en bedrag groter dan nul in.");
       return;
     }
-    updateTrip(trip.id, (t) => ({
-      ...t,
-      expenses: editingExpenseId
-        ? t.expenses.map((expense) =>
-            expense.id === editingExpenseId
-              ? { ...draft, billable: canMarkBillable && draft.billable, id: editingExpenseId }
-              : expense,
-          )
-        : [...t.expenses, { ...draft, billable: canMarkBillable && draft.billable, id: uid() }],
-      travelItems: editingExpenseId
-        ? (t.travelItems ?? []).map((travelItem) =>
-            travelItem.expenseId === editingExpenseId
-              ? {
-                  ...travelItem,
-                  title: draft.title.trim(),
-                  date: draft.date,
-                  amount: draft.amount,
-                  currency: draft.currency,
-                }
-              : travelItem,
-          )
-        : t.travelItems,
-    }));
-    setDraft({ ...draft, title: "", amount: 0, notes: undefined, splitWith: undefined });
-    setEditingExpenseId(undefined);
-    toast.success(editingExpenseId ? "Uitgave bijgewerkt" : "Uitgave geboekt");
+    setExpenseSaving(true);
+    try {
+      await saveTripNow(trip.id, (t) => ({
+        ...t,
+        expenses: editingExpenseId
+          ? t.expenses.map((expense) =>
+              expense.id === editingExpenseId
+                ? { ...draft, billable: canMarkBillable && draft.billable, id: editingExpenseId }
+                : expense,
+            )
+          : [...t.expenses, { ...draft, billable: canMarkBillable && draft.billable, id: uid() }],
+        travelItems: editingExpenseId
+          ? (t.travelItems ?? []).map((travelItem) =>
+              travelItem.expenseId === editingExpenseId
+                ? {
+                    ...travelItem,
+                    title: draft.title.trim(),
+                    date: draft.date,
+                    amount: draft.amount,
+                    currency: draft.currency,
+                  }
+                : travelItem,
+            )
+          : t.travelItems,
+      }));
+      setDraft({ ...draft, title: "", amount: 0, notes: undefined, splitWith: undefined });
+      setEditingExpenseId(undefined);
+      toast.success(editingExpenseId ? "Uitgave bijgewerkt" : "Uitgave geboekt");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Uitgave kon niet worden opgeslagen.");
+    } finally {
+      setExpenseSaving(false);
+    }
   }
 
-  function saveTravelItem(
+  async function saveTravelItem(
     item: TravelItem,
     locations: GeoResult[],
     paidBy: string,
@@ -297,72 +311,211 @@ function TripDetail() {
     const expenseId = item.amount ? (previous?.expenseId ?? uid()) : undefined;
     const category: ExpenseCategory =
       item.type === "lodging" ? "lodging" : item.type === "activity" ? "activities" : "transport";
-    updateTrip(trip.id, (current) => {
-      const stops = [...current.stops];
-      for (const location of locations) {
-        const exists = stops.some(
-          (stop) =>
-            Math.abs(stop.lat - location.lat) < 0.01 && Math.abs(stop.lon - location.lon) < 0.01,
-        );
-        if (!exists) stops.push({ id: uid(), ...location, nights: 0 });
-      }
-      return {
-        ...current,
-        stops,
-        travelItems: previousId
-          ? (current.travelItems ?? []).map((travelItem) =>
-              travelItem.id === previousId ? { ...item, expenseId } : travelItem,
-            )
-          : [...(current.travelItems ?? []), { ...item, expenseId }],
-        itinerary: current.itinerary,
-        expenses:
-          item.amount && expenseId
-            ? [
-                ...current.expenses.filter((expense) => expense.id !== expenseId),
-                {
-                  id: expenseId,
-                  date: item.date,
-                  title: item.title,
-                  category,
-                  amount: item.amount,
-                  currency: item.currency ?? base,
-                  paidBy,
-                  billable: false,
-                },
-              ]
-            : previous?.expenseId
-              ? current.expenses.filter((expense) => expense.id !== previous.expenseId)
-              : current.expenses,
-      };
-    });
-    toast.success(
-      item.amount
-        ? previousId
-          ? "Onderdeel en gekoppelde kosten bijgewerkt."
-          : "Onderdeel, kaartlocatie en kosten opgeslagen."
-        : previousId
-          ? "Reisonderdeel bijgewerkt."
-          : "Onderdeel en kaartlocatie opgeslagen.",
-    );
+    try {
+      await saveTripNow(trip.id, (current) => {
+        const stops = [...current.stops];
+        for (const location of locations) {
+          const exists = stops.some(
+            (stop) =>
+              Math.abs(stop.lat - location.lat) < 0.01 && Math.abs(stop.lon - location.lon) < 0.01,
+          );
+          if (!exists) stops.push({ id: uid(), ...location, nights: 0 });
+        }
+        return {
+          ...current,
+          stops,
+          travelItems: previousId
+            ? (current.travelItems ?? []).map((travelItem) =>
+                travelItem.id === previousId ? { ...item, expenseId } : travelItem,
+              )
+            : [...(current.travelItems ?? []), { ...item, expenseId }],
+          itinerary: current.itinerary,
+          expenses:
+            item.amount && expenseId
+              ? [
+                  ...current.expenses.filter((expense) => expense.id !== expenseId),
+                  {
+                    id: expenseId,
+                    date: item.date,
+                    title: item.title,
+                    category,
+                    amount: item.amount,
+                    currency: item.currency ?? base,
+                    paidBy,
+                    billable: false,
+                  },
+                ]
+              : previous?.expenseId
+                ? current.expenses.filter((expense) => expense.id !== previous.expenseId)
+                : current.expenses,
+        };
+      });
+      toast.success(
+        item.amount
+          ? previousId
+            ? "Onderdeel en gekoppelde kosten bijgewerkt."
+            : "Onderdeel, kaartlocatie en kosten opgeslagen."
+          : previousId
+            ? "Reisonderdeel bijgewerkt."
+            : "Onderdeel en kaartlocatie opgeslagen.",
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Reisonderdeel kon niet worden opgeslagen.",
+      );
+      throw error;
+    }
   }
 
-  function removeTravelItem(id: string) {
+  async function removeTravelItem(id: string) {
     const item = (trip.travelItems ?? []).find((current) => current.id === id);
-    updateTrip(trip.id, (current) => ({
-      ...current,
-      travelItems: (current.travelItems ?? []).filter((travelItem) => travelItem.id !== id),
-      itinerary: current.itinerary.filter(
-        (planningItem) =>
-          planningItem.sourceTravelItemId !== id &&
-          !(planningItem.day === item?.date && planningItem.title === item?.title),
-      ),
-      expenses: item?.expenseId
-        ? current.expenses.filter((expense) => expense.id !== item.expenseId)
-        : current.expenses,
-    }));
-    toast.success(
-      item?.expenseId ? "Onderdeel en gekoppelde kosten verwijderd." : "Onderdeel verwijderd.",
-    );
+    try {
+      await saveTripNow(trip.id, (current) => ({
+        ...current,
+        travelItems: (current.travelItems ?? []).filter((travelItem) => travelItem.id !== id),
+        itinerary: current.itinerary.filter(
+          (planningItem) =>
+            planningItem.sourceTravelItemId !== id &&
+            !(planningItem.day === item?.date && planningItem.title === item?.title),
+        ),
+        expenses: item?.expenseId
+          ? current.expenses.filter((expense) => expense.id !== item.expenseId)
+          : current.expenses,
+      }));
+      toast.success(
+        item?.expenseId ? "Onderdeel en gekoppelde kosten verwijderd." : "Onderdeel verwijderd.",
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Reisonderdeel kon niet worden verwijderd.",
+      );
+      throw error;
+    }
+  }
+
+  async function addStop(location: GeoResult) {
+    const stopId = uid();
+    try {
+      await saveTripNow(trip.id, (current) => ({
+        ...current,
+        stops: [...current.stops, { id: stopId, ...location, nights: 1 }],
+      }));
+      setActiveStopId(stopId);
+      toast.success(`${location.name} toegevoegd.`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Bestemming kon niet worden opgeslagen.",
+      );
+    }
+  }
+
+  async function removeStop(stopId: string) {
+    if (!window.confirm("Deze bestemming van de routekaart verwijderen?")) return;
+    try {
+      await saveTripNow(trip.id, (current) => ({
+        ...current,
+        stops: current.stops.filter((stop) => stop.id !== stopId),
+      }));
+      if (activeStopId === stopId) setActiveStopId(undefined);
+      toast.success("Bestemming verwijderd.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Bestemming kon niet worden verwijderd.",
+      );
+    }
+  }
+
+  async function toggleArchive() {
+    if (!window.confirm(trip.archived ? "Deze reis weer actief maken?" : "Deze reis archiveren?")) {
+      return;
+    }
+    try {
+      await saveTripNow(trip.id, (current) => ({ ...current, archived: !current.archived }));
+      toast.success(trip.archived ? "Reis heractiveerd." : "Reis gearchiveerd.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Reisstatus kon niet worden opgeslagen.",
+      );
+    }
+  }
+
+  async function removeExpense(expenseId: string) {
+    if (
+      !window.confirm(
+        "Deze uitgave verwijderen? De koppeling met een eventueel reisonderdeel wordt losgemaakt.",
+      )
+    ) {
+      return;
+    }
+    try {
+      await saveTripNow(trip.id, (current) => ({
+        ...current,
+        expenses: current.expenses.filter((expense) => expense.id !== expenseId),
+        travelItems: (current.travelItems ?? []).map((travelItem) =>
+          travelItem.expenseId === expenseId
+            ? { ...travelItem, expenseId: undefined, amount: undefined }
+            : travelItem,
+        ),
+      }));
+      toast.success("Uitgave verwijderd.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Uitgave kon niet worden verwijderd.");
+    }
+  }
+
+  async function uploadReceipt(expense: Expense, event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
+      toast.error("Kies een PDF, JPG, PNG of WebP tot 10 MB.");
+      event.target.value = "";
+      return;
+    }
+
+    const extension = file.name.split(".").pop()?.toLowerCase() || "file";
+    const storagePath = `${user.id}/${trip.id}/${expense.id}/${crypto.randomUUID()}.${extension}`;
+    setUploadingReceiptId(expense.id);
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("receipts")
+        .upload(storagePath, file, { contentType: file.type, upsert: false });
+      if (uploadError) throw uploadError;
+
+      try {
+        await saveTripNow(trip.id, (current) => ({
+          ...current,
+          expenses: current.expenses.map((item) =>
+            item.id === expense.id
+              ? { ...item, receiptPath: storagePath, receiptName: file.name }
+              : item,
+          ),
+        }));
+      } catch (error) {
+        await supabase.storage.from("receipts").remove([storagePath]);
+        throw error;
+      }
+      toast.success("Bon gekoppeld aan de uitgave.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Bon kon niet worden geüpload.");
+    } finally {
+      setUploadingReceiptId(undefined);
+      event.target.value = "";
+    }
+  }
+
+  async function openReceipt(expense: Expense) {
+    if (!expense.receiptPath) return;
+    try {
+      const { data, error } = await supabase.storage
+        .from("receipts")
+        .createSignedUrl(expense.receiptPath, 60 * 5);
+      if (error) throw error;
+      if (!data?.signedUrl) throw new Error("Bon kon niet worden geopend.");
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Bon kon niet worden geopend.");
+    }
   }
 
   return (
@@ -439,9 +592,10 @@ function TripDetail() {
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
 
       <Tabs defaultValue="route">
-        <TabsList>
+        <TabsList className="h-auto max-w-full flex-wrap justify-start">
           <TabsTrigger value="route">Routekaart</TabsTrigger>
           <TabsTrigger value="plan">Reisschema</TabsTrigger>
+          {editable && <TabsTrigger value="plan-edit">Reisschema aanpassen</TabsTrigger>}
           <TabsTrigger value="expenses">Uitgaven</TabsTrigger>
           <TabsTrigger value="money">Geld-tools</TabsTrigger>
           <TabsTrigger value="packing">Paklijst</TabsTrigger>
@@ -654,20 +808,7 @@ function TripDetail() {
                 Archiveer de reis of verwijder hem definitief.
               </p>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  disabled={!editable}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        trip.archived ? "Deze reis weer actief maken?" : "Deze reis archiveren?",
-                      )
-                    ) {
-                      updateTrip(trip.id, (t) => ({ ...t, archived: !t.archived }));
-                      toast.success(trip.archived ? "Reis heractiveerd" : "Reis gearchiveerd");
-                    }
-                  }}
-                >
+                <Button variant="outline" disabled={!editable} onClick={() => void toggleArchive()}>
                   <Archive className="size-4" /> {trip.archived ? "Heractiveren" : "Archiveren"}
                 </Button>
                 <Button
@@ -706,7 +847,11 @@ function TripDetail() {
               <CardContent className="p-3">
                 <ClientOnly fallback={<Skeleton className="h-[420px] w-full rounded-xl" />}>
                   <Suspense fallback={<Skeleton className="h-[420px] w-full rounded-xl" />}>
-                    <TripMap stops={trip.stops} />
+                    <TripMap
+                      stops={trip.stops}
+                      activeStopId={activeStopId}
+                      onStopSelect={selectStop}
+                    />
                   </Suspense>
                 </ClientOnly>
               </CardContent>
@@ -717,43 +862,60 @@ function TripDetail() {
                   <CardTitle className="text-sm">Bestemming toevoegen</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <PlaceSearch
-                    disabled={!editable}
-                    onPick={(r) => {
-                      updateTrip(trip.id, (t) => ({
-                        ...t,
-                        stops: [...t.stops, { id: uid(), ...r, nights: 1 }],
-                      }));
-                      toast.success(`${r.name} toegevoegd`);
-                    }}
-                  />
+                  <PlaceSearch disabled={!editable} onPick={(location) => void addStop(location)} />
+                  {trip.stops.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {trip.stops.length} {trip.stops.length === 1 ? "bestemming" : "bestemmingen"}
+                      {activeStopId ? " · geselecteerde bestemming is op de kaart uitgelicht" : ""}
+                    </p>
+                  )}
                   <ol className="space-y-2">
-                    {trip.stops.map((s, i) => (
-                      <li
-                        key={s.id}
-                        className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2 text-sm"
-                      >
-                        <span>
-                          <span className="mr-2 text-muted-foreground">{i + 1}.</span>
-                          {s.name}
-                          <span className="ml-2 text-xs text-muted-foreground">{s.country}</span>
-                        </span>
-                        {editable && (
-                          <button
-                            aria-label="Verwijder bestemming"
-                            onClick={() =>
-                              updateTrip(trip.id, (t) => ({
-                                ...t,
-                                stops: t.stops.filter((x) => x.id !== s.id),
-                              }))
-                            }
-                          >
-                            <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+                    {visibleStops.map((s) => {
+                      const stopIndex = trip.stops.findIndex((stop) => stop.id === s.id);
+                      return (
+                        <li
+                          key={s.id}
+                          className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors ${
+                            activeStopId === s.id
+                              ? "border-primary bg-primary/10"
+                              : "border-transparent bg-muted/60 hover:bg-muted"
+                          }`}
+                          onClick={() => setActiveStopId(s.id)}
+                        >
+                          <button type="button" className="min-w-0 flex-1 text-left">
+                            <span className="mr-2 text-muted-foreground">{stopIndex + 1}.</span>
+                            {s.name}
+                            <span className="ml-2 text-xs text-muted-foreground">{s.country}</span>
                           </button>
-                        )}
-                      </li>
-                    ))}
+                          {editable && (
+                            <button
+                              type="button"
+                              aria-label="Verwijder bestemming"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void removeStop(s.id);
+                              }}
+                            >
+                              <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ol>
+                  {trip.stops.length > 4 && (
+                    <Button
+                      type="button"
+                      className="w-full"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAllStops((current) => !current)}
+                    >
+                      {showAllStops
+                        ? "Minder bestemmingen tonen"
+                        : `Alle ${trip.stops.length} bestemmingen tonen`}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
               <WeatherWidget
@@ -765,33 +927,69 @@ function TripDetail() {
         </TabsContent>
 
         <TabsContent value="plan" className="space-y-4">
-          <TripBookings
-            trip={trip}
-            editable={editable}
-            payers={financialTravelers}
-            onSave={saveTravelItem}
-            onRemove={removeTravelItem}
-          />
           <TripTimeline
             trip={trip}
             baseCurrency={base}
-            editable={editable}
-            onAdd={(next) =>
-              updateTrip(trip.id, (current) => ({
-                ...current,
-                itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) =>
-                  a.day.localeCompare(b.day),
-                ),
-              }))
-            }
-            onRemove={(id) =>
-              updateTrip(trip.id, (current) => ({
-                ...current,
-                itinerary: current.itinerary.filter((planningItem) => planningItem.id !== id),
-              }))
-            }
+            editable={false}
+            onAdd={async () => undefined}
+            onRemove={async () => undefined}
           />
         </TabsContent>
+
+        {editable && (
+          <TabsContent value="plan-edit" className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Voeg boekingen en eigen programma-items toe of wijzig ze. Het overzicht zelf staat in
+              Reisschema.
+            </p>
+            <TripBookings
+              trip={trip}
+              editable={editable}
+              payers={financialTravelers}
+              onSave={saveTravelItem}
+              onRemove={removeTravelItem}
+            />
+            <TripTimeline
+              trip={trip}
+              baseCurrency={base}
+              editable={editable}
+              onAdd={async (next) => {
+                try {
+                  await saveTripNow(trip.id, (current) => ({
+                    ...current,
+                    itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) =>
+                      a.day.localeCompare(b.day),
+                    ),
+                  }));
+                  toast.success("Programma-item opgeslagen.");
+                } catch (error) {
+                  toast.error(
+                    error instanceof Error
+                      ? error.message
+                      : "Programma-item kon niet worden opgeslagen.",
+                  );
+                  throw error;
+                }
+              }}
+              onRemove={async (id) => {
+                try {
+                  await saveTripNow(trip.id, (current) => ({
+                    ...current,
+                    itinerary: current.itinerary.filter((planningItem) => planningItem.id !== id),
+                  }));
+                  toast.success("Programma-item verwijderd.");
+                } catch (error) {
+                  toast.error(
+                    error instanceof Error
+                      ? error.message
+                      : "Programma-item kon niet worden verwijderd.",
+                  );
+                  throw error;
+                }
+              }}
+            />
+          </TabsContent>
+        )}
 
         <TabsContent value="expenses" className="space-y-4">
           <Card className="surface">
@@ -928,8 +1126,9 @@ function TripDetail() {
                     Annuleren
                   </Button>
                 )}
-                <Button onClick={addExpense} disabled={!editable}>
-                  <Plus className="size-4" /> {editingExpenseId ? "Opslaan" : "Boeken"} (
+                <Button onClick={() => void addExpense()} disabled={!editable || expenseSaving}>
+                  <Plus className="size-4" />{" "}
+                  {expenseSaving ? "Opslaan…" : editingExpenseId ? "Opslaan" : "Boeken"} (
                   {formatMoney(convert(draft.amount || 0, draft.currency, base, rates), base)})
                 </Button>
               </div>
@@ -961,6 +1160,15 @@ function TripDetail() {
                             declarabel
                           </Badge>
                         )}
+                        {e.receiptPath && (
+                          <button
+                            type="button"
+                            className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
+                            onClick={() => void openReceipt(e)}
+                          >
+                            <Paperclip className="size-3" /> {e.receiptName || "Bon bekijken"}
+                          </button>
+                        )}
                       </td>
                       <td className="p-3">{CATEGORIES.find((c) => c.id === e.category)?.label}</td>
                       <td className="p-3">{e.paidBy}</td>
@@ -973,6 +1181,21 @@ function TripDetail() {
                       <td className="p-3 text-right">
                         {editable && (
                           <span className="inline-flex">
+                            <label
+                              className={`grid size-7 cursor-pointer place-items-center rounded text-muted-foreground hover:text-foreground ${
+                                uploadingReceiptId === e.id ? "pointer-events-none opacity-50" : ""
+                              }`}
+                              title="Bon koppelen"
+                            >
+                              <Paperclip className="size-4" />
+                              <input
+                                className="sr-only"
+                                type="file"
+                                accept="application/pdf,image/jpeg,image/png,image/webp"
+                                disabled={uploadingReceiptId === e.id}
+                                onChange={(event) => void uploadReceipt(e, event)}
+                              />
+                            </label>
                             <button
                               aria-label="Wijzig uitgave"
                               className="p-1 text-muted-foreground hover:text-foreground"
@@ -986,17 +1209,7 @@ function TripDetail() {
                             <button
                               aria-label="Verwijder uitgave"
                               className="p-1 text-muted-foreground hover:text-destructive"
-                              onClick={() =>
-                                updateTrip(trip.id, (t) => ({
-                                  ...t,
-                                  expenses: t.expenses.filter((x) => x.id !== e.id),
-                                  travelItems: (t.travelItems ?? []).map((travelItem) =>
-                                    travelItem.expenseId === e.id
-                                      ? { ...travelItem, expenseId: undefined, amount: undefined }
-                                      : travelItem,
-                                  ),
-                                }))
-                              }
+                              onClick={() => void removeExpense(e.id)}
                             >
                               <Trash2 className="size-4" />
                             </button>

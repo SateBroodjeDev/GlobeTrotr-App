@@ -63,8 +63,13 @@ export function TripBookings({
   trip: Trip;
   editable: boolean;
   payers: string[];
-  onSave: (item: TravelItem, locations: GeoResult[], paidBy: string, previousId?: string) => void;
-  onRemove: (id: string) => void;
+  onSave: (
+    item: TravelItem,
+    locations: GeoResult[],
+    paidBy: string,
+    previousId?: string,
+  ) => Promise<void>;
+  onRemove: (id: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<Draft>(() => emptyDraft(trip.start));
   const [departure, setDeparture] = useState<GeoResult>();
@@ -72,6 +77,7 @@ export function TripBookings({
   const [location, setLocation] = useState<GeoResult>();
   const [flight, setFlight] = useState<FlightLookup>();
   const [loadingFlight, setLoadingFlight] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [paidBy, setPaidBy] = useState(() => payers[0] ?? "Ik");
   const [editingId, setEditingId] = useState<string>();
   const typeIsMoving = moving(draft.type);
@@ -114,8 +120,10 @@ export function TripBookings({
         title: current.title || [result.airline, result.flightNumber].filter(Boolean).join(" "),
         details: {
           ...current.details,
-          startTime: current.details?.startTime || result.departure?.actual || result.departure?.scheduled,
-          endTime: current.details?.endTime || result.arrival?.estimated || result.arrival?.scheduled,
+          startTime:
+            current.details?.startTime || result.departure?.actual || result.departure?.scheduled,
+          endTime:
+            current.details?.endTime || result.arrival?.estimated || result.arrival?.scheduled,
           flightDepartureAirport: result.departure?.airportFull || result.departure?.airport,
           flightArrivalAirport: result.arrival?.airportFull || result.arrival?.airport,
           flightDepartureScheduled: result.departure?.scheduled,
@@ -138,7 +146,7 @@ export function TripBookings({
       setLoadingFlight(false);
     }
   }
-  function save() {
+  async function save() {
     const title = draft.title.trim();
     if (!title || !draft.date) {
       toast.error("Vul minstens een naam en datum in.");
@@ -152,22 +160,46 @@ export function TripBookings({
     const locations = typeIsMoving
       ? [departure, arrival].filter((v): v is GeoResult => Boolean(v))
       : [location].filter((v): v is GeoResult => Boolean(v));
-    onSave(
-      {
-        ...draft,
-        id: editingId ?? crypto.randomUUID(),
-        title,
-        amount: Number.isFinite(amount) && amount > 0 ? amount : undefined,
-        endDate: draft.type === "flight" ? undefined : draft.endDate || undefined,
-        departure: typeIsMoving ? departure : undefined,
-        arrival: typeIsMoving ? arrival : undefined,
-        location: !typeIsMoving ? location : undefined,
-      },
-      locations,
-      paidBy,
-      editingId,
-    );
-    reset(draft.date);
+    setSaving(true);
+    try {
+      await onSave(
+        {
+          ...draft,
+          id: editingId ?? crypto.randomUUID(),
+          title,
+          amount: Number.isFinite(amount) && amount > 0 ? amount : undefined,
+          endDate: draft.type === "flight" ? undefined : draft.endDate || undefined,
+          departure: typeIsMoving ? departure : undefined,
+          arrival: typeIsMoving ? arrival : undefined,
+          location: !typeIsMoving ? location : undefined,
+        },
+        locations,
+        paidBy,
+        editingId,
+      );
+      reset(draft.date);
+    } catch {
+      // The parent shows the precise server error and has restored the prior state.
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove(id: string) {
+    if (
+      !window.confirm("Dit reisonderdeel verwijderen? Een gekoppelde uitgave wordt ook verwijderd.")
+    ) {
+      return;
+    }
+    setSaving(true);
+    try {
+      await onRemove(id);
+      if (editingId === id) reset();
+    } catch {
+      // The parent shows the precise server error and has restored the prior state.
+    } finally {
+      setSaving(false);
+    }
   }
   function edit(item: TravelItem) {
     const { id: _id, departure: _dep, arrival: _arr, location: _loc, amount, ...rest } = item;
@@ -323,9 +355,7 @@ export function TripBookings({
                   onChange={(e) => detail("endTime", e.target.value)}
                 />
               </Field>
-              {flight && (
-                <FlightStatusSummary flight={flight} />
-              )}
+              {flight && <FlightStatusSummary flight={flight} />}
             </div>
           )}
           {draft.type === "activity" && (
@@ -582,12 +612,16 @@ export function TripBookings({
               onChange={(e) => setDraft((current) => ({ ...current, notes: e.target.value }))}
             />
           </Field>
-          <Button disabled={!editable} onClick={save}>
+          <Button disabled={!editable || saving} onClick={() => void save()}>
             {editingId ? (
-              "Wijzigingen opslaan"
+              saving ? (
+                "Opslaan…"
+              ) : (
+                "Wijzigingen opslaan"
+              )
             ) : (
               <>
-                <Plus className="size-4" /> Onderdeel opslaan
+                <Plus className="size-4" /> {saving ? "Opslaan…" : "Onderdeel opslaan"}
               </>
             )}
           </Button>
@@ -628,7 +662,8 @@ export function TripBookings({
                     </p>
                   )}
                   {item.type === "flight" &&
-                    (item.details?.flightDepartureAirport || item.details?.flightArrivalAirport) && (
+                    (item.details?.flightDepartureAirport ||
+                      item.details?.flightArrivalAirport) && (
                       <p className="mt-1 text-xs text-muted-foreground">
                         {item.details.flightDepartureAirport || "Vertrek onbekend"} →{" "}
                         {item.details.flightArrivalAirport || "Aankomst onbekend"}
@@ -645,6 +680,7 @@ export function TripBookings({
                       variant="ghost"
                       size="icon"
                       aria-label="Boeking wijzigen"
+                      disabled={saving}
                       onClick={() => edit(item)}
                     >
                       <Pencil className="size-4" />
@@ -654,7 +690,8 @@ export function TripBookings({
                       variant="ghost"
                       size="icon"
                       aria-label="Boeking verwijderen"
-                      onClick={() => onRemove(item.id)}
+                      disabled={saving}
+                      onClick={() => void remove(item.id)}
                     >
                       <Trash2 className="size-4" />
                     </Button>
@@ -672,13 +709,17 @@ export function TripBookings({
 function FlightStatusSummary({ flight }: { flight: FlightLookup }) {
   const departure = [
     flight.departure?.actual && `Werkelijk ${flight.departure.actual}`,
-    !flight.departure?.actual && flight.departure?.scheduled && `Gepland ${flight.departure.scheduled}`,
+    !flight.departure?.actual &&
+      flight.departure?.scheduled &&
+      `Gepland ${flight.departure.scheduled}`,
     flight.departure?.terminal && `Terminal ${flight.departure.terminal}`,
     flight.departure?.gate && `Gate ${flight.departure.gate}`,
   ].filter(Boolean);
   const arrival = [
     flight.arrival?.estimated && `Verwacht ${flight.arrival.estimated}`,
-    !flight.arrival?.estimated && flight.arrival?.scheduled && `Gepland ${flight.arrival.scheduled}`,
+    !flight.arrival?.estimated &&
+      flight.arrival?.scheduled &&
+      `Gepland ${flight.arrival.scheduled}`,
     flight.arrival?.terminal && `Terminal ${flight.arrival.terminal}`,
     flight.arrival?.gate && `Gate ${flight.arrival.gate}`,
   ].filter(Boolean);

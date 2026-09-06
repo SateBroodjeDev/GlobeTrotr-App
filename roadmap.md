@@ -21,6 +21,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Nieuwe reizen krijgen direct een globale UUID en een relationele `trips`-rij
 - [x] Start- en einddatum van een reis wijzigen, met validatie van de datums
 - [x] Reisinstellingen pas opslaan na expliciete actie en serverbevestiging; naam, datums en budget kunnen niet leeg of ongeldig worden opgeslagen
+- [x] Belangrijke reiswijzigingen pas als geslaagd melden na serverbevestiging: boekingen, uitgaven, bestemmingen, eigen programma-items en archiveren herstellen bij een serverfout de vorige staat
 - [x] Bestemmingen zoeken en toevoegen op de Leaflet-routekaart
 - [x] Dagplanning als chronologische timeline, met hele-reis- en per-dagweergave, afteller, paklijsten en reisstatus
 - [x] Weerinformatie per bestemming
@@ -37,7 +38,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [ ] `SKYLINK_API_KEY` als server-secret instellen in Lovable Cloud; de sleutel komt nooit in browsercode, Git of `workspaces.data`
 - [x] SkyLinkAPI Flight Status server-side koppelen aan een vluchtnummer en de respons veilig omzetten naar GlobeTrotr-velden
 - [ ] Live vertrek-/aankomsttijden en eventuele gate/terminal uitgebreider tonen
-- [ ] Voor een opgegeven vluchtdatum een Schedule-lookup als fallback toevoegen wanneer Flight Status geen passende actuele vlucht teruggeeft
+- [ ] Een Schedule-lookup alleen als nabije fallback toevoegen wanneer vertrek-IATA bekend is; SkyLink ondersteunt hiervoor slechts vijf dagen terug tot één dag vooruit en dus geen verre toekomstige reizen
 - [ ] Duidelijke Nederlandse foutstatussen voor ongeldige vluchtnummers, geen resultaat, limiet bereikt en tijdelijke providerfout
 - [ ] Automatisch periodiek verversen van vluchtstatus voor reizen die binnenkort vertrekken
 
@@ -65,7 +66,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] CSV- en JSON-back-up/export
 - [x] Printklare reisgids met Google Maps-navigatie per stop
 - [x] PDF-reisoverzicht
-- [ ] Bonnetjes uploaden en koppelen aan een uitgave (de beveiligde opslagregels bestaan al)
+- [x] Bonnetjes uploaden en koppelen aan een uitgave: private `receipts`-opslag per account, PDF/JPG/PNG/WebP tot 10 MB, signed viewing-link en opruimen wanneer de databasekoppeling mislukt
 - [ ] Boekingsbevestigingen als document koppelen aan een reisonderdeel
 
 ## Fase 7 — Abonnementen & Agency (deels klaar)
@@ -148,7 +149,7 @@ SkyLinkAPI vervangt Aviationstack omdat de huidige Aviationstack-functie niet bi
 - [x] `src/lib/flight.functions.ts` vervangen door een serverfunctie voor SkyLinkAPI v3.1 Flight Status; de browser roept uitsluitend deze eigen serverfunctie aan.
 - [ ] Eén invoerformaat valideren: IATA-vluchtnummer zoals `KL1234` of ICAO zoals `KLM1234`, zonder de key of ruwe providerfout in de UI te tonen.
 - [x] Maatschappij, vluchtstatus, vertrek- en aankomstluchthaven, geplande/verwachte/werkelijke tijden, terminal en gate opslaan en tonen wanneer SkyLink die levert.
-- [ ] De bij de boeking gekozen vlucht-datum gebruiken voor weergave en een latere Schedule-fallback; Flight Status zelf zoekt op vluchtnummer en heeft geen datumparameter.
+- [ ] De bij de boeking gekozen vlucht-datum gebruiken voor weergave en alleen binnen SkyLink's beperkte datumvenster voor een Schedule-fallback; Flight Status zelf zoekt op vluchtnummer en heeft geen datumparameter.
 - [x] Foutmeldingen mappen op een bruikbare actie: geen vlucht gevonden, ongeldige invoer, tijdelijk niet beschikbaar of maandlimiet bereikt.
 - [ ] Testen met één toekomstige en één historische/actieve vlucht, met een ontbrekend vluchtnummer en zonder secret. Controleer dat geen secret in DevTools, logs of de database verschijnt.
 - [ ] Daarna pas: cache met `last_checked_at`, beperkte handmatige refresh en polling alleen voor reizen die binnen korte tijd vertrekken.
@@ -157,10 +158,11 @@ SkyLinkAPI vervangt Aviationstack omdat de huidige Aviationstack-functie niet bi
 
 Een reis met veel bestemmingen of boekingen mag niet veranderen in één onhandelbare, eindeloos lange pagina. De kaart blijft het ruimtelijke overzicht; reisschema en bestemmingsoverzicht worden compacte, taakgerichte schermdelen.
 
-- [ ] Vervang de lange bestemmingenlijst onder de kaart door een compacte samenvatting met aantal stops, eerstvolgende stop en een duidelijke knop **Alle bestemmingen**.
-- [ ] Toon de volledige bestemmingenlijst in een inklapbaar paneel of aparte kaartweergave, met zoeken en een compacte rij per stop.
-- [ ] Voeg bij veel stops een duidelijke kaartfocus toe: klik op een stop in de lijst om de kaart daarop te centreren en markeer de actieve stop.
-- [ ] Deel **Reisschema** op in overzichtelijke secties: dagkiezer/timeline als hoofdweergave, met boekingen, losse activiteiten, kosten en paklijst niet allemaal tegelijk volledig uitgeklapt.
+- [x] Lange bestemmingenlijst onder de kaart vervangen door een compacte samenvatting met aantal stops en een knop **Alle bestemmingen**.
+- [x] Volledige bestemmingenlijst in een inklapbaar paneel tonen, met een compacte rij per stop; zoeken volgt bij zeer grote lijsten.
+- [x] Kaartfocus toevoegen: klik op een stop in de lijst of marker om de kaart daarop te centreren en markeer de actieve stop.
+- [x] **Reisschema** standaard als dagkiezer/timeline openen; de volledige reis blijft als bewust gekozen overzicht beschikbaar.
+- [x] **Reisschema** en **Reisschema aanpassen** als afzonderlijke tabs: de eerste is rustig en alleen-lezen, de tweede bevat boekingen en bewerkbare programma-items voor gebruikers met bewerkrechten.
 - [ ] Maak daggroepen standaard inklapbaar en behoud alleen de geselecteerde dag/openstaande bewerking; geef altijd een teller zodat niets verborgen voelt.
 - [ ] Voeg snelle filters toe voor vlucht, accommodatie, vervoer, huurauto, activiteit en handmatige planningitems.
 - [ ] Houd directe acties zoals toevoegen, wijzigen en verwijderen bereikbaar op desktop én mobiel; test met minstens 15 stops en een reis van 14 dagen.
@@ -183,7 +185,7 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 
 ### Beveiliging & inloggen
 
-- [ ] Wachtwoord wijzigen via Supabase Auth
+- [x] Wachtwoord wijzigen via Supabase Auth, met minimale lengte, herhaling, laadstatus en duidelijke foutmelding bij een verlopen sessie
 - [ ] Overzicht van gekoppelde inlogmethodes (e-mail/wachtwoord, Google en toekomstige providers)
 - [ ] OAuth-identiteit koppelen/ontkoppelen, alleen wanneer de provider in Supabase is geconfigureerd
 - [ ] Inlog-, registratie- en profielpagina geschikt maken voor Lovable/Supabase OAuth met **Apple**, **Google** en **Microsoft**

@@ -86,6 +86,9 @@ function AccountPage() {
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [saving, setSaving] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -219,6 +222,33 @@ function AccountPage() {
       );
     } finally {
       event.target.value = "";
+    }
+  }
+
+  async function savePassword() {
+    if (newPassword.length < 6) {
+      toast.error("Gebruik een wachtwoord van minimaal 6 tekens.");
+      return;
+    }
+    if (newPassword !== repeatPassword) {
+      toast.error("De wachtwoorden komen niet overeen.");
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      setNewPassword("");
+      setRepeatPassword("");
+      toast.success("Wachtwoord gewijzigd.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Wachtwoord kon niet worden gewijzigd. Log opnieuw in en probeer het nogmaals.",
+      );
+    } finally {
+      setSavingPassword(false);
     }
   }
 
@@ -394,6 +424,39 @@ function AccountPage() {
               OAuth toevoegen of loskoppelen verschijnt hier zodra de provider in Supabase is
               geconfigureerd.
             </p>
+            <div className="space-y-3 border-t border-border pt-3">
+              <p className="font-medium">Wachtwoord wijzigen</p>
+              <label className="space-y-1.5">
+                <Label htmlFor="new-password">Nieuw wachtwoord</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  minLength={6}
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                />
+              </label>
+              <label className="space-y-1.5">
+                <Label htmlFor="repeat-password">Herhaal nieuw wachtwoord</Label>
+                <Input
+                  id="repeat-password"
+                  type="password"
+                  minLength={6}
+                  autoComplete="new-password"
+                  value={repeatPassword}
+                  onChange={(event) => setRepeatPassword(event.target.value)}
+                />
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={savingPassword || !newPassword || !repeatPassword}
+                onClick={() => void savePassword()}
+              >
+                {savingPassword ? "Wachtwoord opslaan…" : "Wachtwoord wijzigen"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
         <Card className="surface">

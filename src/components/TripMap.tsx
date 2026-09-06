@@ -1,7 +1,15 @@
 import { useEffect, useRef } from "react";
 import type { Stop } from "@/lib/types";
 
-export default function TripMap({ stops }: { stops: Stop[] }) {
+export default function TripMap({
+  stops,
+  activeStopId,
+  onStopSelect,
+}: {
+  stops: Stop[];
+  activeStopId?: string;
+  onStopSelect?: (id: string) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<unknown>(null);
 
@@ -30,16 +38,19 @@ export default function TripMap({ stops }: { stops: Stop[] }) {
       if (stops.length) {
         const latlngs = stops.map((s) => [s.lat, s.lon] as [number, number]);
         stops.forEach((s, i) => {
+          const active = s.id === activeStopId;
+          const size = active ? 34 : 28;
           L.marker([s.lat, s.lon], {
             icon: L.divIcon({
               className: "",
-              html: `<div style="display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:oklch(0.52 0.115 var(--brand-hue));color:#fff;font:600 12px/1 system-ui;box-shadow:0 2px 8px rgba(0,0,0,.35)">${i + 1}</div>`,
-              iconSize: [28, 28],
-              iconAnchor: [14, 14],
+              html: `<div style="display:grid;place-items:center;width:${size}px;height:${size}px;border-radius:999px;background:${active ? "#111827" : "oklch(0.52 0.115 var(--brand-hue))"};color:#fff;font:600 12px/1 system-ui;box-shadow:0 2px 8px rgba(0,0,0,.35)">${i + 1}</div>`,
+              iconSize: [size, size],
+              iconAnchor: [size / 2, size / 2],
             }),
           })
             .addTo(map)
-            .bindPopup(`<b>${s.name}</b><br/>${s.country}`);
+            .bindPopup(`<b>${s.name}</b><br/>${s.country}`)
+            .on("click", () => onStopSelect?.(s.id));
         });
         if (latlngs.length > 1) {
           L.polyline(latlngs, {
@@ -49,6 +60,8 @@ export default function TripMap({ stops }: { stops: Stop[] }) {
           }).addTo(map);
         }
         map.fitBounds(L.latLngBounds(latlngs).pad(0.35), { maxZoom: 8 });
+        const activeStop = stops.find((stop) => stop.id === activeStopId);
+        if (activeStop) map.setView([activeStop.lat, activeStop.lon], Math.max(map.getZoom(), 7));
       }
       setTimeout(() => map.invalidateSize(), 60);
     })();
@@ -56,7 +69,7 @@ export default function TripMap({ stops }: { stops: Stop[] }) {
     return () => {
       cancelled = true;
     };
-  }, [stops]);
+  }, [activeStopId, onStopSelect, stops]);
 
   useEffect(() => {
     return () => {
