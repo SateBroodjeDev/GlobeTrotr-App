@@ -88,7 +88,8 @@ export function TripMembers({
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
           Voeg reisgenoten toe met een rol voor alleen deze reis. E-mailverzending en accepteren
-          worden geactiveerd zodra Lovable Cloud Emails is ingesteld.
+          worden geactiveerd zodra Lovable Cloud Emails is ingesteld. Deze lijst wordt ook gebruikt
+          voor de kostenverdeling en de betaler bij boekingen.
         </p>
         <div className="grid gap-2 md:grid-cols-4">
           <Input

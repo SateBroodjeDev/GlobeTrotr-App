@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BedDouble,
   Loader2,
@@ -38,12 +38,14 @@ function emptyDraft(date: string): Draft {
 export function TripBookings({
   trip,
   editable,
+  payers,
   onAdd,
   onRemove,
 }: {
   trip: Trip;
   editable: boolean;
-  onAdd: (item: TravelItem, locations: GeoResult[]) => void;
+  payers: string[];
+  onAdd: (item: TravelItem, locations: GeoResult[], paidBy: string) => void;
   onRemove: (id: string) => void;
 }) {
   const [draft, setDraft] = useState<Draft>(() => emptyDraft(trip.start));
@@ -52,9 +54,14 @@ export function TripBookings({
   const [location, setLocation] = useState<GeoResult>();
   const [flight, setFlight] = useState<FlightLookup>();
   const [loadingFlight, setLoadingFlight] = useState(false);
+  const [paidBy, setPaidBy] = useState(() => payers[0] ?? "Ik");
 
   const moving = draft.type === "flight" || draft.type === "transport";
   const Icon = TYPES.find((type) => type.id === draft.type)?.icon ?? Ticket;
+
+  useEffect(() => {
+    if (!payers.includes(paidBy)) setPaidBy(payers[0] ?? "Ik");
+  }, [paidBy, payers]);
 
   async function refreshFlight() {
     if (!draft.flightNumber?.trim()) {
@@ -101,6 +108,7 @@ export function TripBookings({
         location: !moving && location ? location : undefined,
       },
       selectedLocations,
+      paidBy,
     );
     setDraft(emptyDraft(draft.date));
     setDeparture(undefined);
@@ -230,7 +238,7 @@ export function TripBookings({
             Gekozen locaties worden automatisch als stop op de routekaart gezet.
           </p>
 
-          <div className="grid gap-2 md:grid-cols-5">
+          <div className="grid gap-2 md:grid-cols-6">
             <Input
               className="md:col-span-2"
               value={draft.provider ?? ""}
@@ -271,6 +279,19 @@ export function TripBookings({
               {CURRENCIES.map((currency) => (
                 <option key={currency.code} value={currency.code}>
                   {currency.code}
+                </option>
+              ))}
+            </select>
+            <select
+              aria-label="Betaald door"
+              className="rounded-lg border border-input bg-card px-3 text-sm"
+              value={paidBy}
+              disabled={!editable}
+              onChange={(event) => setPaidBy(event.target.value)}
+            >
+              {payers.map((payer) => (
+                <option key={payer} value={payer}>
+                  Betaald door: {payer}
                 </option>
               ))}
             </select>
@@ -315,6 +336,9 @@ export function TripBookings({
                     {item.endDate ? ` t/m ${item.endDate}` : ""}
                     {item.bookingReference ? ` · Boeking: ${item.bookingReference}` : ""}
                     {item.amount ? ` · ${item.amount.toFixed(2)} ${item.currency}` : ""}
+                    {item.expenseId
+                      ? ` · Betaald door: ${trip.expenses.find((expense) => expense.id === item.expenseId)?.paidBy ?? "onbekend"}`
+                      : ""}
                   </p>
                   {item.flightStatus && (
                     <p className="mt-1 text-xs text-muted-foreground">

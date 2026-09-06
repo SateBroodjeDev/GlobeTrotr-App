@@ -15,13 +15,16 @@ export function Settlement({
   fallback,
   editable,
   onTravelers,
+  manageTravelersInSettings = false,
 }: {
   trip: Trip;
   base: string;
   rates: Rates;
   fallback: string[];
   editable: boolean;
-  onTravelers: (people: string[]) => void;
+  onTravelers?: (people: string[]) => void;
+  /** Reisgenoten worden in de instellingen beheerd, niet in de geldtool. */
+  manageTravelersInSettings?: boolean;
 }) {
   const [name, setName] = useState("");
   const people = useMemo(() => travelersOf(trip, fallback), [trip, fallback]);
@@ -40,7 +43,7 @@ export function Settlement({
           {people.map((p) => (
             <Badge key={p} variant="secondary" className="gap-1">
               {p}
-              {editable && people.length > 1 && (
+              {editable && !manageTravelersInSettings && people.length > 1 && onTravelers && (
                 <button
                   aria-label={`Verwijder ${p}`}
                   onClick={() => onTravelers(people.filter((x) => x !== p))}
@@ -52,7 +55,7 @@ export function Settlement({
           ))}
         </div>
 
-        {editable && (
+        {editable && !manageTravelersInSettings && onTravelers && (
           <div className="flex gap-2">
             <Input
               value={name}
@@ -78,6 +81,13 @@ export function Settlement({
               <Plus className="size-4" />
             </Button>
           </div>
+        )}
+
+        {manageTravelersInSettings && (
+          <p className="text-xs text-muted-foreground">
+            Beheer deelnemers via Reisinstellingen → Reisgenoten. Dezelfde personen worden hier
+            gebruikt voor kosten en verrekening.
+          </p>
         )}
 
         <div className="overflow-hidden rounded-xl border border-border">
@@ -114,7 +124,9 @@ export function Settlement({
             Minimale overboekingen
           </p>
           {transfers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Alles staat gelijk — niets te verrekenen.</p>
+            <p className="text-sm text-muted-foreground">
+              Alles staat gelijk — niets te verrekenen.
+            </p>
           ) : (
             <ul className="space-y-2">
               {transfers.map((t, i) => (

@@ -5,16 +5,17 @@ export type Balance = { name: string; paid: number; owes: number; net: number };
 export type Transfer = { from: string; to: string; amount: number };
 
 export function travelersOf(trip: Trip, fallback: string[]): string[] {
-  const list = trip.travelers?.length ? trip.travelers : fallback;
+  // Reisgenoten worden per reis beheerd. Zodra deze lijst bestaat, is die
+  // leidend voor de verrekening; de fallback bevat onder meer de eigenaar.
+  const list = trip.members?.length
+    ? [...fallback, ...trip.members.map((member) => member.name)]
+    : trip.travelers?.length
+      ? trip.travelers
+      : fallback;
   return Array.from(new Set(list.filter(Boolean)));
 }
 
-export function balances(
-  trip: Trip,
-  people: string[],
-  base: string,
-  rates: Rates,
-): Balance[] {
+export function balances(trip: Trip, people: string[], base: string, rates: Rates): Balance[] {
   const paid = new Map<string, number>();
   const owes = new Map<string, number>();
   people.forEach((p) => {
@@ -23,9 +24,7 @@ export function balances(
   });
 
   const shareOf = (e: Expense) => {
-    const involved = e.splitWith?.length
-      ? e.splitWith.filter((p) => people.includes(p))
-      : people;
+    const involved = e.splitWith?.length ? e.splitWith.filter((p) => people.includes(p)) : people;
     return involved.length ? involved : people;
   };
 

@@ -27,6 +27,7 @@ import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
 import { downloadCsv, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
+import { travelersOf } from "@/lib/settle";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { CurrencyConverter, FuelCalculator } from "@/components/TripTools";
@@ -80,6 +81,8 @@ function TripDetail() {
   const trip = found;
 
   const base = state.baseCurrency;
+  const ownerName = state.members.find((member) => member.role === "owner")?.name ?? "Ik";
+  const financialTravelers = travelersOf(trip, [ownerName]);
   const editable = canEdit(state.role);
   const canMarkBillable = hasFeature(state.plan, "billable_expenses");
   const spent = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
@@ -93,7 +96,7 @@ function TripDetail() {
     category: "food",
     amount: 0,
     currency: "EUR",
-    paidBy: state.members[0]?.name ?? "Ik",
+    paidBy: ownerName,
     billable: false,
   });
   const [item, setItem] = useState({ day: trip.start, title: "" });
@@ -132,7 +135,7 @@ function TripDetail() {
     updateTrip(trip.id, (current) => ({ ...current, end }));
   }
 
-  function addTravelItem(item: TravelItem, locations: GeoResult[]) {
+  function addTravelItem(item: TravelItem, locations: GeoResult[], paidBy: string) {
     const expenseId = item.amount ? uid() : undefined;
     const category: ExpenseCategory =
       item.type === "lodging" ? "lodging" : item.type === "activity" ? "activities" : "transport";
@@ -163,7 +166,7 @@ function TripDetail() {
                   category,
                   amount: item.amount,
                   currency: item.currency ?? base,
-                  paidBy: state.members[0]?.name ?? "Ik",
+                  paidBy,
                   billable: false,
                 },
               ]
@@ -419,7 +422,13 @@ function TripDetail() {
             members={trip.members ?? []}
             plan={state.plan}
             editable={editable}
-            onChange={(members) => updateTrip(trip.id, (current) => ({ ...current, members }))}
+            onChange={(members) =>
+              updateTrip(trip.id, (current) => ({
+                ...current,
+                members,
+                travelers: [ownerName, ...members.map((member) => member.name)],
+              }))
+            }
           />
 
           <Card className="border-destructive/40 surface">
@@ -545,6 +554,7 @@ function TripDetail() {
           <TripBookings
             trip={trip}
             editable={editable}
+            payers={financialTravelers}
             onAdd={addTravelItem}
             onRemove={removeTravelItem}
           />
@@ -620,7 +630,7 @@ function TripDetail() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Uitgave boeken (elke valuta)</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-2 md:grid-cols-6">
+            <CardContent className="grid gap-2 md:grid-cols-7">
               <Input
                 type="date"
                 value={draft.date}
@@ -646,6 +656,19 @@ function TripDetail() {
                 {CATEGORIES.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="Betaald door"
+                className="rounded-lg border border-input bg-card px-3 text-sm"
+                value={draft.paidBy}
+                disabled={!editable}
+                onChange={(e) => setDraft({ ...draft, paidBy: e.target.value })}
+              >
+                {financialTravelers.map((payer) => (
+                  <option key={payer} value={payer}>
+                    Betaald door: {payer}
                   </option>
                 ))}
               </select>
@@ -697,6 +720,7 @@ function TripDetail() {
                     <th className="p-3">Datum</th>
                     <th className="p-3">Omschrijving</th>
                     <th className="p-3">Categorie</th>
+                    <th className="p-3">Betaald door</th>
                     <th className="p-3 text-right">Origineel</th>
                     <th className="p-3 text-right">{base}</th>
                     <th className="p-3" />
@@ -715,6 +739,7 @@ function TripDetail() {
                         )}
                       </td>
                       <td className="p-3">{CATEGORIES.find((c) => c.id === e.category)?.label}</td>
+                      <td className="p-3">{e.paidBy}</td>
                       <td className="p-3 text-right">
                         {e.amount.toFixed(2)} {e.currency}
                       </td>
@@ -753,9 +778,9 @@ function TripDetail() {
             trip={trip}
             base={base}
             rates={rates}
-            fallback={state.members.map((m) => m.name)}
             editable={editable}
-            onTravelers={(people) => updateTrip(trip.id, (t) => ({ ...t, travelers: people }))}
+            fallback={[ownerName]}
+            manageTravelersInSettings
           />
         </TabsContent>
       </Tabs>

@@ -74,6 +74,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - Geld tussen reizigers is iets anders dan een betaling aan een reisorganisatie; beide krijgen een eigen stroom en eigen rechten.
 - Boekingsbevestigingen, paspoortgegevens en betaalgegevens zijn privacygevoelig. Sla nooit ruwe kaartgegevens op en beperk toegang per reis en lid.
 - De huidige JSON-workspace blijft tijdens de overgang een veilige terugval. Nieuwe kerngegevens worden daarna relationeel opgeslagen, zodat rechten, samenwerking en rapportages betrouwbaar kunnen werken.
+- Een reisnaam is alleen een weergavelabel en mag onbeperkt dubbel voorkomen. Routes, koppelingen, uitnodigingen, uitgaven en publieke links gebruiken altijd een onveranderlijke, database-gegenereerde reis-ID.
 
 ## Besloten technische keuzes
 
@@ -82,17 +83,19 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - API-sleutels, SMTP-wachtwoorden en andere secrets komen nooit in browsercode of het workspace-`data`-document.
 - Stripe is de beoogde betaalprovider voor GlobeTrotr-abonnementen en Agency-facturen; deze koppeling volgt pas nadat uitnodigingen en veilige reisrechten bestaan.
 - Lovable/Supabase SQL is beschikbaar en wordt de bron van waarheid voor accounts, reizen, reisleden en financiële gegevens. JSON wordt gefaseerd uitgefaseerd, niet in één risicovolle stap verwijderd.
+- De eerste relationele import is op 6 september 2026 uitgevoerd. Dit is een momentopname: tot de app op SQL leest en schrijft, blijft `workspaces.data` de feitelijke runtimebron.
 
 ## Definitieve uitvoeringsvolgorde
 
-1. **Accountinstellingen**: persoonlijk profiel, beveiliging, OAuth-identiteiten en abonnement logisch bundelen.
-2. **SQL-fundament**: bestaande JSON veilig migreren naar relationele tabellen, met terugval en controles.
+1. **SQL-validatie & unieke reis-ID**: de uitgevoerde import controleren en alle reisrelaties op een globale UUID voorbereiden.
+2. **SQL als bron van waarheid**: serverfuncties en schermen gecontroleerd van JSON naar relationele tabellen verplaatsen.
 3. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
-4. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
-5. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
-6. **Reis onderweg**: routeoptimalisatie, offline toegang, meldingen, taalkeuze en dark mode.
-7. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
-8. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+4. **Accountinstellingen**: resterende beveiliging, voorkeuren, OAuth-identiteiten en abonnement logisch afronden.
+5. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
+6. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
+7. **Reis onderweg**: routeoptimalisatie, offline toegang, meldingen, taalkeuze en dark mode.
+8. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
+9. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
 
 ## P0 — Accountinstellingen
 
@@ -128,21 +131,63 @@ De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup
 ### SQL-migraties die nodig zijn
 
 - [x] Importscript aangemaakt: `supabase/migrations/20260906140000_normalize_globetrotr_data.sql`
-- [ ] Importscript uitvoeren in Lovable Cloud / Supabase SQL Editor en de controlequery’s uitvoeren
+- [x] Importscript uitgevoerd in Lovable Cloud / Supabase SQL Editor (6 september 2026)
 - [x] `profiles`: voeg `phone`, `avatar_path`, `locale`, `theme` en `notification_preferences` toe. `display_name` en `email` bestaan al.
-- [ ] `workspaces`: normaliseer plan, basisvaluta en branding naar eigen kolommen; behoud `data` tijdelijk als compatibiliteitskopie.
-- [ ] `trips`: één rij per reis met eigenaar/workspace, naam, template, start/einddatum, budget, publicatie, PIN-hash en archiefstatus.
-- [ ] `trip_members`: lid, e-mail, rol, uitnodigingsstatus en later de gekoppelde Auth-user-id per reis.
-- [ ] `trip_stops`, `trip_itinerary_items`, `trip_expenses`, `trip_travel_items` en `trip_packing_items`: losse tabellen voor de bestaande lijsten in elke reis.
-- [ ] `trip_documents`: metadata voor privé opgeslagen tickets, bonnetjes en boekingsbevestigingen; bestanden zelf blijven in Storage.
+- [x] `workspaces`: plan, basisvaluta en branding zijn als kolommen toegevoegd; `data` blijft tijdelijk als compatibiliteitskopie bestaan.
+- [x] `trips`: relationele rijen voor naam, template, start/einddatum, budget, publicatie, PIN-hash en archiefstatus zijn aangemaakt en gevuld.
+- [x] `trip_members`: tabel voor lid, e-mail, rol, uitnodigingsstatus en latere Auth-koppeling is aangemaakt.
+- [x] `trip_stops`, `trip_itinerary_items`, `trip_expenses`, `trip_travel_items` en `trip_packing_items`: relationele tabellen zijn aangemaakt en gevuld.
+- [x] `trip_documents`: metadata-tabel voor private tickets, bonnetjes en boekingsbevestigingen is aangemaakt; bestanden zelf blijven in Storage.
 - [ ] `referrals`, `subscription_events`, `invoices` en `payment_events` pas toevoegen wanneer referrals/Stripe daadwerkelijk worden gebouwd.
+
+### Directe vervolgmigratie — globale, unieke reis-ID
+
+De huidige sleutel is `(workspace_user_id, id)`: dubbele reisnamen zijn dus al toegestaan en de app gebruikt de naam niet als sleutel. De huidige `id` is echter een korte browser-ID (`uid()`), geen database-gegarandeerde globale UUID. Voor gedeelde reizen en meerdere accounts is één onveranderlijke UUID per reis nodig.
+
+- [ ] Voeg een globale, database-gegenereerde UUID toe aan elke bestaande en nieuwe reis; deze UUID verandert nooit als naam, eigenaar of datum wijzigt.
+- [ ] Voeg de UUID tijdelijk naast de huidige tekst-ID toe, backfill alle kindtabellen (stops, planning, kosten, boekingen, paklijst, documenten en leden) en voeg foreign keys op die UUID toe.
+- [ ] Maak de UUID na controle de primaire referentie voor app, API-routes, openbare deelpagina, uitnodigingen en opslagpaden; behoud de huidige tekst-ID alleen zolang de JSON-terugval bestaat.
+- [ ] Laat de database de ID teruggeven bij het aanmaken van een reis. Vervang daarna client-side `uid()` voor reizen; `name` krijgt expliciet geen unieke constraint.
+- [ ] Voeg indexen toe op de UUID en op veelgebruikte querypaden zoals eigenaar + startdatum en publieke, niet-gearchiveerde reizen.
+- [ ] Schrijf een rollback- en controlequery: geen lege UUID’s, geen verweesde kindrijen en exact evenveel unieke reizen vóór en na de omzetting.
+
+### Verplichte omzetting in de hele applicatie
+
+De UUID-migratie is pas klaar wanneer ieder pad dezelfde sleutel gebruikt. Tijdens deze stap mag geen route, query, opslagpad of permissie meer een reis op naam vinden.
+
+- [ ] **Privéweergave**: vervang `/trips/$tripId`, `useWorkspace().updateTrip`, verwijderen, export en dashboardlinks door de database-UUID; verifieer altijd toegang via RLS vóór de reis wordt geladen.
+- [ ] **Publieke weergave**: laat `/reis/$token/$tripId` en `listPublicTrips`/`getPublicTrip` uitsluitend de reis-UUID gebruiken, gecombineerd met de publieke workspace-token of een eigen deel-token. Een naam is nooit onderdeel van een URL of queryfilter.
+- [ ] **Serverfuncties**: wijzig lees-, maak-, update- en verwijderacties zodat zij de UUID als invoer gebruiken en relationele kindrijen atomair behandelen.
+- [ ] **Kindgegevens**: stops, dagplanning, uitgaven, boekingen, paklijst, reisgenoten, documenten en latere facturen/betalingen refereren via foreign key aan exact dezelfde reis-UUID.
+- [ ] **Delen en bestanden**: maak publieke tokens en Storage-paden (`avatars` uitgezonderd) onafhankelijk van reisnaam; documenten krijgen een reis-UUID-pad en publieke data bevat alleen expliciet deelbare velden.
+- [ ] **Uitnodigingen en rechten**: `trip_members`, `trip_invitations`, RLS-helpers en activiteitenlog gebruiken de reis-UUID als enige reisreferentie.
+- [ ] **Compatibiliteit**: map bestaande JSON-`trip.id` éénmalig op de nieuwe UUID. Houd deze mapping alleen gedurende de overgang, toon hem niet aan gebruikers en verwijder hem pas na de SQL-omzetting.
+- [ ] **Regressietest**: maak twee reizen met exact dezelfde naam, maak één privé en één openbaar, en controleer dat openen, wijzigen, delen, kosten, documenten en uitnodigingen steeds bij de juiste UUID blijven.
+
+### SQL voor meerdere gebruikers en gedeelde reizen
+
+De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.uid()`) toegang. Dat is correct voor privédata, maar nog niet voldoende voor een reisgenoot met een eigen account.
+
+- [ ] Maak van `trip_members` de toegangsbron per reis: één rij koppelt reis-UUID, `user_id`, rol, status en acceptatiedatum. De eigenaar krijgt bij het maken van een reis automatisch een actieve eigenaar-rij.
+- [ ] Voeg databaseconstraints toe: maximaal één eigenaar per reis, maximaal één geaccepteerd lid per reis + `user_id`, en maximaal één open uitnodiging per reis + e-mailadres.
+- [ ] Maak een aparte `trip_invitations`-tabel met gehashte eenmalige token, e-mail, rol, verlooptijd, verzonden/ingetrokken/geaccepteerd-tijdstippen en afzender. Tokens en uitnodigingen horen niet in `workspaces.data`.
+- [ ] Vervang owner-only RLS door afzonderlijke `SELECT`, `INSERT`, `UPDATE` en `DELETE`-policies per rol op reizen en alle kindtabellen. Een kijker leest, een medereiziger plant en boekt, de eigenaar beheert leden en publicatie.
+- [ ] Gebruik voor herbruikbare RLS-controles een niet-publiek `private` schema met zorgvuldig afgeschermde `SECURITY DEFINER`-functie, vaste `search_path` en rolchecks. Hiermee worden recursieve policies tussen reizen en leden voorkomen.
+- [ ] Koppel een betaler en kostenverdeling uiteindelijk aan een reisgenoot-ID, niet aan alleen een weergavenaam. Dit voorkomt fouten bij twee personen met dezelfde naam of een naamswijziging.
+- [ ] Maak `expense_shares` relationeel zodra gedeeltelijke kostenverdeling wordt opgeslagen; vervang het JSON-veld `split_with` pas na een gecontroleerde backfill.
+- [ ] Verplaats documenten naar een pad met de globale reis-ID en maak Storage-RLS op reisrechten, zodat actieve leden alleen documenten van hun eigen reis kunnen zien.
+- [ ] Voeg optimistic concurrency toe (versie of `updated_at`-controle) voor gelijktijdige wijzigingen, plus een activiteitenlog met actor-ID en tijdstip.
+- [ ] Test RLS met minimaal eigenaar, actieve medereiziger, kijker, uitgenodigde gebruiker en niet-lid. Test ook dat een lid nooit een andere reis van dezelfde eigenaar kan lezen.
+- [ ] Genereer na iedere schemawijziging de Supabase TypeScript-types opnieuw en vervang de handmatige types in `src/integrations/supabase/types.ts`.
 
 ### Migratie- en toepassingsplan
 
-- [ ] Een migratie maakt de nieuwe tabellen, indexen, foreign keys, `updated_at`-triggers en Row Level Security-regels.
-- [ ] Een éénmalige backfill kopieert elke bestaande `workspaces.data.trips[]` naar de nieuwe tabellen, zonder JSON te verwijderen.
-- [ ] Controlequery’s vergelijken het aantal workspaces, reizen, stops, uitgaven en reisgenoten vóór en na de backfill.
-- [ ] De serverfuncties lezen tijdelijk SQL met JSON-fallback en schrijven tijdens de overgang naar beide vormen.
+- [x] Een eerste migratie maakte tabellen, indexen, foreign keys, `updated_at`-triggers en owner-only Row Level Security-regels.
+- [x] Een éénmalige backfill kopieerde bestaande `workspaces.data.trips[]` naar de nieuwe tabellen, zonder JSON te verwijderen.
+- [ ] Voer nu controlequery’s uit en leg de uitkomsten vast: aantal workspaces, reizen, stops, uitgaven, boekingen, paklijstitems en reisgenoten vóór/na import.
+- [ ] Maak vóór elke volgende wijziging een export/back-up. De eerste import is geen doorlopende synchronisatie: kindtabellen gebruiken `ON CONFLICT DO NOTHING` en worden niet automatisch bijgewerkt bij latere JSON-wijzigingen.
+- [ ] Bouw serverfuncties die relationele reizen atomair lezen en schrijven. Gebruik JSON alleen als tijdelijke, alleen-lezen fallback voor nog niet gemigreerde records; voorkom onbeheerde dual writes die kunnen divergeren.
+- [ ] Zet per onderdeel een featureflag om nadat lees-, schrijf- en RLS-tests slagen; begin met privé-reizen van de eigenaar, daarna leden, kosten en documenten.
 - [ ] Na productiecontrole wordt SQL de bron van waarheid; daarna wordt de JSON-compatibiliteitskopie in een aparte, goedgekeurde migratie verwijderd.
 - [ ] Per-reis toegang wordt via RLS op `trips` en `trip_members` afgedwongen; rollen in de browser zijn nooit de beveiliging.
 
