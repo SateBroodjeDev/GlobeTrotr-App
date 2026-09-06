@@ -18,6 +18,36 @@ export type ItineraryItem = {
   notes?: string;
 };
 
+export type TravelItemType = "flight" | "lodging" | "transport" | "activity";
+
+export type TravelLocation = {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+};
+
+/** Een geboekt onderdeel van een reis, zoals vlucht, hotel of treinrit. */
+export type TravelItem = {
+  id: string;
+  type: TravelItemType;
+  title: string;
+  date: string;
+  endDate?: string;
+  provider?: string;
+  bookingReference?: string;
+  flightNumber?: string;
+  flightStatus?: string;
+  departure?: TravelLocation;
+  arrival?: TravelLocation;
+  location?: TravelLocation;
+  amount?: number;
+  currency?: string;
+  /** Gekoppelde uitgave die automatisch bij dit onderdeel is aangemaakt. */
+  expenseId?: string;
+  notes?: string;
+};
+
 export type Expense = {
   id: string;
   date: string;
@@ -35,12 +65,7 @@ export type Expense = {
 };
 
 export type ExpenseCategory =
-  | "transport"
-  | "lodging"
-  | "food"
-  | "activities"
-  | "shopping"
-  | "other";
+  "transport" | "lodging" | "food" | "activities" | "shopping" | "other";
 
 export const CATEGORIES: { id: ExpenseCategory; label: string }[] = [
   { id: "transport", label: "Vervoer" },
@@ -52,14 +77,7 @@ export const CATEGORIES: { id: ExpenseCategory; label: string }[] = [
 ];
 
 export type TripTemplate =
-  | "safari"
-  | "cruise"
-  | "roadtrip"
-  | "backpacking"
-  | "citytrip"
-  | "beach"
-  | "business"
-  | "winter";
+  "safari" | "cruise" | "roadtrip" | "backpacking" | "citytrip" | "beach" | "business" | "winter";
 
 export const TEMPLATES: {
   id: TripTemplate;
@@ -67,14 +85,54 @@ export const TEMPLATES: {
   emoji: string;
   itinerary: string[];
 }[] = [
-  { id: "safari", label: "Safari", emoji: "🦁", itinerary: ["Aankomst & lodge check-in", "Game drive bij zonsopgang", "Bushwalk met ranger"] },
-  { id: "cruise", label: "Cruise", emoji: "🛳️", itinerary: ["Inschepen & muster drill", "Zeedag aan boord", "Excursie in havenstad"] },
-  { id: "roadtrip", label: "Roadtrip", emoji: "🚐", itinerary: ["Huurauto ophalen", "Scenic route etappe 1", "Overnachting onderweg"] },
-  { id: "backpacking", label: "Backpacken", emoji: "🎒", itinerary: ["Hostel check-in", "Free walking tour", "Nachtbus naar volgende stop"] },
-  { id: "citytrip", label: "Stedentrip", emoji: "🏙️", itinerary: ["Aankomst & hotel", "Museum & oude stad", "Rooftop diner"] },
-  { id: "beach", label: "Beach / Resort", emoji: "🏝️", itinerary: ["Transfer naar resort", "Strand & snorkelen", "Spa & sunset cocktails"] },
-  { id: "business", label: "Zakenreis", emoji: "💼", itinerary: ["Vlucht & inchecken", "Client meeting", "Conferentiedag"] },
-  { id: "winter", label: "Winterexpeditie", emoji: "🏔️", itinerary: ["Aankomst & materiaalcheck", "Husky- of sneeuwscootertocht", "Noorderlicht safari"] },
+  {
+    id: "safari",
+    label: "Safari",
+    emoji: "🦁",
+    itinerary: ["Aankomst & lodge check-in", "Game drive bij zonsopgang", "Bushwalk met ranger"],
+  },
+  {
+    id: "cruise",
+    label: "Cruise",
+    emoji: "🛳️",
+    itinerary: ["Inschepen & muster drill", "Zeedag aan boord", "Excursie in havenstad"],
+  },
+  {
+    id: "roadtrip",
+    label: "Roadtrip",
+    emoji: "🚐",
+    itinerary: ["Huurauto ophalen", "Scenic route etappe 1", "Overnachting onderweg"],
+  },
+  {
+    id: "backpacking",
+    label: "Backpacken",
+    emoji: "🎒",
+    itinerary: ["Hostel check-in", "Free walking tour", "Nachtbus naar volgende stop"],
+  },
+  {
+    id: "citytrip",
+    label: "Stedentrip",
+    emoji: "🏙️",
+    itinerary: ["Aankomst & hotel", "Museum & oude stad", "Rooftop diner"],
+  },
+  {
+    id: "beach",
+    label: "Beach / Resort",
+    emoji: "🏝️",
+    itinerary: ["Transfer naar resort", "Strand & snorkelen", "Spa & sunset cocktails"],
+  },
+  {
+    id: "business",
+    label: "Zakenreis",
+    emoji: "💼",
+    itinerary: ["Vlucht & inchecken", "Client meeting", "Conferentiedag"],
+  },
+  {
+    id: "winter",
+    label: "Winterexpeditie",
+    emoji: "🏔️",
+    itinerary: ["Aankomst & materiaalcheck", "Husky- of sneeuwscootertocht", "Noorderlicht safari"],
+  },
 ];
 
 export type Member = {
@@ -101,6 +159,7 @@ export type Trip = {
   budget: number;
   stops: Stop[];
   itinerary: ItineraryItem[];
+  travelItems?: TravelItem[];
   expenses: Expense[];
   travelers?: string[];
   packing?: PackingItem[];

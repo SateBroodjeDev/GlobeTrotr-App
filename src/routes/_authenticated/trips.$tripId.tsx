@@ -2,11 +2,28 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
 import { toast } from "sonner";
-import { Archive, BookOpen, CalendarDays, FileDown, FileText, Globe2, Plus, Trash2 } from "lucide-react";
+import {
+  Archive,
+  BookOpen,
+  CalendarDays,
+  FileDown,
+  FileText,
+  Globe2,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { canEdit, canExport, hasFeature } from "@/lib/plans";
-import { CATEGORIES, STATUS_LABEL, tripStatus, type Expense, type ExpenseCategory } from "@/lib/types";
+import {
+  CATEGORIES,
+  STATUS_LABEL,
+  tripStatus,
+  type Expense,
+  type ExpenseCategory,
+  type TravelItem,
+} from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
+import type { GeoResult } from "@/lib/services";
 import { downloadCsv, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import { PlaceSearch } from "@/components/PlaceSearch";
@@ -15,6 +32,7 @@ import { CurrencyConverter, FuelCalculator } from "@/components/TripTools";
 import { Settlement } from "@/components/Settlement";
 import { Packing } from "@/components/Packing";
 import { Countdown } from "@/components/Countdown";
+import { TripBookings } from "@/components/TripBookings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +103,10 @@ function TripDetail() {
     }
     updateTrip(trip.id, (t) => ({
       ...t,
-      expenses: [...t.expenses, { ...draft, billable: canMarkBillable && draft.billable, id: uid() }],
+      expenses: [
+        ...t.expenses,
+        { ...draft, billable: canMarkBillable && draft.billable, id: uid() },
+      ],
     }));
     setDraft({ ...draft, title: "", amount: 0 });
     toast.success("Uitgave geboekt");
@@ -106,6 +127,65 @@ function TripDetail() {
       return;
     }
     updateTrip(trip.id, (current) => ({ ...current, end }));
+  }
+
+  function addTravelItem(item: TravelItem, locations: GeoResult[]) {
+    const expenseId = item.amount ? uid() : undefined;
+    const category: ExpenseCategory =
+      item.type === "lodging" ? "lodging" : item.type === "activity" ? "activities" : "transport";
+    updateTrip(trip.id, (current) => {
+      const stops = [...current.stops];
+      for (const location of locations) {
+        const exists = stops.some(
+          (stop) =>
+            Math.abs(stop.lat - location.lat) < 0.01 && Math.abs(stop.lon - location.lon) < 0.01,
+        );
+        if (!exists) stops.push({ id: uid(), ...location, nights: 0 });
+      }
+      return {
+        ...current,
+        stops,
+        travelItems: [...(current.travelItems ?? []), { ...item, expenseId }],
+        itinerary: [...current.itinerary, { id: uid(), day: item.date, title: item.title }].sort(
+          (a, b) => a.day.localeCompare(b.day),
+        ),
+        expenses:
+          item.amount && expenseId
+            ? [
+                ...current.expenses,
+                {
+                  id: expenseId,
+                  date: item.date,
+                  title: item.title,
+                  category,
+                  amount: item.amount,
+                  currency: item.currency ?? base,
+                  paidBy: state.members[0]?.name ?? "Ik",
+                  billable: false,
+                },
+              ]
+            : current.expenses,
+      };
+    });
+    toast.success(
+      item.amount
+        ? "Onderdeel, kaartlocatie en kosten opgeslagen."
+        : "Onderdeel en kaartlocatie opgeslagen.",
+    );
+  }
+
+  function removeTravelItem(id: string) {
+    const item = (trip.travelItems ?? []).find((current) => current.id === id);
+    updateTrip(trip.id, (current) => ({
+      ...current,
+      travelItems: (current.travelItems ?? []).filter((travelItem) => travelItem.id !== id),
+      expenses: item?.expenseId
+        ? current.expenses.filter((expense) => expense.id !== item.expenseId)
+        : current.expenses,
+    }));
+    toast.success(
+      item?.expenseId ? "Onderdeel en gekoppelde kosten verwijderd." : "Onderdeel verwijderd.",
+    );
   }
 
   return (
@@ -130,9 +210,7 @@ function TripDetail() {
               try {
                 updateTrip(trip.id, (t) => ({ ...t, public: next }));
                 toast.success(
-                  next
-                    ? "Reis staat nu openbaar op de homepage"
-                    : "Reis is weer privé",
+                  next ? "Reis staat nu openbaar op de homepage" : "Reis is weer privé",
                 );
               } catch {
                 toast.error("Delen kon niet worden bijgewerkt");
@@ -257,7 +335,9 @@ function TripDetail() {
                       ...current,
                       shareFinancials: event.target.checked,
                     }));
-                    toast.success(event.target.checked ? "Budget wordt gedeeld." : "Budget is weer privé.");
+                    toast.success(
+                      event.target.checked ? "Budget wordt gedeeld." : "Budget is weer privé.",
+                    );
                   } catch {
                     toast.error("De deelinstelling kon niet worden opgeslagen.");
                   }
@@ -293,7 +373,9 @@ function TripDetail() {
                       setSharePin("");
                       toast.success("PIN-beveiliging ingeschakeld.");
                     } catch (error) {
-                      toast.error(error instanceof Error ? error.message : "PIN kon niet worden opgeslagen.");
+                      toast.error(
+                        error instanceof Error ? error.message : "PIN kon niet worden opgeslagen.",
+                      );
                     }
                   }}
                 >
@@ -340,7 +422,6 @@ function TripDetail() {
             onChange={(next) => updateTrip(trip.id, (t) => ({ ...t, packing: next }))}
           />
         </TabsContent>
-
 
         <TabsContent value="route" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
@@ -399,16 +480,20 @@ function TripDetail() {
                 </CardContent>
               </Card>
               <WeatherWidget
-                {...(trip.stops.length
-                  ? { stop: trip.stops[trip.stops.length - 1]! }
-                  : {})}
+                {...(trip.stops.length ? { stop: trip.stops[trip.stops.length - 1]! } : {})}
                 enabled={hasFeature(state.plan, "weather")}
               />
             </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="plan">
+        <TabsContent value="plan" className="space-y-4">
+          <TripBookings
+            trip={trip}
+            editable={editable}
+            onAdd={addTravelItem}
+            onRemove={removeTravelItem}
+          />
           <Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Dagplanning</CardTitle>
@@ -616,13 +701,10 @@ function TripDetail() {
             rates={rates}
             fallback={state.members.map((m) => m.name)}
             editable={editable}
-            onTravelers={(people) =>
-              updateTrip(trip.id, (t) => ({ ...t, travelers: people }))
-            }
+            onTravelers={(people) => updateTrip(trip.id, (t) => ({ ...t, travelers: people }))}
           />
         </TabsContent>
       </Tabs>
-
     </div>
   );
 }
