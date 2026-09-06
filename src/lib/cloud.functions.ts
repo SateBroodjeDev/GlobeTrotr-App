@@ -240,6 +240,44 @@ export const createTrip = createServerFn({ method: "POST" })
     return { tripId: tripUuid };
   });
 
+/** Keeps public visibility reliable even if a later child-row sync fails. */
+export const syncTripPublication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      tripId: string;
+      isPublic: boolean;
+      shareFinancials: boolean;
+      sharePinHash?: string;
+    }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    const db = context.supabase as unknown as UntypedSupabase;
+    const fields = {
+      is_public: data.isPublic,
+      share_financials: data.shareFinancials,
+      share_pin_hash: data.sharePinHash ?? null,
+    };
+    const { data: byUuid, error: uuidError } = await db
+      .from("trips")
+      .update(fields)
+      .eq("trip_uuid", data.tripId)
+      .select("trip_uuid")
+      .maybeSingle();
+    if (!uuidError && byUuid) return { synced: true };
+
+    // Alleen tijdens de overgang kan de browser nog een oude JSON-ID hebben.
+    const { data: byLegacyId, error: legacyError } = await db
+      .from("trips")
+      .update(fields)
+      .eq("workspace_user_id", context.userId)
+      .eq("id", data.tripId)
+      .select("trip_uuid")
+      .maybeSingle();
+    if (legacyError) throw legacyError;
+    return { synced: Boolean(byLegacyId) };
+  });
+
 export const saveWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { data: unknown }) => input)
