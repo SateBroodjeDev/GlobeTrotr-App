@@ -112,6 +112,24 @@ export function TripBookings({
         flightStatus: result.status,
         provider: current.provider || result.airline,
         title: current.title || [result.airline, result.flightNumber].filter(Boolean).join(" "),
+        details: {
+          ...current.details,
+          startTime: current.details?.startTime || result.departure?.actual || result.departure?.scheduled,
+          endTime: current.details?.endTime || result.arrival?.estimated || result.arrival?.scheduled,
+          flightDepartureAirport: result.departure?.airportFull || result.departure?.airport,
+          flightArrivalAirport: result.arrival?.airportFull || result.arrival?.airport,
+          flightDepartureScheduled: result.departure?.scheduled,
+          flightDepartureActual: result.departure?.actual,
+          flightDepartureTerminal: result.departure?.terminal,
+          flightDepartureGate: result.departure?.gate,
+          flightDepartureCheckin: result.departure?.checkin,
+          flightArrivalScheduled: result.arrival?.scheduled,
+          flightArrivalEstimated: result.arrival?.estimated,
+          flightArrivalTerminal: result.arrival?.terminal,
+          flightArrivalGate: result.arrival?.gate,
+          flightArrivalBaggage: result.arrival?.baggage,
+          flightLastCheckedAt: new Date().toISOString(),
+        },
       }));
       toast.success("Live vluchtinformatie bijgewerkt.");
     } catch (error) {
@@ -306,12 +324,7 @@ export function TripBookings({
                 />
               </Field>
               {flight && (
-                <p className="text-sm text-muted-foreground md:col-span-3">
-                  {flight.airline || "Vlucht"} ·{" "}
-                  {flight.departure?.airport || flight.departure?.iata || "vertrek onbekend"} →{" "}
-                  {flight.arrival?.airport || flight.arrival?.iata || "aankomst onbekend"}
-                  {flight.status ? ` · ${flight.status}` : ""}
-                </p>
+                <FlightStatusSummary flight={flight} />
               )}
             </div>
           )}
@@ -614,6 +627,16 @@ export function TripBookings({
                       Vluchtstatus: {item.flightStatus}
                     </p>
                   )}
+                  {item.type === "flight" &&
+                    (item.details?.flightDepartureAirport || item.details?.flightArrivalAirport) && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {item.details.flightDepartureAirport || "Vertrek onbekend"} →{" "}
+                        {item.details.flightArrivalAirport || "Aankomst onbekend"}
+                        {item.details.flightDepartureGate
+                          ? ` · Gate ${item.details.flightDepartureGate}`
+                          : ""}
+                      </p>
+                    )}
                 </div>
                 {editable && (
                   <div className="flex shrink-0">
@@ -645,6 +668,43 @@ export function TripBookings({
     </div>
   );
 }
+
+function FlightStatusSummary({ flight }: { flight: FlightLookup }) {
+  const departure = [
+    flight.departure?.actual && `Werkelijk ${flight.departure.actual}`,
+    !flight.departure?.actual && flight.departure?.scheduled && `Gepland ${flight.departure.scheduled}`,
+    flight.departure?.terminal && `Terminal ${flight.departure.terminal}`,
+    flight.departure?.gate && `Gate ${flight.departure.gate}`,
+  ].filter(Boolean);
+  const arrival = [
+    flight.arrival?.estimated && `Verwacht ${flight.arrival.estimated}`,
+    !flight.arrival?.estimated && flight.arrival?.scheduled && `Gepland ${flight.arrival.scheduled}`,
+    flight.arrival?.terminal && `Terminal ${flight.arrival.terminal}`,
+    flight.arrival?.gate && `Gate ${flight.arrival.gate}`,
+  ].filter(Boolean);
+
+  return (
+    <div className="rounded-lg border border-border bg-background/60 p-3 text-sm md:col-span-3">
+      <p className="font-medium">
+        {flight.airline || "Vlucht"} · {flight.flightNumber}
+        {flight.status ? ` · ${flight.status}` : ""}
+      </p>
+      <div className="mt-2 grid gap-2 text-muted-foreground sm:grid-cols-2">
+        <p>
+          <span className="font-medium text-foreground">Vertrek:</span>{" "}
+          {flight.departure?.airportFull || flight.departure?.airport || "Onbekend"}
+          {departure.length ? ` · ${departure.join(" · ")}` : ""}
+        </p>
+        <p>
+          <span className="font-medium text-foreground">Aankomst:</span>{" "}
+          {flight.arrival?.airportFull || flight.arrival?.airport || "Onbekend"}
+          {arrival.length ? ` · ${arrival.join(" · ")}` : ""}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="space-y-1 text-xs text-muted-foreground">

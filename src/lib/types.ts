@@ -63,6 +63,19 @@ export type TravelItem = {
     consumptionPer100Km?: number;
     fuelPricePerLiter?: number;
     fuelCurrency?: string;
+    flightDepartureAirport?: string;
+    flightArrivalAirport?: string;
+    flightDepartureScheduled?: string;
+    flightDepartureActual?: string;
+    flightDepartureTerminal?: string;
+    flightDepartureGate?: string;
+    flightDepartureCheckin?: string;
+    flightArrivalScheduled?: string;
+    flightArrivalEstimated?: string;
+    flightArrivalTerminal?: string;
+    flightArrivalGate?: string;
+    flightArrivalBaggage?: string;
+    flightLastCheckedAt?: string;
   };
 };
 

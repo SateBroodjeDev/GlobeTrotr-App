@@ -31,11 +31,14 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 ## Fase 3 — Vluchten (deels klaar)
 
 - [x] Vluchtnummer en vluchtstatus bewaren bij een vlucht
-- [x] Server-side koppeling met Aviationstack voor actuele vluchtinformatie
-- [x] API-sleutel blijft buiten de browser via `AVIATIONSTACK_API_KEY`
-- [x] Duidelijke melding bij een ontbrekende API-functie in het huidige Aviationstack-plan of bij een bereikt quotum
-- [ ] `AVIATIONSTACK_API_KEY` als server-secret instellen in de productieomgeving
+- [x] Eerste server-side koppeling met Aviationstack gebouwd als technische basis
+- [x] Duidelijke melding bij een ontbrekende API-functie in het voormalige Aviationstack-plan of bij een bereikt quotum
+- [x] Aviationstack in de app vervangen door SkyLinkAPI v3.1; de directe SkyLinkAPI-route is bevestigd
+- [ ] `SKYLINK_API_KEY` als server-secret instellen in Lovable Cloud; de sleutel komt nooit in browsercode, Git of `workspaces.data`
+- [x] SkyLinkAPI Flight Status server-side koppelen aan een vluchtnummer en de respons veilig omzetten naar GlobeTrotr-velden
 - [ ] Live vertrek-/aankomsttijden en eventuele gate/terminal uitgebreider tonen
+- [ ] Voor een opgegeven vluchtdatum een Schedule-lookup als fallback toevoegen wanneer Flight Status geen passende actuele vlucht teruggeeft
+- [ ] Duidelijke Nederlandse foutstatussen voor ongeldige vluchtnummers, geen resultaat, limiet bereikt en tijdelijke providerfout
 - [ ] Automatisch periodiek verversen van vluchtstatus voor reizen die binnenkort vertrekken
 
 ## Fase 4 — Groepen & geld (klaar)
@@ -88,6 +91,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - Transactionele app-e-mails (uitnodigingen, herinneringen en referrals) lopen via **Lovable Cloud Emails**.
 - Het verzenddomein wordt `globetrotr.nl`, met een afzender zoals `noreply@globetrotr.nl`.
 - API-sleutels, SMTP-wachtwoorden en andere secrets komen nooit in browsercode of het workspace-`data`-document.
+- SkyLinkAPI wordt de vluchtprovider. De key staat uitsluitend als `SKYLINK_API_KEY` in Lovable Cloud; de app praat alleen via een serverfunctie met SkyLink.
 - Stripe is de beoogde betaalprovider voor GlobeTrotr-abonnementen en Agency-facturen; deze koppeling volgt pas nadat uitnodigingen en veilige reisrechten bestaan.
 - Lovable/Supabase SQL is beschikbaar en wordt de bron van waarheid voor accounts, reizen, reisleden en financiële gegevens. JSON wordt gefaseerd uitgefaseerd, niet in één risicovolle stap verwijderd.
 - De eerste relationele import is op 6 september 2026 uitgevoerd. Dit is een momentopname: tot de app op SQL leest en schrijft, blijft `workspaces.data` de feitelijke runtimebron.
@@ -97,13 +101,14 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 1. **SQL-validatie & unieke reis-ID**: afgerond; relationele reizen hebben een globale UUID en de controles zijn uitgevoerd.
 2. **Relationele reisopslag**: afgerond en handmatig gevalideerd; laden en wijzigen van reizen en kindgegevens loopt via SQL, met JSON als tijdelijke compatibiliteitskopie.
 3. **Interface & boekingsbasis**: gebouwd; voer de nieuwe SQL-migratie uit en controleer huurauto's, timeline, kosten en leden in productie.
-4. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
-5. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
-6. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
-7. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
-8. **Reis onderweg**: routeoptimalisatie, offline toegang en meldingen.
-9. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
-10. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+4. **SkyLink live vluchtdata**: server-side key instellen, één handmatige lookup betrouwbaar maken en pas daarna uitgebreidere velden tonen.
+5. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
+6. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
+7. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
+8. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
+9. **Reis onderweg**: routeoptimalisatie, offline toegang en meldingen.
+10. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
+11. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
 
 ## Huidige technische stand â€” 6 september 2026
 
@@ -133,6 +138,32 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Toegevoegde boekingen maken geen los planningrecord meer. Verwijderen ruimt ook oudere automatisch gemaakte planningrecords op.
 - [ ] Voer eerst `supabase/migrations/20260906180000_booking_details_and_clean_members.sql` uit in Lovable Cloud / Supabase SQL Editor. Deze voegt boekingsdetails/notities toe, markeert oude planningkoppelingen en verwijdert de verouderde workspace-level demoleden.
 - [ ] Na de SQL-import: Supabase TypeScript-types opnieuw genereren en een productiecontrole uitvoeren voor nieuwe huurauto, wijziging/verwijdering van een boeking, wijziging van een uitgave en een meerdaags hotel.
+
+## P0 — SkyLinkAPI: live vluchtinformatie (volgende bouwstap)
+
+SkyLinkAPI vervangt Aviationstack omdat de huidige Aviationstack-functie niet binnen het beschikbare abonnement valt. Versie één blijft bewust klein: de gebruiker voert een vluchtnummer in en vraagt zelf een actuele status op. Er is dus nog geen automatische polling, webhook of achtergrondtaak nodig.
+
+- [x] Vastgesteld: de key komt rechtstreeks van SkyLinkAPI; gebruik `https://data.skylinkapi.com/v3.1` met de header `x-api-key`.
+- [ ] In **Lovable Cloud → Secrets** `SKYLINK_API_KEY` toevoegen. Niet in `.env` committen, niet in de client en niet in een screenshot of workspace-JSON plakken.
+- [x] `src/lib/flight.functions.ts` vervangen door een serverfunctie voor SkyLinkAPI v3.1 Flight Status; de browser roept uitsluitend deze eigen serverfunctie aan.
+- [ ] Eén invoerformaat valideren: IATA-vluchtnummer zoals `KL1234` of ICAO zoals `KLM1234`, zonder de key of ruwe providerfout in de UI te tonen.
+- [x] Maatschappij, vluchtstatus, vertrek- en aankomstluchthaven, geplande/verwachte/werkelijke tijden, terminal en gate opslaan en tonen wanneer SkyLink die levert.
+- [ ] De bij de boeking gekozen vlucht-datum gebruiken voor weergave en een latere Schedule-fallback; Flight Status zelf zoekt op vluchtnummer en heeft geen datumparameter.
+- [x] Foutmeldingen mappen op een bruikbare actie: geen vlucht gevonden, ongeldige invoer, tijdelijk niet beschikbaar of maandlimiet bereikt.
+- [ ] Testen met één toekomstige en één historische/actieve vlucht, met een ontbrekend vluchtnummer en zonder secret. Controleer dat geen secret in DevTools, logs of de database verschijnt.
+- [ ] Daarna pas: cache met `last_checked_at`, beperkte handmatige refresh en polling alleen voor reizen die binnen korte tijd vertrekken.
+
+## P1 — Compacte kaart- en planningweergave
+
+Een reis met veel bestemmingen of boekingen mag niet veranderen in één onhandelbare, eindeloos lange pagina. De kaart blijft het ruimtelijke overzicht; reisschema en bestemmingsoverzicht worden compacte, taakgerichte schermdelen.
+
+- [ ] Vervang de lange bestemmingenlijst onder de kaart door een compacte samenvatting met aantal stops, eerstvolgende stop en een duidelijke knop **Alle bestemmingen**.
+- [ ] Toon de volledige bestemmingenlijst in een inklapbaar paneel of aparte kaartweergave, met zoeken en een compacte rij per stop.
+- [ ] Voeg bij veel stops een duidelijke kaartfocus toe: klik op een stop in de lijst om de kaart daarop te centreren en markeer de actieve stop.
+- [ ] Deel **Reisschema** op in overzichtelijke secties: dagkiezer/timeline als hoofdweergave, met boekingen, losse activiteiten, kosten en paklijst niet allemaal tegelijk volledig uitgeklapt.
+- [ ] Maak daggroepen standaard inklapbaar en behoud alleen de geselecteerde dag/openstaande bewerking; geef altijd een teller zodat niets verborgen voelt.
+- [ ] Voeg snelle filters toe voor vlucht, accommodatie, vervoer, huurauto, activiteit en handmatige planningitems.
+- [ ] Houd directe acties zoals toevoegen, wijzigen en verwijderen bereikbaar op desktop én mobiel; test met minstens 15 stops en een reis van 14 dagen.
 
 ## P0 — Accountinstellingen
 
