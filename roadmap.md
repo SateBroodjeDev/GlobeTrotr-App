@@ -73,7 +73,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - Groepsfunctionaliteit moet ook zonder Agency-plan volledig bruikbaar blijven.
 - Geld tussen reizigers is iets anders dan een betaling aan een reisorganisatie; beide krijgen een eigen stroom en eigen rechten.
 - Boekingsbevestigingen, paspoortgegevens en betaalgegevens zijn privacygevoelig. Sla nooit ruwe kaartgegevens op en beperk toegang per reis en lid.
-- Nieuwe data blijft onderdeel van het workspace-`data`-document, tenzij een functie aantoonbaar een aparte, beveiligde opslag of webhook-administratie nodig heeft.
+- De huidige JSON-workspace blijft tijdens de overgang een veilige terugval. Nieuwe kerngegevens worden daarna relationeel opgeslagen, zodat rechten, samenwerking en rapportages betrouwbaar kunnen werken.
 
 ## Besloten technische keuzes
 
@@ -81,15 +81,70 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - Het verzenddomein wordt `globetrotr.nl`, met een afzender zoals `noreply@globetrotr.nl`.
 - API-sleutels, SMTP-wachtwoorden en andere secrets komen nooit in browsercode of het workspace-`data`-document.
 - Stripe is de beoogde betaalprovider voor GlobeTrotr-abonnementen en Agency-facturen; deze koppeling volgt pas nadat uitnodigingen en veilige reisrechten bestaan.
+- Lovable/Supabase SQL is beschikbaar en wordt de bron van waarheid voor accounts, reizen, reisleden en financiële gegevens. JSON wordt gefaseerd uitgefaseerd, niet in één risicovolle stap verwijderd.
 
 ## Definitieve uitvoeringsvolgorde
 
-1. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis ontwerpen en server-side afdwingen.
-2. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
-3. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
-4. **Reis onderweg**: routeoptimalisatie, offline toegang, meldingen, taalkeuze en dark mode.
-5. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
-6. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+1. **Accountinstellingen**: persoonlijk profiel, beveiliging, OAuth-identiteiten en abonnement logisch bundelen.
+2. **SQL-fundament**: bestaande JSON veilig migreren naar relationele tabellen, met terugval en controles.
+3. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
+4. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
+5. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
+6. **Reis onderweg**: routeoptimalisatie, offline toegang, meldingen, taalkeuze en dark mode.
+7. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
+8. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+
+## P0 — Accountinstellingen
+
+Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Dit is nadrukkelijk iets anders dan Reisinstellingen en het Agency-abonnement.
+
+### Profiel
+
+- [x] Accountinstellingenpagina met profiel, inlogmethodes, abonnement-link, communicatie en privacy-overzicht
+- [x] Weergave- en volledige naam wijzigen
+- [x] Profielfoto uploaden en vervangen via private Storage onder de eigen gebruikersmap (na SQL-import)
+- [x] Primair e-mailadres wijzigen via Supabase Auth, inclusief de bestaande bevestigingsstroom
+- [x] Telefoonnummer opslaan voor contact en optionele notificaties; nooit publiek tonen
+- [ ] Taal, tijdzone en dark-modevoorkeur opslaan
+
+### Beveiliging & inloggen
+
+- [ ] Wachtwoord wijzigen via Supabase Auth
+- [ ] Overzicht van gekoppelde inlogmethodes (e-mail/wachtwoord, Google en toekomstige providers)
+- [ ] OAuth-identiteit koppelen/ontkoppelen, alleen wanneer de provider in Supabase is geconfigureerd
+- [ ] Actieve sessies en uitloggen op andere apparaten, als de gekozen Auth-configuratie dit ondersteunt
+- [ ] Account verwijderen met expliciete bevestiging, gegevens-export en duidelijke bewaartermijn
+
+### Abonnement & meldingen
+
+- [ ] Huidig plan, limieten en upgrade-link tonen; de bestaande abonnementspagina blijft de plek om een plan te wijzigen
+- [ ] Facturen en betaalgegevens alleen tonen zodra Stripe is gekoppeld
+- [ ] Meldingsvoorkeuren voor productmails, reisuitnodigingen, betalingen en vluchtalerts
+
+## P0 — SQL-fundament & JSON-migratie
+
+De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup/export maken, SQL uitvoeren, aantallen vergelijken en pas daarna de app op de nieuwe tabel laten lezen.
+
+### SQL-migraties die nodig zijn
+
+- [x] Importscript aangemaakt: `supabase/migrations/20260906140000_normalize_globetrotr_data.sql`
+- [ ] Importscript uitvoeren in Lovable Cloud / Supabase SQL Editor en de controlequery’s uitvoeren
+- [x] `profiles`: voeg `phone`, `avatar_path`, `locale`, `theme` en `notification_preferences` toe. `display_name` en `email` bestaan al.
+- [ ] `workspaces`: normaliseer plan, basisvaluta en branding naar eigen kolommen; behoud `data` tijdelijk als compatibiliteitskopie.
+- [ ] `trips`: één rij per reis met eigenaar/workspace, naam, template, start/einddatum, budget, publicatie, PIN-hash en archiefstatus.
+- [ ] `trip_members`: lid, e-mail, rol, uitnodigingsstatus en later de gekoppelde Auth-user-id per reis.
+- [ ] `trip_stops`, `trip_itinerary_items`, `trip_expenses`, `trip_travel_items` en `trip_packing_items`: losse tabellen voor de bestaande lijsten in elke reis.
+- [ ] `trip_documents`: metadata voor privé opgeslagen tickets, bonnetjes en boekingsbevestigingen; bestanden zelf blijven in Storage.
+- [ ] `referrals`, `subscription_events`, `invoices` en `payment_events` pas toevoegen wanneer referrals/Stripe daadwerkelijk worden gebouwd.
+
+### Migratie- en toepassingsplan
+
+- [ ] Een migratie maakt de nieuwe tabellen, indexen, foreign keys, `updated_at`-triggers en Row Level Security-regels.
+- [ ] Een éénmalige backfill kopieert elke bestaande `workspaces.data.trips[]` naar de nieuwe tabellen, zonder JSON te verwijderen.
+- [ ] Controlequery’s vergelijken het aantal workspaces, reizen, stops, uitgaven en reisgenoten vóór en na de backfill.
+- [ ] De serverfuncties lezen tijdelijk SQL met JSON-fallback en schrijven tijdens de overgang naar beide vormen.
+- [ ] Na productiecontrole wordt SQL de bron van waarheid; daarna wordt de JSON-compatibiliteitskopie in een aparte, goedgekeurde migratie verwijderd.
+- [ ] Per-reis toegang wordt via RLS op `trips` en `trip_members` afgedwongen; rollen in de browser zijn nooit de beveiliging.
 
 ## P0 — Reiservaring & instellingen (klaar)
 

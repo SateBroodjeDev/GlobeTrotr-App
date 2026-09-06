@@ -8,6 +8,7 @@ import {
   LogIn,
   LogOut,
   Palette,
+  UserRound,
   Users,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
@@ -20,9 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
 
-const CORE_NAV = [
-  { to: "/dashboard", label: "Reizen", icon: Map },
-] as const;
+const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 
 const AGENCY_NAV = [
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
@@ -42,6 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     ? [
         ...CORE_NAV,
         ...(state.plan === "agency" ? AGENCY_NAV : []),
+        { to: "/account", label: "Account", icon: UserRound },
         { to: "/billing", label: "Abonnement", icon: CreditCard },
       ]
     : PUBLIC_NAV;
@@ -118,20 +118,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Button>
             )}
             {user && (
-            <select
-              aria-label="Actieve rol"
-              value={state.role}
-              onChange={(e) =>
-                update((s) => ({ ...s, role: e.target.value as typeof s.role }))
-              }
-              className="rounded-lg border border-input bg-card px-2 py-1.5 text-sm"
-            >
-              {ROLES.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
+              <select
+                aria-label="Actieve rol"
+                value={state.role}
+                onChange={(e) => update((s) => ({ ...s, role: e.target.value as typeof s.role }))}
+                className="rounded-lg border border-input bg-card px-2 py-1.5 text-sm"
+              >
+                {ROLES.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
             )}
           </div>
         </div>
@@ -140,8 +138,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
 
       <footer className="mx-auto max-w-7xl px-4 pb-10 pt-4 text-xs text-muted-foreground">
-        {state.branding.brandName} — {state.branding.tagline} · Kaartdata © OpenStreetMap ·
-        Weer via Open-Meteo · Koersen via Frankfurter/ECB
+        {state.branding.brandName} — {state.branding.tagline} · Kaartdata © OpenStreetMap · Weer via
+        Open-Meteo · Koersen via Frankfurter/ECB
       </footer>
     </div>
   );
