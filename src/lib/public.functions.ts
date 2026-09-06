@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 export type PublicStop = { name: string; country: string; lat: number; lon: number };
-export type PublicDay = { day: string; title: string; notes?: string };
+export type PublicDay = { day: string; title: string; notes?: string | undefined };
 
 export type PublicTripCard = {
   token: string;
