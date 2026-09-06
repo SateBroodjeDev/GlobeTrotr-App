@@ -73,10 +73,14 @@ function TripsOverview() {
       toast.error(`Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`);
       return;
     }
-    const id = await addTrip(name.trim(), template);
-    setName("");
-    toast.success("Reis aangemaakt");
-    navigate({ to: "/trips/$tripId", params: { tripId: id } });
+    try {
+      const id = await addTrip(name.trim(), template);
+      setName("");
+      toast.success("Reis aangemaakt");
+      navigate({ to: "/trips/$tripId", params: { tripId: id } });
+    } catch {
+      toast.error("De reis kon niet in de database worden aangemaakt. Probeer het opnieuw.");
+    }
   }
 
   return (

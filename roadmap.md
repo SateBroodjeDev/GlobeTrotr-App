@@ -207,6 +207,7 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 - [x] Openbare/publicatie-instellingen, budget delen en PIN staan in deze tab
 - [x] Archiveren en verwijderen staan als afgeschermde acties onderaan de tab, met bevestiging
 - [x] Reisschema is gericht op dagplanning, boekingen en kosten
+- [ ] Toon na iedere opgeslagen reisinstelling een duidelijke succesmelding, bijvoorbeeld “Reis is openbaar gemaakt” of “Reis is privé gemaakt”; toon een foutmelding en behoud de vorige status wanneer opslaan mislukt.
 
 ## P0 — Fundament voor samenwerking
 

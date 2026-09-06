@@ -62,6 +62,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const hydrated = useRef(false);
   const stateRef = useRef(state);
   const pendingPublicationSync = useRef(new Map<string, Trip>());
+  const cloudPersistenceReady = useRef(false);
+  const saveSequence = useRef(0);
   stateRef.current = state;
 
   const cacheKey = user ? `${STORAGE_KEY}.${user.id}` : null;
@@ -94,6 +96,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
+      cloudPersistenceReady.current = false;
       setCloud("local");
       setState(seed());
       hydrated.current = false;
@@ -106,13 +109,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         if (cancelled) return;
         const remote = row?.data as WorkspaceState | undefined;
         if (remote && Array.isArray(remote.trips)) {
-          // Herstel ook bestaande reizen die vóór de relationele migratie zijn
-          // opgeslagen. De publieke homepage leest de trips-tabel, niet JSON.
-          remote.trips.forEach((trip) => pendingPublicationSync.current.set(trip.id, trip));
           setState(remote);
         } else {
           await saveWorkspace({ data: { data: stateRef.current } });
         }
+        cloudPersistenceReady.current = true;
         if (!cancelled) setCloud("synced");
       })
       .catch(() => !cancelled && setCloud("local"));
@@ -123,15 +124,19 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   // Debounced cloud save
   useEffect(() => {
-    if (cloud !== "synced" || !user || !hydrated.current) return;
-    setCloud("saving");
+    if (!user || !hydrated.current || !cloudPersistenceReady.current) return;
     const t = setTimeout(() => {
+      const sequence = ++saveSequence.current;
+      setCloud("saving");
       saveWorkspace({ data: { data: stateRef.current } })
-        .then(() => setCloud("synced"))
-        .catch(() => setCloud("synced"));
+        .then(() => {
+          if (sequence === saveSequence.current) setCloud("synced");
+        })
+        .catch(() => {
+          if (sequence === saveSequence.current) setCloud("synced");
+        });
     }, 900);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, user]);
 
   const ratesQuery = useQuery({
@@ -192,16 +197,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     async (name: string, template: TripTemplate) => {
       const tpl = TEMPLATES.find((t) => t.id === template)!;
       const today = new Date().toISOString().slice(0, 10);
-      let id = uid();
+      let id = user ? crypto.randomUUID() : uid();
       if (user) {
         try {
           const created = await createTripInDatabase({
-            data: { name, template, start: today, budget: 1500 },
+            data: { tripId: id, name, template, start: today, budget: 1500 },
           });
           id = created.tripId;
-        } catch {
+        } catch (error) {
           // Vóór de UUID-migratie kan de database deze reis nog niet maken.
           // De bestaande JSON-opslag blijft dan compatibel werken.
+          throw error;
         }
       }
       setState((s) => ({

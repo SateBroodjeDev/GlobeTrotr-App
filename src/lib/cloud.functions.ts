@@ -5,6 +5,23 @@ import type { Trip, WorkspaceState } from "@/lib/types";
 type UntypedSupabase = { from: (relation: string) => any };
 type StoredTrip = { id: string; trip_uuid: string };
 
+async function withinTimeout<T>(operation: Promise<T>, milliseconds: number): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error("Relationele reissync duurde te lang.")),
+          milliseconds,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 /**
  * Transitional write-through while workspace.data is still used by the UI.
  * The UUID migration is optional here: users can deploy this code before
@@ -217,15 +234,19 @@ export const loadWorkspace = createServerFn({ method: "GET" })
 export const createTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { name: string; template: string; start: string; budget: number }) => input,
+    (input: { tripId: string; name: string; template: string; start: string; budget: number }) =>
+      input,
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const db = supabase as unknown as UntypedSupabase;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as unknown as UntypedSupabase;
     const { data: trip, error } = await db
       .from("trips")
       .insert({
-        workspace_user_id: userId,
+        // Alleen de middleware bepaalt de eigenaar; de browser kan dit nooit invullen.
+        workspace_user_id: context.userId,
+        id: data.tripId,
+        trip_uuid: data.tripId,
         name: data.name,
         template: data.template,
         start_date: data.start,
@@ -252,7 +273,8 @@ export const syncTripPublication = createServerFn({ method: "POST" })
     }) => input,
   )
   .handler(async ({ data, context }) => {
-    const db = context.supabase as unknown as UntypedSupabase;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as unknown as UntypedSupabase;
     const fields = {
       is_public: data.isPublic,
       share_financials: data.shareFinancials,
@@ -261,6 +283,7 @@ export const syncTripPublication = createServerFn({ method: "POST" })
     const { data: byUuid, error: uuidError } = await db
       .from("trips")
       .update(fields)
+      .eq("workspace_user_id", context.userId)
       .eq("trip_uuid", data.tripId)
       .select("trip_uuid")
       .maybeSingle();
@@ -282,16 +305,16 @@ export const saveWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { data: unknown }) => input)
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { error } = await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as unknown as UntypedSupabase;
+    const { error } = await db
       .from("workspaces")
-      .upsert({ user_id: userId, data: data.data as never }, { onConflict: "user_id" });
+      .upsert({ user_id: context.userId, data: data.data as never }, { onConflict: "user_id" });
     if (error) throw error;
     try {
-      await syncTripsFromWorkspaceJson(
-        supabase as unknown as UntypedSupabase,
-        userId,
-        data.data as WorkspaceState,
+      await withinTimeout(
+        syncTripsFromWorkspaceJson(db, context.userId, data.data as WorkspaceState),
+        4_000,
       );
       return { ok: true, relationalSynced: true };
     } catch (syncError) {
