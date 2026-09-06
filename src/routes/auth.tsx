@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Apple, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -27,12 +28,21 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const OAUTH_PROVIDERS = [
+  { id: "apple", label: "Apple", icon: Apple },
+  { id: "google", label: "Google", icon: KeyRound },
+  { id: "azure", label: "Microsoft", icon: KeyRound },
+] as const;
+
+type OAuthProvider = (typeof OAUTH_PROVIDERS)[number]["id"];
+
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState<OAuthProvider>();
   const [sent, setSent] = useState(false);
   const { session } = useAuth();
   const navigate = useNavigate();
@@ -68,6 +78,20 @@ function AuthPage() {
       toast.error(err instanceof Error ? err.message : "Er ging iets mis");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function signInWithOAuth(provider: OAuthProvider) {
+    setOauthBusy(provider);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Inloggen met deze provider lukte niet.");
+      setOauthBusy(undefined);
     }
   }
 
@@ -123,6 +147,33 @@ function AuthPage() {
                 {busy ? "Bezig…" : mode === "signin" ? "Inloggen" : "Account aanmaken"}
               </Button>
             </form>
+          )}
+
+          {!sent && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                of ga verder met
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {OAUTH_PROVIDERS.map((provider) => {
+                  const Icon = provider.icon;
+                  return (
+                    <Button
+                      key={provider.id}
+                      type="button"
+                      variant="outline"
+                      disabled={busy || Boolean(oauthBusy)}
+                      onClick={() => void signInWithOAuth(provider.id)}
+                    >
+                      <Icon className="size-4" />
+                      {oauthBusy === provider.id ? "Even…" : provider.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
           <button

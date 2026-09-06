@@ -10,10 +10,11 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 - [x] E-mailregistratie, inloggen en uitloggen via Supabase Auth
 - [x] Privé workspace per account met Row Level Security
-- [x] Eén workspace-document per account; reizen, leden, instellingen en abonnement staan samen in `data`
+- [x] Workspace-instellingen blijven tijdelijk in `data`; reizen en reisgegevens laden en schrijven relationeel via SQL, met JSON als compatibiliteitskopie
 - [x] Cloud-sync van reizen en instellingen, met lokale cache per account
 - [x] Debounced opslag hersteld: opeenvolgende wijzigingen blijven niet op “Opslaan…” hangen
 - [x] Publieke homepage voor bezoekers zonder account
+- [x] Openbare reizen tonen de profielnaam van de eigenaar in plaats van de GlobeTrotr/white-label-merknaam
 
 ## Fase 2 — Reizen plannen (klaar)
 
@@ -28,6 +29,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Reisonderdelen toevoegen en wijzigen: vlucht, overnachting, vervoer/reis, huurauto en activiteit
 - [x] Aanbieder, boekingsnummer, datum(s), notities, kosten en valuta opslaan per reisonderdeel
 - [x] Geselecteerde vertrek-, aankomst- en verblijflocaties automatisch met de kaart synchroniseren
+- [x] Ruimere routekaart: grotere kaartkolom op desktop en 500–560 px kaarthoogte voor beter overzicht
 
 ## Fase 3 — Vluchten (deels klaar)
 
@@ -72,7 +74,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 ## Fase 7 — Abonnementen & Agency (deels klaar)
 
 - [x] Free-, Pro- en Agency-plannen met accountgebonden cloudopslag
-- [x] Plan wijzigen met bevestigde opslag in Supabase
+- [x] Plan wijzigen met bevestigde opslag in Supabase; JSON- en relationele plangegevens blijven daarbij synchroon
 - [x] Agency-only: white-label, rollen, analytics en declarabele klantuitgaven
 - [x] Agency-overzicht en Team & reisrechten hersteld na het uitfaseren van de oude workspace-demoleden; beide gebruiken nu de relationeel geladen reizen en reisleden
 - [x] Voorbeeld-MRR, opslagstatistieken en fictieve facturen verwijderd; Agency toont alleen gegevens die GlobeTrotr werkelijk heeft
@@ -106,13 +108,15 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 3. **Interface & boekingsbasis**: gebouwd; voer de nieuwe SQL-migratie uit en controleer huurauto's, timeline, kosten en leden in productie.
 4. **SkyLink live vluchtdata**: server-side key instellen, één handmatige lookup betrouwbaar maken en pas daarna uitgebreidere velden tonen.
 5. **Agency-basis herstellen**: bonnetjes uitsluitend voor Agency afdwingen en Agency-schermen op relationele data baseren.
-6. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
-7. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
-8. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
-9. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
-10. **Reis onderweg**: routeoptimalisatie, offline toegang en meldingen.
-11. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
-12. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+6. **OAuth & accountafwerking**: OAuth-flow met echte providers handmatig testen, e-mailbevestiging testen en alleen daarna eventuele UI-details aanpassen.
+7. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
+8. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
+9. **Agency-administratie**: echte workspace-teamleden, rechten en operationele dashboards bovenop de per-reisrollen bouwen.
+10. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
+11. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
+12. **Reis onderweg**: routeoptimalisatie, offline toegang en meldingen.
+13. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
+14. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
 
 ## Huidige technische stand â€” 6 september 2026
 
@@ -185,17 +189,16 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [x] Tijdzone-migratie toegevoegd: `supabase/migrations/20260906170000_add_profile_timezone.sql`; veilige standaard is `Europe/Amsterdam`
 - [ ] Voer `20260906170000_add_profile_timezone.sql` eenmalig uit in Lovable Cloud / Supabase SQL Editor
 - [x] De gekozen weergavemodus wordt direct appbreed toegepast, inclusief systeemmodus via `prefers-color-scheme`; vertalingen volgen in een afzonderlijke stap
+- [x] E-mailadres wijzigen via Supabase Auth met zichtbare bevestigingsuitleg; het oude adres blijft actief tot de bevestigingslink is gebruikt
 
 ### Beveiliging & inloggen
 
 - [x] Wachtwoord wijzigen via Supabase Auth, met minimale lengte, herhaling, laadstatus en duidelijke foutmelding bij een verlopen sessie
-- [ ] Overzicht van gekoppelde inlogmethodes (e-mail/wachtwoord, Google en toekomstige providers)
-- [ ] OAuth-identiteit koppelen/ontkoppelen, alleen wanneer de provider in Supabase is geconfigureerd
-- [ ] Inlog-, registratie- en profielpagina geschikt maken voor Lovable/Supabase OAuth met **Apple**, **Google** en **Microsoft**
-- [ ] Per provider de OAuth-app, redirect-URL’s, client-ID en secret veilig configureren in Lovable Cloud / Supabase Auth; secrets nooit in browsercode opslaan
-- [ ] Knoppen tonen voor alleen de providers die werkelijk zijn geconfigureerd, met een duidelijke fallback naar e-mail en wachtwoord
-- [ ] Bij eerste OAuth-login profielnaam en e-mail veilig aanvullen zonder een bestaand account of workspace te dupliceren
-- [ ] Op de profielpagina gekoppelde Apple-, Google- en Microsoft-identiteiten tonen en veilig koppelen/ontkoppelen; voorkom dat de laatste bruikbare inlogmethode wordt verwijderd
+- [x] Overzicht van gekoppelde inlogmethodes: e-mail/wachtwoord, Apple, Google en Microsoft
+- [x] Inlog- en registratiepagina met Apple-, Google- en Microsoft-knoppen via Lovable/Supabase OAuth, naast e-mail en wachtwoord
+- [x] Profielpagina met Apple-, Google- en Microsoft-identiteiten koppelen/ontkoppelen; de laatste bruikbare inlogmethode kan niet worden verwijderd
+- [x] OAuth gebruikt de geconfigureerde Lovable/Supabase-providers en veilige redirect-URL; providersecrets staan niet in browsercode
+- [ ] Handmatige productiecontrole: eerste Apple-, Google- en Microsoft-login, een al bestaand e-mailaccount en koppelen/ontkoppelen testen zonder duplicaat-workspace
 - [ ] Actieve sessies en uitloggen op andere apparaten, als de gekozen Auth-configuratie dit ondersteunt
 - [ ] Account verwijderen met expliciete bevestiging, gegevens-export en duidelijke bewaartermijn
 
@@ -460,7 +463,31 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 - [ ] Groepspoll voor bestemming, accommodatie, activiteit of vervoerskeuze
 - [ ] AI-reisassistent voor een eerste concept, gaten in de planning en praktische suggesties; altijd controleerbaar en nooit automatisch boeken
 
-## P2 — Agency-operatie & schaalbaarheid
+## P1 — Agency-administratie
+
+Dit is het operationele dashboard voor een Agency-workspace. Het is nadrukkelijk iets anders dan per-reisrollen: het beheert het eigen team, klanten en werkvoorraad binnen één Agency-account.
+
+- [ ] Alleen Agency-eigenaren krijgen toegang tot een **Agency Admin**-dashboard; geen route alleen op basis van een verborgen navigatieknop beveiligen
+- [ ] Relationele `workspace_members`- en `workspace_invitations`-tabellen toevoegen, met UUID, status, verloopdatum en RLS per workspace
+- [ ] Teamleden beheren met rollen: eigenaar, reisadviseur en financiën; klanten blijven uitsluitend per reis gekoppeld
+- [ ] Eigen teamoverzicht met actieve leden, open uitnodigingen, limieten en laatst actieve wijzigingen
+- [ ] Werkvoorraad: aankomende reizen, ontbrekende boekingsdetails, open kosten, onbetaalde facturen en verlopen uitnodigingen
+- [ ] Agency-statistieken alleen uit echte data: actieve klantreizen, uitgaven, declarabel, omzet/openstaand zodra Stripe bestaat en documentgebruik zodra Storage-meting bestaat
+- [ ] Auditlog voor team-, rol-, factuur- en klantwijzigingen met actor, tijdstip en context
+
+## P2 — Platformbeheer (Domenic)
+
+Een compacte app-side beheeromgeving als aanvulling op Lovable, uitsluitend voor de GlobeTrotr-platformbeheerder. Dit is geen kopie van Lovable en toont nooit secrets, wachtwoorden, OAuth-tokens of ruwe betaalkaartgegevens.
+
+- [ ] Afzonderlijke `platform_admins`-tabel met een expliciete, server-side gecontroleerde gebruikers-UUID voor Domenic; geen toegang op basis van e-mail, plan of client-state
+- [ ] Aparte serverfuncties en RLS voor een **Platformbeheer**-route; elke beheeractie krijgt auditlogging
+- [ ] Overzicht: geregistreerde gebruikers, bevestigde accounts, planverdeling, actieve/openbare reizen, Storage-gebruik en fout-/activiteitscijfers uit echte aggregaties
+- [ ] Gebruikersoverzicht met minimale noodzakelijke profielgegevens, zoek/filter, accountstatus en ondersteuningsnotities; gevoelige gegevens alleen na expliciete actie en met auditlog
+- [ ] Moderatie voor openbare reizen: verbergen/herstellen met reden en auditlog, zonder privéreisdata te tonen
+- [ ] Beheerbare productinstellingen zoals featureflags, onderhoudsmelding en handmatige plan-correctie; betaling blijft uitsluitend via Stripe-webhooks leidend
+- [ ] Privacytools: export- en verwijderverzoeken volgen, bewaartermijnen en misbruikmeldingen behandelen
+
+## P2 — Agency-automatisering & schaalbaarheid
 
 - [ ] Herbruikbare itinerary-, factuur-, e-mail- en paklijsttemplates
 - [ ] Offertes met meerdere varianten, klantgoedkeuring en conversie naar een reis

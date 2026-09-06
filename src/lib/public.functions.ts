@@ -11,7 +11,7 @@ export type PublicTripCard = {
   start: string;
   end: string;
   stops: PublicStop[];
-  brandName: string;
+  authorName: string;
 };
 
 export type PublicTripDetail = PublicTripCard & {
@@ -24,6 +24,7 @@ export type PublicTripResult =
   { status: "not_found" } | { status: "pin_required" } | { status: "ok"; trip: PublicTripDetail };
 
 type Row = {
+  user_id: string;
   data: unknown;
   public_token: string;
 };
@@ -43,6 +44,7 @@ type RelationalTrip = {
 type RelationalStop = PublicStop & { trip_uuid: string };
 type RelationalDay = PublicDay & { trip_uuid: string; position: number };
 type WorkspaceBrand = { user_id: string; public_token: string; branding: unknown; data: unknown };
+type PublicProfile = { id: string; display_name: string | null; email: string | null };
 type UntypedSupabase = { from: (relation: string) => any };
 
 type AnyTrip = Record<string, unknown>;
@@ -53,21 +55,17 @@ function tripsOf(row: Row): AnyTrip[] {
   return data.trips.filter((t) => t && (t as { public?: boolean }).public === true);
 }
 
-function brandOf(row: Row): string {
-  const data = row.data as { branding?: { brandName?: string } } | null;
-  return data?.branding?.brandName ?? "GlobeTrotr";
-}
-
-function relationalBrand(row: WorkspaceBrand): string {
-  const branding = row.branding as { brandName?: unknown } | null;
-  if (typeof branding?.brandName === "string" && branding.brandName) return branding.brandName;
-  return brandOf({ data: row.data, public_token: row.public_token });
+function authorOf(profile?: PublicProfile): string {
+  if (profile?.display_name?.trim()) return profile.display_name.trim();
+  if (profile?.email) return profile.email.split("@")[0] || "Een GlobeTrotr-reiziger";
+  return "Een GlobeTrotr-reiziger";
 }
 
 function relationalCard(
   workspace: WorkspaceBrand,
   trip: RelationalTrip,
   stops: RelationalStop[],
+  authorName: string,
 ): PublicTripCard {
   return {
     token: workspace.public_token,
@@ -76,12 +74,12 @@ function relationalCard(
     template: trip.template,
     start: trip.start_date ?? "",
     end: trip.end_date ?? "",
-    brandName: relationalBrand(workspace),
+    authorName,
     stops: stops.map(({ trip_uuid: _tripUuid, ...stop }) => stop),
   };
 }
 
-function card(row: Row, t: AnyTrip): PublicTripCard {
+function card(row: Row, t: AnyTrip, authorName: string): PublicTripCard {
   const stops = Array.isArray(t["stops"]) ? (t["stops"] as AnyTrip[]) : [];
   return {
     token: row.public_token,
@@ -90,7 +88,7 @@ function card(row: Row, t: AnyTrip): PublicTripCard {
     template: String(t["template"] ?? "citytrip"),
     start: String(t["start"] ?? ""),
     end: String(t["end"] ?? ""),
-    brandName: brandOf(row),
+    authorName,
     stops: stops.map((s) => ({
       name: String(s["name"] ?? ""),
       country: String(s["country"] ?? ""),
@@ -117,12 +115,13 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
     if (trips.length === 0) return [] as PublicTripCard[];
     const tripIds = trips.map((trip) => trip.trip_uuid);
     const workspaceIds = [...new Set(trips.map((trip) => trip.workspace_user_id))];
-    const [{ data: stops }, { data: workspaces }] = await Promise.all([
+    const [{ data: stops }, { data: workspaces }, { data: profiles }] = await Promise.all([
       db.from("trip_stops").select("trip_uuid, name, country, lat, lon").in("trip_uuid", tripIds),
       db
         .from("workspaces")
         .select("user_id, public_token, branding, data")
         .in("user_id", workspaceIds),
+      db.from("profiles").select("id, display_name, email").in("id", workspaceIds),
     ]);
     const stopsByTrip = new Map<string, RelationalStop[]>();
     for (const stop of (stops ?? []) as RelationalStop[]) {
@@ -131,10 +130,20 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
     const workspacesByUser = new Map(
       ((workspaces ?? []) as WorkspaceBrand[]).map((workspace) => [workspace.user_id, workspace]),
     );
+    const profilesByUser = new Map(
+      ((profiles ?? []) as PublicProfile[]).map((profile) => [profile.id, profile]),
+    );
     return trips.flatMap((trip) => {
       const workspace = workspacesByUser.get(trip.workspace_user_id);
       return workspace
-        ? [relationalCard(workspace, trip, stopsByTrip.get(trip.trip_uuid) ?? [])]
+        ? [
+            relationalCard(
+              workspace,
+              trip,
+              stopsByTrip.get(trip.trip_uuid) ?? [],
+              authorOf(profilesByUser.get(trip.workspace_user_id)),
+            ),
+          ]
         : [];
     });
   }
@@ -142,12 +151,21 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
   // Voor bestaande omgevingen vóór de relationele migratie blijft JSON werken.
   const { data, error } = await supabaseAdmin
     .from("workspaces")
-    .select("data, public_token")
+    .select("user_id, data, public_token")
     .limit(100);
   if (error) return [] as PublicTripCard[];
+  const rows = (data ?? []) as Row[];
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("id, display_name, email")
+    .in("id", rows.map((row) => row.user_id));
+  const profilesByUser = new Map(
+    ((profiles ?? []) as PublicProfile[]).map((profile) => [profile.id, profile]),
+  );
   const out: PublicTripCard[] = [];
-  for (const row of (data ?? []) as Row[]) {
-    for (const t of tripsOf(row)) out.push(card(row, t));
+  for (const row of rows) {
+    const authorName = authorOf(profilesByUser.get(row.user_id));
+    for (const t of tripsOf(row)) out.push(card(row, t, authorName));
   }
   return out.slice(0, 60);
 });
@@ -165,6 +183,12 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     if (error || !data) return { status: "not_found" } as PublicTripResult;
 
     const workspace = data as WorkspaceBrand;
+    const { data: profile } = await db
+      .from("profiles")
+      .select("id, display_name, email")
+      .eq("id", workspace.user_id)
+      .maybeSingle();
+    const authorName = authorOf(profile as PublicProfile | null | undefined);
     const { data: byUuid, error: uuidError } = await db
       .from("trips")
       .select(
@@ -210,7 +234,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
           .order("position"),
       ]);
       const detail: PublicTripDetail = {
-        ...relationalCard(workspace, normalizedTrip, (stops ?? []) as RelationalStop[]),
+        ...relationalCard(workspace, normalizedTrip, (stops ?? []) as RelationalStop[], authorName),
         itinerary: ((itinerary ?? []) as RelationalDay[]).map(
           ({ trip_uuid: _tripUuid, position: _position, ...item }) => item,
         ),
@@ -230,7 +254,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       return { status: "pin_required" } as PublicTripResult;
     }
     const detail: PublicTripDetail = {
-      ...card(row, trip),
+      ...card(row, trip, authorName),
       itinerary: (Array.isArray(trip["itinerary"]) ? (trip["itinerary"] as AnyTrip[]) : []).map(
         (d) => ({
           day: String(d["day"] ?? ""),

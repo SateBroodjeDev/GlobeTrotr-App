@@ -86,7 +86,7 @@ function PublicTrip() {
       <header className="space-y-1">
         <h1 className="font-display text-3xl font-semibold">{trip.name}</h1>
         <p className="text-sm text-muted-foreground">
-          {trip.start} → {trip.end} · gedeeld door {trip.brandName}
+          {trip.start} → {trip.end} · gedeeld door {trip.authorName}
         </p>
       </header>
 

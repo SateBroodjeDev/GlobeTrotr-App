@@ -82,5 +82,5 @@ export default function TripMap({
     };
   }, []);
 
-  return <div ref={ref} className="h-[420px] w-full rounded-xl bg-muted" />;
+  return <div ref={ref} className="h-[500px] w-full rounded-xl bg-muted sm:h-[560px]" />;
 }

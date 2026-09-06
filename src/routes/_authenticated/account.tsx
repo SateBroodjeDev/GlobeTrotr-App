@@ -6,9 +6,11 @@ import {
   CreditCard,
   KeyRound,
   Languages,
+  Link2,
   Mail,
   Monitor,
   ShieldCheck,
+  Unlink,
   UserRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -38,6 +40,12 @@ type Profile = {
 };
 
 type ThemePreference = "system" | "light" | "dark";
+const OAUTH_PROVIDERS = [
+  { id: "apple", label: "Apple" },
+  { id: "google", label: "Google" },
+  { id: "azure", label: "Microsoft" },
+] as const;
+type OAuthProvider = (typeof OAUTH_PROVIDERS)[number]["id"];
 
 const LANGUAGES = [
   { value: "nl-NL", label: "Nederlands" },
@@ -89,11 +97,12 @@ function AccountPage() {
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [oauthAction, setOauthAction] = useState<string>();
 
   useEffect(() => {
     if (!user) return;
     setName(profile?.display_name ?? String(user.user_metadata.full_name ?? ""));
-    setEmail(profile?.email ?? user.email ?? "");
+    setEmail(user.email ?? profile?.email ?? "");
     setPhone(profile?.phone ?? String(user.user_metadata.phone ?? ""));
     setLocale(profile?.locale === "en-GB" ? "en-GB" : "nl-NL");
     setTimezone(profile?.timezone || "Europe/Amsterdam");
@@ -125,12 +134,19 @@ function AccountPage() {
       toast.error("Vul je naam in.");
       return;
     }
+    const requestedEmail = email.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(requestedEmail)) {
+      toast.error("Vul een geldig e-mailadres in.");
+      return;
+    }
     setSaving(true);
     try {
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
         display_name: name.trim(),
-        email: email.trim(),
+        // Auth blijft de bron van waarheid voor een e-mailadres. Een nieuw
+        // adres wordt daar pas actief nadat de gebruiker het heeft bevestigd.
+        email: user.email ?? null,
         phone: phone.trim() || null,
       });
       if (profileError) throw profileError;
@@ -140,8 +156,8 @@ function AccountPage() {
       });
       if (metadataError) throw metadataError;
 
-      if (email.trim().toLowerCase() !== (user.email ?? "").toLowerCase()) {
-        const { error: emailError } = await supabase.auth.updateUser({ email: email.trim() });
+      if (requestedEmail !== (user.email ?? "").toLowerCase()) {
+        const { error: emailError } = await supabase.auth.updateUser({ email: requestedEmail });
         if (emailError) throw emailError;
         toast.success("Profiel opgeslagen. Bevestig je nieuwe e-mailadres via je mail.");
       } else {
@@ -252,6 +268,40 @@ function AccountPage() {
     }
   }
 
+  async function linkOAuth(provider: OAuthProvider) {
+    setOauthAction(`link-${provider}`);
+    try {
+      const { error } = await supabase.auth.linkIdentity({
+        provider,
+        options: { redirectTo: window.location.href },
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Provider koppelen lukte niet.");
+      setOauthAction(undefined);
+    }
+  }
+
+  async function unlinkOAuth(identity: (typeof identities)[number]) {
+    if (identities.length <= 1) {
+      toast.error("Je kunt niet je laatste inlogmethode verwijderen.");
+      return;
+    }
+    if (!window.confirm(`Weet je zeker dat je ${providerLabel(identity.provider)} wilt ontkoppelen?`)) {
+      return;
+    }
+    setOauthAction(`unlink-${identity.identity_id}`);
+    try {
+      const { error } = await supabase.auth.unlinkIdentity(identity);
+      if (error) throw error;
+      toast.success("Inlogmethode ontkoppeld.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Provider ontkoppelen lukte niet.");
+    } finally {
+      setOauthAction(undefined);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -316,10 +366,14 @@ function AccountPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                Bij een nieuw adres ontvang je eerst een bevestigingsmail. Tot die bevestiging blijft
+                je huidige e-mailadres actief.
+              </p>
             </label>
           </div>
           <Button disabled={saving || profileQuery.isLoading} onClick={saveProfile}>
-            {saving ? "Opslaan…" : "Profiel opslaan"}
+            {saving ? "Opslaan…" : "Profiel en e-mailadres opslaan"}
           </Button>
         </CardContent>
       </Card>
@@ -407,25 +461,59 @@ function AccountPage() {
             <p className="text-muted-foreground">
               Inlogmethodes die aan dit account gekoppeld zijn.
             </p>
-            {identities.length ? (
-              identities.map((identity) => (
-                <div
-                  key={identity.identity_id}
-                  className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2"
-                >
-                  <span className="capitalize">{identity.provider}</span>
-                  <Badge variant="secondary">Gekoppeld</Badge>
-                </div>
-              ))
-            ) : (
-              <p className="text-muted-foreground">E-mail en wachtwoord</p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              OAuth toevoegen of loskoppelen verschijnt hier zodra de provider in Supabase is
-              geconfigureerd.
-            </p>
-            <div className="space-y-3 border-t border-border pt-3">
-              <p className="font-medium">Wachtwoord wijzigen</p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
+                <span>E-mail en wachtwoord</span>
+                <Badge variant="secondary">Gekoppeld</Badge>
+              </div>
+              {identities
+                .filter((identity) => OAUTH_PROVIDERS.some((provider) => provider.id === identity.provider))
+                .map((identity) => (
+                  <div
+                    key={identity.identity_id}
+                    className="flex items-center justify-between gap-3 rounded-lg bg-muted/60 px-3 py-2"
+                  >
+                    <span>{providerLabel(identity.provider)}</span>
+                    <span className="flex items-center gap-2">
+                      <Badge variant="secondary">Gekoppeld</Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={identities.length <= 1 || Boolean(oauthAction)}
+                        title={`${providerLabel(identity.provider)} ontkoppelen`}
+                        onClick={() => void unlinkOAuth(identity)}
+                      >
+                        <Unlink className="size-4" />
+                      </Button>
+                    </span>
+                  </div>
+                ))}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {OAUTH_PROVIDERS.map((provider) => {
+                const isLinked = identities.some((identity) => identity.provider === provider.id);
+                return (
+                  <Button
+                    key={provider.id}
+                    type="button"
+                    variant="outline"
+                    disabled={isLinked || Boolean(oauthAction)}
+                    onClick={() => void linkOAuth(provider.id)}
+                  >
+                    <Link2 className="size-4" />
+                    {isLinked ? `${provider.label} gekoppeld` : provider.label}
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
+              <div>
+                <p className="font-medium">Wachtwoord wijzigen</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Gebruik minimaal 6 tekens en bewaar je wachtwoord veilig.
+                </p>
+              </div>
               <label className="space-y-1.5">
                 <Label htmlFor="new-password">Nieuw wachtwoord</Label>
                 <Input
@@ -450,11 +538,12 @@ function AccountPage() {
               </label>
               <Button
                 type="button"
-                variant="outline"
+                className="w-full sm:w-auto"
                 disabled={savingPassword || !newPassword || !repeatPassword}
                 onClick={() => void savePassword()}
               >
-                {savingPassword ? "Wachtwoord opslaan…" : "Wachtwoord wijzigen"}
+                <KeyRound className="size-4" />
+                {savingPassword ? "Wachtwoord opslaan…" : "Nieuw wachtwoord opslaan"}
               </Button>
             </div>
           </CardContent>
@@ -500,4 +589,8 @@ function AccountPage() {
       </Card>
     </div>
   );
+}
+
+function providerLabel(provider: string) {
+  return OAUTH_PROVIDERS.find((option) => option.id === provider)?.label ?? provider;
 }

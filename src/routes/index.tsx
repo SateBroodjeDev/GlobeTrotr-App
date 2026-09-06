@@ -146,7 +146,7 @@ function Landing() {
                     </Link>
                   </CardTitle>
                   <p className="text-xs text-muted-foreground">
-                    {t.start} → {t.end} · door {t.brandName}
+                    {t.start} → {t.end} · door {t.authorName}
                   </p>
                 </CardHeader>
                 <CardContent className="mt-auto space-y-2 text-sm text-muted-foreground">

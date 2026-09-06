@@ -852,11 +852,11 @@ function TripDetail() {
         </TabsContent>
 
         <TabsContent value="route" className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(300px,1fr)]">
             <Card className="surface overflow-hidden">
               <CardContent className="p-3">
-                <ClientOnly fallback={<Skeleton className="h-[420px] w-full rounded-xl" />}>
-                  <Suspense fallback={<Skeleton className="h-[420px] w-full rounded-xl" />}>
+                <ClientOnly fallback={<Skeleton className="h-[500px] w-full rounded-xl sm:h-[560px]" />}>
+                  <Suspense fallback={<Skeleton className="h-[500px] w-full rounded-xl sm:h-[560px]" />}>
                     <TripMap
                       stops={trip.stops}
                       activeStopId={activeStopId}
