@@ -122,6 +122,13 @@
   --accent-foreground: oklch(0.95 0.02 var(--brand-hue));
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
+  --gradient-aurora: linear-gradient(
+    135deg,
+    oklch(0.22 0.012 260) 0%,
+    oklch(0.24 0.025 var(--brand-hue)) 100%
+  );
+  --gradient-sheen: linear-gradient(180deg, oklch(0.235 0.012 260) 0%, oklch(0.2 0.01 260) 100%);
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.2), 0 8px 24px oklch(0 0 0 / 0.18);
 }
 
 @layer base {

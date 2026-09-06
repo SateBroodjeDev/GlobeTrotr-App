@@ -100,12 +100,6 @@ function AppShellContent({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--brand-hue", String(state.branding.accent));
   }, [state.branding.accent]);
   useEffect(() => {
-    if (!user) {
-      const stored = localStorage.getItem("globetrotr.guest-theme");
-      if (stored === "light" || stored === "dark") setGuestTheme(stored);
-    }
-  }, [user]);
-  useEffect(() => {
     if (!profileQuery.data?.avatar_path) {
       setAvatarUrl(undefined);
       return;
@@ -131,7 +125,6 @@ function AppShellContent({ children }: { children: ReactNode }) {
   async function toggleTheme() {
     const next = dark ? "light" : "dark";
     if (!user) {
-      localStorage.setItem("globetrotr.guest-theme", next);
       setGuestTheme(next);
       return;
     }
