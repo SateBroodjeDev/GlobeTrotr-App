@@ -34,6 +34,7 @@ import { Settlement } from "@/components/Settlement";
 import { Packing } from "@/components/Packing";
 import { Countdown } from "@/components/Countdown";
 import { TripBookings } from "@/components/TripBookings";
+import { TripMembers } from "@/components/TripMembers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -413,6 +414,13 @@ function TripDetail() {
               )}
             </CardContent>
           </Card>
+
+          <TripMembers
+            members={trip.members ?? []}
+            plan={state.plan}
+            editable={editable}
+            onChange={(members) => updateTrip(trip.id, (current) => ({ ...current, members }))}
+          />
 
           <Card className="border-destructive/40 surface">
             <CardHeader className="pb-2">

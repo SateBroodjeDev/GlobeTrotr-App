@@ -1,5 +1,7 @@
 export type PlanId = "free" | "pro" | "agency";
 export type RoleId = "owner" | "editor" | "accountant" | "viewer";
+export type TripMemberRole = "owner" | "traveler" | "viewer" | "advisor" | "finance" | "client";
+export type TripMemberStatus = "invited" | "active";
 
 export type Stop = {
   id: string;
@@ -142,6 +144,16 @@ export type Member = {
   role: RoleId;
 };
 
+/** Een reisgenoot is onderdeel van één reis en staat in het JSON-workspace-document. */
+export type TripMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: TripMemberRole;
+  status: TripMemberStatus;
+  invitedAt: string;
+};
+
 export type TripStatus = "upcoming" | "current" | "archived";
 
 export type PackingItem = {
@@ -160,6 +172,8 @@ export type Trip = {
   stops: Stop[];
   itinerary: ItineraryItem[];
   travelItems?: TravelItem[];
+  /** Uitgenodigde reisgenoten en hun rechten voor deze reis. */
+  members?: TripMember[];
   expenses: Expense[];
   travelers?: string[];
   packing?: PackingItem[];

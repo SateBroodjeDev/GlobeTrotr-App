@@ -84,21 +84,20 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Definitieve uitvoeringsvolgorde
 
-1. **Reisinstellingen**: de overzichtelijke Instellingen-tab afronden.
-2. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis ontwerpen en server-side afdwingen.
-3. **Lovable-e-mail**: domein verifiëren, templates maken en de echte uitnodigingsstroom activeren.
-4. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
-5. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
-6. **Reis onderweg**: routeoptimalisatie, offline toegang, meldingen en taalkeuze.
-7. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+1. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis ontwerpen en server-side afdwingen.
+2. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
+3. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
+4. **Reis onderweg**: routeoptimalisatie, offline toegang, meldingen, taalkeuze en dark mode.
+5. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
+6. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
 
-## P0 — Reiservaring & instellingen (eerstvolgend)
+## P0 — Reiservaring & instellingen (klaar)
 
-- [ ] Nieuwe tab **Instellingen** binnen iedere reis, geen losse modal
-- [ ] Verplaats reisnaam, start- en einddatum, budget en template naar deze tab
-- [ ] Verplaats openbare/publicatie-instellingen, budget delen en PIN naar deze tab
-- [ ] Plaats archiveren en verwijderen als afgeschermde acties onderaan de tab, met bevestiging
-- [ ] Houd Reisschema uitsluitend gericht op dagplanning, boekingen en kosten
+- [x] Nieuwe tab **Instellingen** binnen iedere reis, geen losse modal
+- [x] Reisnaam, start- en einddatum, budget en template staan in deze tab
+- [x] Openbare/publicatie-instellingen, budget delen en PIN staan in deze tab
+- [x] Archiveren en verwijderen staan als afgeschermde acties onderaan de tab, met bevestiging
+- [x] Reisschema is gericht op dagplanning, boekingen en kosten
 
 ## P0 — Fundament voor samenwerking
 
@@ -112,9 +111,18 @@ De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijkti
 - [ ] Reacties en @mentions bij een reisonderdeel of dag in de planning
 - [ ] Meldingsvoorkeuren per reis: uitnodigingen, wijzigingen, betaalverzoeken en vluchtalerts
 
+### JSON-basis (klaar)
+
+- [x] Reisgenoten staan per reis in het bestaande workspace-`data`-document
+- [x] Naam, e-mail, rol, uitnodigingsstatus en uitnodigingsdatum worden per reisgenoot bewaard
+- [x] Reisgenoten beheren vanuit de Instellingen-tab van de betreffende reis
+- [x] Rol en status handmatig beheren zolang automatische e-mailuitnodigingen nog niet beschikbaar zijn
+
 ## P0 — E-mail, uitnodigingen & logische rollen
 
 De huidige knop “Uitnodigen” registreert alleen een lid in de workspace; echte bezorging en toegang bestaan nog niet. Dit onderdeel maakt de volledige, veilige stroom af.
+
+> **Uitgesteld:** begin pas met de e-mailimplementatie nadat Lovable Cloud Emails is geactiveerd en `globetrotr.nl` in Lovable is geverifieerd. Tot die tijd blijven reisgenoten als JSON-status `Uitgenodigd` beheerd worden.
 
 - [ ] Lovable Cloud Emails activeren voor het project
 - [ ] `globetrotr.nl` verifiëren in **Lovable Cloud → Emails** met de vereiste SPF/DKIM-records
@@ -128,18 +136,16 @@ De huidige knop “Uitnodigen” registreert alleen een lid in de workspace; ech
 
 ### Rollen voor vriendengroepen — Free en Pro
 
-- [ ] **Eigenaar**: beheert de reis, leden, publicatie en verwijdering
-- [ ] **Medereiziger**: plant mee, voegt boekingen/uitgaven toe en kan kosten verdelen
-- [ ] **Kijker**: ziet alleen het reisschema en de kaart; geen kosten tenzij de eigenaar die expliciet deelt
-- [ ] Free: beperkte groepsuitnodigingen en basisrechten; Pro: onbeperkte groepsleden, gezamenlijke uitgaven en volledige samenwerking
+- [x] **Eigenaar**, **Medereiziger** en **Kijker** als JSON-rollen per reis
+- [x] Free: maximaal twee reisgenoten; Pro: onbeperkt reisgenoten
+- [ ] Rechten bij iedere serveractie afdwingen zodra toegangsverlening voor andere accounts is gebouwd
 - [ ] Geen accountant-, declaratie- of klantrollen in de vriendengroep-interface
 
 ### Rollen voor Agency
 
-- [ ] **Workspace-eigenaar**: abonnement, branding, team en alle reizen
-- [ ] **Reisadviseur**: maakt en beheert klantreizen, offertes en reisonderdelen
-- [ ] **Financiën**: facturen, betalingen, creditnota’s en commissies; geen branding of abonnement
-- [ ] **Klant/reiziger**: alleen eigen reis, documenten, facturen en betaalverzoeken
+- [x] **Reisadviseur**, **Financiën** en **Klant/reiziger** als JSON-rollen per reis
+- [ ] Workspace-eigenaar: abonnement, branding, team en alle reizen
+- [ ] Rechten voor adviseur, financiën en klant daadwerkelijk per actie afdwingen
 - [ ] Rechten daadwerkelijk op de server afdwingen; een rol in de browser of in JSON is niet voldoende
 
 ## P0 — Boekingen, documenten & reis-inbox
@@ -214,6 +220,14 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 - [ ] Taalkeuze ook opslaan in het workspace-`data`-document en toepassen op e-mails, publieke reispagina’s en exports
 - [ ] Datums, bedragen, valuta en tijdzones tonen volgens de gekozen locale
 - [ ] Nieuwe teksten alleen via vertaalkeys toevoegen; controle op ontbrekende vertalingen in de build
+
+## P1 — Weergave & dark mode
+
+- [ ] Dark mode en light mode voor de volledige app
+- [ ] Keuze: systeeminstelling volgen, licht of donker; opslaan in het workspace-`data`-document
+- [ ] Donkere variant voor kaarten, formulieren, tabellen, openbare reispagina’s en lege statussen
+- [ ] Contrast, focusstatussen en foutmeldingen controleren op toegankelijkheid in beide modi
+- [ ] PDF- en printweergave bewust licht houden voor leesbaarheid en papierverbruik
 
 ## P1 — Referral- en kortingsprogramma
 
