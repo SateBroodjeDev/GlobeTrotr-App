@@ -105,6 +105,8 @@ export type Trip = {
   travelers?: string[];
   packing?: PackingItem[];
   archived?: boolean;
+  /** Openbaar zichtbaar op de homepage */
+  public?: boolean;
 };
 
 export function tripStatus(trip: Trip, today = new Date()): TripStatus {
