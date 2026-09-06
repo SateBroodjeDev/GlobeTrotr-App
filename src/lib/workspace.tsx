@@ -45,6 +45,8 @@ type Ctx = {
   state: WorkspaceState;
   update: (fn: (s: WorkspaceState) => WorkspaceState) => void;
   updateTrip: (id: string, fn: (t: Trip) => Trip) => void;
+  /** Optimistic trip mutation that resolves only after the server confirms it. */
+  saveTripNow: (id: string, fn: (t: Trip) => Trip) => Promise<void>;
   addTrip: (name: string, template: TripTemplate) => Promise<string>;
   removeTrip: (id: string) => void;
   rates: Rates;
@@ -178,6 +180,46 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setSaveRevision((revision) => revision + 1);
   }, []);
 
+  const saveTripNow = useCallback(
+    async (id: string, fn: (trip: Trip) => Trip) => {
+      const previousState = stateRef.current;
+      const previousTrip = previousState.trips.find((trip) => trip.id === id);
+      if (!previousTrip) throw new Error("Reis niet gevonden.");
+
+      const nextTrip = fn(previousTrip);
+      const nextState = {
+        ...previousState,
+        trips: previousState.trips.map((trip) => (trip.id === id ? nextTrip : trip)),
+      };
+      stateRef.current = nextState;
+      setState(nextState);
+      pendingTripIds.current.delete(id);
+
+      if (!user) return;
+
+      setCloud("saving");
+      try {
+        await saveTripInDatabase({ data: { trip: nextTrip } });
+        setCloud("synced");
+      } catch (error) {
+        // Revert only when no newer edit has replaced this optimistic trip.
+        setState((current) => {
+          const stored = current.trips.find((trip) => trip.id === id);
+          if (stored !== nextTrip) return current;
+          const reverted = {
+            ...current,
+            trips: current.trips.map((trip) => (trip.id === id ? previousTrip : trip)),
+          };
+          stateRef.current = reverted;
+          return reverted;
+        });
+        setCloud("synced");
+        throw error;
+      }
+    },
+    [user],
+  );
+
   const addTrip = useCallback(
     async (name: string, template: TripTemplate) => {
       const tpl = TEMPLATES.find((t) => t.id === template)!;
@@ -263,6 +305,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       state,
       update,
       updateTrip,
+      saveTripNow,
       addTrip,
       removeTrip,
       rates: ratesQuery.data ?? FALLBACK_RATES,
@@ -271,7 +314,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       changePlan,
       cloud,
     }),
-    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset, changePlan, cloud],
+    [
+      state,
+      update,
+      updateTrip,
+      saveTripNow,
+      addTrip,
+      removeTrip,
+      ratesQuery.data,
+      reset,
+      changePlan,
+      cloud,
+    ],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;

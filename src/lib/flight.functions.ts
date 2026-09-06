@@ -37,7 +37,20 @@ export const lookupFlight = createServerFn({ method: "GET" })
     } | null;
 
     if (!response.ok || payload?.error) {
-      throw new Error(payload?.error?.message || "Vluchtdata kon niet worden opgehaald.");
+      const providerMessage = payload?.error?.message || "";
+      if (
+        /subscription plan.*(does not support|not support)|not available.*plan/i.test(
+          providerMessage,
+        )
+      ) {
+        throw new Error(
+          "Live vluchtdata is niet beschikbaar met het huidige Aviationstack-abonnement. Voeg de vlucht handmatig toe of gebruik een sleutel met toegang tot deze API-functie.",
+        );
+      }
+      if (response.status === 429) {
+        throw new Error("De limiet voor live vluchtdata is bereikt. Probeer het later opnieuw.");
+      }
+      throw new Error(providerMessage || "Vluchtdata kon niet worden opgehaald.");
     }
     const result = payload?.data?.[0];
     if (!result) throw new Error("Geen vlucht gevonden voor dit nummer en deze datum.");

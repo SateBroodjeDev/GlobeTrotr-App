@@ -20,6 +20,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Reizen aanmaken, archiveren en heractiveren
 - [x] Nieuwe reizen krijgen direct een globale UUID en een relationele `trips`-rij
 - [x] Start- en einddatum van een reis wijzigen, met validatie van de datums
+- [x] Reisinstellingen pas opslaan na expliciete actie en serverbevestiging; naam, datums en budget kunnen niet leeg of ongeldig worden opgeslagen
 - [x] Bestemmingen zoeken en toevoegen op de Leaflet-routekaart
 - [x] Dagplanning, afteller, paklijsten en reisstatus
 - [x] Weerinformatie per bestemming
@@ -32,6 +33,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Vluchtnummer en vluchtstatus bewaren bij een vlucht
 - [x] Server-side koppeling met Aviationstack voor actuele vluchtinformatie
 - [x] API-sleutel blijft buiten de browser via `AVIATIONSTACK_API_KEY`
+- [x] Duidelijke melding bij een ontbrekende API-functie in het huidige Aviationstack-plan of bij een bereikt quotum
 - [ ] `AVIATIONSTACK_API_KEY` als server-secret instellen in de productieomgeving
 - [ ] Live vertrek-/aankomsttijden en eventuele gate/terminal uitgebreider tonen
 - [ ] Automatisch periodiek verversen van vluchtstatus voor reizen die binnenkort vertrekken
@@ -233,7 +235,8 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 - [x] Archiveren en verwijderen staan als afgeschermde acties onderaan de tab, met bevestiging
 - [x] Reisschema is gericht op dagplanning, boekingen en kosten
 - [x] Toon na serverbevestiging een succesmelding bij openbaar/privé maken, budget delen en PIN-wijzigingen; herstel de vorige status bij een fout.
-- [ ] Breid deze bevestigingen uit naar reisnaam, datums, budget, template, leden en archiveren/verwijderen zodra die instellingen ieder een eigen relationele schrijfroute hebben.
+- [x] Reisnaam, datums, budget en template gebruiken een gevalideerde, expliciete opslagactie met serverbevestiging en fout-herstel.
+- [ ] Breid deze bevestigingen uit naar leden, archiveren/verwijderen, reisonderdelen, uitgaven, stops en dagplanning zodra deze ieder een eigen relationele schrijfroute hebben.
 
 ## P0 — Fundament voor samenwerking
 

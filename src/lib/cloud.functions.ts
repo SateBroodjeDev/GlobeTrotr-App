@@ -5,6 +5,26 @@ import type { Trip, WorkspaceState } from "@/lib/types";
 type UntypedSupabase = { from: (relation: string) => any };
 type StoredTrip = { id: string; trip_uuid: string };
 
+function isIsoDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+/** Keep invalid trip settings out of both relational storage and the JSON backup. */
+function normalizeTripForPersistence(trip: Trip): Trip {
+  const name = trip.name.trim();
+  if (!name) throw new Error("Een reisnaam is verplicht.");
+  if (!isIsoDate(trip.start) || !isIsoDate(trip.end)) {
+    throw new Error("Vul een geldige start- en einddatum in.");
+  }
+  if (trip.end < trip.start) throw new Error("De einddatum kan niet vóór de startdatum liggen.");
+  if (!Number.isFinite(trip.budget) || trip.budget < 0) {
+    throw new Error("Het budget moet een bedrag van nul of hoger zijn.");
+  }
+  return { ...trip, name };
+}
+
 async function withinTimeout<T>(operation: Promise<T>, milliseconds: number): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -424,6 +444,12 @@ export const createTrip = createServerFn({ method: "POST" })
       input,
   )
   .handler(async ({ data, context }) => {
+    const name = data.name.trim();
+    if (!name) throw new Error("Een reisnaam is verplicht.");
+    if (!isIsoDate(data.start)) throw new Error("Vul een geldige startdatum in.");
+    if (!Number.isFinite(data.budget) || data.budget < 0) {
+      throw new Error("Het budget moet een bedrag van nul of hoger zijn.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
     const { data: trip, error } = await db
@@ -433,7 +459,7 @@ export const createTrip = createServerFn({ method: "POST" })
         workspace_user_id: context.userId,
         id: data.tripId,
         trip_uuid: data.tripId,
-        name: data.name,
+        name,
         template: data.template,
         start_date: data.start,
         end_date: data.start,
@@ -492,10 +518,11 @@ export const saveTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { trip: Trip }) => input)
   .handler(async ({ data, context }) => {
+    const trip = normalizeTripForPersistence(data.trip);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
-    const saved = await saveRelationalTrip(db, context.userId, data.trip);
-    await updateTripJsonBackup(db, context.userId, data.trip, saved.id);
+    const saved = await saveRelationalTrip(db, context.userId, trip);
+    await updateTripJsonBackup(db, context.userId, trip, saved.id);
     return { tripId: saved.trip_uuid };
   });
 

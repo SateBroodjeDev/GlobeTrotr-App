@@ -134,7 +134,13 @@ export function TripBookings({
               disabled={!editable}
               onChange={(event) => {
                 const type = event.target.value as TravelItemType;
-                setDraft((current) => ({ ...current, type }));
+                setDraft((current) => ({
+                  ...current,
+                  type,
+                  // Een vlucht heeft één vluchtdatum. Een optionele tweede
+                  // datum is alleen zinvol voor bijvoorbeeld een hotel.
+                  endDate: type === "flight" ? undefined : current.endDate,
+                }));
                 setFlight(undefined);
               }}
             >
@@ -144,25 +150,37 @@ export function TripBookings({
                 </option>
               ))}
             </select>
-            <Input
-              type="date"
-              value={draft.date}
-              min={trip.start || undefined}
-              disabled={!editable}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, date: event.target.value }))
-              }
-            />
-            <Input
-              type="date"
-              value={draft.endDate ?? ""}
-              min={draft.date || undefined}
-              disabled={!editable}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, endDate: event.target.value || undefined }))
-              }
-              placeholder="Einddatum (optioneel)"
-            />
+            <label className="space-y-1 text-xs text-muted-foreground">
+              {draft.type === "flight" ? "Vluchtdatum" : "Startdatum"}
+              <Input
+                aria-label={draft.type === "flight" ? "Vluchtdatum" : "Startdatum"}
+                type="date"
+                value={draft.date}
+                min={trip.start || undefined}
+                disabled={!editable}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, date: event.target.value }))
+                }
+              />
+            </label>
+            {draft.type !== "flight" && (
+              <label className="space-y-1 text-xs text-muted-foreground">
+                {draft.type === "lodging" ? "Uitcheckdatum (optioneel)" : "Einddatum (optioneel)"}
+                <Input
+                  aria-label={draft.type === "lodging" ? "Uitcheckdatum" : "Einddatum"}
+                  type="date"
+                  value={draft.endDate ?? ""}
+                  min={draft.date || undefined}
+                  disabled={!editable}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      endDate: event.target.value || undefined,
+                    }))
+                  }
+                />
+              </label>
+            )}
             <Input
               value={draft.title}
               disabled={!editable}

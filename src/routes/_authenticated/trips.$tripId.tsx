@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import {
   Archive,
@@ -21,6 +21,7 @@ import {
   tripStatus,
   type Expense,
   type ExpenseCategory,
+  type Trip,
   type TravelItem,
 } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
@@ -46,6 +47,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
+
+type TripSettingsDraft = {
+  name: string;
+  start: string;
+  end: string;
+  budget: string;
+  template: Trip["template"];
+};
+
+function settingsFromTrip(trip: Trip): TripSettingsDraft {
+  return {
+    name: trip.name,
+    start: trip.start,
+    end: trip.end,
+    budget: String(trip.budget),
+    template: trip.template,
+  };
+}
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   head: () => ({
@@ -75,7 +94,7 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 
 function TripDetail() {
   const { tripId } = Route.useParams();
-  const { state, updateTrip, removeTrip, rates, ratesLive } = useWorkspace();
+  const { state, updateTrip, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
   const navigate = useNavigate();
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
@@ -103,6 +122,54 @@ function TripDetail() {
   const [item, setItem] = useState({ day: trip.start, title: "" });
   const [sharePin, setSharePin] = useState("");
   const [sharingSaving, setSharingSaving] = useState(false);
+  const [settings, setSettings] = useState<TripSettingsDraft>(() => settingsFromTrip(trip));
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  useEffect(() => {
+    setSettings(settingsFromTrip(trip));
+  }, [trip.id, trip.name, trip.start, trip.end, trip.budget, trip.template]);
+
+  async function saveTripSettings(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = settings.name.trim();
+    const budget = Number(settings.budget);
+    if (!name) {
+      toast.error("Een reisnaam is verplicht.");
+      return;
+    }
+    if (!settings.start || !settings.end) {
+      toast.error("Vul een start- en einddatum in.");
+      return;
+    }
+    if (settings.end < settings.start) {
+      toast.error("De einddatum kan niet vóór de startdatum liggen.");
+      return;
+    }
+    if (!settings.budget.trim() || !Number.isFinite(budget) || budget < 0) {
+      toast.error("Vul een budget van nul of hoger in.");
+      return;
+    }
+
+    setSettingsSaving(true);
+    try {
+      await saveTripNow(trip.id, (current) => ({
+        ...current,
+        name,
+        start: settings.start,
+        end: settings.end,
+        budget,
+        template: settings.template,
+      }));
+      setSettings((current) => ({ ...current, name, budget: String(budget) }));
+      toast.success("Reisinstellingen opgeslagen.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Reisinstellingen konden niet worden opgeslagen.",
+      );
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
 
   async function saveSharing(
     changes: Partial<{
@@ -165,23 +232,6 @@ function TripDetail() {
     }));
     setDraft({ ...draft, title: "", amount: 0 });
     toast.success("Uitgave geboekt");
-  }
-
-  function changeStartDate(start: string) {
-    updateTrip(trip.id, (current) => ({
-      ...current,
-      start,
-      // Keep the date range valid when the start date moves past the old end date.
-      end: current.end && current.end < start ? start : current.end,
-    }));
-  }
-
-  function changeEndDate(end: string) {
-    if (end && trip.start && end < trip.start) {
-      toast.error("De einddatum kan niet vóór de startdatum liggen.");
-      return;
-    }
-    updateTrip(trip.id, (current) => ({ ...current, end }));
   }
 
   function addTravelItem(item: TravelItem, locations: GeoResult[], paidBy: string) {
@@ -328,69 +378,89 @@ function TripDetail() {
                 <Settings2 className="size-4" /> Reisinstellingen
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <label className="space-y-1.5 text-sm sm:col-span-2">
-                <span className="text-muted-foreground">Reisnaam</span>
-                <Input
-                  value={trip.name}
-                  disabled={!editable}
-                  onChange={(e) => updateTrip(trip.id, (t) => ({ ...t, name: e.target.value }))}
-                />
-              </label>
-              <label className="space-y-1.5 text-sm">
-                <span className="text-muted-foreground">Startdatum</span>
-                <Input
-                  type="date"
-                  value={trip.start}
-                  disabled={!editable}
-                  onChange={(e) => changeStartDate(e.target.value)}
-                />
-              </label>
-              <label className="space-y-1.5 text-sm">
-                <span className="text-muted-foreground">Einddatum</span>
-                <Input
-                  type="date"
-                  value={trip.end}
-                  min={trip.start || undefined}
-                  disabled={!editable}
-                  onChange={(e) => changeEndDate(e.target.value)}
-                />
-              </label>
-              <label className="space-y-1.5 text-sm">
-                <span className="text-muted-foreground">Budget ({base})</span>
-                <Input
-                  type="number"
-                  min="0"
-                  value={trip.budget}
-                  disabled={!editable}
-                  onChange={(e) =>
-                    updateTrip(trip.id, (t) => ({
-                      ...t,
-                      budget: Math.max(0, Number(e.target.value) || 0),
-                    }))
-                  }
-                />
-              </label>
-              <label className="space-y-1.5 text-sm">
-                <span className="text-muted-foreground">Reistemplate</span>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={trip.template}
-                  disabled={!editable}
-                  onChange={(e) =>
-                    updateTrip(trip.id, (t) => ({
-                      ...t,
-                      template: e.target.value as typeof t.template,
-                    }))
-                  }
-                >
-                  {TEMPLATES.map((template) => (
-                    <option key={template.id} value={template.id}>
-                      {template.emoji} {template.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <CardContent>
+              <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveTripSettings}>
+                <label className="space-y-1.5 text-sm sm:col-span-2">
+                  <span className="text-muted-foreground">Reisnaam</span>
+                  <Input
+                    value={settings.name}
+                    disabled={!editable || settingsSaving}
+                    required
+                    onChange={(event) =>
+                      setSettings((current) => ({ ...current, name: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="space-y-1.5 text-sm">
+                  <span className="text-muted-foreground">Startdatum</span>
+                  <Input
+                    type="date"
+                    value={settings.start}
+                    disabled={!editable || settingsSaving}
+                    required
+                    onChange={(event) => {
+                      const start = event.target.value;
+                      setSettings((current) => ({
+                        ...current,
+                        start,
+                        end: current.end && current.end < start ? start : current.end,
+                      }));
+                    }}
+                  />
+                </label>
+                <label className="space-y-1.5 text-sm">
+                  <span className="text-muted-foreground">Einddatum</span>
+                  <Input
+                    type="date"
+                    value={settings.end}
+                    min={settings.start || undefined}
+                    disabled={!editable || settingsSaving}
+                    required
+                    onChange={(event) =>
+                      setSettings((current) => ({ ...current, end: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="space-y-1.5 text-sm">
+                  <span className="text-muted-foreground">Budget ({base})</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={settings.budget}
+                    disabled={!editable || settingsSaving}
+                    required
+                    onChange={(event) =>
+                      setSettings((current) => ({ ...current, budget: event.target.value }))
+                    }
+                  />
+                </label>
+                <label className="space-y-1.5 text-sm">
+                  <span className="text-muted-foreground">Reistemplate</span>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={settings.template}
+                    disabled={!editable || settingsSaving}
+                    onChange={(event) =>
+                      setSettings((current) => ({
+                        ...current,
+                        template: event.target.value as Trip["template"],
+                      }))
+                    }
+                  >
+                    {TEMPLATES.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.emoji} {template.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="flex items-end sm:col-span-2">
+                  <Button type="submit" disabled={!editable || settingsSaving}>
+                    {settingsSaving ? "Opslaan…" : "Wijzigingen opslaan"}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
 
