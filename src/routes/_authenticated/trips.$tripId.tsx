@@ -25,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
 
-export const Route = createFileRoute("/trips/$tripId")({
+export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   head: () => ({
     meta: [
       { title: "Reisdetail — GlobeTrotr" },
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/trips/$tripId")({
   notFoundComponent: () => (
     <p className="text-sm text-muted-foreground">
       Reis niet gevonden.{" "}
-      <Link to="/" className="underline">
+      <Link to="/dashboard" className="underline">
         Terug naar overzicht
       </Link>
     </p>
@@ -90,7 +90,7 @@ function TripDetail() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Link to="/" className="text-xs text-muted-foreground hover:underline">
+          <Link to="/dashboard" className="text-xs text-muted-foreground hover:underline">
             ← Alle reizen
           </Link>
           <h1 className="font-display text-2xl font-semibold">{trip.name}</h1>

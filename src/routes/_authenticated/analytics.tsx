@@ -18,7 +18,7 @@ import { CATEGORIES } from "@/lib/types";
 import { convert, formatMoney } from "@/lib/services";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export const Route = createFileRoute("/analytics")({
+export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
       { title: "SaaS analytics — GlobeTrotr" },
