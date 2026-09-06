@@ -70,6 +70,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] PDF-reisoverzicht
 - [x] Bonnetjes uploaden en koppelen aan een uitgave voor het Agency-plan: private `receipts`-opslag per account, PDF/JPG/PNG/WebP tot 10 MB, signed viewing-link en opruimen wanneer de databasekoppeling mislukt
 - [ ] Boekingsbevestigingen als document koppelen aan een reisonderdeel
+- [ ] De public view pagina mooi en overzichtelijker maken met bijvoorbeeld weer en een kaart
 
 ## Fase 7 — Abonnementen & Agency (deels klaar)
 
@@ -144,7 +145,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Huurauto is als reisonderdeel toegevoegd, met verhuurder, auto/categorie, borg, verzekering, eigen risico, locaties, tijden, prijs en reserveringsnummer.
 - [x] Autoritten kunnen afstand, verbruik en brandstofprijs bevatten; de brandstofprognose staat los van werkelijke uitgaven om dubbeltelling te voorkomen.
 - [x] Toegevoegde boekingen maken geen los planningrecord meer. Verwijderen ruimt ook oudere automatisch gemaakte planningrecords op.
-- [ ] Voer eerst `supabase/migrations/20260906180000_booking_details_and_clean_members.sql` uit in Lovable Cloud / Supabase SQL Editor. Deze voegt boekingsdetails/notities toe, markeert oude planningkoppelingen en verwijdert de verouderde workspace-level demoleden.
+- [x] Voer eerst `supabase/migrations/20260906180000_booking_details_and_clean_members.sql` uit in Lovable Cloud / Supabase SQL Editor. Deze voegt boekingsdetails/notities toe, markeert oude planningkoppelingen en verwijdert de verouderde workspace-level demoleden.
 - [ ] Na de SQL-import: Supabase TypeScript-types opnieuw genereren en een productiecontrole uitvoeren voor nieuwe huurauto, wijziging/verwijdering van een boeking, wijziging van een uitgave en een meerdaags hotel.
 
 ## P0 — SkyLinkAPI: live vluchtinformatie (volgende bouwstap)
