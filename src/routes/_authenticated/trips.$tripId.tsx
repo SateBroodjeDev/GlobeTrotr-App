@@ -27,6 +27,7 @@ import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
 import { downloadCsv, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
+import { syncTripPublication } from "@/lib/cloud.functions";
 import { travelersOf } from "@/lib/settle";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { WeatherWidget } from "@/components/WeatherWidget";
@@ -101,6 +102,54 @@ function TripDetail() {
   });
   const [item, setItem] = useState({ day: trip.start, title: "" });
   const [sharePin, setSharePin] = useState("");
+  const [sharingSaving, setSharingSaving] = useState(false);
+
+  async function saveSharing(
+    changes: Partial<{
+      isPublic: boolean;
+      shareFinancials: boolean;
+      sharePinHash: string | undefined;
+    }>,
+    successMessage: string,
+  ) {
+    const previous = {
+      isPublic: trip.public ?? false,
+      shareFinancials: trip.shareFinancials ?? false,
+      sharePinHash: trip.sharePinHash,
+    };
+    const next = { ...previous, ...changes };
+    const apply = (settings: typeof next) =>
+      updateTrip(trip.id, (current) => {
+        const updated = {
+          ...current,
+          public: settings.isPublic,
+          shareFinancials: settings.shareFinancials,
+        };
+        if (settings.sharePinHash) return { ...updated, sharePinHash: settings.sharePinHash };
+        const { sharePinHash: _sharePinHash, ...withoutPin } = updated;
+        return withoutPin;
+      });
+
+    apply(next);
+    setSharingSaving(true);
+    try {
+      const result = await syncTripPublication({
+        data: {
+          tripId: trip.id,
+          isPublic: next.isPublic,
+          shareFinancials: next.shareFinancials,
+          sharePinHash: next.sharePinHash,
+        },
+      });
+      if (!result.synced) throw new Error("Reis niet gevonden in de database.");
+      toast.success(successMessage);
+    } catch {
+      apply(previous);
+      toast.error("Wijziging kon niet worden opgeslagen. De vorige instelling is hersteld.");
+    } finally {
+      setSharingSaving(false);
+    }
+  }
 
   function addExpense() {
     if (!draft.title.trim() || !draft.amount) {
@@ -356,8 +405,13 @@ function TripDetail() {
                 label="Reis openbaar maken"
                 description="Toon deze reis op de homepage via een unieke link."
                 checked={trip.public ?? false}
-                disabled={!editable}
-                onChange={(checked) => updateTrip(trip.id, (t) => ({ ...t, public: checked }))}
+                disabled={!editable || sharingSaving}
+                onChange={(checked) =>
+                  void saveSharing(
+                    { isPublic: checked },
+                    checked ? "Reis is openbaar gemaakt." : "Reis is privé gemaakt.",
+                  )
+                }
               />
               {trip.public && (
                 <>
@@ -365,9 +419,14 @@ function TripDetail() {
                     label="Budget delen"
                     description="Toon het budget op de openbare reispagina."
                     checked={trip.shareFinancials ?? false}
-                    disabled={!editable}
+                    disabled={!editable || sharingSaving}
                     onChange={(checked) =>
-                      updateTrip(trip.id, (t) => ({ ...t, shareFinancials: checked }))
+                      void saveSharing(
+                        { shareFinancials: checked },
+                        checked
+                          ? "Budget wordt openbaar gedeeld."
+                          : "Budget wordt niet meer gedeeld.",
+                      )
                     }
                   />
                   <div className="space-y-2">
@@ -383,18 +442,22 @@ function TripDetail() {
                         minLength={6}
                         maxLength={12}
                         value={sharePin}
-                        disabled={!editable}
+                        disabled={!editable || sharingSaving}
                         onChange={(e) => setSharePin(e.target.value.replace(/\D/g, ""))}
                         placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
                       />
                       <Button
                         variant="outline"
-                        disabled={!editable || sharePin.length < 6}
+                        disabled={!editable || sharingSaving || sharePin.length < 6}
                         onClick={async () => {
                           const sharePinHash = await hashSharingPin(sharePin);
-                          updateTrip(trip.id, (t) => ({ ...t, sharePinHash }));
+                          await saveSharing(
+                            { sharePinHash },
+                            trip.sharePinHash
+                              ? "PIN-beveiliging is gewijzigd."
+                              : "PIN-beveiliging is ingeschakeld.",
+                          );
                           setSharePin("");
-                          toast.success("PIN-beveiliging ingeschakeld.");
                         }}
                       >
                         {trip.sharePinHash ? "PIN wijzigen" : "PIN instellen"}
@@ -402,11 +465,13 @@ function TripDetail() {
                       {trip.sharePinHash && (
                         <Button
                           variant="ghost"
-                          disabled={!editable}
-                          onClick={() => {
-                            updateTrip(trip.id, ({ sharePinHash: _hash, ...t }) => t);
-                            toast.success("PIN-beveiliging verwijderd.");
-                          }}
+                          disabled={!editable || sharingSaving}
+                          onClick={() =>
+                            void saveSharing(
+                              { sharePinHash: undefined },
+                              "PIN-beveiliging is verwijderd.",
+                            )
+                          }
                         >
                           PIN verwijderen
                         </Button>

@@ -15,7 +15,6 @@ import {
   createTrip as createTripInDatabase,
   loadWorkspace,
   saveWorkspace,
-  syncTripPublication,
 } from "./cloud.functions";
 import { useAuth } from "./auth";
 import { TEMPLATES, type PlanId, type Trip, type TripTemplate, type WorkspaceState } from "./types";
@@ -61,7 +60,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [cloud, setCloud] = useState<Ctx["cloud"]>("local");
   const hydrated = useRef(false);
   const stateRef = useRef(state);
-  const pendingPublicationSync = useRef(new Map<string, Trip>());
   const cloudPersistenceReady = useRef(false);
   const saveSequence = useRef(0);
   stateRef.current = state;
@@ -151,47 +149,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateTrip = useCallback((id: string, fn: (t: Trip) => Trip) => {
-    setState((s) => ({
-      ...s,
-      trips: s.trips.map((trip) => {
-        if (trip.id !== id) return trip;
-        const next = fn(trip);
-        if (
-          trip.public !== next.public ||
-          trip.shareFinancials !== next.shareFinancials ||
-          trip.sharePinHash !== next.sharePinHash
-        ) {
-          pendingPublicationSync.current.set(next.id, next);
-        }
-        return next;
-      }),
-    }));
+    setState((s) => ({ ...s, trips: s.trips.map((trip) => (trip.id === id ? fn(trip) : trip)) }));
   }, []);
-
-  // Publicatie heeft een eigen, kleine synchronisatie. Zo blijft de publieke
-  // homepage correct wanneer het opslaan van een niet-gerelateerd reisonderdeel
-  // (zoals een planning of uitgave) tijdelijk faalt.
-  useEffect(() => {
-    if (!user || !pendingPublicationSync.current.size) return;
-    const pending = [...pendingPublicationSync.current.values()];
-    pendingPublicationSync.current.clear();
-    void Promise.all(
-      pending.map((trip) =>
-        syncTripPublication({
-          data: {
-            tripId: trip.id,
-            isPublic: trip.public ?? false,
-            shareFinancials: trip.shareFinancials ?? false,
-            sharePinHash: trip.sharePinHash,
-          },
-        }).catch((error: unknown) => {
-          // De JSON-save blijft bestaan als terugval; opnieuw laden probeert
-          // deze gerichte synchronisatie nogmaals.
-          console.warn("Publicatiestatus kon niet direct worden gesynchroniseerd", error);
-        }),
-      ),
-    );
-  }, [state, user]);
 
   const addTrip = useCallback(
     async (name: string, template: TripTemplate) => {
