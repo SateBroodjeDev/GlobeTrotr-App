@@ -66,7 +66,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] CSV- en JSON-back-up/export
 - [x] Printklare reisgids met Google Maps-navigatie per stop
 - [x] PDF-reisoverzicht
-- [x] Bonnetjes uploaden en koppelen aan een uitgave: private `receipts`-opslag per account, PDF/JPG/PNG/WebP tot 10 MB, signed viewing-link en opruimen wanneer de databasekoppeling mislukt
+- [x] Bonnetjes uploaden en koppelen aan een uitgave voor het Agency-plan: private `receipts`-opslag per account, PDF/JPG/PNG/WebP tot 10 MB, signed viewing-link en opruimen wanneer de databasekoppeling mislukt
 - [ ] Boekingsbevestigingen als document koppelen aan een reisonderdeel
 
 ## Fase 7 — Abonnementen & Agency (deels klaar)
@@ -74,6 +74,8 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Free-, Pro- en Agency-plannen met accountgebonden cloudopslag
 - [x] Plan wijzigen met bevestigde opslag in Supabase
 - [x] Agency-only: white-label, rollen, analytics en declarabele klantuitgaven
+- [x] Agency-overzicht en Team & reisrechten hersteld na het uitfaseren van de oude workspace-demoleden; beide gebruiken nu de relationeel geladen reizen en reisleden
+- [x] Voorbeeld-MRR, opslagstatistieken en fictieve facturen verwijderd; Agency toont alleen gegevens die GlobeTrotr werkelijk heeft
 - [ ] Betalingen, facturen en abonnementstatus koppelen aan een betaalprovider, bijvoorbeeld Stripe
 - [ ] Server-side verificatie van de abonnementstatus via webhooks
 
@@ -103,13 +105,14 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 2. **Relationele reisopslag**: afgerond en handmatig gevalideerd; laden en wijzigen van reizen en kindgegevens loopt via SQL, met JSON als tijdelijke compatibiliteitskopie.
 3. **Interface & boekingsbasis**: gebouwd; voer de nieuwe SQL-migratie uit en controleer huurauto's, timeline, kosten en leden in productie.
 4. **SkyLink live vluchtdata**: server-side key instellen, één handmatige lookup betrouwbaar maken en pas daarna uitgebreidere velden tonen.
-5. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
-6. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
-7. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
-8. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
-9. **Reis onderweg**: routeoptimalisatie, offline toegang en meldingen.
-10. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
-11. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
+5. **Agency-basis herstellen**: bonnetjes uitsluitend voor Agency afdwingen en Agency-schermen op relationele data baseren.
+6. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
+7. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
+8. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
+9. **Geldstromen**: groeps-betaalverzoeken, daarna Stripe en Agency-facturen.
+10. **Reis onderweg**: routeoptimalisatie, offline toegang en meldingen.
+11. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
+12. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
 
 ## Huidige technische stand â€” 6 september 2026
 
@@ -217,6 +220,7 @@ De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup
 - [x] `trip_stops`, `trip_itinerary_items`, `trip_expenses`, `trip_travel_items` en `trip_packing_items`: relationele tabellen zijn aangemaakt en gevuld.
 - [x] `trip_documents`: metadata-tabel voor private tickets, bonnetjes en boekingsbevestigingen is aangemaakt; bestanden zelf blijven in Storage.
 - [ ] Voer `20260906180000_booking_details_and_clean_members.sql` uit: `trip_travel_items.details`, `trip_expenses.notes`, huurauto-type, legacy-planningkoppelingen en opschoning van oude workspace-demoleden.
+- [ ] Voer `20260906190000_restrict_receipts_to_agency.sql` uit: de bestaande JSON-planwaarde wordt eenmalig met `workspaces.plan` gesynchroniseerd; Storage-RLS voor de `receipts`-bucket staat daarna alleen lezen, uploaden, wijzigen en verwijderen toe wanneer `workspaces.plan = 'agency'`.
 - [ ] Genereer na deze import de Supabase TypeScript-types opnieuw en werk de lokale type-definities bij.
 - [ ] `referrals`, `subscription_events`, `invoices` en `payment_events` pas toevoegen wanneer referrals/Stripe daadwerkelijk worden gebouwd.
 

@@ -1,63 +1,66 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { Check, Plus, Trash2, Lock } from "lucide-react";
-import { toast } from "sonner";
-import { useWorkspace, uid } from "@/lib/workspace";
-import { ROLES, canBill, hasFeature } from "@/lib/plans";
-import type { RoleId } from "@/lib/types";
+import { Check, Lock, Users } from "lucide-react";
+import { useWorkspace } from "@/lib/workspace";
+import { canBill, hasFeature } from "@/lib/plans";
+import type { TripMemberRole } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({
     meta: [
-      { title: "Team, rollen & rechten — GlobeTrotr" },
+      { title: "Team & reisrechten — GlobeTrotr" },
       {
         name: "description",
-        content:
-          "Nodig medereizigers, boekhouders en kijkers uit met een fijnmazige rollen- en rechtenmatrix.",
-      },
-      { property: "og:title", content: "Team, rollen & rechten — GlobeTrotr" },
-      {
-        property: "og:description",
-        content: "Multi-user samenwerking met owner, editor, accountant en viewer.",
+        content: "Beheer reisrechten per klantreis en houd toegang beperkt tot de juiste reis.",
       },
     ],
   }),
   component: TeamPage,
 });
 
-const ALL_PERMS = [
+const AGENCY_ROLES: { id: TripMemberRole; label: string; permissions: string[] }[] = [
+  {
+    id: "owner",
+    label: "Workspace-eigenaar",
+    permissions: ["Reizen beheren", "Uitgaven beheren", "Leden beheren", "Abonnement beheren"],
+  },
+  {
+    id: "advisor",
+    label: "Reisadviseur",
+    permissions: ["Reizen beheren", "Uitgaven beheren"],
+  },
+  { id: "finance", label: "Financiën", permissions: ["Uitgaven beheren"] },
+  { id: "client", label: "Klant / reiziger", permissions: ["Reis bekijken"] },
+  { id: "viewer", label: "Kijker", permissions: ["Reis bekijken"] },
+];
+
+const ALL_PERMISSIONS = [
   "Reizen beheren",
-  "Uitgaven boeken",
-  "Uitgaven bekijken",
-  "Exporteren",
-  "Leden uitnodigen",
-  "Abonnement wijzigen",
-  "Reizen bekijken",
+  "Uitgaven beheren",
+  "Leden beheren",
+  "Abonnement beheren",
+  "Reis bekijken",
 ];
 
 function TeamPage() {
-  const { state, update } = useWorkspace();
+  const { state } = useWorkspace();
   const allowed = hasFeature(state.plan, "roles") && canBill(state.role);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<RoleId>("editor");
+  const trips = state.trips ?? [];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Team & rechtenmatrix</h1>
+        <h1 className="font-display text-2xl font-semibold">Team & reisrechten</h1>
         <p className="text-sm text-muted-foreground">
-          Werk samen met medereizigers, je boekhouder en publieke kijkers.
+          Beheer toegang per reis. Een reisgenoot krijgt nooit automatisch toegang tot al je reizen.
         </p>
       </div>
 
       {!allowed && (
         <p className="flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">
-          <Lock className="size-4" /> Uitgebreid rollenbeheer zit in Business/Agency (eigenaarsrol).{" "}
+          <Lock className="size-4" /> Uitgebreid rollenbeheer zit in Agency (eigenaarsrol).{" "}
           <Link to="/billing" className="underline">
             Upgrade
           </Link>
@@ -66,80 +69,53 @@ function TeamPage() {
 
       <Card className="surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Leden</CardTitle>
+          <CardTitle className="text-sm">Reisteams</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-2 md:grid-cols-4">
-            <Input
-              placeholder="Naam"
-              value={name}
-              disabled={!allowed}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              placeholder="E-mail"
-              value={email}
-              disabled={!allowed}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <select
-              aria-label="Rol"
-              className="rounded-lg border border-input bg-card px-3 py-2 text-sm"
-              value={role}
-              disabled={!allowed}
-              onChange={(e) => setRole(e.target.value as RoleId)}
-            >
-              {ROLES.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-            <Button
-              disabled={!allowed}
-              onClick={() => {
-                if (!name.trim() || !email.trim()) {
-                  toast.error("Naam en e-mail invullen");
-                  return;
-                }
-                update((s) => ({
-                  ...s,
-                  members: [...s.members, { id: uid(), name, email, role }],
-                }));
-                setName("");
-                setEmail("");
-                toast.success("Uitnodiging verstuurd");
-              }}
-            >
-              <Plus className="size-4" /> Uitnodigen
-            </Button>
-          </div>
-
-          <ul className="divide-y rounded-xl border border-border">
-            {state.members.map((m) => (
-              <li key={m.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                <span>
-                  <strong>{m.name}</strong>{" "}
-                  <span className="text-muted-foreground">{m.email}</span>
-                </span>
-                <span className="flex items-center gap-3">
-                  <Badge variant="secondary">
-                    {ROLES.find((r) => r.id === m.role)?.label}
-                  </Badge>
-                  {allowed && (
-                    <button
-                      aria-label="Lid verwijderen"
-                      onClick={() =>
-                        update((s) => ({ ...s, members: s.members.filter((x) => x.id !== m.id) }))
-                      }
-                    >
-                      <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
-                    </button>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <p className="text-sm text-muted-foreground">
+            Reisgenoten voeg je toe in <strong>Reisinstellingen → Reisgenoten</strong>. E-mailuitnodigingen
+            volgen zodra Lovable Cloud Emails is geactiveerd; deze pagina doet dus niet alsof er al een
+            uitnodiging is verstuurd.
+          </p>
+          {trips.length ? (
+            <ul className="space-y-3">
+              {trips.map((trip) => {
+                const members = trip.members ?? [];
+                const memberCount = 1 + members.length;
+                return (
+                  <li key={trip.id} className="rounded-xl border border-border p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{trip.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {memberCount} {memberCount === 1 ? "lid" : "leden"}
+                        </p>
+                      </div>
+                      <Button asChild variant="outline" size="sm" disabled={!allowed}>
+                        <Link to="/trips/$tripId" params={{ tripId: trip.id }}>
+                          <Users className="size-4" /> Reisinstellingen
+                        </Link>
+                      </Button>
+                    </div>
+                    {members.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {members.map((member) => (
+                          <Badge key={member.id} variant="secondary">
+                            {member.name} ·{" "}
+                            {AGENCY_ROLES.find((role) => role.id === member.role)?.label ?? member.role}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+              Maak eerst een reis aan om een reisteam samen te stellen.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -152,20 +128,20 @@ function TeamPage() {
             <thead className="bg-muted/60 text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="p-3 text-left">Recht</th>
-                {ROLES.map((r) => (
-                  <th key={r.id} className="p-3">
-                    {r.label}
+                {AGENCY_ROLES.map((role) => (
+                  <th key={role.id} className="p-3">
+                    {role.label}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {ALL_PERMS.map((perm) => (
-                <tr key={perm} className="border-t border-border">
-                  <td className="p-3">{perm}</td>
-                  {ROLES.map((r) => (
-                    <td key={r.id} className="p-3 text-center">
-                      {r.can.includes(perm) ? (
+              {ALL_PERMISSIONS.map((permission) => (
+                <tr key={permission} className="border-t border-border">
+                  <td className="p-3">{permission}</td>
+                  {AGENCY_ROLES.map((role) => (
+                    <td key={role.id} className="p-3 text-center">
+                      {role.permissions.includes(permission) ? (
                         <Check className="mx-auto size-4 text-success" />
                       ) : (
                         <span className="text-muted-foreground">—</span>

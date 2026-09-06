@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
 import { PLANS, canBill, planOf } from "@/lib/plans";
-import { CURRENCIES, formatMoney } from "@/lib/services";
+import { CURRENCIES } from "@/lib/services";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/billing")({
       { property: "og:title", content: "Abonnement & facturatie — GlobeTrotr" },
       {
         property: "og:description",
-        content: "Feature-gating, prijzen en facturen in één billing portal.",
+        content: "Vergelijk plannen en beheer de beschikbare functies van je GlobeTrotr-account.",
       },
     ],
   }),
@@ -32,12 +32,6 @@ function Billing() {
   const current = planOf(state.plan);
   const mayBill = canBill(state.role);
   const [changingPlan, setChangingPlan] = useState(false);
-
-  const invoices = [
-    { id: "INV-2026-014", date: "2026-08-01", amount: current.price },
-    { id: "INV-2026-013", date: "2026-07-01", amount: current.price },
-    { id: "INV-2026-012", date: "2026-06-01", amount: current.price },
-  ];
 
   return (
     <div className="space-y-8">
@@ -113,23 +107,14 @@ function Billing() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Factuuroverzicht</CardTitle>
+            <CardTitle className="text-sm">Betalingen & facturen</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <table className="w-full text-sm">
-              <tbody>
-                {invoices.map((i) => (
-                  <tr key={i.id} className="border-t border-border">
-                    <td className="p-3">{i.id}</td>
-                    <td className="p-3 text-muted-foreground">{i.date}</td>
-                    <td className="p-3 text-right">{formatMoney(i.amount, "EUR")}</td>
-                    <td className="p-3 text-right">
-                      <span className="text-muted-foreground">Beschikbaar na betaling</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>Er zijn nog geen echte GlobeTrotr-facturen of betalingen gekoppeld.</p>
+            <p>
+              Tot Stripe en webhookverificatie zijn gebouwd, wijzigt deze pagina alleen de
+              beschikbare functies in je testomgeving en wordt er niets afgeschreven.
+            </p>
           </CardContent>
         </Card>
 

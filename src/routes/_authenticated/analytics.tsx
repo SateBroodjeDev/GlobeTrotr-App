@@ -13,7 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { useWorkspace } from "@/lib/workspace";
-import { hasFeature, planOf } from "@/lib/plans";
+import { hasFeature } from "@/lib/plans";
 import { CATEGORIES } from "@/lib/types";
 import { convert, formatMoney } from "@/lib/services";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,15 +21,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
-      { title: "SaaS analytics — GlobeTrotr" },
+      { title: "Agency-overzicht — GlobeTrotr" },
       {
         name: "description",
-        content: "MRR, actieve workspaces, opslagverbruik en uitgavenverdeling in één dashboard.",
+        content: "Inzicht in reizen, kosten en declarabele uitgaven voor je agency.",
       },
-      { property: "og:title", content: "SaaS analytics — GlobeTrotr" },
+      { property: "og:title", content: "Agency-overzicht — GlobeTrotr" },
       {
         property: "og:description",
-        content: "Business-inzicht in omzet, conversie en gebruik van je reisplatform.",
+        content: "Overzicht van reizen, kosten en declarabele uitgaven.",
       },
     ],
   }),
@@ -49,17 +49,17 @@ function Analytics() {
   const { state, rates } = useWorkspace();
   const allowed = hasFeature(state.plan, "analytics");
   const base = state.baseCurrency;
-  const plan = planOf(state.plan);
+  const trips = state.trips ?? [];
 
   const perCategory = CATEGORIES.map((c) => ({
     name: c.label,
-    value: state.trips
+    value: trips
       .flatMap((t) => t.expenses)
       .filter((e) => e.category === c.id)
       .reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0),
   })).filter((d) => d.value > 0);
 
-  const perTrip = state.trips.map((t) => ({
+  const perTrip = trips.map((t) => ({
     name: t.name.length > 18 ? `${t.name.slice(0, 18)}…` : t.name,
     uitgaven: Math.round(
       t.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0),
@@ -67,14 +67,24 @@ function Analytics() {
     budget: t.budget,
   }));
 
-  const seats = state.members.length;
-  const mrr = plan.price * Math.max(1, Math.ceil(seats / 3));
-  const storage = state.trips.length * 12 + state.trips.flatMap((t) => t.expenses).length * 3;
+  const today = new Date().toISOString().slice(0, 10);
+  const activeTrips = trips.filter((trip) => !trip.archived && trip.end >= today).length;
+  const travellers = trips.reduce(
+    (total, trip) => total + 1 + (trip.members ?? []).filter((member) => member.status === "active").length,
+    0,
+  );
+  const totalSpent = trips
+    .flatMap((trip) => trip.expenses)
+    .reduce((sum, expense) => sum + convert(expense.amount, expense.currency, base, rates), 0);
+  const totalBillable = trips
+    .flatMap((trip) => trip.expenses)
+    .filter((expense) => expense.billable)
+    .reduce((sum, expense) => sum + convert(expense.amount, expense.currency, base, rates), 0);
 
   if (!allowed) {
     return (
       <p className="flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">
-        <Lock className="size-4" /> Het analytics dashboard is onderdeel van Business/Agency.{" "}
+        <Lock className="size-4" /> Het analytics-dashboard is onderdeel van Agency.{" "}
         <Link to="/billing" className="underline">
           Upgrade
         </Link>
@@ -85,17 +95,17 @@ function Analytics() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">SaaS business analytics</h1>
+        <h1 className="font-display text-2xl font-semibold">Agency-overzicht</h1>
         <p className="text-sm text-muted-foreground">
-          Realtime inzicht in omzet, gebruik en uitgavenpatronen.
+          Inzicht in je reisportfolio, kosten en declarabele uitgaven.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="MRR" value={formatMoney(mrr, "EUR")} sub="+12% vs vorige maand" />
-        <Kpi label="Actieve reizen" value={String(state.trips.length)} sub={`${seats} seats`} />
-        <Kpi label="Opslagverbruik" value={`${storage} MB`} sub="van 5 GB" />
-        <Kpi label="Trial → betaald" value="24,8%" sub="API latency 118 ms" />
+        <Kpi label="Actieve reizen" value={String(activeTrips)} sub={`${trips.length} totaal`} />
+        <Kpi label="Reisgenoten" value={String(travellers)} sub="over al je reizen" />
+        <Kpi label="Uitgaven" value={formatMoney(totalSpent, base)} sub="in je basisvaluta" />
+        <Kpi label="Declarabel" value={formatMoney(totalBillable, base)} sub="nog te factureren" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

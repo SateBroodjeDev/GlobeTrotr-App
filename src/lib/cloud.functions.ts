@@ -572,9 +572,26 @@ export const saveWorkspace = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
+    const workspace = data.data as Partial<WorkspaceState>;
+    const plan = ["free", "pro", "agency"].includes(workspace.plan ?? "")
+      ? workspace.plan
+      : "free";
+    const baseCurrency =
+      typeof workspace.baseCurrency === "string" && /^[A-Z]{3}$/.test(workspace.baseCurrency)
+        ? workspace.baseCurrency
+        : "EUR";
     const { error } = await db
       .from("workspaces")
-      .upsert({ user_id: context.userId, data: data.data as never }, { onConflict: "user_id" });
+      .upsert(
+        {
+          user_id: context.userId,
+          data: workspace as never,
+          plan,
+          base_currency: baseCurrency,
+          branding: workspace.branding ?? {},
+        },
+        { onConflict: "user_id" },
+      );
     if (error) throw error;
     return { ok: true };
   });

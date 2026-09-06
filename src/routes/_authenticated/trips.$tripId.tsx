@@ -127,6 +127,7 @@ function TripDetail() {
   const financialTravelers = travelersOf(trip, [ownerName]);
   const editable = canEdit(state.role);
   const canMarkBillable = hasFeature(state.plan, "billable_expenses");
+  const canManageReceipts = hasFeature(state.plan, "receipts");
   const spent = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const billable = trip.expenses
     .filter((e) => e.billable)
@@ -466,6 +467,11 @@ function TripDetail() {
   async function uploadReceipt(expense: Expense, event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file || !user) return;
+    if (!canManageReceipts) {
+      toast.error("Bonnetjes koppelen is beschikbaar in het Agency-plan.");
+      event.target.value = "";
+      return;
+    }
     const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
       toast.error("Kies een PDF, JPG, PNG of WebP tot 10 MB.");
@@ -506,6 +512,10 @@ function TripDetail() {
 
   async function openReceipt(expense: Expense) {
     if (!expense.receiptPath) return;
+    if (!canManageReceipts) {
+      toast.error("Bonnetjes bekijken is beschikbaar in het Agency-plan.");
+      return;
+    }
     try {
       const { data, error } = await supabase.storage
         .from("receipts")
@@ -1160,7 +1170,7 @@ function TripDetail() {
                             declarabel
                           </Badge>
                         )}
-                        {e.receiptPath && (
+                        {canManageReceipts && e.receiptPath && (
                           <button
                             type="button"
                             className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
@@ -1181,21 +1191,23 @@ function TripDetail() {
                       <td className="p-3 text-right">
                         {editable && (
                           <span className="inline-flex">
-                            <label
-                              className={`grid size-7 cursor-pointer place-items-center rounded text-muted-foreground hover:text-foreground ${
-                                uploadingReceiptId === e.id ? "pointer-events-none opacity-50" : ""
-                              }`}
-                              title="Bon koppelen"
-                            >
-                              <Paperclip className="size-4" />
-                              <input
-                                className="sr-only"
-                                type="file"
-                                accept="application/pdf,image/jpeg,image/png,image/webp"
-                                disabled={uploadingReceiptId === e.id}
-                                onChange={(event) => void uploadReceipt(e, event)}
-                              />
-                            </label>
+                            {canManageReceipts && (
+                              <label
+                                className={`grid size-7 cursor-pointer place-items-center rounded text-muted-foreground hover:text-foreground ${
+                                  uploadingReceiptId === e.id ? "pointer-events-none opacity-50" : ""
+                                }`}
+                                title="Bon koppelen"
+                              >
+                                <Paperclip className="size-4" />
+                                <input
+                                  className="sr-only"
+                                  type="file"
+                                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                                  disabled={uploadingReceiptId === e.id}
+                                  onChange={(event) => void uploadReceipt(e, event)}
+                                />
+                              </label>
+                            )}
                             <button
                               aria-label="Wijzig uitgave"
                               className="p-1 text-muted-foreground hover:text-foreground"

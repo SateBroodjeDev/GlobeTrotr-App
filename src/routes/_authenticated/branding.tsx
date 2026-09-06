@@ -46,7 +46,7 @@ function BrandingPage() {
 
       {!allowed && (
         <p className="flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">
-          <Lock className="size-4" /> White-label vereist het Business/Agency-plan en de
+          <Lock className="size-4" /> White-label vereist het Agency-plan en de
           eigenaarsrol.{" "}
           <Link to="/billing" className="underline">
             Bekijk plannen
