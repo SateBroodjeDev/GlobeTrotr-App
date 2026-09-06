@@ -12,7 +12,7 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
-import { WorkspaceProvider, useWorkspace } from "@/lib/workspace";
+import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -41,15 +41,12 @@ const asTheme = (value: unknown): ThemePreference =>
   value === "light" || value === "dark" ? value : "system";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  return (
-    <WorkspaceProvider>
-      <AppShellContent>{children}</AppShellContent>
-    </WorkspaceProvider>
-  );
+  return <AppShellContent>{children}</AppShellContent>;
 }
 
-// Provider and consumer intentionally live together: this avoids a stale
-// workspace context during a partial Lovable/Vite hot reload.
+// WorkspaceProvider staat in de root-layout, direct onder AuthProvider. Zo
+// delen shell en routes ook tijdens Lovable/Vite-refreshes altijd dezelfde
+// contextinstantie.
 function AppShellContent({ children }: { children: ReactNode }) {
   const { state, cloud } = useWorkspace();
   const plan = planOf(state.plan);
