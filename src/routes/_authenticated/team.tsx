@@ -10,16 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/team")({
+export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({
     meta: [
-      { title: "Team, rollen & rechten — AtlasLedger" },
+      { title: "Team, rollen & rechten — GlobeTrotr" },
       {
         name: "description",
         content:
           "Nodig medereizigers, boekhouders en kijkers uit met een fijnmazige rollen- en rechtenmatrix.",
       },
-      { property: "og:title", content: "Team, rollen & rechten — AtlasLedger" },
+      { property: "og:title", content: "Team, rollen & rechten — GlobeTrotr" },
       {
         property: "og:description",
         content: "Multi-user samenwerking met owner, editor, accountant en viewer.",
@@ -98,7 +98,10 @@ function TeamPage() {
             <Button
               disabled={!allowed}
               onClick={() => {
-                if (!name.trim() || !email.trim()) return toast.error("Naam en e-mail invullen");
+                if (!name.trim() || !email.trim()) {
+                  toast.error("Naam en e-mail invullen");
+                  return;
+                }
                 update((s) => ({
                   ...s,
                   members: [...s.members, { id: uid(), name, email, role }],

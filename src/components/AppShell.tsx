@@ -1,10 +1,12 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import {
   BarChart3,
   CreditCard,
   Globe2,
   Map,
+  LogIn,
+  LogOut,
   Palette,
   Users,
 } from "lucide-react";
@@ -12,18 +14,44 @@ import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
 import { ROLES } from "@/lib/plans";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import logoIcon from "@/assets/logo-icon.asset.json";
 
-const NAV = [
-  { to: "/", label: "Reizen", icon: Map },
+const CORE_NAV = [
+  { to: "/dashboard", label: "Reizen", icon: Map },
+] as const;
+
+const AGENCY_NAV = [
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/team", label: "Team & rollen", icon: Users },
   { to: "/branding", label: "White-label", icon: Palette },
-  { to: "/billing", label: "Abonnement", icon: CreditCard },
 ] as const;
 
+const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
-  const { state, update } = useWorkspace();
+  const { state, update, cloud } = useWorkspace();
   const plan = planOf(state.plan);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const navItems = user
+    ? [
+        ...CORE_NAV,
+        ...(state.plan === "agency" ? AGENCY_NAV : []),
+        { to: "/billing", label: "Abonnement", icon: CreditCard },
+      ]
+    : PUBLIC_NAV;
+
+  async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-hue", String(state.branding.accent));
@@ -34,9 +62,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
-            <span className="grid size-9 place-items-center rounded-xl aurora font-display text-sm font-bold">
-              {state.branding.brandName.slice(0, 2).toUpperCase()}
-            </span>
+            <img
+              src={logoIcon.url}
+              alt={`${state.branding.brandName} logo`}
+              className="size-9 rounded-xl"
+            />
             <span className="leading-tight">
               <span className="block font-display text-base font-semibold">
                 {state.branding.brandName}
@@ -48,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="order-3 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
-            {NAV.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -63,9 +93,31 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <Badge variant="secondary" className="gap-1">
-              <Globe2 className="size-3" /> {plan.name}
-            </Badge>
+            {user && (
+              <Badge variant="secondary" className="gap-1">
+                <Globe2 className="size-3" /> {plan.name}
+              </Badge>
+            )}
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span
+                  className="hidden max-w-[9rem] truncate text-xs text-muted-foreground sm:block"
+                  title={user.email ?? ""}
+                >
+                  {cloud === "saving" ? "Opslaan…" : cloud === "loading" ? "Laden…" : user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={signOut}>
+                  <LogOut className="size-4" /> Uitloggen
+                </Button>
+              </div>
+            ) : (
+              <Button asChild size="sm">
+                <Link to="/auth">
+                  <LogIn className="size-4" /> Inloggen / registreren
+                </Link>
+              </Button>
+            )}
+            {user && (
             <select
               aria-label="Actieve rol"
               value={state.role}
@@ -80,6 +132,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </option>
               ))}
             </select>
+            )}
           </div>
         </div>
       </header>

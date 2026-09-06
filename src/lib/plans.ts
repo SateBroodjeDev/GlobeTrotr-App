@@ -7,7 +7,8 @@ export type Feature =
   | "white_label"
   | "analytics"
   | "roles"
-  | "weather";
+  | "weather"
+  | "billable_expenses";
 
 export const PLANS: {
   id: PlanId;
@@ -22,27 +23,27 @@ export const PLANS: {
     id: "free",
     name: "Free",
     price: 0,
-    seats: "1 gebruiker",
+    seats: "Voor jou",
     tripLimit: 2,
     features: ["csv_export"],
-    highlights: ["2 actieve reizen", "Routekaart & uitgaven", "CSV export"],
+    highlights: ["2 actieve reizen", "Routekaart & uitgaven", "CSV-export"],
   },
   {
     id: "pro",
     name: "Pro",
     price: 9,
-    seats: "3 gebruikers",
+    seats: "Voor jou en je reisgroep",
     tripLimit: Infinity,
     features: ["unlimited_trips", "pdf_export", "csv_export", "weather"],
     highlights: [
       "Onbeperkt reizen",
       "Live weer & valutakoersen",
-      "PDF declaraties",
+      "PDF-reisoverzicht",
     ],
   },
   {
     id: "agency",
-    name: "Business / Agency",
+    name: "Agency",
     price: 29,
     seats: "Onbeperkt",
     tripLimit: Infinity,
@@ -54,17 +55,18 @@ export const PLANS: {
       "analytics",
       "roles",
       "weather",
+      "billable_expenses",
     ],
     highlights: [
-      "White-label branding",
-      "Rollen & rechtenmatrix",
-      "SaaS analytics dashboard",
+      "Eigen merk en domein",
+      "Rollen en rechten",
+      "Declarabele klantuitgaven",
     ],
   },
 ];
 
 export function planOf(id: PlanId) {
-  return PLANS.find((p) => p.id === id) ?? PLANS[0];
+  return PLANS.find((p) => p.id === id) ?? PLANS[0]!;
 }
 
 export function hasFeature(plan: PlanId, feature: Feature) {

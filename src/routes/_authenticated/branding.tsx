@@ -8,16 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
-export const Route = createFileRoute("/branding")({
+export const Route = createFileRoute("/_authenticated/branding")({
   head: () => ({
     meta: [
-      { title: "White-label branding — AtlasLedger" },
+      { title: "White-label branding — GlobeTrotr" },
       {
         name: "description",
         content:
           "Geef de reisplanner je eigen merknaam, domein, tagline en accentkleur voor je agency.",
       },
-      { property: "og:title", content: "White-label branding — AtlasLedger" },
+      { property: "og:title", content: "White-label branding — GlobeTrotr" },
       {
         property: "og:description",
         content: "Custom branding voor touroperators en travel agencies.",
@@ -96,7 +96,7 @@ function BrandingPage() {
                 max={360}
                 step={1}
                 value={[b.accent]}
-                onValueChange={([v]) => set({ accent: v })}
+                onValueChange={(v) => set({ accent: v[0] ?? b.accent })}
               />
             </div>
             <Button disabled={!allowed} onClick={() => toast.success("Branding opgeslagen")}>

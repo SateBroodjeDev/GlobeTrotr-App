@@ -1,16 +1,22 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { FileDown, FileText, Plus, Trash2 } from "lucide-react";
+import { Archive, BookOpen, CalendarDays, FileDown, FileText, Globe2, Plus, Trash2 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
+import { getSharing, updateSharing } from "@/lib/cloud.functions";
 import { canEdit, canExport, hasFeature } from "@/lib/plans";
-import { CATEGORIES, type Expense, type ExpenseCategory } from "@/lib/types";
+import { CATEGORIES, STATUS_LABEL, tripStatus, type Expense, type ExpenseCategory } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
-import { downloadCsv, openPdf } from "@/lib/exporters";
+import { downloadCsv, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { WeatherWidget } from "@/components/WeatherWidget";
+import { CurrencyConverter, FuelCalculator } from "@/components/TripTools";
+import { Settlement } from "@/components/Settlement";
+import { Packing } from "@/components/Packing";
+import { Countdown } from "@/components/Countdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,15 +27,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
 
-export const Route = createFileRoute("/trips/$tripId")({
+export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   head: () => ({
     meta: [
-      { title: "Reisdetail — AtlasLedger" },
+      { title: "Reisdetail — GlobeTrotr" },
       {
         name: "description",
         content: "Routekaart, dagplanning en multi-valuta uitgaven van deze reis.",
       },
-      { property: "og:title", content: "Reisdetail — AtlasLedger" },
+      { property: "og:title", content: "Reisdetail — GlobeTrotr" },
       {
         property: "og:description",
         content: "Routekaart, dagplanning en multi-valuta uitgaven van deze reis.",
@@ -40,7 +46,7 @@ export const Route = createFileRoute("/trips/$tripId")({
   notFoundComponent: () => (
     <p className="text-sm text-muted-foreground">
       Reis niet gevonden.{" "}
-      <Link to="/" className="underline">
+      <Link to="/dashboard" className="underline">
         Terug naar overzicht
       </Link>
     </p>
@@ -49,12 +55,15 @@ export const Route = createFileRoute("/trips/$tripId")({
 
 function TripDetail() {
   const { tripId } = Route.useParams();
-  const { state, updateTrip, rates } = useWorkspace();
-  const trip = state.trips.find((t) => t.id === tripId);
-  if (!trip) throw notFound();
+  const { state, updateTrip, rates, ratesLive } = useWorkspace();
+  const queryClient = useQueryClient();
+  const found = state.trips.find((t) => t.id === tripId);
+  if (!found) throw notFound();
+  const trip = found;
 
   const base = state.baseCurrency;
   const editable = canEdit(state.role);
+  const canMarkBillable = hasFeature(state.plan, "billable_expenses");
   const spent = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const billable = trip.expenses
     .filter((e) => e.billable)
@@ -70,27 +79,101 @@ function TripDetail() {
     billable: false,
   });
   const [item, setItem] = useState({ day: trip.start, title: "" });
+  const [sharePin, setSharePin] = useState("");
+  const sharing = useQuery({
+    queryKey: ["sharing"],
+    queryFn: () => getSharing(),
+  });
 
   function addExpense() {
-    if (!draft.title.trim() || !draft.amount) return toast.error("Vul omschrijving en bedrag in");
-    updateTrip(trip.id, (t) => ({ ...t, expenses: [...t.expenses, { ...draft, id: uid() }] }));
+    if (!draft.title.trim() || !draft.amount) {
+      toast.error("Vul omschrijving en bedrag in");
+      return;
+    }
+    updateTrip(trip.id, (t) => ({
+      ...t,
+      expenses: [...t.expenses, { ...draft, billable: canMarkBillable && draft.billable, id: uid() }],
+    }));
     setDraft({ ...draft, title: "", amount: 0 });
     toast.success("Uitgave geboekt");
+  }
+
+  function changeStartDate(start: string) {
+    updateTrip(trip.id, (current) => ({
+      ...current,
+      start,
+      // Keep the date range valid when the start date moves past the old end date.
+      end: current.end && current.end < start ? start : current.end,
+    }));
+  }
+
+  function changeEndDate(end: string) {
+    if (end && trip.start && end < trip.start) {
+      toast.error("De einddatum kan niet vóór de startdatum liggen.");
+      return;
+    }
+    updateTrip(trip.id, (current) => ({ ...current, end }));
+  }
+
+  async function saveSharing(
+    changes: Partial<{ share_enabled: boolean; share_financials: boolean; pin: string | null }>,
+  ) {
+    const settings = sharing.data;
+    const next = await updateSharing({
+      data: {
+        share_enabled: changes.share_enabled ?? settings?.share_enabled ?? trip.public,
+        share_financials: changes.share_financials ?? settings?.share_financials ?? false,
+        ...(changes.pin === undefined ? {} : { pin: changes.pin }),
+      },
+    });
+    queryClient.setQueryData(["sharing"], next);
+    return next;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Link to="/" className="text-xs text-muted-foreground hover:underline">
+          <Link to="/dashboard" className="text-xs text-muted-foreground hover:underline">
             ← Alle reizen
           </Link>
           <h1 className="font-display text-2xl font-semibold">{trip.name}</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
             {trip.start} → {trip.end} · {trip.stops.length} bestemmingen
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={trip.public ? "default" : "outline"}
+            disabled={!editable}
+            onClick={async () => {
+              const next = !trip.public;
+              try {
+                await saveSharing({ share_enabled: next || Boolean(sharing.data?.share_enabled) });
+                updateTrip(trip.id, (t) => ({ ...t, public: next }));
+                toast.success(
+                  next
+                    ? "Reis staat nu openbaar op de homepage"
+                    : "Reis is weer privé",
+                );
+              } catch {
+                toast.error("Delen kon niet worden bijgewerkt");
+              }
+            }}
+          >
+            <Globe2 className="size-4" /> {trip.public ? "Openbaar" : "Openbaar delen"}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!editable}
+            onClick={() => {
+              updateTrip(trip.id, (t) => ({ ...t, archived: !t.archived }));
+              toast.success(trip.archived ? "Reis heractiveerd" : "Reis gearchiveerd");
+            }}
+          >
+            <Archive className="size-4" /> {trip.archived ? "Heractiveren" : "Archiveren"}
+          </Button>
           <Button
             variant="outline"
             disabled={!canExport(state.role)}
@@ -100,6 +183,16 @@ function TripDetail() {
             }}
           >
             <FileDown className="size-4" /> CSV
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!canExport(state.role)}
+            onClick={() => {
+              if (!openGuide(trip, base, rates, state.branding))
+                toast.error("Sta pop-ups toe om de reisgids te openen.");
+            }}
+          >
+            <BookOpen className="size-4" /> Reisgids
           </Button>
           <Button
             disabled={!canExport(state.role)}
@@ -117,19 +210,153 @@ function TripDetail() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      {tripStatus(trip) === "upcoming" && (
+        <Card className="surface">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Aftellen tot vertrek</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Countdown date={trip.start} />
+          </CardContent>
+        </Card>
+      )}
+
+      <div className={`grid gap-4 ${canMarkBillable ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         <Stat label="Uitgegeven" value={formatMoney(spent, base)} />
         <Stat label="Budget" value={formatMoney(trip.budget, base)} />
-        <Stat label="Declarabel" value={formatMoney(billable, base)} />
+        {canMarkBillable && <Stat label="Declarabel" value={formatMoney(billable, base)} />}
       </div>
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
+
+      <Card className="surface">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <CalendarDays className="size-4" /> Reisdata
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-1.5 text-sm">
+            <span className="text-muted-foreground">Startdatum</span>
+            <Input
+              type="date"
+              value={trip.start}
+              disabled={!editable}
+              onChange={(e) => changeStartDate(e.target.value)}
+            />
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="text-muted-foreground">Einddatum</span>
+            <Input
+              type="date"
+              value={trip.end}
+              min={trip.start || undefined}
+              disabled={!editable}
+              onChange={(e) => changeEndDate(e.target.value)}
+            />
+          </label>
+        </CardContent>
+      </Card>
+
+      {trip.public && (
+        <Card className="surface">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Openbaar delen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <label className="flex items-start justify-between gap-4">
+              <span>
+                <span className="block font-medium">Budget delen</span>
+                <span className="block text-muted-foreground">
+                  Toon het reisbudget op alle openbare reizen in dit account.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={sharing.data?.share_financials ?? false}
+                disabled={!editable || sharing.isLoading}
+                onChange={async (event) => {
+                  try {
+                    await saveSharing({ share_financials: event.target.checked });
+                    toast.success(event.target.checked ? "Budget wordt gedeeld." : "Budget is weer privé.");
+                  } catch {
+                    toast.error("De deelinstelling kon niet worden opgeslagen.");
+                  }
+                }}
+              />
+            </label>
+
+            <div className="space-y-2">
+              <p className="font-medium">PIN-beveiliging</p>
+              <p className="text-muted-foreground">
+                Beveilig alle openbare reizen in dit account met een PIN van 6 tot 12 cijfers.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Input
+                  className="max-w-48"
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  minLength={6}
+                  maxLength={12}
+                  value={sharePin}
+                  disabled={!editable}
+                  onChange={(event) => setSharePin(event.target.value.replace(/\D/g, ""))}
+                  placeholder={sharing.data?.has_pin ? "Nieuwe PIN" : "Kies een PIN"}
+                />
+                <Button
+                  variant="outline"
+                  disabled={!editable || sharePin.length < 6}
+                  onClick={async () => {
+                    try {
+                      await saveSharing({ pin: sharePin });
+                      setSharePin("");
+                      toast.success("PIN-beveiliging ingeschakeld.");
+                    } catch (error) {
+                      toast.error(error instanceof Error ? error.message : "PIN kon niet worden opgeslagen.");
+                    }
+                  }}
+                >
+                  {sharing.data?.has_pin ? "PIN wijzigen" : "PIN instellen"}
+                </Button>
+                {sharing.data?.has_pin && (
+                  <Button
+                    variant="ghost"
+                    disabled={!editable}
+                    onClick={async () => {
+                      try {
+                        await saveSharing({ pin: null });
+                        toast.success("PIN-beveiliging verwijderd.");
+                      } catch {
+                        toast.error("PIN kon niet worden verwijderd.");
+                      }
+                    }}
+                  >
+                    PIN verwijderen
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="route">
         <TabsList>
           <TabsTrigger value="route">Routekaart</TabsTrigger>
           <TabsTrigger value="plan">Reisschema</TabsTrigger>
           <TabsTrigger value="expenses">Uitgaven</TabsTrigger>
+          <TabsTrigger value="money">Geld-tools</TabsTrigger>
+          <TabsTrigger value="packing">Paklijst</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="packing">
+          <Packing
+            items={trip.packing ?? []}
+            editable={editable}
+            onChange={(next) => updateTrip(trip.id, (t) => ({ ...t, packing: next }))}
+          />
+        </TabsContent>
+
 
         <TabsContent value="route" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
@@ -188,7 +415,9 @@ function TripDetail() {
                 </CardContent>
               </Card>
               <WeatherWidget
-                stop={trip.stops[trip.stops.length - 1]}
+                {...(trip.stops.length
+                  ? { stop: trip.stops[trip.stops.length - 1]! }
+                  : {})}
                 enabled={hasFeature(state.plan, "weather")}
               />
             </div>
@@ -317,15 +546,17 @@ function TripDetail() {
                   </option>
                 ))}
               </select>
-              <label className="flex items-center gap-2 text-sm md:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={draft.billable}
-                  disabled={!editable}
-                  onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
-                />
-                Declarabel bij klant
-              </label>
+              {canMarkBillable && (
+                <label className="flex items-center gap-2 text-sm md:col-span-2">
+                  <input
+                    type="checkbox"
+                    checked={draft.billable}
+                    disabled={!editable}
+                    onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
+                  />
+                  Declarabel bij klant
+                </label>
+              )}
               <div className="md:col-span-4 md:text-right">
                 <Button onClick={addExpense} disabled={!editable}>
                   <Plus className="size-4" /> Boeken (
@@ -354,7 +585,7 @@ function TripDetail() {
                       <td className="p-3 whitespace-nowrap">{e.date}</td>
                       <td className="p-3">
                         {e.title}
-                        {e.billable && (
+                        {canMarkBillable && e.billable && (
                           <Badge variant="secondary" className="ml-2">
                             declarabel
                           </Badge>
@@ -389,7 +620,25 @@ function TripDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="money" className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CurrencyConverter rates={rates} base={base} live={ratesLive} />
+            <FuelCalculator rates={rates} base={base} />
+          </div>
+          <Settlement
+            trip={trip}
+            base={base}
+            rates={rates}
+            fallback={state.members.map((m) => m.name)}
+            editable={editable}
+            onTravelers={(people) =>
+              updateTrip(trip.id, (t) => ({ ...t, travelers: people }))
+            }
+          />
+        </TabsContent>
       </Tabs>
+
     </div>
   );
 }

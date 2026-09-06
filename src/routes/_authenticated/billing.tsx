@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Check, Lock } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
 import { PLANS, canBill, planOf } from "@/lib/plans";
@@ -8,15 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/billing")({
+export const Route = createFileRoute("/_authenticated/billing")({
   head: () => ({
     meta: [
-      { title: "Abonnement & facturatie — AtlasLedger" },
+      { title: "Abonnement & facturatie — GlobeTrotr" },
       {
         name: "description",
-        content: "Vergelijk Free, Pro en Business/Agency en beheer je AtlasLedger-abonnement.",
+        content: "Vergelijk Free, Pro en Agency en beheer je GlobeTrotr-abonnement.",
       },
-      { property: "og:title", content: "Abonnement & facturatie — AtlasLedger" },
+      { property: "og:title", content: "Abonnement & facturatie — GlobeTrotr" },
       {
         property: "og:description",
         content: "Feature-gating, prijzen en facturen in één billing portal.",
@@ -27,9 +28,10 @@ export const Route = createFileRoute("/billing")({
 });
 
 function Billing() {
-  const { state, update } = useWorkspace();
+  const { state, update, changePlan } = useWorkspace();
   const current = planOf(state.plan);
   const mayBill = canBill(state.role);
+  const [changingPlan, setChangingPlan] = useState(false);
 
   const invoices = [
     { id: "INV-2026-014", date: "2026-08-01", amount: current.price },
@@ -73,13 +75,28 @@ function Billing() {
                 <Button
                   className="w-full"
                   variant={active ? "outline" : "default"}
-                  disabled={active || !mayBill}
-                  onClick={() => {
-                    update((s) => ({ ...s, plan: p.id }));
-                    toast.success(`Overgestapt naar ${p.name}`);
+                  disabled={active || !mayBill || changingPlan}
+                  onClick={async () => {
+                    setChangingPlan(true);
+                    try {
+                      const saved = await changePlan(p.id);
+                      if (saved) {
+                        toast.success(`Je abonnement is gewijzigd naar ${p.name}.`);
+                      } else {
+                        toast.error("Je abonnement kon niet worden opgeslagen. Probeer opnieuw.");
+                      }
+                    } finally {
+                      setChangingPlan(false);
+                    }
                   }}
                 >
-                  {active ? "Huidig plan" : mayBill ? `Kies ${p.name}` : "Alleen eigenaar"}
+                  {active
+                    ? "Huidig plan"
+                    : changingPlan
+                      ? "Wijzigen…"
+                      : mayBill
+                        ? `Kies ${p.name}`
+                        : "Alleen eigenaar"}
                 </Button>
               </CardContent>
             </Card>
@@ -96,7 +113,7 @@ function Billing() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Facturen</CardTitle>
+            <CardTitle className="text-sm">Factuuroverzicht</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <table className="w-full text-sm">
@@ -107,9 +124,7 @@ function Billing() {
                     <td className="p-3 text-muted-foreground">{i.date}</td>
                     <td className="p-3 text-right">{formatMoney(i.amount, "EUR")}</td>
                     <td className="p-3 text-right">
-                      <button className="text-primary underline" onClick={() => window.print()}>
-                        Bekijk
-                      </button>
+                      <span className="text-muted-foreground">Beschikbaar na betaling</span>
                     </td>
                   </tr>
                 ))}
@@ -120,7 +135,7 @@ function Billing() {
 
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Workspace-instellingen</CardTitle>
+            <CardTitle className="text-sm">Reisinstellingen</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <label className="block">

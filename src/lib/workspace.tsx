@@ -4,12 +4,22 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FALLBACK_RATES, fetchRates, type Rates } from "./services";
-import { TEMPLATES, type Trip, type TripTemplate, type WorkspaceState } from "./types";
+import { FALLBACK_RATES, type Rates } from "./services";
+import { getRates } from "./fx.functions";
+import { loadWorkspace, saveWorkspace } from "./cloud.functions";
+import { useAuth } from "./auth";
+import {
+  TEMPLATES,
+  type PlanId,
+  type Trip,
+  type TripTemplate,
+  type WorkspaceState,
+} from "./types";
 
 const STORAGE_KEY = "atlasledger.workspace.v1";
 
@@ -17,65 +27,17 @@ export const uid = () => Math.random().toString(36).slice(2, 10);
 
 function seed(): WorkspaceState {
   return {
-    plan: "pro",
+    plan: "free",
     role: "owner",
     baseCurrency: "EUR",
     branding: {
-      brandName: "AtlasLedger",
-      domain: "atlasledger.app",
+      brandName: "GlobeTrotr",
+      domain: "globetrotr.nl",
       accent: 172,
       tagline: "Plan elke reis. Verantwoord elke euro.",
     },
-    members: [
-      { id: uid(), name: "Domenic Rokers", email: "domenic@atlasledger.app", role: "owner" },
-      { id: uid(), name: "Lena Vos", email: "lena@atlasledger.app", role: "editor" },
-      { id: uid(), name: "Sam de Boer", email: "sam@boekhouding.nl", role: "accountant" },
-    ],
-    trips: [
-      {
-        id: "demo-sweden",
-        name: "Zweden — Lapland winterexpeditie",
-        template: "winter",
-        start: "2027-01-12",
-        end: "2027-01-21",
-        budget: 4200,
-        stops: [
-          { id: uid(), name: "Stockholm", country: "Zweden", lat: 59.3293, lon: 18.0686, nights: 2 },
-          { id: uid(), name: "Kiruna", country: "Zweden", lat: 67.8558, lon: 20.2253, nights: 4 },
-          { id: uid(), name: "Abisko", country: "Zweden", lat: 68.3494, lon: 18.8305, nights: 3 },
-        ],
-        itinerary: [
-          { id: uid(), day: "2027-01-12", title: "Vlucht Amsterdam → Stockholm", notes: "Bagage: -30°C uitrusting" },
-          { id: uid(), day: "2027-01-14", title: "Nachttrein naar Kiruna" },
-          { id: uid(), day: "2027-01-17", title: "Noorderlicht safari Abisko" },
-        ],
-        expenses: [
-          { id: uid(), date: "2027-01-12", title: "Vluchten", category: "transport", amount: 640, currency: "EUR", paidBy: "Domenic", billable: false },
-          { id: uid(), date: "2027-01-14", title: "Icehotel 2 nachten", category: "lodging", amount: 5400, currency: "SEK", paidBy: "Lena", billable: false },
-          { id: uid(), date: "2027-01-17", title: "Husky tour", category: "activities", amount: 2300, currency: "SEK", paidBy: "Domenic", billable: false },
-        ],
-      },
-      {
-        id: "demo-tokyo",
-        name: "Tokyo — client onboarding",
-        template: "business",
-        start: "2027-03-03",
-        end: "2027-03-09",
-        budget: 3500,
-        stops: [
-          { id: uid(), name: "Tokyo", country: "Japan", lat: 35.6762, lon: 139.6503, nights: 4 },
-          { id: uid(), name: "Kyoto", country: "Japan", lat: 35.0116, lon: 135.7681, nights: 2 },
-        ],
-        itinerary: [
-          { id: uid(), day: "2027-03-03", title: "Vlucht + hotel Shinjuku" },
-          { id: uid(), day: "2027-03-04", title: "Client workshop" },
-        ],
-        expenses: [
-          { id: uid(), date: "2027-03-03", title: "Business class vlucht", category: "transport", amount: 1850, currency: "EUR", paidBy: "Domenic", billable: true },
-          { id: uid(), date: "2027-03-05", title: "Hotel Shinjuku", category: "lodging", amount: 96000, currency: "JPY", paidBy: "Domenic", billable: true },
-        ],
-      },
-    ],
+    members: [],
+    trips: [],
   };
 }
 
@@ -88,33 +50,91 @@ type Ctx = {
   rates: Rates;
   ratesLive: boolean;
   reset: () => void;
+  changePlan: (plan: PlanId) => Promise<boolean>;
+  cloud: "local" | "loading" | "synced" | "saving";
 };
 
 const WorkspaceContext = createContext<Ctx | null>(null);
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WorkspaceState>(() => seed());
+  const { user, loading: authLoading } = useAuth();
+  const [cloud, setCloud] = useState<Ctx["cloud"]>("local");
+  const hydrated = useRef(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
+  const cacheKey = user ? `${STORAGE_KEY}.${user.id}` : null;
+
+  // Per-account cache for instant paint; guests never see another account's data
   useEffect(() => {
+    if (!cacheKey) {
+      hydrated.current = true;
+      return;
+    }
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(cacheKey);
       if (raw) setState(JSON.parse(raw) as WorkspaceState);
     } catch {
       /* ignore */
     }
-  }, []);
+    hydrated.current = true;
+  }, [cacheKey]);
 
   useEffect(() => {
+    if (!cacheKey) return;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(cacheKey, JSON.stringify(state));
     } catch {
       /* ignore */
     }
-  }, [state]);
+  }, [state, cacheKey]);
+
+  // Cloud hydration when signed in
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setCloud("local");
+      setState(seed());
+      hydrated.current = false;
+      return;
+    }
+    let cancelled = false;
+    setCloud("loading");
+    loadWorkspace()
+      .then(async (row) => {
+        if (cancelled) return;
+        const remote = row?.data as WorkspaceState | undefined;
+        if (remote && Array.isArray(remote.trips)) {
+          setState(remote);
+        } else {
+          await saveWorkspace({ data: { data: stateRef.current } });
+        }
+        if (!cancelled) setCloud("synced");
+      })
+      .catch(() => !cancelled && setCloud("local"));
+    return () => {
+      cancelled = true;
+    };
+  }, [user, authLoading]);
+
+  // Debounced cloud save
+  useEffect(() => {
+    if (cloud !== "synced" || !user || !hydrated.current) return;
+    setCloud("saving");
+    const t = setTimeout(() => {
+      saveWorkspace({ data: { data: stateRef.current } })
+        .then(() => setCloud("synced"))
+        .catch(() => setCloud("synced"));
+    }, 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, user]);
+
 
   const ratesQuery = useQuery({
     queryKey: ["fx-rates"],
-    queryFn: fetchRates,
+    queryFn: () => getRates(),
     staleTime: 1000 * 60 * 60,
     retry: 1,
   });
@@ -157,6 +177,30 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   const reset = useCallback(() => setState(seed()), []);
 
+  const changePlan = useCallback(
+    async (plan: PlanId) => {
+      if (!user) return false;
+
+      const previous = stateRef.current;
+      const next = { ...previous, plan };
+      stateRef.current = next;
+      setState(next);
+      setCloud("saving");
+
+      try {
+        await saveWorkspace({ data: { data: next } });
+        setCloud("synced");
+        return true;
+      } catch {
+        stateRef.current = previous;
+        setState(previous);
+        setCloud("synced");
+        return false;
+      }
+    },
+    [user],
+  );
+
   const value = useMemo<Ctx>(
     () => ({
       state,
@@ -167,8 +211,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       rates: ratesQuery.data ?? FALLBACK_RATES,
       ratesLive: !!ratesQuery.data,
       reset,
+      changePlan,
+      cloud,
     }),
-    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset],
+    [state, update, updateTrip, addTrip, removeTrip, ratesQuery.data, reset, changePlan, cloud],
   );
 
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
