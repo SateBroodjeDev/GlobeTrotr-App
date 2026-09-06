@@ -197,7 +197,10 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [x] Overzicht van gekoppelde inlogmethodes: e-mail/wachtwoord, Apple, Google en Microsoft
 - [x] Inlog- en registratiepagina met Apple-, Google- en Microsoft-knoppen via Lovable/Supabase OAuth, naast e-mail en wachtwoord
 - [x] Profielpagina met Apple-, Google- en Microsoft-identiteiten koppelen/ontkoppelen; de laatste bruikbare inlogmethode kan niet worden verwijderd
-- [x] OAuth gebruikt de geconfigureerde Lovable/Supabase-providers en veilige redirect-URL; providersecrets staan niet in browsercode
+- [x] OAuth-knoppen gebruiken de Lovable/Supabase-providerroute en veilige redirect-URL; providersecrets staan niet in browsercode
+- [ ] **Geblokkeerd in Lovable Cloud:** Google staat op **Managed by Lovable**, maar project `adlrxxyaubxzzjfzibjn` antwoordt op `/auth/v1/authorize?provider=google` met `400 validation_failed: Unsupported provider: missing OAuth secret`. Dit is backend-provisioning, geen browser- of SQL-fout.
+- [ ] Google in Lovable Cloud opnieuw uit- en inschakelen, **Managed by Lovable** opnieuw opslaan en daarna in incognito testen. Blijft de fout bestaan, ticket bij Lovable Support met project-ID en exacte foutmelding.
+- [ ] Apple en Microsoft alleen als beschikbaar tonen zodra hun Lovable/Supabase-provider daadwerkelijk een secret heeft; geen providersecret in Git, browsercode, SQL of `workspaces.data` zetten.
 - [ ] Handmatige productiecontrole: eerste Apple-, Google- en Microsoft-login, een al bestaand e-mailaccount en koppelen/ontkoppelen testen zonder duplicaat-workspace
 - [ ] Actieve sessies en uitloggen op andere apparaten, als de gekozen Auth-configuratie dit ondersteunt
 - [ ] Account verwijderen met expliciete bevestiging, gegevens-export en duidelijke bewaartermijn
