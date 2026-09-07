@@ -8,6 +8,20 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 - [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
 - [x] Publieke pagina `/changelog` toegevoegd met gebruikersgerichte releases, categorie-iconen, datum en tijd; link staat in de footer.
+- [x] Changelogvalidatie en GitHub Actions toegevoegd: unieke releases/versies, veilige teksten, datumvolgorde, tests en productiebuild worden bij pushes en pull requests gecontroleerd.
+
+### Naar de testopening — OAuth en app-e-mail uitgezonderd
+
+- [ ] Kritieke rooktest: registreren/inloggen met e-mail, reis aanmaken, wijzigen, herladen, archiveren en verwijderen
+- [ ] Reisinhoud testen: stops, planning, vlucht, verblijf, vervoer, huurauto, uitgave, verdeling, paklijst en export
+- [ ] Publiek delen testen: aan/uit, PIN, budget wel/niet delen, oude link, lege reis en reis met veel stops
+- [ ] Mobiele controle op een echte telefoon: dashboard, formulieren, uitgaven, publieke reis en changelog
+- [ ] SQL-tests `trip_snapshot_versions.sql` en `persistent_notifications.sql` uitvoeren en uitkomst vastleggen
+- [ ] Controleren dat benodigde productiemigraties zijn uitgevoerd: tijdzone, Agency-bonrechten, meldingen en versieopslag
+- [ ] Privacycontrole: publieke responses, Storage-rechten, foutmeldingen, exports en accountgegevens
+- [ ] Testaccounts en scenario’s vastleggen voor Free, Pro en Agency; fictieve gegevens duidelijk als testdata markeren
+- [x] Bekende beperkingen op de changelogpagina vermeld: OAuth en automatische app-e-mails zijn bewust nog niet actief
+- [ ] Na geslaagde controles een gedateerde **Testopening**-release aanmaken in het technische en publieke changelog
 - [x] Herstelmigratie `20260907150000_fix_snapshot_column_ambiguity.sql` uitgevoerd, bevestigd door de gebruiker. De atomaire opslagfunctie gebruikt expliciete kolomverwijzingen voor `trip_uuid` en `updated_at`.
 - [x] Publieke reispagina toont ingelogde gebruikers **Naar mijn reizen** in plaats van **Gratis account maken**; tijdens het laden van de sessie verschijnt geen registratieknop.
 - [x] Mobiele boekingsvelden begrensd en uitgavenoverzicht binnen de kaart horizontaal scrollbaar gemaakt.

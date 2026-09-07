@@ -4,6 +4,21 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-07 18:45 CEST — Changelog gereedmaken voor testopening
+
+### Releaseproces
+
+- Publieke releases hebben nu een herkenbare bèta-versie.
+- De changelogpagina toont de actuele testfase en vermeldt dat OAuth en automatische app-e-mails bewust buiten de eerste testopening vallen.
+- Automatische tests controleren unieke release-ID's en versies, expliciete tijdzones, nieuwste-eerst-volgorde, volledige teksten en gevoelige termen.
+- GitHub Actions voert bij iedere push en pull request de tests en productiebuild uit.
+- Een pull-requesttemplate bewaakt handmatige controles, mobiele weergave en beide changeloglagen.
+
+### Controles
+
+- Zeven geautomatiseerde tests geslaagd.
+- Productiebuild geslaagd.
+
 ## 2026-09-07 18:40 CEST — Publieke reisbeleving en changelog
 
 ### Gebruikerservaring
@@ -46,3 +61,6 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Publieke wijzigingen worden daarnaast toegevoegd aan `src/lib/public-changelog.ts`.
 - Technische wijzigingen die geen zichtbaar gedrag veranderen blijven alleen in dit bestand.
 - Een item krijgt pas een geslaagde controle wanneer die daadwerkelijk is uitgevoerd.
+- Iedere publieke release heeft een unieke bèta-versie en een ISO-tijdstip met expliciete tijdzone.
+- `npm test` controleert de publieke releasevolgorde, unieke IDs/versies, volledige teksten en veelvoorkomende gevoelige termen.
+- GitHub Actions voert bij iedere push en pull request `npm test` en de productiebuild uit.

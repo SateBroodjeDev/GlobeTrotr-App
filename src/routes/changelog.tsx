@@ -3,6 +3,7 @@ import {
   Bug,
   CalendarDays,
   CheckCircle2,
+  CircleDashed,
   Clock3,
   LockKeyhole,
   Rocket,
@@ -10,7 +11,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { PUBLIC_RELEASES, type PublicChangeKind } from "@/lib/public-changelog";
+import { PUBLIC_BETA_STATUS, PUBLIC_RELEASES, type PublicChangeKind } from "@/lib/public-changelog";
 
 export const Route = createFileRoute("/changelog")({
   head: () => ({
@@ -63,6 +64,38 @@ function ChangelogPage() {
         </p>
       </header>
 
+      <Card className="surface overflow-hidden border-primary/20">
+        <CardContent className="grid gap-5 p-5 sm:grid-cols-[auto_1fr] sm:p-7">
+          <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+            <CircleDashed className="size-5" />
+          </span>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-display text-lg font-semibold">{PUBLIC_BETA_STATUS.label}</h2>
+              <Badge variant="outline">Bèta</Badge>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {PUBLIC_BETA_STATUS.description}
+            </p>
+            <div className="mt-4 rounded-xl bg-muted/50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Bewust nog niet in deze test
+              </p>
+              <ul className="mt-2 space-y-1.5 text-sm">
+                {PUBLIC_BETA_STATUS.unavailable.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <span aria-hidden className="text-muted-foreground">
+                      •
+                    </span>{" "}
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="relative space-y-8 before:absolute before:bottom-0 before:left-[19px] before:top-3 before:w-px before:bg-border sm:before:left-[27px]">
         {PUBLIC_RELEASES.map((release, releaseIndex) => (
           <article key={release.id} className="relative pl-12 sm:pl-16">
@@ -81,6 +114,7 @@ function ChangelogPage() {
                 <Clock3 className="size-3.5" /> {formatTime(release.publishedAt)}
               </span>
               {releaseIndex === 0 && <Badge className="ml-auto">Nieuwste update</Badge>}
+              <Badge variant="outline">{release.version}</Badge>
             </div>
             <Card className="surface overflow-hidden">
               <CardContent className="p-5 sm:p-7">

@@ -8,16 +8,28 @@ export type PublicChange = {
 
 export type PublicRelease = {
   id: string;
+  version: string;
   publishedAt: string;
   title: string;
   summary: string;
   changes: PublicChange[];
 };
 
+export const PUBLIC_BETA_STATUS = {
+  label: "Voorbereiding testopening",
+  description:
+    "De kern van GlobeTrotr wordt klaargemaakt voor de eerste groep testers. Reizen plannen, kosten bijhouden en openbaar delen staan centraal in deze test.",
+  unavailable: [
+    "Inloggen met Apple, Google of Microsoft",
+    "Automatische app-e-mails en reisuitnodigingen per e-mail",
+  ],
+} as const;
+
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
     id: "2026-09-07-public-trips",
+    version: "Beta 0.3",
     publishedAt: "2026-09-07T18:40:00+02:00",
     title: "Openbare reizen komen tot leven",
     summary:
@@ -51,6 +63,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-07-reliable-saving",
+    version: "Beta 0.2",
     publishedAt: "2026-09-07T17:30:00+02:00",
     title: "Betrouwbaarder opslaan en beter op mobiel",
     summary:
@@ -83,6 +96,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-07-account",
+    version: "Beta 0.1",
     publishedAt: "2026-09-07T16:30:00+02:00",
     title: "Meer inzicht in je account",
     summary:
