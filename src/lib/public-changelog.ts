@@ -35,6 +35,46 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-07-trip-collaboration",
+    version: "Beta 0.7",
+    publishedAt: "2026-09-07T23:51:00+02:00",
+    title: "Samen plannen met duidelijke rollen",
+    titleEn: "Plan together with clear roles",
+    summary:
+      "Bestaande accounts kunnen nu veilig aan één reis samenwerken met rechten die passen bij hun rol.",
+    summaryEn:
+      "Existing accounts can now collaborate safely on a single trip with permissions suited to their role.",
+    changes: [
+      {
+        kind: "new",
+        title: "Gedeelde reizen in je dashboard",
+        titleEn: "Shared trips in your dashboard",
+        description:
+          "Een reis waarvoor je bent toegevoegd verschijnt na opnieuw inloggen herkenbaar als gedeelde reis.",
+        descriptionEn:
+          "A trip you have been added to appears as a shared trip after you sign in again.",
+      },
+      {
+        kind: "secure",
+        title: "Rechten per reisrol",
+        titleEn: "Permissions per trip role",
+        description:
+          "Planning, uitgaven, alleen-lezen en eigenaarsacties zijn in de interface en op de server begrensd.",
+        descriptionEn:
+          "Planning, expenses, read-only access and owner actions are restricted in both the interface and server.",
+      },
+      {
+        kind: "secure",
+        title: "Financiële privacy",
+        titleEn: "Financial privacy",
+        description:
+          "Kijkers en klanten ontvangen geen uitgaven; e-mailadressen van reisleden blijven voor niet-eigenaren verborgen.",
+        descriptionEn:
+          "Viewers and clients receive no expenses, while traveller email addresses remain hidden from non-owners.",
+      },
+    ],
+  },
+  {
     id: "2026-09-07-international-test-launch",
     version: "Beta 0.6",
     publishedAt: "2026-09-07T23:34:00+02:00",

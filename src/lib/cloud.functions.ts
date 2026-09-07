@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { Trip, WorkspaceState } from "@/lib/types";
+import type { Trip, TripMemberRole, WorkspaceState } from "@/lib/types";
+import { protectTripUpdate } from "@/lib/trip-access";
 
 type UntypedSupabase = {
   from: (relation: string) => any;
@@ -29,7 +30,8 @@ function normalizeTripForPersistence(trip: Trip): Trip {
   if (!Number.isFinite(trip.budget) || trip.budget < 0) {
     throw new Error("Het budget moet een bedrag van nul of hoger zijn.");
   }
-  return { ...trip, name, description };
+  const { accessRole: _accessRole, ...persistentTrip } = trip;
+  return { ...persistentTrip, name, description };
 }
 
 async function withinTimeout<T>(operation: Promise<T>, milliseconds: number): Promise<T> {
@@ -302,15 +304,41 @@ function withDatabaseTripIds(data: unknown, rows: StoredTrip[]): unknown {
 }
 
 async function loadRelationalTrips(client: UntypedSupabase, userId: string): Promise<Trip[]> {
-  const { data: parents, error } = await client
+  const parentColumns =
+    "trip_uuid, workspace_user_id, revision::text, name, description, template, start_date, end_date, budget, travelers, archived, is_public, share_financials, share_pin_hash";
+  const [{ data: ownedParents, error: ownedError }, { data: memberships, error: membershipError }] =
+    await Promise.all([
+      client
+        .from("trips")
+        .select(parentColumns)
+        .eq("workspace_user_id", userId)
+        .order("start_date", { ascending: true }),
+      client
+        .from("trip_members")
+        .select("trip_uuid, role")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .neq("role", "owner"),
+    ]);
+  if (ownedError) throw ownedError;
+  if (membershipError) throw membershipError;
+  const membershipRows = (memberships ?? []) as { trip_uuid: string; role: TripMemberRole }[];
+  const sharedIds = membershipRows.map((membership) => membership.trip_uuid);
+  const { data: sharedParents, error: sharedError } = sharedIds.length
+    ? await client
     .from("trips")
-    .select(
-      "trip_uuid, revision::text, name, description, template, start_date, end_date, budget, travelers, archived, is_public, share_financials, share_pin_hash",
-    )
-    .eq("workspace_user_id", userId)
-    .order("start_date", { ascending: true });
-  if (error) throw error;
-  const rows = (parents ?? []) as Record<string, any>[];
+        .select(parentColumns)
+        .in("trip_uuid", sharedIds)
+        .order("start_date", { ascending: true })
+    : { data: [], error: null };
+  if (sharedError) throw sharedError;
+  const accessByTrip = new Map<string, TripMemberRole>(
+    membershipRows.map((membership) => [String(membership.trip_uuid), membership.role]),
+  );
+  const rows = [
+    ...((ownedParents ?? []) as Record<string, any>[]),
+    ...((sharedParents ?? []) as Record<string, any>[]),
+  ];
   const ids = rows.map((row) => String(row.trip_uuid));
   if (!ids.length) return [];
   const [stops, itinerary, expenses, travelItems, packing, members] = await Promise.all([
@@ -341,8 +369,11 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   const membersByTrip = grouped(members);
   return rows.map((row) => {
     const id = String(row.trip_uuid);
+    const accessRole = accessByTrip.get(id) ?? "owner";
+    const maySeeMoney = ["owner", "traveler", "advisor", "finance"].includes(accessRole);
     return {
       id,
+      accessRole,
       ...(row["revision"] == null ? {} : { revision: String(row["revision"]) }),
       name: String(row.name ?? "Reis"),
       ...(row.description ? { description: String(row.description) } : {}),
@@ -371,7 +402,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         notes: item.notes ?? undefined,
         sourceTravelItemId: item.source_travel_item_id ?? undefined,
       })),
-      expenses: (expensesByTrip.get(id) ?? []).map((expense) => ({
+      expenses: (maySeeMoney ? expensesByTrip.get(id) ?? [] : []).map((expense) => ({
         id: String(expense.id),
         date: String(expense.expense_date),
         title: String(expense.title),
@@ -414,7 +445,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         .map((member) => ({
           id: String(member.id),
           name: String(member.name),
-          email: String(member.email),
+          email: accessRole === "owner" ? String(member.email) : "",
           role: member.role,
           status: member.status,
           invitedAt: String(member.invited_at),
@@ -427,6 +458,23 @@ export const loadWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
+    const verifiedEmail =
+      typeof context.claims["email"] === "string"
+        ? context.claims["email"].trim().toLowerCase()
+        : "";
+    if (verifiedEmail) {
+      // Een eigenaar kan vooraf een bestaand account als reisgenoot toevoegen.
+      // Alleen het geverifieerde e-mailadres uit het access token mag die
+      // openstaande relationele lidregel aan het eigen account koppelen.
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error: claimError } = await (supabaseAdmin as unknown as UntypedSupabase)
+        .from("trip_members")
+        .update({ user_id: userId, status: "active", accepted_at: new Date().toISOString() })
+        .is("user_id", null)
+        .ilike("email", verifiedEmail)
+        .in("status", ["invited", "active"]);
+      if (claimError) throw claimError;
+    }
     const { data, error } = await supabase
       .from("workspaces")
       .select("data, public_token, share_enabled, share_financials")
@@ -495,7 +543,7 @@ export const saveTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { trip: Trip }) => input)
   .handler(async ({ data, context }) => {
-    const trip = normalizeTripForPersistence(data.trip);
+    let trip = normalizeTripForPersistence(data.trip);
     if (!trip.revision || !/^\d+$/.test(trip.revision)) {
       throw new Error(
         "De reisversie ontbreekt. Herlaad de pagina; controleer of de versiemigratie is uitgevoerd.",
@@ -503,8 +551,36 @@ export const saveTrip = createServerFn({ method: "POST" })
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
+    const { data: storedTrip, error: storedError } = await db
+      .from("trips")
+      .select("workspace_user_id")
+      .eq("trip_uuid", trip.id)
+      .maybeSingle();
+    if (storedError || !storedTrip) throw new Error("Reis niet gevonden.");
+    const ownerId = String(storedTrip.workspace_user_id);
+    let accessRole: TripMemberRole = "owner";
+    if (ownerId !== context.userId) {
+      const { data: membership, error: membershipError } = await db
+        .from("trip_members")
+        .select("role")
+        .eq("trip_uuid", trip.id)
+        .eq("user_id", context.userId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (membershipError || !membership) throw new Error("Je hebt geen toegang tot deze reis.");
+      accessRole = membership.role as TripMemberRole;
+    }
+    if (accessRole === "viewer" || accessRole === "client") {
+      throw new Error("Je hebt alleen-lezen toegang tot deze reis.");
+    }
+    if (accessRole !== "owner") {
+      const current = (await loadRelationalTrips(db, ownerId)).find((item) => item.id === trip.id);
+      if (!current) throw new Error("Reis niet gevonden.");
+      trip = protectTripUpdate(current, trip, accessRole);
+      trip = normalizeTripForPersistence(trip);
+    }
     const { data: saved, error } = await db.rpc("save_trip_snapshot_versioned", {
-      p_workspace_user_id: context.userId,
+      p_workspace_user_id: ownerId,
       p_trip: trip,
     });
     if (error) {

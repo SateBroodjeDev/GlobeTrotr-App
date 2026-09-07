@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Plus, Trash2, MapPin, Wallet, Lock, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
-import { canEdit, planOf } from "@/lib/plans";
+import { canEdit, ownsTrip, planOf } from "@/lib/plans";
 import {
   TEMPLATES,
   STATUS_LABEL,
@@ -51,7 +51,8 @@ function TripsOverview() {
   const [template, setTemplate] = useState<TripTemplate>("citytrip");
   const [filter, setFilter] = useState<TripStatus | "all">("all");
 
-  const atLimit = state.trips.length >= plan.tripLimit;
+  const ownedTripCount = state.trips.filter((trip) => ownsTrip(trip.accessRole)).length;
+  const atLimit = ownedTripCount >= plan.tripLimit;
   const base = state.baseCurrency;
 
   const totals = state.trips.map((t) => ({
@@ -208,7 +209,7 @@ function TripsOverview() {
                       {tpl?.emoji} {trip.name}
                     </Link>
                   </CardTitle>
-                  {canEdit(state.role) && (
+                  {ownsTrip(trip.accessRole) && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -232,6 +233,9 @@ function TripsOverview() {
                 </div>
                 <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <Badge variant="secondary">{statusLabel(tripStatus(trip), text)}</Badge>
+                  {!ownsTrip(trip.accessRole) && (
+                    <Badge variant="outline">{text("Gedeeld", "Shared")}</Badge>
+                  )}
                   {trip.start} → {trip.end}
                   {tripStatus(trip) === "upcoming" && <Countdown date={trip.start} compact />}
                 </p>

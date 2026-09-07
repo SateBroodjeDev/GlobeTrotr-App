@@ -28,8 +28,8 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Reisinhoud getest: stops, planning, vlucht, verblijf, vervoer, huurauto, uitgave, verdeling, paklijst en export
 - [x] Publiek delen getest: aan/uit, PIN, budget wel/niet delen, oude link, lege reis en reis met veel stops
 - [x] Mobiele controle op een echte telefoon geslaagd: dashboard, formulieren, uitgaven, publieke reis en changelog
-- [ ] SQL-tests `trip_snapshot_versions.sql` en `persistent_notifications.sql` uitvoeren en uitkomst vastleggen
-- [ ] Controleren dat benodigde productiemigraties zijn uitgevoerd: tijdzone, Agency-bonrechten, meldingen en versieopslag
+- [x] SQL-tests `trip_snapshot_versions.sql` en `persistent_notifications.sql` volledig en zonder foutmelding uitgevoerd
+- [x] Productiemigraties voor tijdzone, Agency-bonrechten, meldingen en versieopslag zijn uitgevoerd; bijbehorende versie-, melding- en financiële regressietests zijn geslaagd
 - [x] Privacy- en rechtencontrole afgerond voor publieke responses, PIN-links, gearchiveerde reizen, publieke auteursnaam, financiële RLS, private bonnetjesopslag, foutmeldingen, exports en accountgegevens
 - [x] Publieke reiscode gecontroleerd en aangescherpt: geen e-mailadres als auteursnaam, geen PIN-beveiligde reis in de openbare index en geen gearchiveerde reis via een oude deellink
 - [x] Migratie `20260907234000_restrict_trip_financials.sql` en `supabase/tests/trip_financial_privacy.sql` volledig uitgevoerd; viewer/client lezen geen uitgaven en financiële rollen behouden toegang
@@ -46,8 +46,11 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] `20260907160000_trip_snapshot_versions.sql` uitgevoerd, bevestigd door de gebruiker. De migratie trekt de oude onbeschermde RPC-rechten in; de bijbehorende appcode gebruikt de gecontroleerde opslagroute.
 - [x] Laatste appversie in de praktijktest gecontroleerd.
 - [x] Drie geautomatiseerde wachtrijtests geslaagd: volgorde/versiedoorgifte, blokkeren na fout en geen opslag na verwijderen. Gerichte TypeScript-controle van de wachtrij en tests, formatteringscontrole en productiebuild geslaagd; bestaande projectbrede TypeScript-fouten blijven open.
-- [ ] Controleer dat `supabase/tests/trip_snapshot_versions.sql` zonder foutmelding is voltooid; uitvoering is lokaal niet geverifieerd. Test dezelfde reis in twee tabbladen: sla in A op, controleer de conflictmelding in B en herlaad B. De SQL-test draait testdata terug.
-- [ ] Volgende stap na deze controles: geaccepteerde reisleden aansluiten op de bestaande relationele rechten en RLS per rol testen. E-mailbezorging blijft apart geblokkeerd op activering.
+- [x] `supabase/tests/trip_snapshot_versions.sql` zonder foutmelding voltooid; de eerdere praktijktest met twee tabbladen is eveneens geslaagd.
+- [x] Actieve reisleden worden relationeel geladen in hun eigen dashboard; een bestaand account claimt bij opnieuw inloggen alleen uitnodigingen voor het geverifieerde eigen e-mailadres.
+- [x] Rolgrenzen ook server-side afgedwongen: owner beheert delen/leden/archief, traveler en advisor plannen en beheren kosten, finance beheert alleen kosten en viewer/client zijn alleen-lezen zonder financiële response.
+- [x] Praktijktest samenwerking geslaagd met een bestaand tweede account: gedeelde reis zichtbaar en toegestane acties gecontroleerd voor traveler, advisor, finance, viewer en client.
+- [x] Samenwerking opgenomen in publieke release **Beta 0.7**. E-mailbezorging blijft apart geblokkeerd op activering.
 
 OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en domeinverificatie. Overige migraties worden alleen als uitgevoerd gemarkeerd wanneer dat is bevestigd. SkyLink-configuratie en live tests blijven open.
 

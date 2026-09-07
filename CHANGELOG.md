@@ -4,6 +4,25 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-07 23:51 CEST — Samenwerken per reis
+
+### Gebruikerservaring
+
+- Bestaande accounts krijgen na opnieuw inloggen toegang tot reizen waarvoor hun geverifieerde e-mailadres als reisgenoot is toegevoegd.
+- Gedeelde reizen verschijnen herkenbaar in het dashboard en tellen niet mee voor de persoonlijke reislimiet.
+- Traveler en advisor kunnen planning en uitgaven beheren, finance alleen uitgaven en viewer/client alleen de toegestane reisinhoud bekijken.
+
+### Privacy en autorisatie
+
+- Alleen de eigenaar kan reisleden, openbare toegang, archivering en verwijdering beheren.
+- Viewer en client ontvangen geen financiële reisgegevens; niet-eigenaren ontvangen geen e-mailadressen van andere reisleden.
+- De server bewaart beschermde velden uit de actuele databaseversie wanneer een planner of financieel lid een gemanipuleerde snapshot indient.
+
+### Controles
+
+- De praktijktest met een tweede bestaand account en alle vijf niet-eigenaarsrollen is geslaagd.
+- Negen geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+
 ## 2026-09-07 23:34 CEST — Internationale testopening
 
 ### Vrijgegeven voor testers
@@ -29,6 +48,15 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Een ontbrekende profielnaam valt openbaar terug op een neutrale reizigersnaam en gebruikt geen deel van het e-mailadres.
 - Gearchiveerde reizen zijn ook via bestaande openbare links niet meer opvraagbaar.
 - `20260907234000_restrict_trip_financials.sql` beperkt relationele uitgaven tot owner, traveler, advisor en finance. De migratie en regressietest zijn op 7 september 2026 volledig en zonder foutmelding uitgevoerd.
+- De SQL-regressietests voor versiegestuurde reisopslag en persistente meldingen zijn op 7 september 2026 volledig en zonder foutmelding uitgevoerd.
+
+### Samenwerking
+
+- Actieve relationele reisleden krijgen gedeelde reizen in hun eigen dashboard, herkenbaar als gedeelde reis en zonder invloed op hun persoonlijke reislimiet.
+- Een bestaande gebruiker kan een openstaande lidregel alleen claimen via het geverifieerde e-mailadres in het Supabase-token; uitnodigingsmail is hiervoor niet nodig.
+- Reisrollen worden ook door de server begrensd. Finance kan alleen uitgaven indienen, planners kunnen geen leden, publicatie of archiefstatus wijzigen en viewer/client blijven alleen-lezen.
+- Niet-eigenaren ontvangen geen e-mailadressen van andere reisleden. Viewer/client ontvangen ook geen financiële reisgegevens.
+- Twee nieuwe autorisatietests brengen het geautomatiseerde totaal op negen. De productiebuild en praktijktest met een tweede account zijn geslaagd.
 
 ## 2026-09-07 19:30 CEST — Basis voor internationale beta
 

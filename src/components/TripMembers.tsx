@@ -93,7 +93,7 @@ export function TripMembers({
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          {text("Voeg reisgenoten toe met een rol voor alleen deze reis. E-mailverzending en accepteren worden geactiveerd zodra Lovable Cloud Emails is ingesteld. Deze lijst wordt ook gebruikt voor de kostenverdeling en de betaler bij boekingen.", "Add travellers with a role for this trip. Email delivery and acceptance will be enabled once Lovable Cloud Emails is configured. This list is also used for expense splitting and booking payers.")}
+          {text("Voeg reisgenoten toe met een rol voor alleen deze reis. Een bestaand account met dit e-mailadres krijgt toegang zodra het opnieuw inlogt. Uitnodigingsmails volgen zodra app-e-mail is geactiveerd. Deze lijst wordt ook gebruikt voor kostenverdeling en de betaler bij boekingen.", "Add travellers with a role for this trip. An existing account with this email address gains access when it signs in again. Invitation emails will follow once app email is enabled. This list is also used for expense splitting and booking payers.")}
         </p>
         <div className="grid gap-2 md:grid-cols-4">
           <Input

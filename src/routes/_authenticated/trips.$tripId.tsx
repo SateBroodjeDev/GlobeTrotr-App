@@ -16,7 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
-import { canEdit, canExport, hasFeature } from "@/lib/plans";
+import { canManageTripMoney, canPlanTrip, hasFeature, ownsTrip } from "@/lib/plans";
 import {
   CATEGORIES,
   TEMPLATES,
@@ -130,7 +130,10 @@ function TripDetail() {
     profileQuery.data?.trim() ||
     String(user?.user_metadata.full_name ?? user?.email?.split("@")[0] ?? "Jij");
   const financialTravelers = travelersOf(trip, [ownerName]);
-  const editable = canEdit(state.role);
+  const accessRole = trip.accessRole ?? "owner";
+  const editable = canPlanTrip(accessRole);
+  const moneyEditable = canManageTripMoney(accessRole);
+  const tripOwner = ownsTrip(accessRole);
   const [editingBooking, setEditingBooking] = useState<TravelItem | null>(null);
   async function updateItineraryItem(item: ItineraryItem) {
     if (!editable) return;
@@ -153,8 +156,8 @@ function TripDetail() {
       throw error;
     }
   }
-  const canMarkBillable = hasFeature(state.plan, "billable_expenses");
-  const canManageReceipts = hasFeature(state.plan, "receipts");
+  const canMarkBillable = moneyEditable && hasFeature(state.plan, "billable_expenses");
+  const canManageReceipts = moneyEditable && hasFeature(state.plan, "receipts");
   const spent = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const billable = trip.expenses
     .filter((e) => e.billable)
@@ -557,7 +560,7 @@ function TripDetail() {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            disabled={!canExport(state.role)}
+            disabled={!moneyEditable}
             onClick={() => {
               downloadCsv(trip, base, rates, locale);
               toast.success(text("CSV geëxporteerd", "CSV exported"));
@@ -567,7 +570,7 @@ function TripDetail() {
           </Button>
           <Button
             variant="outline"
-            disabled={!canExport(state.role)}
+            disabled={false}
             onClick={() => {
               if (!openGuide(trip, base, rates, state.branding, locale))
                 toast.error(text("Sta pop-ups toe om de reisgids te openen.", "Allow pop-ups to open the trip guide."));
@@ -576,7 +579,7 @@ function TripDetail() {
             <BookOpen className="size-4" /> {text("Reisgids", "Trip guide")}
           </Button>
           <Button
-            disabled={!canExport(state.role)}
+            disabled={!moneyEditable}
             onClick={() => {
               if (!hasFeature(state.plan, "pdf_export")) {
                 toast.error(text("PDF-declaraties zitten in Pro en hoger.", "PDF expense reports are available on Pro and above."));
@@ -745,7 +748,7 @@ function TripDetail() {
                 label={text("Reis openbaar maken", "Make trip public")}
                 description={text("Toon deze reis op de homepage via een unieke link.", "Show this trip on the homepage through a unique link.")}
                 checked={trip.public ?? false}
-                disabled={!editable || sharingSaving}
+                disabled={!tripOwner || sharingSaving}
                 onChange={(checked) =>
                   void saveSharing(
                     { isPublic: checked },
@@ -759,7 +762,7 @@ function TripDetail() {
                     label={text("Budget delen", "Share budget")}
                     description={text("Toon het budget op de openbare reispagina.", "Show the budget on the public trip page.")}
                     checked={trip.shareFinancials ?? false}
-                    disabled={!editable || sharingSaving}
+                    disabled={!tripOwner || sharingSaving}
                     onChange={(checked) =>
                       void saveSharing(
                         { shareFinancials: checked },
@@ -782,13 +785,13 @@ function TripDetail() {
                         minLength={6}
                         maxLength={12}
                         value={sharePin}
-                        disabled={!editable || sharingSaving}
+                        disabled={!tripOwner || sharingSaving}
                         onChange={(e) => setSharePin(e.target.value.replace(/\D/g, ""))}
                         placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
                       />
                       <Button
                         variant="outline"
-                        disabled={!editable || sharingSaving || sharePin.length < 6}
+                        disabled={!tripOwner || sharingSaving || sharePin.length < 6}
                         onClick={async () => {
                           const sharePinHash = await hashSharingPin(sharePin);
                           await saveSharing(
@@ -805,7 +808,7 @@ function TripDetail() {
                       {trip.sharePinHash && (
                         <Button
                           variant="ghost"
-                          disabled={!editable || sharingSaving}
+                          disabled={!tripOwner || sharingSaving}
                           onClick={() =>
                             void saveSharing(
                               { sharePinHash: undefined },
@@ -826,7 +829,7 @@ function TripDetail() {
           <TripMembers
             members={trip.members ?? []}
             plan={state.plan}
-            editable={editable}
+            editable={tripOwner}
             ownerName={ownerName}
             ownerEmail={user?.email ?? "Eigenaar van deze reis"}
             onChange={(members) =>
@@ -847,12 +850,12 @@ function TripDetail() {
                 {text("Archiveer de reis of verwijder hem definitief.", "Archive the trip or delete it permanently.")}
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" disabled={!editable} onClick={() => void toggleArchive()}>
+                <Button variant="outline" disabled={!tripOwner} onClick={() => void toggleArchive()}>
                   <Archive className="size-4" /> {trip.archived ? text("Heractiveren", "Reactivate") : text("Archiveren", "Archive")}
                 </Button>
                 <Button
                   variant="destructive"
-                  disabled={!editable}
+                  disabled={!tripOwner}
                   onClick={async () => {
                     if (
                       window.confirm(
@@ -1071,13 +1074,13 @@ function TripDetail() {
                 <Input
                   type="date"
                   value={draft.date}
-                  disabled={!editable}
+                  disabled={!moneyEditable}
                   onChange={(e) => setDraft({ ...draft, date: e.target.value })}
                 />
                 <Input
                   className="md:col-span-2"
                   value={draft.title}
-                  disabled={!editable}
+                  disabled={!moneyEditable}
                   placeholder={text("Omschrijving", "Description")}
                   onChange={(e) => setDraft({ ...draft, title: e.target.value })}
                 />
@@ -1085,7 +1088,7 @@ function TripDetail() {
                   aria-label={text("Categorie", "Category")}
                   className="rounded-lg border border-input bg-card px-3 text-sm"
                   value={draft.category}
-                  disabled={!editable}
+                  disabled={!moneyEditable}
                   onChange={(e) =>
                     setDraft({ ...draft, category: e.target.value as ExpenseCategory })
                   }
@@ -1100,7 +1103,7 @@ function TripDetail() {
                   aria-label={text("Betaald door", "Paid by")}
                   className="rounded-lg border border-input bg-card px-3 text-sm"
                   value={draft.paidBy}
-                  disabled={!editable}
+                  disabled={!moneyEditable}
                   onChange={(e) => setDraft({ ...draft, paidBy: e.target.value })}
                 >
                   {financialTravelers.map((payer) => (
@@ -1112,7 +1115,7 @@ function TripDetail() {
                 <Input
                   type="number"
                   value={draft.amount || ""}
-                  disabled={!editable}
+                  disabled={!moneyEditable}
                   placeholder={text("Bedrag", "Amount")}
                   onChange={(e) => setDraft({ ...draft, amount: Number(e.target.value) })}
                 />
@@ -1120,7 +1123,7 @@ function TripDetail() {
                   aria-label="Valuta"
                   className="rounded-lg border border-input bg-card px-3 text-sm"
                   value={draft.currency}
-                  disabled={!editable}
+                  disabled={!moneyEditable}
                   onChange={(e) => setDraft({ ...draft, currency: e.target.value })}
                 >
                   {CURRENCIES.map((c) => (
@@ -1134,7 +1137,7 @@ function TripDetail() {
                     <input
                       type="checkbox"
                       checked={draft.billable}
-                      disabled={!editable}
+                      disabled={!moneyEditable}
                       onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
                     />
                     {text("Declarabel bij klant", "Billable to client")}
@@ -1151,7 +1154,7 @@ function TripDetail() {
                         <input
                           type="checkbox"
                           checked={selected}
-                          disabled={!editable}
+                          disabled={!moneyEditable}
                           onChange={(event) => {
                             const current = draft.splitWith?.length
                               ? draft.splitWith
@@ -1170,7 +1173,7 @@ function TripDetail() {
               </div>
               <Input
                 value={draft.notes ?? ""}
-                disabled={!editable}
+                disabled={!moneyEditable}
                 placeholder={text("Notitie (optioneel)", "Note (optional)")}
                 onChange={(event) => setDraft({ ...draft, notes: event.target.value || undefined })}
               />
@@ -1194,7 +1197,7 @@ function TripDetail() {
                     {text("Annuleren", "Cancel")}
                   </Button>
                 )}
-                <Button onClick={() => void addExpense()} disabled={!editable || expenseSaving}>
+                <Button onClick={() => void addExpense()} disabled={!moneyEditable || expenseSaving}>
                   <Plus className="size-4" />{" "}
                   {expenseSaving ? text("Opslaan…", "Saving…") : editingExpenseId ? text("Opslaan", "Save") : text("Boeken", "Add")} (
                   {formatMoney(convert(draft.amount || 0, draft.currency, base, rates), base)})
@@ -1252,7 +1255,7 @@ function TripDetail() {
                         {formatMoney(convert(e.amount, e.currency, base, rates), base)}
                       </td>
                       <td className="p-3 text-right">
-                        {editable && (
+                        {moneyEditable && (
                           <span className="inline-flex">
                             {canManageReceipts && (
                               <label
@@ -1310,7 +1313,7 @@ function TripDetail() {
             trip={trip}
             base={base}
             rates={rates}
-            editable={editable}
+            editable={moneyEditable}
             fallback={[ownerName]}
             manageTravelersInSettings
           />

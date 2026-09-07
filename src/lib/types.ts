@@ -194,6 +194,8 @@ export type PackingItem = {
 
 export type Trip = {
   id: string;
+  /** Rol van het huidige account binnen deze reis; ontbreekt bij oude lokale data en betekent eigenaar. */
+  accessRole?: TripMemberRole;
   /** Database version, kept as text to preserve BIGINT precision. */
   revision?: string;
   name: string;
