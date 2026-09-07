@@ -4,6 +4,18 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-07 23:56 CEST — Compactere reisplanning
+
+### Gebruikerservaring
+
+- De volledige tijdlijn kan nu per dag worden ingeklapt en toont bij iedere dag hoeveel onderdelen erin staan.
+- Snelle filters maken vluchten, verblijven, vervoer, huurauto's, activiteiten en eigen planning afzonderlijk zichtbaar.
+- De filterbalk blijft op smalle schermen horizontaal bereikbaar en lege filterresultaten krijgen een duidelijke melding in het Nederlands en Engels.
+
+### Controles
+
+- Negen geautomatiseerde regressietests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+
 ## 2026-09-07 23:51 CEST — Samenwerken per reis
 
 ### Gebruikerservaring

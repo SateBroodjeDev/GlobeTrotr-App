@@ -239,8 +239,8 @@ Een reis met veel bestemmingen of boekingen mag niet veranderen in één onhande
 - [x] Kaartfocus toevoegen: klik op een stop in de lijst of marker om de kaart daarop te centreren en markeer de actieve stop.
 - [x] **Reisschema** standaard als dagkiezer/timeline openen; de volledige reis blijft als bewust gekozen overzicht beschikbaar.
 - [x] **Reisschema** en **Reisschema aanpassen** als afzonderlijke tabs: de eerste is rustig en alleen-lezen, de tweede bevat boekingen en bewerkbare programma-items voor gebruikers met bewerkrechten.
-- [ ] Maak daggroepen standaard inklapbaar en behoud alleen de geselecteerde dag/openstaande bewerking; geef altijd een teller zodat niets verborgen voelt.
-- [ ] Voeg snelle filters toe voor vlucht, accommodatie, vervoer, huurauto, activiteit en handmatige planningitems.
+- [x] Daggroepen in het volledige reisoverzicht inklapbaar gemaakt, met per dag een teller; de standaard dagweergave behoudt alleen de geselecteerde dag.
+- [x] Snelle filters toegevoegd voor vlucht, accommodatie, vervoer, huurauto, activiteit en handmatige planningitems.
 - [ ] Houd directe acties zoals toevoegen, wijzigen en verwijderen bereikbaar op desktop én mobiel; test met minstens 15 stops en een reis van 14 dagen.
 
 ## P0 — Accountinstellingen

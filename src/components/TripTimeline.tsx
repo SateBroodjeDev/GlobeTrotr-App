@@ -2,8 +2,10 @@ import { useMemo, useState } from "react";
 import {
   BedDouble,
   Car,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   CircleDollarSign,
   Clock3,
   MapPin,
@@ -41,6 +43,8 @@ type TimelineEntry = {
   phase?: "start" | "ongoing" | "end";
 };
 
+type TimelineFilter = "all" | TimelineEntry["kind"];
+
 const icons = {
   manual: Ticket,
   flight: Plane,
@@ -72,7 +76,10 @@ function dateLabel(date: string, locale: "nl-NL" | "en-GB") {
   }).format(new Date(`${date}T12:00:00`));
 }
 
-function bookingEntries(item: TravelItem, text: (nl: string, en: string) => string): TimelineEntry[] {
+function bookingEntries(
+  item: TravelItem,
+  text: (nl: string, en: string) => string,
+): TimelineEntry[] {
   const end = item.endDate && item.endDate >= item.date ? item.endDate : item.date;
   const multiDay = (item.type === "lodging" || item.type === "car_rental") && end > item.date;
   if (!multiDay) {
@@ -103,7 +110,10 @@ function bookingEntries(item: TravelItem, text: (nl: string, en: string) => stri
         : isEnd
           ? `${lodging ? text("Uitchecken", "Check out") : text("Huurauto inleveren", "Return rental car")} · ${item.title}`
           : `${lodging ? text("Overnachting", "Overnight stay") : text("Huurauto beschikbaar", "Rental car available")} · ${item.title}`,
-      subtitle: isStart || isEnd ? undefined : text(`Dag ${index + 1} van ${dates.length}`, `Day ${index + 1} of ${dates.length}`),
+      subtitle:
+        isStart || isEnd
+          ? undefined
+          : text(`Dag ${index + 1} van ${dates.length}`, `Day ${index + 1} of ${dates.length}`),
       time: isStart ? item.details?.startTime : isEnd ? item.details?.endTime : undefined,
     };
   });
@@ -144,6 +154,8 @@ export function TripTimeline({
   // A long trip stays usable by opening one day at a time. The complete
   // itinerary remains one click away for overview and printing.
   const [mode, setMode] = useState<"all" | "day">("day");
+  const [filter, setFilter] = useState<TimelineFilter>("all");
+  const [collapsedDays, setCollapsedDays] = useState<Set<string>>(() => new Set());
   const [selectedDay, setSelectedDay] = useState(trip.start);
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
@@ -167,7 +179,10 @@ export function TripTimeline({
         kind: "manual",
         manual: item,
       }));
-    return [...manual, ...(trip.travelItems ?? []).flatMap((item) => bookingEntries(item, text))].sort((a, b) => {
+    return [
+      ...manual,
+      ...(trip.travelItems ?? []).flatMap((item) => bookingEntries(item, text)),
+    ].sort((a, b) => {
       const byDay = a.day.localeCompare(b.day);
       return byDay || (a.time ?? "99:99").localeCompare(b.time ?? "99:99");
     });
@@ -176,7 +191,28 @@ export function TripTimeline({
     () => Array.from(new Set([trip.start, trip.end, ...entries.map((entry) => entry.day)])).sort(),
     [entries, trip.end, trip.start],
   );
-  const visible = mode === "day" ? entries.filter((entry) => entry.day === selectedDay) : entries;
+  const filteredEntries =
+    filter === "all" ? entries : entries.filter((entry) => entry.kind === filter);
+  const visible =
+    mode === "day" ? filteredEntries.filter((entry) => entry.day === selectedDay) : filteredEntries;
+  const filterOptions: Array<{ value: TimelineFilter; label: string }> = [
+    { value: "all", label: text("Alles", "All") },
+    { value: "flight", label: text("Vluchten", "Flights") },
+    { value: "lodging", label: text("Verblijven", "Stays") },
+    { value: "transport", label: text("Vervoer", "Transport") },
+    { value: "car_rental", label: text("Huurauto's", "Rental cars") },
+    { value: "activity", label: text("Activiteiten", "Activities") },
+    { value: "manual", label: text("Eigen planning", "Custom items") },
+  ];
+
+  function toggleDay(day: string) {
+    setCollapsedDays((current) => {
+      const next = new Set(current);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return next;
+    });
+  }
 
   function moveDay(direction: number) {
     const current = dates.indexOf(selectedDay);
@@ -199,7 +235,8 @@ export function TripTimeline({
   }
 
   async function removeManualItem(id: string) {
-    if (!window.confirm(text("Dit programma-item verwijderen?", "Delete this itinerary item?"))) return;
+    if (!window.confirm(text("Dit programma-item verwijderen?", "Delete this itinerary item?")))
+      return;
     setSaving(true);
     try {
       await onRemove(id);
@@ -255,7 +292,9 @@ export function TripTimeline({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{text("Programma-item wijzigen", "Edit itinerary item")}</DialogTitle>
-              <DialogDescription>{text("Pas de datum, naam of notities aan.", "Change the date, name or notes.")}</DialogDescription>
+              <DialogDescription>
+                {text("Pas de datum, naam of notities aan.", "Change the date, name or notes.")}
+              </DialogDescription>
             </DialogHeader>
             {editing && (
               <form
@@ -294,7 +333,9 @@ export function TripTimeline({
                       {text("Annuleren", "Cancel")}
                     </Button>
                     <Button type="submit" disabled={!editing.title.trim() || !editing.day}>
-                      {saving ? text("Opslaan…", "Saving…") : text("Wijzigingen opslaan", "Save changes")}
+                      {saving
+                        ? text("Opslaan…", "Saving…")
+                        : text("Wijzigingen opslaan", "Save changes")}
                     </Button>
                   </div>
                 </fieldset>
@@ -304,7 +345,12 @@ export function TripTimeline({
         </Dialog>
         {mode === "day" && (
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/35 p-2">
-            <Button size="icon" variant="ghost" aria-label={text("Vorige dag", "Previous day")} onClick={() => moveDay(-1)}>
+            <Button
+              size="icon"
+              variant="ghost"
+              aria-label={text("Vorige dag", "Previous day")}
+              onClick={() => moveDay(-1)}
+            >
               <ChevronLeft className="size-4" />
             </Button>
             <Input
@@ -326,6 +372,25 @@ export function TripTimeline({
             </Button>
           </div>
         )}
+
+        <div
+          className="flex gap-2 overflow-x-auto pb-1"
+          aria-label={text("Filter dagplanning", "Filter itinerary")}
+        >
+          {filterOptions.map((option) => (
+            <Button
+              key={option.value}
+              type="button"
+              size="sm"
+              variant={filter === option.value ? "default" : "outline"}
+              className="shrink-0"
+              aria-pressed={filter === option.value}
+              onClick={() => setFilter(option.value)}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
 
         {editable && (
           <div className="grid items-end gap-2 rounded-xl border border-border p-3 sm:grid-cols-[10rem_minmax(0,1fr)_auto]">
@@ -351,13 +416,18 @@ export function TripTimeline({
                 void addManualItem();
               }}
             >
-              <Plus className="size-4" /> {saving ? text("Opslaan…", "Saving…") : text("Toevoegen", "Add")}
+              <Plus className="size-4" />{" "}
+              {saving ? text("Opslaan…", "Saving…") : text("Toevoegen", "Add")}
             </Button>
           </div>
         )}
 
         {visible.length === 0 ? (
-          <p className="py-4 text-sm text-muted-foreground">{text("Nog geen onderdelen voor deze dag.", "No items for this day yet.")}</p>
+          <p className="py-4 text-sm text-muted-foreground">
+            {filter === "all"
+              ? text("Nog geen onderdelen voor deze dag.", "No items for this day yet.")
+              : text("Geen onderdelen die bij dit filter passen.", "No items match this filter.")}
+          </p>
         ) : (
           <div className="space-y-6">
             {dates
@@ -365,12 +435,42 @@ export function TripTimeline({
               .map((day) => {
                 const dayEntries = visible.filter((entry) => entry.day === day);
                 if (!dayEntries.length && mode === "all") return null;
+                const collapsed = mode === "all" && collapsedDays.has(day);
                 return (
                   <section key={day} className="space-y-3">
-                    <h3 className="font-display text-base font-semibold capitalize">
-                      {dateLabel(day, locale)}
-                    </h3>
-                    <div className="relative space-y-3 border-l border-border pl-5 before:absolute before:-left-1 before:top-1 before:size-2 before:rounded-full before:bg-primary">
+                    {mode === "all" ? (
+                      <button
+                        type="button"
+                        className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1 text-left hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        aria-expanded={!collapsed}
+                        aria-controls={`timeline-day-${day}`}
+                        onClick={() => toggleDay(day)}
+                      >
+                        <span className="font-display text-base font-semibold capitalize">
+                          {dateLabel(day, locale)}
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                          {dayEntries.length}{" "}
+                          {dayEntries.length === 1
+                            ? text("onderdeel", "item")
+                            : text("onderdelen", "items")}
+                          {collapsed ? (
+                            <ChevronDown className="size-4" />
+                          ) : (
+                            <ChevronUp className="size-4" />
+                          )}
+                        </span>
+                      </button>
+                    ) : (
+                      <h3 className="font-display text-base font-semibold capitalize">
+                        {dateLabel(day, locale)}
+                      </h3>
+                    )}
+                    <div
+                      id={`timeline-day-${day}`}
+                      hidden={collapsed}
+                      className="relative space-y-3 border-l border-border pl-5 before:absolute before:-left-1 before:top-1 before:size-2 before:rounded-full before:bg-primary"
+                    >
                       {dayEntries.map((entry) => {
                         const Icon = icons[entry.kind];
                         const amount = entry.item?.amount;
@@ -406,7 +506,10 @@ export function TripTimeline({
                                   size="sm"
                                   variant="ghost"
                                   disabled={saving}
-                                  aria-label={text(`${entry.title} wijzigen`, `Edit ${entry.title}`)}
+                                  aria-label={text(
+                                    `${entry.title} wijzigen`,
+                                    `Edit ${entry.title}`,
+                                  )}
                                   onClick={() => {
                                     if (entry.manual) setEditing({ ...entry.manual });
                                     else if (entry.item) onEditBooking?.(entry.item);
@@ -419,7 +522,10 @@ export function TripTimeline({
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  aria-label={text("Verwijder programma-item", "Delete itinerary item")}
+                                  aria-label={text(
+                                    "Verwijder programma-item",
+                                    "Delete itinerary item",
+                                  )}
                                   disabled={saving}
                                   onClick={() => void removeManualItem(entry.manual!.id)}
                                 >
@@ -448,7 +554,11 @@ export function TripTimeline({
         )}
         {entries.some((entry) => entry.item?.amount) && (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <CircleDollarSign className="size-3" /> {text("Kosten zijn gekoppeld aan het reisonderdeel en staan ook bij Uitgaven.", "Costs are linked to the travel item and also appear under Expenses.")}
+            <CircleDollarSign className="size-3" />{" "}
+            {text(
+              "Kosten zijn gekoppeld aan het reisonderdeel en staan ook bij Uitgaven.",
+              "Costs are linked to the travel item and also appear under Expenses.",
+            )}
           </p>
         )}
       </CardContent>
