@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3,
+  BookOpenText,
   CreditCard,
   LogIn,
   LogOut,
@@ -242,9 +243,21 @@ function AppShellContent({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
-      <footer className="mx-auto max-w-7xl px-4 pb-10 pt-4 text-xs text-muted-foreground">
-        {state.branding.brandName} — {state.branding.tagline} · Kaartdata © OpenStreetMap · Weer via
-        Open-Meteo · Koersen via Frankfurter/ECB
+      <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-4 pb-10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <p>
+          {state.branding.brandName} — {state.branding.tagline}
+        </p>
+        <nav aria-label="Voetnavigatie" className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link
+            to="/changelog"
+            className="inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"
+          >
+            <BookOpenText className="size-3.5" /> Wat is er nieuw?
+          </Link>
+          <span>Kaartdata © OpenStreetMap</span>
+          <span>Weer via Open-Meteo</span>
+          <span>Koersen via Frankfurter/ECB</span>
+        </nav>
       </footer>
     </div>
   );

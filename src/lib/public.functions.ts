@@ -1,6 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 
-export type PublicStop = { name: string; country: string; lat: number; lon: number };
+export type PublicStop = {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+  arrive?: string;
+  nights?: number;
+};
 export type PublicDay = { day: string; title: string; notes?: string | undefined };
 
 export type PublicTripCard = {
@@ -41,7 +48,11 @@ type RelationalTrip = {
   share_pin_hash: string | null;
 };
 
-type RelationalStop = PublicStop & { trip_uuid: string };
+type RelationalStop = Omit<PublicStop, "arrive"> & {
+  trip_uuid: string;
+  arrive_date?: string | null;
+  position?: number;
+};
 type RelationalDay = PublicDay & { trip_uuid: string; position: number };
 type WorkspaceBrand = { user_id: string; public_token: string; branding: unknown; data: unknown };
 type PublicProfile = { id: string; display_name: string | null; email: string | null };
@@ -75,7 +86,10 @@ function relationalCard(
     start: trip.start_date ?? "",
     end: trip.end_date ?? "",
     authorName,
-    stops: stops.map(({ trip_uuid: _tripUuid, ...stop }) => stop),
+    stops: stops.map(({ trip_uuid: _tripUuid, arrive_date, position: _position, ...stop }) => ({
+      ...stop,
+      ...(arrive_date ? { arrive: arrive_date } : {}),
+    })),
   };
 }
 
@@ -94,6 +108,8 @@ function card(row: Row, t: AnyTrip, authorName: string): PublicTripCard {
       country: String(s["country"] ?? ""),
       lat: Number(s["lat"] ?? 0),
       lon: Number(s["lon"] ?? 0),
+      ...(s["arrive"] ? { arrive: String(s["arrive"]) } : {}),
+      ...(Number.isFinite(Number(s["nights"])) ? { nights: Number(s["nights"]) } : {}),
     })),
   };
 }
@@ -116,7 +132,11 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
     const tripIds = trips.map((trip) => trip.trip_uuid);
     const workspaceIds = [...new Set(trips.map((trip) => trip.workspace_user_id))];
     const [{ data: stops }, { data: workspaces }, { data: profiles }] = await Promise.all([
-      db.from("trip_stops").select("trip_uuid, name, country, lat, lon").in("trip_uuid", tripIds),
+      db
+        .from("trip_stops")
+        .select("trip_uuid, name, country, lat, lon, arrive_date, nights, position")
+        .in("trip_uuid", tripIds)
+        .order("position"),
       db
         .from("workspaces")
         .select("user_id, public_token, branding, data")
@@ -158,7 +178,10 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
   const { data: profiles } = await db
     .from("profiles")
     .select("id, display_name, email")
-    .in("id", rows.map((row) => row.user_id));
+    .in(
+      "id",
+      rows.map((row) => row.user_id),
+    );
   const profilesByUser = new Map(
     ((profiles ?? []) as PublicProfile[]).map((profile) => [profile.id, profile]),
   );
@@ -223,7 +246,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       const [{ data: stops }, { data: itinerary }] = await Promise.all([
         db
           .from("trip_stops")
-          .select("trip_uuid, name, country, lat, lon")
+          .select("trip_uuid, name, country, lat, lon, arrive_date, nights, position")
           .eq("trip_uuid", normalizedTrip.trip_uuid)
           .order("position"),
         db

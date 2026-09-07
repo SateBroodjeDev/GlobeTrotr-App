@@ -6,15 +6,18 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Actuele stand — 7 september 2026
 
+- [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
+- [x] Publieke pagina `/changelog` toegevoegd met gebruikersgerichte releases, categorie-iconen, datum en tijd; link staat in de footer.
 - [x] Herstelmigratie `20260907150000_fix_snapshot_column_ambiguity.sql` uitgevoerd, bevestigd door de gebruiker. De atomaire opslagfunctie gebruikt expliciete kolomverwijzingen voor `trip_uuid` en `updated_at`.
 - [x] Publieke reispagina toont ingelogde gebruikers **Naar mijn reizen** in plaats van **Gratis account maken**; tijdens het laden van de sessie verschijnt geen registratieknop.
 - [x] Mobiele boekingsvelden begrensd en uitgavenoverzicht binnen de kaart horizontaal scrollbaar gemaakt.
 - [x] Accountinstellingen tonen huidig plan, reisgebruik, actieve reizen en planlimiet, met een link naar upgrades/abonnementbeheer.
 - [ ] Productiecontrole: bestaande uitgave wijzigen, pagina herladen en controleren dat bedrag, betaler en verdeling behouden blijven; vluchtvelden en uitgavenoverzicht op telefoon controleren.
 - [x] Versiecontrole gebouwd voor reisopslag, publicatie en verwijderen; lokale opslagacties lopen per reis achter elkaar. Een conflict of onzekere opslag blokkeert verdere writes tot herladen.
-- [ ] Activeer met `20260907160000_trip_snapshot_versions.sql` en publiceer de bijbehorende appcode aansluitend. De migratie trekt de oude onbeschermde RPC-rechten in: oude appcode kan daarna geen snapshots meer opslaan. Nieuwe code slaat zonder migratie evenmin op. Herlaad open tabbladen na uitrol.
-- [x] Drie geautomatiseerde wachtrijtests geslaagd: volgorde/versiedoorgifte, blokkeren na fout en geen opslag na verwijderen. Productiebuild geslaagd; de bestaande projectbrede TypeScript-fouten blijven open.
-- [ ] Voer `supabase/tests/trip_snapshot_versions.sql` uit voor versieconflicten, ontbrekende versie, verkeerde eigenaar, atomaire rollback en verwijderen. Test daarna dezelfde reis in twee tabbladen: sla in A op, controleer de conflictmelding in B en herlaad B. De SQL-test draait testdata terug; hij is lokaal nog niet uitgevoerd.
+- [x] `20260907160000_trip_snapshot_versions.sql` uitgevoerd, bevestigd door de gebruiker. De migratie trekt de oude onbeschermde RPC-rechten in; de bijbehorende appcode gebruikt de gecontroleerde opslagroute.
+- [ ] Controleer de laatste appversie in productie en herlaad open tabbladen vóór de praktijktest.
+- [x] Drie geautomatiseerde wachtrijtests geslaagd: volgorde/versiedoorgifte, blokkeren na fout en geen opslag na verwijderen. Gerichte TypeScript-controle van de wachtrij en tests, formatteringscontrole en productiebuild geslaagd; bestaande projectbrede TypeScript-fouten blijven open.
+- [ ] Controleer dat `supabase/tests/trip_snapshot_versions.sql` zonder foutmelding is voltooid; uitvoering is lokaal niet geverifieerd. Test dezelfde reis in twee tabbladen: sla in A op, controleer de conflictmelding in B en herlaad B. De SQL-test draait testdata terug.
 - [ ] Volgende stap na deze controles: geaccepteerde reisleden aansluiten op de bestaande relationele rechten en RLS per rol testen. E-mailbezorging blijft apart geblokkeerd op activering.
 
 OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en domeinverificatie. Overige migraties worden alleen als uitgevoerd gemarkeerd wanneer dat is bevestigd. SkyLink-configuratie en live tests blijven open.
@@ -85,7 +88,21 @@ OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en
 - [x] PDF-reisoverzicht
 - [x] Bonnetjes uploaden en koppelen aan een uitgave voor het Agency-plan: private `receipts`-opslag per account, PDF/JPG/PNG/WebP tot 10 MB, signed viewing-link en opruimen wanneer de databasekoppeling mislukt
 - [ ] Boekingsbevestigingen als document koppelen aan een reisonderdeel
-- [ ] De public view pagina mooi en overzichtelijker maken met bijvoorbeeld weer en een kaart
+
+### Publieke viewingpage vernieuwen
+
+De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling informatieblokken. Maak hiervan een aantrekkelijke, deelbare reisbeleving die ook op telefoon prettig leest.
+
+- [x] Een visuele hero met reisnaam, periode, eigenaar, bestemmingen en een template-illustratie/fallback
+- [x] Een interactieve routekaart met genummerde markers, routevolgorde en focus op een geselecteerde bestemming
+- [x] Bestemmingen presenteren als compacte route met aankomstdatum en aantal nachten wanneer ingevuld
+- [x] Handmatige dagplanning tonen als overzichtelijke dagkaarten en tijdlijn
+- [ ] Expliciet deelbare boekingsinformatie aan de publieke dagplanning toevoegen; bepaal eerst per veld wat openbaar mag zijn
+- [ ] Weer per bestemming tonen wanneer dit binnen het gekozen plan en de gedeelde gegevens beschikbaar is
+- [x] Budget alleen tonen wanneer **Budget delen** aanstaat; de publieke serverroute stuurt geen uitgaven, betalers, bonnetjes of boekingsdetails mee
+- [x] Een compacte GlobeTrotr-call-to-action tonen; ingelogde gebruikers gaan naar **Mijn reizen**, bezoekers kunnen een account maken
+- [ ] Mobiele vormgeving in productie controleren op smalle schermen, lange reisnamen en veel stops
+- [x] Verzorgde laad-, lege, PIN- en niet-beschikbaarstatussen in dezelfde visuele stijl
 
 ## Fase 7 — Abonnementen & Agency (deels klaar)
 
