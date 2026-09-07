@@ -20,12 +20,12 @@ export type PublicRelease = {
 };
 
 export const PUBLIC_BETA_STATUS = {
-  label: "Voorbereiding testopening",
-  labelEn: "Preparing the test launch",
+  label: "Internationale testopening",
+  labelEn: "International test launch",
   description:
-    "De kern van GlobeTrotr wordt klaargemaakt voor de eerste groep testers. Reizen plannen, kosten bijhouden en openbaar delen staan centraal in deze test.",
+    "GlobeTrotr is geopend voor de eerste groep internationale testers. Reizen plannen, kosten bijhouden en openbaar delen staan centraal in deze test.",
   descriptionEn:
-    "The core of GlobeTrotr is being prepared for the first group of testers, centred on planning, expenses and public trip sharing.",
+    "GlobeTrotr is open to its first group of international testers, centred on planning, expenses and public trip sharing.",
   unavailable: [
     { nl: "Inloggen met Apple, Google of Microsoft", en: "Sign in with Apple, Google or Microsoft" },
     { nl: "Automatische app-e-mails en reisuitnodigingen per e-mail", en: "Automated app emails and trip invitations by email" },
@@ -34,6 +34,46 @@ export const PUBLIC_BETA_STATUS = {
 
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-07-international-test-launch",
+    version: "Beta 0.6",
+    publishedAt: "2026-09-07T23:34:00+02:00",
+    title: "De internationale test is geopend",
+    titleEn: "The international test is open",
+    summary:
+      "De belangrijkste reisstromen zijn in de praktijk gecontroleerd en klaar voor de eerste testers.",
+    summaryEn:
+      "The essential travel flows have been tested in practice and are ready for the first testers.",
+    changes: [
+      {
+        kind: "new",
+        title: "Testopening",
+        titleEn: "Test launch",
+        description:
+          "Reisplanning, boekingen, uitgaven, exports en openbaar delen zijn beschikbaar voor de eerste internationale testgroep.",
+        descriptionEn:
+          "Trip planning, bookings, expenses, exports and public sharing are available to the first international test group.",
+      },
+      {
+        kind: "improved",
+        title: "Gecontroleerd op mobiel",
+        titleEn: "Verified on mobile",
+        description:
+          "De belangrijkste schermen en formulieren zijn op een echte telefoon gecontroleerd.",
+        descriptionEn:
+          "The main screens and forms have been verified on a real phone.",
+      },
+      {
+        kind: "fixed",
+        title: "Betrouwbare reisopslag",
+        titleEn: "Reliable trip saving",
+        description:
+          "Wijzigingen aan reizen en uitgaven blijven na herladen correct bewaard.",
+        descriptionEn:
+          "Changes to trips and expenses remain correctly saved after reloading.",
+      },
+    ],
+  },
   {
     id: "2026-09-07-international-beta-foundation",
     version: "Beta 0.5",

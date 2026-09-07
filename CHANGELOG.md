@@ -4,6 +4,32 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-07 23:34 CEST — Internationale testopening
+
+### Vrijgegeven voor testers
+
+- De Nederlandse en Engelse gebruikersstromen zijn gereed voor de internationale betatest.
+- Registratie met e-mail, reisbeheer, bestemmingen, planning, boekingen, uitgaven, verdeling, paklijst en exports zijn in de praktijk gecontroleerd.
+- Publiek delen is gecontroleerd met en zonder PIN, met financiële informatie aan en uit, met lege en uitgebreide reizen.
+- Dashboard, formulieren, uitgaven, publieke reizen en changelog zijn op een echte telefoon gecontroleerd.
+- Free-, Pro- en Agency-scenario's zijn doorlopen.
+
+### Bekende beperkingen
+
+- OAuth en automatische app-e-mails maken bewust nog geen deel uit van deze testopening.
+
+### Controles
+
+- De beheerder heeft op 7 september 2026 bevestigd dat de volledige rooktest is geslaagd.
+- Zeven geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+
+### Privacy-audit na vrijgave
+
+- De openbare reisindex toont geen PIN-beveiligde reizen meer; deze blijven alleen via hun directe link en geldige PIN bereikbaar.
+- Een ontbrekende profielnaam valt openbaar terug op een neutrale reizigersnaam en gebruikt geen deel van het e-mailadres.
+- Gearchiveerde reizen zijn ook via bestaande openbare links niet meer opvraagbaar.
+- `20260907234000_restrict_trip_financials.sql` beperkt relationele uitgaven tot owner, traveler, advisor en finance. Uitvoering en de bijbehorende SQL-test moeten nog worden bevestigd.
+
 ## 2026-09-07 19:30 CEST — Basis voor internationale beta
 
 ### Gebruikerservaring

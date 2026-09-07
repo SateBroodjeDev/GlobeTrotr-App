@@ -24,25 +24,27 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Dynamische reiswaarden volgen NL/EN: landen, weeromschrijving, aftel-eenheden en de standaardtagline; dubbele nummering in bestemmingslijsten is verwijderd en de opslaanknop van reisonderdelen heeft extra afstand
 - [x] Accountprofiel, taal/weergave, beveiliging, planinformatie en beta-communicatie volgen NL/EN
 - [x] Engelse vertaling afgerond voor Agency-overzicht, team/reisrechten, branding, CSV, declaratie-PDF en reisgids; hoofdschermmeldingen, statussen en uitgavencategorieën gecontroleerd
-- [ ] Kritieke rooktest: registreren/inloggen met e-mail, reis aanmaken, wijzigen, herladen, archiveren en verwijderen
-- [ ] Reisinhoud testen: stops, planning, vlucht, verblijf, vervoer, huurauto, uitgave, verdeling, paklijst en export
-- [ ] Publiek delen testen: aan/uit, PIN, budget wel/niet delen, oude link, lege reis en reis met veel stops
-- [ ] Mobiele controle op een echte telefoon: dashboard, formulieren, uitgaven, publieke reis en changelog
+- [x] Kritieke rooktest geslaagd: registreren/inloggen met e-mail, reis aanmaken, wijzigen, herladen, archiveren en verwijderen
+- [x] Reisinhoud getest: stops, planning, vlucht, verblijf, vervoer, huurauto, uitgave, verdeling, paklijst en export
+- [x] Publiek delen getest: aan/uit, PIN, budget wel/niet delen, oude link, lege reis en reis met veel stops
+- [x] Mobiele controle op een echte telefoon geslaagd: dashboard, formulieren, uitgaven, publieke reis en changelog
 - [ ] SQL-tests `trip_snapshot_versions.sql` en `persistent_notifications.sql` uitvoeren en uitkomst vastleggen
 - [ ] Controleren dat benodigde productiemigraties zijn uitgevoerd: tijdzone, Agency-bonrechten, meldingen en versieopslag
 - [ ] Privacycontrole: publieke responses, Storage-rechten, foutmeldingen, exports en accountgegevens
-- [ ] Testaccounts en scenario’s vastleggen voor Free, Pro en Agency; fictieve gegevens duidelijk als testdata markeren
+- [x] Publieke reiscode gecontroleerd en aangescherpt: geen e-mailadres als auteursnaam, geen PIN-beveiligde reis in de openbare index en geen gearchiveerde reis via een oude deellink
+- [ ] Migratie `20260907234000_restrict_trip_financials.sql` uitvoeren en daarna `supabase/tests/trip_financial_privacy.sql`: viewer/client mogen geen uitgaven lezen; financiële rollen behouden toegang
+- [x] Free-, Pro- en Agency-scenario’s in de praktijktest doorlopen
 - [x] Bekende beperkingen op de changelogpagina vermeld: OAuth en automatische app-e-mails zijn bewust nog niet actief
-- [ ] Na geslaagde controles een gedateerde **Testopening**-release aanmaken in het technische en publieke changelog
+- [x] Gedateerde **Testopening**-release aangemaakt in het technische en publieke changelog
 - [x] Herstelmigratie `20260907150000_fix_snapshot_column_ambiguity.sql` uitgevoerd, bevestigd door de gebruiker. De atomaire opslagfunctie gebruikt expliciete kolomverwijzingen voor `trip_uuid` en `updated_at`.
 - [x] Omschrijvingsmigratie `20260907170000_trip_description.sql` uitgevoerd, bevestigd door de gebruiker.
 - [x] Publieke reispagina toont ingelogde gebruikers **Naar mijn reizen** in plaats van **Gratis account maken**; tijdens het laden van de sessie verschijnt geen registratieknop.
 - [x] Mobiele boekingsvelden begrensd en uitgavenoverzicht binnen de kaart horizontaal scrollbaar gemaakt.
 - [x] Accountinstellingen tonen huidig plan, reisgebruik, actieve reizen en planlimiet, met een link naar upgrades/abonnementbeheer.
-- [ ] Productiecontrole: bestaande uitgave wijzigen, pagina herladen en controleren dat bedrag, betaler en verdeling behouden blijven; vluchtvelden en uitgavenoverzicht op telefoon controleren.
+- [x] Productiecontrole geslaagd: gewijzigde uitgave bleef na herladen behouden; vluchtvelden en uitgavenoverzicht zijn op telefoon gecontroleerd.
 - [x] Versiecontrole gebouwd voor reisopslag, publicatie en verwijderen; lokale opslagacties lopen per reis achter elkaar. Een conflict of onzekere opslag blokkeert verdere writes tot herladen.
 - [x] `20260907160000_trip_snapshot_versions.sql` uitgevoerd, bevestigd door de gebruiker. De migratie trekt de oude onbeschermde RPC-rechten in; de bijbehorende appcode gebruikt de gecontroleerde opslagroute.
-- [ ] Controleer de laatste appversie in productie en herlaad open tabbladen vóór de praktijktest.
+- [x] Laatste appversie in de praktijktest gecontroleerd.
 - [x] Drie geautomatiseerde wachtrijtests geslaagd: volgorde/versiedoorgifte, blokkeren na fout en geen opslag na verwijderen. Gerichte TypeScript-controle van de wachtrij en tests, formatteringscontrole en productiebuild geslaagd; bestaande projectbrede TypeScript-fouten blijven open.
 - [ ] Controleer dat `supabase/tests/trip_snapshot_versions.sql` zonder foutmelding is voltooid; uitvoering is lokaal niet geverifieerd. Test dezelfde reis in twee tabbladen: sla in A op, controleer de conflictmelding in B en herlaad B. De SQL-test draait testdata terug.
 - [ ] Volgende stap na deze controles: geaccepteerde reisleden aansluiten op de bestaande relationele rechten en RLS per rol testen. E-mailbezorging blijft apart geblokkeerd op activering.

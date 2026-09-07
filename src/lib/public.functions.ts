@@ -57,20 +57,24 @@ type RelationalStop = Omit<PublicStop, "arrive"> & {
 };
 type RelationalDay = PublicDay & { trip_uuid: string; position: number };
 type WorkspaceBrand = { user_id: string; public_token: string; branding: unknown; data: unknown };
-type PublicProfile = { id: string; display_name: string | null; email: string | null };
+type PublicProfile = { id: string; display_name: string | null };
 type UntypedSupabase = { from: (relation: string) => any };
 
 type AnyTrip = Record<string, unknown>;
 
-function tripsOf(row: Row): AnyTrip[] {
+function tripsOf(row: Row, includePinProtected = true): AnyTrip[] {
   const data = row.data as { trips?: AnyTrip[] } | null;
   if (!data || !Array.isArray(data.trips)) return [];
-  return data.trips.filter((t) => t && (t as { public?: boolean }).public === true);
+  return data.trips.filter(
+    (t) =>
+      t &&
+      (t as { public?: boolean }).public === true &&
+      (includePinProtected || !(t as { sharePinHash?: unknown }).sharePinHash),
+  );
 }
 
 function authorOf(profile?: PublicProfile): string {
   if (profile?.display_name?.trim()) return profile.display_name.trim();
-  if (profile?.email) return profile.email.split("@")[0] || "Een GlobeTrotr-reiziger";
   return "Een GlobeTrotr-reiziger";
 }
 
@@ -127,6 +131,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
       "trip_uuid, workspace_user_id, name, description, template, start_date, end_date, budget, share_financials, share_pin_hash",
     )
     .eq("is_public", true)
+    .is("share_pin_hash", null)
     .eq("archived", false)
     .limit(60);
 
@@ -145,7 +150,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
         .from("workspaces")
         .select("user_id, public_token, branding, data")
         .in("user_id", workspaceIds),
-      db.from("profiles").select("id, display_name, email").in("id", workspaceIds),
+      db.from("profiles").select("id, display_name").in("id", workspaceIds),
     ]);
     const stopsByTrip = new Map<string, RelationalStop[]>();
     for (const stop of (stops ?? []) as RelationalStop[]) {
@@ -181,7 +186,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
   const rows = (data ?? []) as Row[];
   const { data: profiles } = await db
     .from("profiles")
-    .select("id, display_name, email")
+    .select("id, display_name")
     .in(
       "id",
       rows.map((row) => row.user_id),
@@ -192,7 +197,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
   const out: PublicTripCard[] = [];
   for (const row of rows) {
     const authorName = authorOf(profilesByUser.get(row.user_id));
-    for (const t of tripsOf(row)) out.push(card(row, t, authorName));
+    for (const t of tripsOf(row, false)) out.push(card(row, t, authorName));
   }
   return out.slice(0, 60);
 });
@@ -212,7 +217,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     const workspace = data as WorkspaceBrand;
     const { data: profile } = await db
       .from("profiles")
-      .select("id, display_name, email")
+      .select("id, display_name")
       .eq("id", workspace.user_id)
       .maybeSingle();
     const authorName = authorOf(profile as PublicProfile | null | undefined);
@@ -224,6 +229,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       .eq("workspace_user_id", workspace.user_id)
       .eq("trip_uuid", input.tripId)
       .eq("is_public", true)
+      .eq("archived", false)
       .maybeSingle();
     // Oude URLs hebben nog de tijdelijke tekst-ID. Houd deze bruikbaar totdat
     // de private app en JSON-cache volledig op de UUID werken.
@@ -237,6 +243,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
             .eq("workspace_user_id", workspace.user_id)
             .eq("id", input.tripId)
             .eq("is_public", true)
+            .eq("archived", false)
             .maybeSingle()
         : { data: null };
     const normalizedTrip = (byUuid ?? byLegacyId) as RelationalTrip | null;
@@ -275,7 +282,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
 
     const row = data as Row;
     const trip = tripsOf(row).find((t) => String(t["id"]) === input.tripId);
-    if (!trip) return { status: "not_found" } as PublicTripResult;
+    if (!trip || trip["archived"] === true) return { status: "not_found" } as PublicTripResult;
     const pinHash = typeof trip["sharePinHash"] === "string" ? trip["sharePinHash"] : null;
     if (pinHash && (await hashPin(input.pin ?? "")) !== pinHash) {
       return { status: "pin_required" } as PublicTripResult;
