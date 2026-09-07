@@ -4,6 +4,10 @@ BEGIN;
 CREATE TEMP TABLE notification_test_ids AS
   SELECT gen_random_uuid() AS owner_id, gen_random_uuid() AS member_id, gen_random_uuid() AS trip_id;
 
+-- De test schakelt naar `authenticated` en blijft deze tijdelijke UUID's
+-- gebruiken. Het tijdelijke leesrecht verdwijnt samen met de ROLLBACK.
+GRANT SELECT ON notification_test_ids TO authenticated;
+
 INSERT INTO auth.users(id, email, email_confirmed_at)
 SELECT owner_id, owner_id::TEXT || '@example.invalid', now() FROM notification_test_ids
 UNION ALL

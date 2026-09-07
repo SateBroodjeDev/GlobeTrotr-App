@@ -28,7 +28,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - De openbare reisindex toont geen PIN-beveiligde reizen meer; deze blijven alleen via hun directe link en geldige PIN bereikbaar.
 - Een ontbrekende profielnaam valt openbaar terug op een neutrale reizigersnaam en gebruikt geen deel van het e-mailadres.
 - Gearchiveerde reizen zijn ook via bestaande openbare links niet meer opvraagbaar.
-- `20260907234000_restrict_trip_financials.sql` beperkt relationele uitgaven tot owner, traveler, advisor en finance. Uitvoering en de bijbehorende SQL-test moeten nog worden bevestigd.
+- `20260907234000_restrict_trip_financials.sql` beperkt relationele uitgaven tot owner, traveler, advisor en finance. De migratie en regressietest zijn op 7 september 2026 volledig en zonder foutmelding uitgevoerd.
 
 ## 2026-09-07 19:30 CEST — Basis voor internationale beta
 

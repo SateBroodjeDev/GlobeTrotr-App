@@ -30,9 +30,9 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Mobiele controle op een echte telefoon geslaagd: dashboard, formulieren, uitgaven, publieke reis en changelog
 - [ ] SQL-tests `trip_snapshot_versions.sql` en `persistent_notifications.sql` uitvoeren en uitkomst vastleggen
 - [ ] Controleren dat benodigde productiemigraties zijn uitgevoerd: tijdzone, Agency-bonrechten, meldingen en versieopslag
-- [ ] Privacycontrole: publieke responses, Storage-rechten, foutmeldingen, exports en accountgegevens
+- [x] Privacy- en rechtencontrole afgerond voor publieke responses, PIN-links, gearchiveerde reizen, publieke auteursnaam, financiële RLS, private bonnetjesopslag, foutmeldingen, exports en accountgegevens
 - [x] Publieke reiscode gecontroleerd en aangescherpt: geen e-mailadres als auteursnaam, geen PIN-beveiligde reis in de openbare index en geen gearchiveerde reis via een oude deellink
-- [ ] Migratie `20260907234000_restrict_trip_financials.sql` uitvoeren en daarna `supabase/tests/trip_financial_privacy.sql`: viewer/client mogen geen uitgaven lezen; financiële rollen behouden toegang
+- [x] Migratie `20260907234000_restrict_trip_financials.sql` en `supabase/tests/trip_financial_privacy.sql` volledig uitgevoerd; viewer/client lezen geen uitgaven en financiële rollen behouden toegang
 - [x] Free-, Pro- en Agency-scenario’s in de praktijktest doorlopen
 - [x] Bekende beperkingen op de changelogpagina vermeld: OAuth en automatische app-e-mails zijn bewust nog niet actief
 - [x] Gedateerde **Testopening**-release aangemaakt in het technische en publieke changelog
