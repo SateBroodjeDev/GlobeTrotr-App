@@ -6,6 +6,11 @@ CREATE TEMP TABLE financial_privacy_ids AS
 SELECT gen_random_uuid() AS owner_id, gen_random_uuid() AS viewer_id,
   gen_random_uuid() AS finance_id, gen_random_uuid() AS trip_id;
 
+-- De test schakelt later naar de database-rol `authenticated`. Geef die rol
+-- alleen leesrecht op de tijdelijke UUID's die nodig zijn om de JWT-claim te
+-- wisselen. De tabel en dit recht verdwijnen automatisch bij ROLLBACK.
+GRANT SELECT ON financial_privacy_ids TO authenticated;
+
 INSERT INTO auth.users(id, email, email_confirmed_at)
 SELECT owner_id, owner_id::TEXT || '@example.invalid', now() FROM financial_privacy_ids
 UNION ALL
