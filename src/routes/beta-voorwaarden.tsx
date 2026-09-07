@@ -1,29 +1,42 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Beaker, CircleAlert, Handshake } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Beaker, Bug, CheckCircle2, CircleAlert, ArrowRight, Globe2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
+import { PUBLIC_BETA_STATUS } from "@/lib/public-changelog";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/beta-voorwaarden")({
-  head: () => ({ meta: [{ title: "Beta-voorwaarden — GlobeTrotr" }, { name: "description", content: "Voorwaarden voor deelname aan de GlobeTrotr-beta." }] }),
+  head: () => ({ meta: [{ title: "Beta testen — GlobeTrotr" }, { name: "description", content: "Help GlobeTrotr verbeteren: testscenario's, bekende beperkingen en beta-voorwaarden." }] }),
   component: BetaTermsPage,
 });
 
 function BetaTermsPage() {
   const { text } = useLocale();
-  const items = [
-    { icon: Beaker, title: text("Testversie", "Test version"), body: text("GlobeTrotr is tijdens deze beta in ontwikkeling. Functies kunnen veranderen en tijdelijke fouten of onderbrekingen zijn mogelijk.", "GlobeTrotr remains under development during this beta. Features may change and temporary errors or interruptions may occur.") },
-    { icon: CircleAlert, title: text("Controleer belangrijke gegevens", "Check important details"), body: text("GlobeTrotr verkoopt geen reizen en is geen boekingsdienst. Controleer tijden, prijzen, visa, verzekeringen en reserveringen altijd bij de officiële aanbieder voordat je vertrekt.", "GlobeTrotr does not sell travel and is not a booking service. Always verify times, prices, visas, insurance and reservations with the official provider before departure.") },
-    { icon: Handshake, title: text("Zorgvuldig testen", "Responsible testing"), body: text("Gebruik de beta rechtmatig, deel geen toegang van anderen en meld fouten via het kanaal waarmee je bent uitgenodigd. Exporteer belangrijke reisgegevens als je daarvan zelf een kopie wilt bewaren.", "Use the beta lawfully, do not share other people's access and report issues through your invitation channel. Export important trip data if you want to keep your own copy.") },
+  const { user } = useAuth();
+  const scenarios = [
+    [text("Maak jouw eerste reis", "Create your first trip"), text("Geef de reis een naam en omschrijving, kies datums en voeg drie bestemmingen toe. Herlaad de pagina en controleer of alles bewaard is.", "Give your trip a name and description, choose dates and add three destinations. Reload and check that everything was saved.")],
+    [text("Plan een complete dag", "Plan a complete day"), text("Voeg een vlucht, verblijf en activiteit toe. Probeer de dagfilters en bekijk de route op je telefoon.", "Add a flight, stay and activity. Try the daily filters and view the route on your phone.")],
+    [text("Verdeel een groepsrekening", "Split a group expense"), text("Voer uitgaven in met verschillende betalers en valuta. Wijzig een bedrag en controleer de slimme verrekening.", "Enter expenses with different payers and currencies. Edit an amount and check the settlement.")],
+    [text("Werk samen en deel bewust", "Collaborate and share deliberately"), text("Voeg een tweede bestaand account toe als reisgenoot. Test de rollen en bekijk je openbare link uitgelogd, ook met PIN en financiële informatie uit.", "Add a second existing account as a traveller. Test the roles and open your public link while signed out, including with a PIN and financial information disabled.")],
+    [text("Neem je gegevens mee", "Take your data with you"), text("Probeer de reisgids, uitgavenexport en account-export. Test accountverwijdering uitsluitend met een apart testaccount en controleer daarna dat inloggen en oude deellinks niet meer werken.", "Try the travel guide, expense export and account export. Test account deletion only with a separate test account, then check that sign-in and old sharing links no longer work.")],
+    [text("Wissel van taal en scherm", "Switch language and screen"), text("Doorloop dezelfde acties in Nederlands en Engels, op telefoon en desktop. Let op teksten die afbreken, knoppen en foutmeldingen.", "Repeat the actions in Dutch and English, on mobile and desktop. Look for clipped text, buttons and error messages.")],
   ];
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <header className="aurora rounded-3xl px-6 py-10 sm:px-10">
-        <h1 className="font-display text-3xl font-semibold sm:text-4xl">{text("Voorwaarden internationale beta", "International beta terms")}</h1>
-        <p className="mt-3 text-sm opacity-90">{text("Geldig vanaf 7 september 2026 voor genodigde testers.", "Effective 7 September 2026 for invited testers.")}</p>
+    <div className="mx-auto max-w-5xl space-y-10">
+      <header className="aurora rounded-3xl px-6 py-10 sm:px-10 sm:py-14">
+        <Badge variant="secondary" className="mb-4 gap-2"><Beaker className="size-3.5"/>{text("Internationale beta", "International beta")}</Badge>
+        <h1 className="max-w-2xl font-display text-3xl font-semibold sm:text-5xl">{text("Bouw mee aan meer reisplezier.", "Help make every journey better.")}</h1>
+        <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">{text("Jouw echte reisplannen helpen ons ontdekken wat prettig werkt en wat beter kan. Begin klein, probeer iets nieuws en vertel ons waar je vastloopt.", "Your real travel plans help us discover what works well and what needs improving. Start small, try something new and tell us where you get stuck.")}</p>
+        <div className="mt-6 flex flex-wrap gap-3"><Button asChild><Link to={user ? "/dashboard" : "/auth"}>{text("Start met testen", "Start testing")}<ArrowRight className="size-4"/></Link></Button><Button asChild variant="outline"><Link to="/changelog">{text("Wat is er nieuw?", "What's new?")}</Link></Button></div>
       </header>
-      <div className="space-y-4">
-        {items.map(({ icon: Icon, title, body }) => <Card key={title} className="surface"><CardContent className="flex gap-4 p-5"><span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5" /></span><div><h2 className="font-semibold">{title}</h2><p className="mt-1 text-sm leading-relaxed text-muted-foreground">{body}</p></div></CardContent></Card>)}
-      </div>
+      <section><div className="mb-5 flex items-center gap-2"><CheckCircle2 className="size-5 text-primary"/><h2 className="font-display text-2xl font-semibold">{text("Jouw testroute", "Your testing journey")}</h2></div><div className="grid gap-4 sm:grid-cols-2">{scenarios.map(([title,body],index)=><Card key={title} className="surface"><CardContent className="p-5"><span className="text-xs font-semibold text-primary">0{index+1}</span><h3 className="mt-2 font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></CardContent></Card>)}</div></section>
+      <section className="grid gap-5 md:grid-cols-2">
+        <Card className="surface"><CardContent className="p-6"><CircleAlert className="size-6 text-amber-500"/><h2 className="mt-3 text-lg font-semibold">{text("Goed om te weten", "Good to know")}</h2><p className="mt-2 text-sm text-muted-foreground">{text("Deze onderdelen horen nog niet bij de beta:", "These features are not yet part of the beta:")}</p><ul className="mt-3 list-disc space-y-2 pl-5 text-sm">{PUBLIC_BETA_STATUS.unavailable.map(item=><li key={item.nl}>{text(item.nl,item.en)}</li>)}</ul><p className="mt-4 text-sm text-muted-foreground">{text("Betalingen en automatische facturatie zijn nog niet gekoppeld. Een vluchtlookup hangt af van beschikbare informatie bij de aanbieder.", "Payments and automatic billing are not connected yet. Flight lookup depends on information available from the provider.")}</p></CardContent></Card>
+        <Card className="surface"><CardContent className="p-6"><Bug className="size-6 text-primary"/><h2 className="mt-3 text-lg font-semibold">{text("Een goede melding helpt enorm", "A useful report makes a difference")}</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text("Meld fouten via het kanaal waarmee je bent uitgenodigd. Vermeld de pagina, de stappen, wat je verwachtte en wat er gebeurde. Voeg taal, browser, telefoon/desktop en tijdstip toe. Maak persoonsgegevens onleesbaar in screenshots.", "Report issues through your invitation channel. Include the page, steps, what you expected and what happened. Add your language, browser, mobile/desktop and time. Hide personal data in screenshots.")}</p><p className="mt-4 text-sm text-muted-foreground">{text("Deel nooit je wachtwoord, toegangscodes of volledige betaalgegevens. Privacyvragen kunnen naar privacy@globetrotr.nl.", "Never share your password, access codes or full payment details. Privacy questions can go to privacy@globetrotr.nl.")}</p></CardContent></Card>
+      </section>
+      <section className="rounded-3xl border border-border p-6 sm:p-8"><Globe2 className="size-6 text-primary"/><h2 className="mt-3 font-display text-2xl font-semibold">{text("Afspraken voor de beta", "Beta participation terms")}</h2><div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground"><p>{text("Geldig vanaf 8 september 2026. GlobeTrotr is een testversie: functies kunnen veranderen en fouten of onderbrekingen zijn mogelijk. Bewaar zelf een kopie van belangrijke reisgegevens.", "Effective 8 September 2026. GlobeTrotr is a test version: features may change and errors or interruptions may occur. Keep your own copy of important trip data.")}</p><p>{text("Gebruik GlobeTrotr rechtmatig en respecteer de privacy van reisgenoten. Plaats geen identiteitsdocumenten, medische gegevens of betaalkaartgegevens in notities of uploads.", "Use GlobeTrotr lawfully and respect your companions' privacy. Do not put identity documents, medical information or payment card details in notes or uploads.")}</p><p>{text("GlobeTrotr is een planner en verkoopt geen reizen. Controleer vertrektijden, reserveringen, prijzen en reisvereisten bij de officiële aanbieder. Je wettelijke consumenten- en privacyrechten blijven van toepassing.", "GlobeTrotr is a planner and does not sell travel. Verify departure times, reservations, prices and travel requirements with the official provider. Your statutory consumer and privacy rights remain applicable.")}</p><p>{text("Je kunt op elk moment stoppen met testen en via Accountinstellingen je gegevens exporteren of je account verwijderen.", "You can stop testing at any time and export your data or delete your account in Account settings.")} <Link to="/privacy" className="text-primary underline">{text("Lees hoe we je gegevens gebruiken.", "Read how we use your data.")}</Link></p></div></section>
     </div>
   );
 }

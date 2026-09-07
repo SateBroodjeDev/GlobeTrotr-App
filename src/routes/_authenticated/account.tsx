@@ -4,11 +4,13 @@ import {
   Camera,
   Clock3,
   CreditCard,
+  Download,
   KeyRound,
   Languages,
   Mail,
   Monitor,
   ShieldCheck,
+  Trash2,
   Unlink,
   UserRound,
 } from "lucide-react";
@@ -25,6 +27,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocale } from "@/lib/locale";
+import { deleteAccount, exportAccountData } from "@/lib/account.functions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({ meta: [{ title: "Accountinstellingen — GlobeTrotr" }] }),
@@ -103,6 +117,9 @@ function AccountPage() {
   const [repeatPassword, setRepeatPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
   const [oauthAction, setOauthAction] = useState<string>();
+  const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -293,6 +310,39 @@ function AccountPage() {
       toast.error(error instanceof Error ? error.message : "Provider ontkoppelen lukte niet.");
     } finally {
       setOauthAction(undefined);
+    }
+  }
+
+  async function downloadAccountExport() {
+    setExporting(true);
+    try {
+      const exported = await exportAccountData();
+      const blob = new Blob([JSON.stringify(exported, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `globetrotr-account-${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      toast.success(text("Je gegevensexport is gedownload.", "Your data export has been downloaded."));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : text("Exporteren is mislukt.", "Export failed."));
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function removeAccount() {
+    if (deleteConfirmation !== "DELETE") return;
+    setDeleting(true);
+    try {
+      await deleteAccount({ data: { confirmation: deleteConfirmation } });
+      localStorage.removeItem(`atlasledger.workspace.v1.${user.id}`);
+      await supabase.auth.signOut({ scope: "local" });
+      window.location.assign("/");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : text("Account verwijderen is mislukt.", "Account deletion failed."));
+      setDeleting(false);
     }
   }
 
@@ -584,8 +634,46 @@ function AccountPage() {
             <ShieldCheck className="size-4" /> Privacy
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {text("Account verwijderen en gegevens exporteren worden toegevoegd nadat de SQL-migratie en documentopslag zijn afgerond.", "Account deletion and data export will be added after the SQL migration and document storage are complete.")}
+        <CardContent className="space-y-5 text-sm">
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium">{text("Download je gegevens", "Download your data")}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {text("Ontvang een machineleesbaar JSON-bestand met je account, profiel, reizen, planning, uitgaven en samenwerkingen. Geüploade bestanden worden als metadata vermeld.", "Receive a machine-readable JSON file with your account, profile, trips, itinerary, expenses and collaborations. Uploaded files are listed as metadata.")}
+              </p>
+            </div>
+            <Button type="button" variant="outline" className="shrink-0" disabled={exporting} onClick={() => void downloadAccountExport()}>
+              <Download className="size-4" /> {exporting ? text("Export maken…", "Creating export…") : text("Gegevens exporteren", "Export data")}
+            </Button>
+          </div>
+          <div className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium text-destructive">{text("Account definitief verwijderen", "Permanently delete account")}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {text("Je profiel, eigen reizen, uitgaven, meldingen en uploads worden verwijderd. Dit kan niet ongedaan worden gemaakt.", "Your profile, owned trips, expenses, notifications and uploads will be deleted. This cannot be undone.")}
+              </p>
+            </div>
+            <AlertDialog onOpenChange={(open) => !open && setDeleteConfirmation("")}>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="destructive" className="shrink-0"><Trash2 className="size-4" /> {text("Account verwijderen", "Delete account")}</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-md">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{text("Weet je het zeker?", "Are you sure?")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {text("Download desgewenst eerst je gegevens. Typ DELETE om je account en alle eigen reisgegevens definitief te verwijderen.", "Download your data first if you wish. Type DELETE to permanently remove your account and all trips you own.")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <Input aria-label={text("Bevestiging", "Confirmation")} value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} placeholder="DELETE" autoComplete="off" />
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={deleting}>{text("Annuleren", "Cancel")}</AlertDialogCancel>
+                  <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={deleteConfirmation !== "DELETE" || deleting} onClick={(event) => { event.preventDefault(); void removeAccount(); }}>
+                    {deleting ? text("Verwijderen…", "Deleting…") : text("Definitief verwijderen", "Delete permanently")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </CardContent>
       </Card>
     </div>
