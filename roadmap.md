@@ -6,7 +6,8 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Actuele stand — 8 september 2026
 
-- [ ] Migratie `20260908002000_trip_text_limits.sql` uitvoeren en daarna `supabase/tests/trip_text_limits.sql` draaien; reisnamen zijn voortaan maximaal 30 tekens en reisomschrijvingen maximaal 375 tekens.
+- [x] Reisinstellingen tonen bij de reisnaam een live tekenteller tot de limiet van 30, gelijk aan de teller bij de omschrijving.
+- [x] Migratie `20260908002000_trip_text_limits.sql` en regressietest `supabase/tests/trip_text_limits.sql` uitgevoerd; reisnamen zijn maximaal 30 tekens en reisomschrijvingen maximaal 375 tekens.
 - [x] Mobiele slimme verrekening hersteld: de vierkolomstabel is op telefoon vervangen door compacte kaarten en Saldo krijgt een eigen volledige rij binnen de kaart.
 - [ ] Mobiele slimme verrekening in productie opnieuw controleren met korte en lange namen en een groot positief en negatief saldo.
 - [x] Herstelmigratie `20260908000000_update_linked_member_roles.sql` en regressietest `supabase/tests/trip_member_role_updates.sql` uitgevoerd; een Agency-eigenaar kan de rol van een bestaand gekoppeld lid wijzigen met behoud van `user_id`, actieve status en acceptatietijd.

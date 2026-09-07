@@ -784,6 +784,9 @@ function TripDetail() {
                       setSettings((current) => ({ ...current, name: event.target.value }))
                     }
                   />
+                  <span className="block text-right text-xs text-muted-foreground">
+                    {settings.name.length}/{TRIP_NAME_MAX_LENGTH}
+                  </span>
                 </label>
                 <label className="space-y-1.5 text-sm sm:col-span-2">
                   <span className="text-muted-foreground">

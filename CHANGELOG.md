@@ -9,6 +9,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 ### Gebruikerservaring
 
 - Reisnamen zijn begrensd op 30 tekens en reisomschrijvingen op 375 tekens.
+- Het reisnaamveld in Reisinstellingen toont een live teller, bijvoorbeeld `0/30`, net als het omschrijvingsveld.
 - Dashboardkaarten, de afteller, het reisbeheer, het Agency-overzicht en publieke reispagina's breken bestaande lange woorden veilig af.
 - Invoervelden tonen dezelfde grenzen als de server en database.
 
@@ -17,7 +18,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Nieuwe migratie `supabase/migrations/20260908002000_trip_text_limits.sql` kort bestaande langere waarden gecontroleerd in en voegt databaseconstraints toe.
 - De migratie handelt uitgestelde `trips`-triggers af voordat constraints worden gewijzigd, zodat PostgreSQL-fout `55006` niet optreedt.
 - Nieuwe regressietest `supabase/tests/trip_text_limits.sql` controleert toegestane grenswaarden en weigert 31/376 tekens.
-- Migratie en SQL-test moeten nog in Lovable Cloud / Supabase SQL Editor worden uitgevoerd.
+- Migratie en SQL-test zijn op 8 september 2026 volledig en zonder foutmelding uitgevoerd.
 
 ## 2026-09-08 00:15 CEST — Mobiele slimme verrekening
 
