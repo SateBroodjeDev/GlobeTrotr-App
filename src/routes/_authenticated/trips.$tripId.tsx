@@ -26,6 +26,7 @@ import {
   type ExpenseCategory,
   type Trip,
   type TravelItem,
+  type ItineraryItem,
 } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
@@ -126,6 +127,28 @@ function TripDetail() {
     String(user?.user_metadata.full_name ?? user?.email?.split("@")[0] ?? "Jij");
   const financialTravelers = travelersOf(trip, [ownerName]);
   const editable = canEdit(state.role);
+  const [editingBooking, setEditingBooking] = useState<TravelItem | null>(null);
+  async function updateItineraryItem(item: ItineraryItem) {
+    if (!editable) return;
+    try {
+      await saveTripNow(trip.id, (current) => ({
+        ...current,
+        itinerary: current.itinerary
+          .map((existing) =>
+            existing.id === item.id
+              ? { ...existing, day: item.day, title: item.title, notes: item.notes ?? "" }
+              : existing,
+          )
+          .sort((a, b) => a.day.localeCompare(b.day)),
+      }));
+      toast.success("Programma-item gewijzigd.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Programma-item kon niet worden gewijzigd.",
+      );
+      throw error;
+    }
+  }
   const canMarkBillable = hasFeature(state.plan, "billable_expenses");
   const canManageReceipts = hasFeature(state.plan, "receipts");
   const spent = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
@@ -336,6 +359,7 @@ function TripDetail() {
               ? [
                   ...current.expenses.filter((expense) => expense.id !== expenseId),
                   {
+                    ...current.expenses.find((expense) => expense.id === expenseId),
                     id: expenseId,
                     date: item.date,
                     title: item.title,
@@ -343,7 +367,9 @@ function TripDetail() {
                     amount: item.amount,
                     currency: item.currency ?? base,
                     paidBy,
-                    billable: false,
+                    billable:
+                      current.expenses.find((expense) => expense.id === expenseId)?.billable ??
+                      false,
                   },
                 ]
               : previous?.expenseId
@@ -855,8 +881,12 @@ function TripDetail() {
           <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(300px,1fr)]">
             <Card className="surface overflow-hidden">
               <CardContent className="p-3">
-                <ClientOnly fallback={<Skeleton className="h-[500px] w-full rounded-xl sm:h-[560px]" />}>
-                  <Suspense fallback={<Skeleton className="h-[500px] w-full rounded-xl sm:h-[560px]" />}>
+                <ClientOnly
+                  fallback={<Skeleton className="h-[500px] w-full rounded-xl sm:h-[560px]" />}
+                >
+                  <Suspense
+                    fallback={<Skeleton className="h-[500px] w-full rounded-xl sm:h-[560px]" />}
+                  >
                     <TripMap
                       stops={trip.stops}
                       activeStopId={activeStopId}
@@ -941,10 +971,26 @@ function TripDetail() {
             trip={trip}
             baseCurrency={base}
             editable={false}
+            {...(editable
+              ? { onUpdate: updateItineraryItem, onEditBooking: setEditingBooking }
+              : {})}
             onAdd={async () => undefined}
             onRemove={async () => undefined}
           />
         </TabsContent>
+
+        {editable && editingBooking && (
+          <TripBookings
+            key={editingBooking.id}
+            trip={trip}
+            editable={editable}
+            payers={financialTravelers}
+            onSave={saveTravelItem}
+            onRemove={removeTravelItem}
+            initialItem={editingBooking}
+            onFinish={() => setEditingBooking(null)}
+          />
+        )}
 
         {editable && (
           <TabsContent value="plan-edit" className="space-y-4">
@@ -963,6 +1009,8 @@ function TripDetail() {
               trip={trip}
               baseCurrency={base}
               editable={editable}
+              onUpdate={updateItineraryItem}
+              onEditBooking={setEditingBooking}
               onAdd={async (next) => {
                 try {
                   await saveTripNow(trip.id, (current) => ({
@@ -1194,7 +1242,9 @@ function TripDetail() {
                             {canManageReceipts && (
                               <label
                                 className={`grid size-7 cursor-pointer place-items-center rounded text-muted-foreground hover:text-foreground ${
-                                  uploadingReceiptId === e.id ? "pointer-events-none opacity-50" : ""
+                                  uploadingReceiptId === e.id
+                                    ? "pointer-events-none opacity-50"
+                                    : ""
                                 }`}
                                 title="Bon koppelen"
                               >

@@ -8,6 +8,32 @@ export type Database = {
   };
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          kind: "account" | "trip_change" | "invitation";
+          title: string;
+          body: string;
+          trip_uuid: string | null;
+          event_key: string;
+          created_at: string;
+          dismissed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          kind: "account" | "trip_change" | "invitation";
+          title: string;
+          body: string;
+          trip_uuid?: string | null;
+          event_key: string;
+          created_at?: string;
+          dismissed_at?: string | null;
+        };
+        Update: { dismissed_at?: string | null };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           avatar_path: string | null;

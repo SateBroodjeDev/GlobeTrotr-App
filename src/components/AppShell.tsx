@@ -28,6 +28,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
+import { NotificationPanel } from "@/components/NotificationPanel";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
@@ -162,6 +163,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
+            {user && <NotificationPanel key={user.id} userId={user.id} />}
             {user && cloud === "saving" && (
               <span className="mr-2 hidden text-xs text-muted-foreground sm:block">Opslaan…</span>
             )}

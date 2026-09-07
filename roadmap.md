@@ -109,7 +109,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 3. **Interface & boekingsbasis**: gebouwd; voer de nieuwe SQL-migratie uit en controleer huurauto's, timeline, kosten en leden in productie.
 4. **SkyLink live vluchtdata**: server-side key instellen, één handmatige lookup betrouwbaar maken en pas daarna uitgebreidere velden tonen.
 5. **Agency-basis herstellen**: bonnetjes uitsluitend voor Agency afdwingen en Agency-schermen op relationele data baseren.
-6. **OAuth & accountafwerking**: OAuth-flow met echte providers handmatig testen, e-mailbevestiging testen en alleen daarna eventuele UI-details aanpassen.
+6. **Accountafwerking; OAuth gepauzeerd**: e-mailbevestiging en accountafwerking kunnen doorgaan. OAuth-werk voor Apple, Google en Microsoft overslaan totdat Lovable Pro is aangeschaft; daarna providerconfiguratie, foutoplossing en handmatige tests hervatten. De volgende bouwstappen hoeven hier niet op te wachten.
 7. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
 8. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
 9. **Agency-administratie**: echte workspace-teamleden, rechten en operationele dashboards bovenop de per-reisrollen bouwen.
@@ -194,6 +194,8 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 
 ### Beveiliging & inloggen
 
+> **OAuth tijdelijk gepauzeerd (7 september 2026):** op verzoek geen verdere configuratie, foutoplossing of tests voor Apple-, Google- en Microsoft-login totdat Lovable Pro is aangeschaft. De onderstaande open OAuth-punten blijven bewaard voor hervatting; bestaande implementatie en e-mail/wachtwoordfunctionaliteit blijven behouden. Dit blokkeert de overige roadmap niet.
+
 - [x] Wachtwoord wijzigen via Supabase Auth, met minimale lengte, herhaling, laadstatus en duidelijke foutmelding bij een verlopen sessie
 - [x] Overzicht van gekoppelde inlogmethodes: e-mail/wachtwoord, Apple, Google en Microsoft
 - [x] Inlog- en registratiepagina met Apple-, Google- en Microsoft-knoppen via Lovable/Supabase OAuth, naast e-mail en wachtwoord
@@ -211,6 +213,10 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [ ] Huidig plan, limieten en upgrade-link tonen; de bestaande abonnementspagina blijft de plek om een plan te wijzigen
 - [ ] Facturen en betaalgegevens alleen tonen zodra Stripe is gekoppeld
 - [ ] Meldingsvoorkeuren voor productmails, reisuitnodigingen, betalingen en vluchtalerts
+- [x] Meldingenpaneel rechtsboven gebouwd met een teller voor openstaande meldingen, kleuren en emoji per soort: blauw/👤 voor accounts, amber/🧳 voor reiswijzigingen en paars/✉️ voor uitnodigingen. Openen of doorklikken verwijdert niets; meldingen blijven per account bewaard totdat de gebruiker ze expliciet met het kruisje wegklikt.
+- [ ] Meldingen activeren: voer `supabase/migrations/20260907120000_persistent_notifications.sql` uit na de bestaande migraties. Deze voegt opslag, ontvangergebonden RLS, profiel-/abonnementsmeldingen en triggers voor reiswijzigingen en uitnodigingen toe. Zonder migratie toont het paneel een niet-beschikbaarmelding.
+- [ ] Voer `supabase/tests/persistent_notifications.sql` uit voor RLS, bundeling per transactie en blijvend wegklikken; controleer daarna het paneel met twee accounts, opnieuw inloggen en light/dark mode. De SQL-controle draait alle testdata terug.
+- [ ] Na aansluiting van samenwerking: reiswijzigingen met twee actieve accounts controleren en bij toekomstige service-role schrijfstromen de geverifieerde actor doorgeven. Uitnodigingen voor bestaande en nieuwe geverifieerde accounts controleren; accepteren/doorklikken vanuit een uitnodigingsmelding aansluiten zodra de uitnodigingsstroom bestaat.
 
 ## P0 — SQL-fundament & JSON-migratie
 
@@ -309,6 +315,8 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 
 ## P0 — Planning, boekingen & kosten
 
+- [x] Boekingen en eigen programma-items vanuit het reisschema wijzigen via een vooraf ingevulde popup met opslaan en annuleren; boekingen gebruiken hetzelfde formulier in de invoertab. Opgeslagen locaties kunnen worden vervangen en bij een opslagfout blijft de popup open.
+- [ ] Productiecontrole: boeking en eigen programma-item wijzigen, annuleren en opnieuw openen; controleer ook meerdaagse boekingen, gekoppelde kosten en fout-herstel.
 - [x] Timeline met overzicht van de hele reis én een specifieke dag, inclusief datumkiezer en vorige/volgende-dagnavigatie.
 - [x] Vlucht-, hotel-, activiteit-, vervoer- en huurauto-iconen en relevante status, locatie, tijd, boekingsnummer en prijs.
 - [x] Type-specifieke, responsieve formuliergrids: vlucht, hotel, activiteit, vervoer en huurauto tonen alleen relevante velden.
@@ -325,6 +333,7 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijktijdig plannen. Grote planners zoals Wanderlog en Roadtrippers behandelen samenwerken als kernfunctionaliteit, niet als Agency-extra. [Wanderlog](https://wanderlog.com/travel-maps) [Roadtrippers](https://roadtrippers.com/about/features/)
 
 - [ ] Reizigers per e-mail uitnodigen voor één specifieke reis, zonder toegang tot alle reizen van de eigenaar
+- [ ] Deelbare uitnodigingslink voor een specifieke reis die werkt voor bestaande én nieuwe accounts: na inloggen of registreren terugkeren naar dezelfde uitnodiging en na acceptatie toegang tot de reis krijgen, met server-side controle van het uitnodigingstoken.
 - [ ] Rollen per reis: eigenaar, bewerker, deelnemer en alleen-lezen
 - [ ] Uitnodiging accepteren/weigeren en lid weer verwijderen
 - [ ] Gedeelde, live wijzigingen met conflictveilige opslag en zichtbare “laatst gewijzigd door”-informatie

@@ -8,6 +8,7 @@ import {
   Clock3,
   MapPin,
   Plane,
+  Pencil,
   Plus,
   Ticket,
   TrainFront,
@@ -19,6 +20,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 type TimelineEntry = {
   id: string;
@@ -120,12 +128,16 @@ export function TripTimeline({
   editable,
   onAdd,
   onRemove,
+  onUpdate,
+  onEditBooking,
 }: {
   trip: Trip;
   baseCurrency: string;
   editable: boolean;
   onAdd: (item: Omit<ItineraryItem, "id">) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
+  onUpdate?: (item: ItineraryItem) => Promise<void>;
+  onEditBooking?: (item: TravelItem) => void;
 }) {
   // A long trip stays usable by opening one day at a time. The complete
   // itinerary remains one click away for overview and printing.
@@ -133,6 +145,7 @@ export function TripTimeline({
   const [selectedDay, setSelectedDay] = useState(trip.start);
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState<ItineraryItem | null>(null);
   const entries = useMemo(() => {
     const bookingIds = new Set((trip.travelItems ?? []).map((item) => item.id));
     const manual = trip.itinerary
@@ -195,6 +208,20 @@ export function TripTimeline({
     }
   }
 
+  async function saveManualItem() {
+    if (!editing || !onUpdate || saving || !editing.title.trim() || !editing.day) return;
+    setSaving(true);
+    try {
+      await onUpdate({ ...editing, title: editing.title.trim() });
+      setSelectedDay(editing.day);
+      setEditing(null);
+    } catch {
+      // Keep the draft open; the parent reports the save error.
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <Card className="surface">
       <CardHeader className="gap-3 pb-2 sm:flex-row sm:items-center sm:justify-between">
@@ -217,6 +244,62 @@ export function TripTimeline({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        <Dialog
+          open={Boolean(editing)}
+          onOpenChange={(open) => {
+            if (!open && !saving) setEditing(null);
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Programma-item wijzigen</DialogTitle>
+              <DialogDescription>Pas de datum, naam of notities aan.</DialogDescription>
+            </DialogHeader>
+            {editing && (
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void saveManualItem();
+                }}
+              >
+                <fieldset disabled={saving} className="space-y-4">
+                  <label className="block space-y-1 text-sm">
+                    Datum
+                    <Input
+                      required
+                      type="date"
+                      value={editing.day}
+                      onChange={(event) => setEditing({ ...editing, day: event.target.value })}
+                    />
+                  </label>
+                  <label className="block space-y-1 text-sm">
+                    Naam
+                    <Input
+                      required
+                      value={editing.title}
+                      onChange={(event) => setEditing({ ...editing, title: event.target.value })}
+                    />
+                  </label>
+                  <label className="block space-y-1 text-sm">
+                    Notities
+                    <Input
+                      value={editing.notes ?? ""}
+                      onChange={(event) => setEditing({ ...editing, notes: event.target.value })}
+                    />
+                  </label>
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setEditing(null)}>
+                      Annuleren
+                    </Button>
+                    <Button type="submit" disabled={!editing.title.trim() || !editing.day}>
+                      {saving ? "Opslaan…" : "Wijzigingen opslaan"}
+                    </Button>
+                  </div>
+                </fieldset>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
         {mode === "day" && (
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/35 p-2">
             <Button size="icon" variant="ghost" aria-label="Vorige dag" onClick={() => moveDay(-1)}>
@@ -316,6 +399,20 @@ export function TripTimeline({
                                   {formatMoney(amount, entry.item?.currency ?? baseCurrency)}
                                 </Badge>
                               ) : null}
+                              {((entry.manual && onUpdate) || (entry.item && onEditBooking)) && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  disabled={saving}
+                                  aria-label={`${entry.title} wijzigen`}
+                                  onClick={() => {
+                                    if (entry.manual) setEditing({ ...entry.manual });
+                                    else if (entry.item) onEditBooking?.(entry.item);
+                                  }}
+                                >
+                                  <Pencil className="size-4" /> Wijzigen
+                                </Button>
+                              )}
                               {entry.manual && editable && (
                                 <Button
                                   size="icon"

@@ -21,6 +21,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 const TYPES: { id: TravelItemType; label: string; icon: typeof Plane }[] = [
@@ -59,10 +66,14 @@ export function TripBookings({
   payers,
   onSave,
   onRemove,
+  initialItem,
+  onFinish,
 }: {
   trip: Trip;
   editable: boolean;
   payers: string[];
+  initialItem?: TravelItem;
+  onFinish?: () => void;
   onSave: (
     item: TravelItem,
     locations: GeoResult[],
@@ -71,15 +82,27 @@ export function TripBookings({
   ) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 }) {
-  const [draft, setDraft] = useState<Draft>(() => emptyDraft(trip.start));
-  const [departure, setDeparture] = useState<GeoResult>();
-  const [arrival, setArrival] = useState<GeoResult>();
-  const [location, setLocation] = useState<GeoResult>();
+  const [draft, setDraft] = useState<Draft>(() =>
+    initialItem
+      ? {
+          ...initialItem,
+          amount: initialItem.amount === undefined ? "" : String(initialItem.amount),
+        }
+      : emptyDraft(trip.start),
+  );
+  const [departure, setDeparture] = useState<GeoResult | undefined>(initialItem?.departure);
+  const [arrival, setArrival] = useState<GeoResult | undefined>(initialItem?.arrival);
+  const [location, setLocation] = useState<GeoResult | undefined>(initialItem?.location);
   const [flight, setFlight] = useState<FlightLookup>();
   const [loadingFlight, setLoadingFlight] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [paidBy, setPaidBy] = useState(() => payers[0] ?? "Ik");
-  const [editingId, setEditingId] = useState<string>();
+  const [paidBy, setPaidBy] = useState(
+    () =>
+      trip.expenses.find((expense) => expense.id === initialItem?.expenseId)?.paidBy ??
+      payers[0] ??
+      "Ik",
+  );
+  const [editingId, setEditingId] = useState<string | undefined>(initialItem?.id);
   const typeIsMoving = moving(draft.type);
   const Icon = TYPES.find((type) => type.id === draft.type)?.icon ?? Ticket;
   const fuelEstimate = useMemo(() => {
@@ -100,6 +123,7 @@ export function TripBookings({
     setFlight(undefined);
     setEditingId(undefined);
     setPaidBy(payers[0] ?? "Ik");
+    onFinish?.();
   };
   async function refreshFlight() {
     if (!draft.flightNumber?.trim()) {
@@ -147,6 +171,7 @@ export function TripBookings({
     }
   }
   async function save() {
+    if (!editable || saving || loadingFlight) return;
     const title = draft.title.trim();
     if (!title || !draft.date) {
       toast.error("Vul minstens een naam en datum in.");
@@ -217,21 +242,26 @@ export function TripBookings({
     );
     setFlight(undefined);
   }
-  return (
-    <div className="space-y-4">
-      <Card className="surface">
-        <CardHeader className="flex-row items-center justify-between pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Icon className="size-4" />{" "}
-            {editingId ? "Reisonderdeel wijzigen" : "Reisonderdeel toevoegen"}
-          </CardTitle>
-          {editingId && (
-            <Button size="sm" variant="ghost" onClick={() => reset(draft.date)}>
-              Annuleren
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-4">
+  const form = (
+    <Card className="surface">
+      <CardHeader className="flex-row items-center justify-between pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Icon className="size-4" />{" "}
+          {editingId ? "Reisonderdeel wijzigen" : "Reisonderdeel toevoegen"}
+        </CardTitle>
+        {editingId && (
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={saving || loadingFlight}
+            onClick={() => reset(draft.date)}
+          >
+            Annuleren
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent>
+        <fieldset disabled={saving || loadingFlight} className="space-y-4 min-w-0">
           <div className="grid items-end gap-3 md:grid-cols-4">
             <Field label="Type">
               <select
@@ -612,7 +642,7 @@ export function TripBookings({
               onChange={(e) => setDraft((current) => ({ ...current, notes: e.target.value }))}
             />
           </Field>
-          <Button disabled={!editable || saving} onClick={() => void save()}>
+          <Button disabled={!editable || saving || loadingFlight} onClick={() => void save()}>
             {editingId ? (
               saving ? (
                 "Opslaan…"
@@ -625,83 +655,107 @@ export function TripBookings({
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
-      <Card className="surface">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Geboekte onderdelen</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {(trip.travelItems ?? []).length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Nog geen vluchten, overnachtingen of andere boekingen.
-            </p>
-          )}
-          {(trip.travelItems ?? []).map((item) => {
-            const itemType = TYPES.find((type) => type.id === item.type);
-            const ItemIcon = itemType?.icon ?? Ticket;
-            return (
-              <div
-                key={item.id}
-                className="flex items-start justify-between gap-3 rounded-xl border border-border p-3 text-sm"
-              >
-                <div className="min-w-0">
-                  <p className="flex flex-wrap items-center gap-2 font-medium">
-                    <ItemIcon className="size-4 shrink-0" /> {item.title}{" "}
-                    <Badge variant="secondary">{itemType?.label}</Badge>
-                  </p>
-                  <p className="mt-1 text-muted-foreground">
-                    {item.date}
-                    {item.endDate ? ` t/m ${item.endDate}` : ""}
-                    {item.bookingReference ? ` · Boeking: ${item.bookingReference}` : ""}
-                    {item.amount ? ` · ${formatMoney(item.amount, item.currency ?? "EUR")}` : ""}
-                  </p>
-                  {item.flightStatus && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Vluchtstatus: {item.flightStatus}
+        </fieldset>
+      </CardContent>
+    </Card>
+  );
+  return (
+    <div className="space-y-4">
+      {editingId ? (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open && !saving && !loadingFlight) reset();
+          }}
+        >
+          <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Reisonderdeel wijzigen</DialogTitle>
+              <DialogDescription>Pas de boeking aan en sla je wijzigingen op.</DialogDescription>
+            </DialogHeader>
+            {form}
+          </DialogContent>
+        </Dialog>
+      ) : (
+        !initialItem && form
+      )}
+      {!initialItem && (
+        <Card className="surface">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Geboekte onderdelen</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {(trip.travelItems ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Nog geen vluchten, overnachtingen of andere boekingen.
+              </p>
+            )}
+            {(trip.travelItems ?? []).map((item) => {
+              const itemType = TYPES.find((type) => type.id === item.type);
+              const ItemIcon = itemType?.icon ?? Ticket;
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-start justify-between gap-3 rounded-xl border border-border p-3 text-sm"
+                >
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 font-medium">
+                      <ItemIcon className="size-4 shrink-0" /> {item.title}{" "}
+                      <Badge variant="secondary">{itemType?.label}</Badge>
                     </p>
-                  )}
-                  {item.type === "flight" &&
-                    (item.details?.flightDepartureAirport ||
-                      item.details?.flightArrivalAirport) && (
+                    <p className="mt-1 text-muted-foreground">
+                      {item.date}
+                      {item.endDate ? ` t/m ${item.endDate}` : ""}
+                      {item.bookingReference ? ` · Boeking: ${item.bookingReference}` : ""}
+                      {item.amount ? ` · ${formatMoney(item.amount, item.currency ?? "EUR")}` : ""}
+                    </p>
+                    {item.flightStatus && (
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {item.details.flightDepartureAirport || "Vertrek onbekend"} →{" "}
-                        {item.details.flightArrivalAirport || "Aankomst onbekend"}
-                        {item.details.flightDepartureGate
-                          ? ` · Gate ${item.details.flightDepartureGate}`
-                          : ""}
+                        Vluchtstatus: {item.flightStatus}
                       </p>
                     )}
-                </div>
-                {editable && (
-                  <div className="flex shrink-0">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Boeking wijzigen"
-                      disabled={saving}
-                      onClick={() => edit(item)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Boeking verwijderen"
-                      disabled={saving}
-                      onClick={() => void remove(item.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    {item.type === "flight" &&
+                      (item.details?.flightDepartureAirport ||
+                        item.details?.flightArrivalAirport) && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {item.details.flightDepartureAirport || "Vertrek onbekend"} →{" "}
+                          {item.details.flightArrivalAirport || "Aankomst onbekend"}
+                          {item.details.flightDepartureGate
+                            ? ` · Gate ${item.details.flightDepartureGate}`
+                            : ""}
+                        </p>
+                      )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+                  {editable && (
+                    <div className="flex shrink-0">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Boeking wijzigen"
+                        disabled={saving}
+                        onClick={() => edit(item)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Boeking verwijderen"
+                        disabled={saving}
+                        onClick={() => void remove(item.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
@@ -761,8 +815,8 @@ function LocationPicker({
   disabled,
 }: {
   label: string;
-  value?: GeoResult;
-  onPick: (location: GeoResult) => void;
+  value: GeoResult | undefined;
+  onPick: (location: GeoResult | undefined) => void;
   disabled: boolean;
 }) {
   return (
@@ -770,7 +824,20 @@ function LocationPicker({
       <p className="text-xs text-muted-foreground">{label}</p>
       {value ? (
         <div className="flex h-10 items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm">
-          <MapPin className="size-4" /> {value.name}, {value.country}
+          <MapPin className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">
+            {value.name}, {value.country}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={disabled}
+            aria-label={`${label} wijzigen`}
+            onClick={() => onPick(undefined)}
+          >
+            Wijzigen
+          </Button>
         </div>
       ) : (
         <PlaceSearch onPick={onPick} disabled={disabled} />
