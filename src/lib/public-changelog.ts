@@ -28,6 +28,34 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-07-international-beta-foundation",
+    version: "Beta 0.5",
+    publishedAt: "2026-09-07T19:30:00+02:00",
+    title: "Klaar voor internationale testers",
+    summary:
+      "De eerste internationale beta-onderdelen zijn beschikbaar en belangrijke testinformatie is makkelijker te vinden.",
+    changes: [
+      {
+        kind: "new",
+        title: "Nederlands en Engels",
+        description:
+          "Kies vanuit de header je taal voor de homepage, het inloggen en openbare reisverhalen.",
+      },
+      {
+        kind: "new",
+        title: "Privacy en beta-voorwaarden",
+        description:
+          "De footer geeft rechtstreeks toegang tot heldere informatie over gegevens en verantwoord testen.",
+      },
+      {
+        kind: "improved",
+        title: "Rustigere formulieren",
+        description:
+          "Belangrijke opslaanknoppen hebben meer ruimte en zijn daardoor duidelijker van de invoervelden gescheiden.",
+      },
+    ],
+  },
+  {
     id: "2026-09-07-public-trip-description",
     version: "Beta 0.4",
     publishedAt: "2026-09-07T18:50:00+02:00",

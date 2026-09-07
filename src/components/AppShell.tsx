@@ -4,6 +4,7 @@ import {
   BarChart3,
   BookOpenText,
   CreditCard,
+  Languages,
   LogIn,
   LogOut,
   Map,
@@ -30,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
 import { NotificationPanel } from "@/components/NotificationPanel";
+import { useLocale } from "@/lib/locale";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
@@ -53,6 +55,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const { state, cloud } = useWorkspace();
   const plan = planOf(state.plan);
   const { user } = useAuth();
+  const { locale, setLocale, text } = useLocale();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [guestTheme, setGuestTheme] = useState<"light" | "dark">("light");
@@ -159,15 +162,28 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 activeProps={{ className: "bg-accent text-accent-foreground" }}
               >
                 <item.icon className="size-4" />
-                {item.label}
+                {item.to === "/dashboard" ? text("Reizen", "Trips") : item.label}
               </Link>
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
             {user && <NotificationPanel key={user.id} userId={user.id} />}
             {user && cloud === "saving" && (
-              <span className="mr-2 hidden text-xs text-muted-foreground sm:block">Opslaan…</span>
+              <span className="mr-2 hidden text-xs text-muted-foreground sm:block">
+                {text("Opslaan…", "Saving…")}
+              </span>
             )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={text("Schakel naar Engels", "Switch to Dutch")}
+              title={locale === "nl-NL" ? "English" : "Nederlands"}
+              onClick={() => void setLocale(locale === "nl-NL" ? "en-GB" : "nl-NL")}
+            >
+              <Languages className="size-4" />
+              <span className="sr-only">{locale === "nl-NL" ? "EN" : "NL"}</span>
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -209,12 +225,12 @@ function AppShellContent({ children }: { children: ReactNode }) {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/billing">
-                      <CreditCard className="size-4" /> Abonnement ({plan.name})
+                      <CreditCard className="size-4" /> {text("Abonnement", "Plan")} ({plan.name})
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onSelect={() => void signOut()}>
-                    <LogOut className="size-4" /> Uitloggen
+                    <LogOut className="size-4" /> {text("Uitloggen", "Sign out")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -228,12 +244,12 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
                     <Link to="/auth">
-                      <LogIn className="size-4" /> Inloggen
+                      <LogIn className="size-4" /> {text("Inloggen", "Sign in")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/auth">
-                      <UserRound className="size-4" /> Registreren
+                      <UserRound className="size-4" /> {text("Registreren", "Create account")}
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -247,16 +263,25 @@ function AppShellContent({ children }: { children: ReactNode }) {
         <p>
           {state.branding.brandName} — {state.branding.tagline}
         </p>
-        <nav aria-label="Voetnavigatie" className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <nav
+          aria-label={text("Voetnavigatie", "Footer navigation")}
+          className="flex flex-wrap items-center gap-x-4 gap-y-2"
+        >
           <Link
             to="/changelog"
             className="inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"
           >
-            <BookOpenText className="size-3.5" /> Wat is er nieuw?
+            <BookOpenText className="size-3.5" /> {text("Wat is er nieuw?", "What's new?")}
           </Link>
-          <span>Kaartdata © OpenStreetMap</span>
-          <span>Weer via Open-Meteo</span>
-          <span>Koersen via Frankfurter/ECB</span>
+          <Link to="/privacy" className="font-medium text-foreground transition-colors hover:text-primary">
+            {text("Privacy", "Privacy")}
+          </Link>
+          <Link to="/beta-voorwaarden" className="font-medium text-foreground transition-colors hover:text-primary">
+            {text("Beta-voorwaarden", "Beta terms")}
+          </Link>
+          <span>{text("Kaartdata", "Map data")} © OpenStreetMap</span>
+          <span>{text("Weer via", "Weather by")} Open-Meteo</span>
+          <span>{text("Koersen via", "Rates by")} Frankfurter/ECB</span>
         </nav>
       </footer>
     </div>

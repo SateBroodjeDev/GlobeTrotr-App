@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PUBLIC_BETA_STATUS, PUBLIC_RELEASES, type PublicChangeKind } from "@/lib/public-changelog";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/changelog")({
   head: () => ({
@@ -32,35 +33,35 @@ export const Route = createFileRoute("/changelog")({
 });
 
 const KIND = {
-  new: { label: "Nieuw", icon: Rocket, className: "bg-primary/10 text-primary" },
+  new: { label: ["Nieuw", "New"], icon: Rocket, className: "bg-primary/10 text-primary" },
   improved: {
-    label: "Verbeterd",
+    label: ["Verbeterd", "Improved"],
     icon: Sparkles,
     className: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
   },
   fixed: {
-    label: "Opgelost",
+    label: ["Opgelost", "Fixed"],
     icon: Bug,
     className: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   secure: {
-    label: "Veiliger",
+    label: ["Veiliger", "Safer"],
     icon: LockKeyhole,
     className: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
   },
-} satisfies Record<PublicChangeKind, { label: string; icon: typeof Rocket; className: string }>;
+} satisfies Record<PublicChangeKind, { label: [string, string]; icon: typeof Rocket; className: string }>;
 
 function ChangelogPage() {
+  const { locale, text } = useLocale();
   return (
     <div className="mx-auto max-w-4xl space-y-10">
       <header className="aurora overflow-hidden rounded-3xl px-6 py-10 sm:px-10 sm:py-14">
         <Badge variant="secondary" className="mb-4 gap-1.5">
           <Sparkles className="size-3" /> GlobeTrotr updates
         </Badge>
-        <h1 className="font-display text-3xl font-semibold sm:text-5xl">Wat is er nieuw?</h1>
+        <h1 className="font-display text-3xl font-semibold sm:text-5xl">{text("Wat is er nieuw?", "What's new?")}</h1>
         <p className="mt-4 max-w-2xl text-sm opacity-90 sm:text-base">
-          Nieuwe functies, verbeteringen en oplossingen. Helder uitgelegd, zodat je meteen weet wat
-          er voor jou is veranderd.
+          {text("Nieuwe functies, verbeteringen en oplossingen. Helder uitgelegd, zodat je meteen weet wat er voor jou is veranderd.", "New features, improvements and fixes, explained clearly so you know what has changed.")}
         </p>
       </header>
 
@@ -71,15 +72,15 @@ function ChangelogPage() {
           </span>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-lg font-semibold">{PUBLIC_BETA_STATUS.label}</h2>
-              <Badge variant="outline">Bèta</Badge>
+              <h2 className="font-display text-lg font-semibold">{text(PUBLIC_BETA_STATUS.label, "Preparing the test launch")}</h2>
+              <Badge variant="outline">Beta</Badge>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {PUBLIC_BETA_STATUS.description}
+              {text(PUBLIC_BETA_STATUS.description, "The core of GlobeTrotr is being prepared for the first group of testers, centred on planning, expenses and public trip sharing.")}
             </p>
             <div className="mt-4 rounded-xl bg-muted/50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Bewust nog niet in deze test
+                {text("Bewust nog niet in deze test", "Intentionally unavailable in this test")}
               </p>
               <ul className="mt-2 space-y-1.5 text-sm">
                 {PUBLIC_BETA_STATUS.unavailable.map((item) => (
@@ -87,7 +88,7 @@ function ChangelogPage() {
                     <span aria-hidden className="text-muted-foreground">
                       •
                     </span>{" "}
-                    {item}
+                    {text(item, item.startsWith("Inloggen") ? "Sign in with Apple, Google or Microsoft" : "Automated app emails and trip invitations by email")}
                   </li>
                 ))}
               </ul>
@@ -108,12 +109,12 @@ function ChangelogPage() {
             </div>
             <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <CalendarDays className="size-3.5" /> {formatDate(release.publishedAt)}
+                <CalendarDays className="size-3.5" /> {formatDate(release.publishedAt, locale)}
               </span>
               <span className="flex items-center gap-1.5">
-                <Clock3 className="size-3.5" /> {formatTime(release.publishedAt)}
+                <Clock3 className="size-3.5" /> {formatTime(release.publishedAt, locale)}
               </span>
-              {releaseIndex === 0 && <Badge className="ml-auto">Nieuwste update</Badge>}
+              {releaseIndex === 0 && <Badge className="ml-auto">{text("Nieuwste update", "Latest update")}</Badge>}
               <Badge variant="outline">{release.version}</Badge>
             </div>
             <Card className="surface overflow-hidden">
@@ -138,7 +139,7 @@ function ChangelogPage() {
                             <Icon className="size-4" />
                           </span>
                           <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {config.label}
+                            {text(config.label[0], config.label[1])}
                           </span>
                         </div>
                         <h3 className="mt-3 text-sm font-semibold">{change.title}</h3>
@@ -158,8 +159,8 @@ function ChangelogPage() {
   );
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
+function formatDate(value: string, locale: "nl-NL" | "en-GB") {
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -167,6 +168,7 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function formatTime(value: string) {
-  return `${new Intl.DateTimeFormat("nl-NL", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }).format(new Date(value))} uur`;
+function formatTime(value: string, locale: "nl-NL" | "en-GB") {
+  const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }).format(new Date(value));
+  return locale === "nl-NL" ? `${time} uur` : `${time} Amsterdam time`;
 }

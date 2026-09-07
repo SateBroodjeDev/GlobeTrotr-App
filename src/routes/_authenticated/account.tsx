@@ -6,7 +6,6 @@ import {
   CreditCard,
   KeyRound,
   Languages,
-  Link2,
   Mail,
   Monitor,
   ShieldCheck,
@@ -47,7 +46,6 @@ const OAUTH_PROVIDERS = [
   { id: "google", label: "Google" },
   { id: "azure", label: "Microsoft" },
 ] as const;
-type OAuthProvider = (typeof OAUTH_PROVIDERS)[number]["id"];
 
 const LANGUAGES = [
   { value: "nl-NL", label: "Nederlands" },
@@ -273,20 +271,6 @@ function AccountPage() {
     }
   }
 
-  async function linkOAuth(provider: OAuthProvider) {
-    setOauthAction(`link-${provider}`);
-    try {
-      const { error } = await supabase.auth.linkIdentity({
-        provider,
-        options: { redirectTo: window.location.href },
-      });
-      if (error) throw error;
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Provider koppelen lukte niet.");
-      setOauthAction(undefined);
-    }
-  }
-
   async function unlinkOAuth(identity: (typeof identities)[number]) {
     if (identities.length <= 1) {
       toast.error("Je kunt niet je laatste inlogmethode verwijderen.");
@@ -499,23 +483,6 @@ function AccountPage() {
                   </div>
                 ))}
             </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {OAUTH_PROVIDERS.map((provider) => {
-                const isLinked = identities.some((identity) => identity.provider === provider.id);
-                return (
-                  <Button
-                    key={provider.id}
-                    type="button"
-                    variant="outline"
-                    disabled={isLinked || Boolean(oauthAction)}
-                    onClick={() => void linkOAuth(provider.id)}
-                  >
-                    <Link2 className="size-4" />
-                    {isLinked ? `${provider.label} gekoppeld` : provider.label}
-                  </Button>
-                );
-              })}
-            </div>
             <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
               <div>
                 <p className="font-medium">Wachtwoord wijzigen</p>
@@ -547,7 +514,7 @@ function AccountPage() {
               </label>
               <Button
                 type="button"
-                className="w-full sm:w-auto"
+                className="mt-2 w-full sm:w-auto"
                 disabled={savingPassword || !newPassword || !repeatPassword}
                 onClick={() => void savePassword()}
               >

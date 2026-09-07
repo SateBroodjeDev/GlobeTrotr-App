@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Apple, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -28,23 +28,15 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const OAUTH_PROVIDERS = [
-  { id: "apple", label: "Apple", icon: Apple },
-  { id: "google", label: "Google", icon: KeyRound },
-  { id: "azure", label: "Microsoft", icon: KeyRound },
-] as const;
-
-type OAuthProvider = (typeof OAUTH_PROVIDERS)[number]["id"];
-
 function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
-  const [oauthBusy, setOauthBusy] = useState<OAuthProvider>();
   const [sent, setSent] = useState(false);
   const { session } = useAuth();
+  const { text } = useLocale();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -67,31 +59,24 @@ function AuthPage() {
         if (error) throw error;
         if (!data.session) {
           setSent(true);
-          toast.success("Check je mail om je account te bevestigen.");
+          toast.success(
+            text(
+              "Check je mail om je account te bevestigen.",
+              "Check your email to confirm your account.",
+            ),
+          );
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Welkom terug!");
+        toast.success(text("Welkom terug!", "Welcome back!"));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Er ging iets mis");
+      toast.error(
+        err instanceof Error ? err.message : text("Er ging iets mis", "Something went wrong"),
+      );
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function signInWithOAuth(provider: OAuthProvider) {
-    setOauthBusy(provider);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: `${window.location.origin}/dashboard` },
-      });
-      if (error) throw error;
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Inloggen met deze provider lukte niet.");
-      setOauthBusy(undefined);
     }
   }
 
@@ -100,23 +85,35 @@ function AuthPage() {
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-2xl">
-            {mode === "signin" ? "Inloggen" : "Account aanmaken"}
+            {mode === "signin"
+              ? text("Inloggen", "Sign in")
+              : text("Account aanmaken", "Create account")}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Je reizen, uitgaven en bonnetjes worden versleuteld in je eigen workspace bewaard.
+            {text(
+              "Je reizen, uitgaven en bonnetjes worden veilig in je eigen workspace bewaard.",
+              "Your trips, expenses and receipts are stored securely in your own workspace.",
+            )}
           </p>
         </CardHeader>
         <CardContent>
           {sent ? (
             <p className="text-sm">
-              We hebben een bevestigingsmail naar <strong>{email}</strong> gestuurd. Klik op de
-              link om je workspace te activeren.
+              {text(
+                "We hebben een bevestigingsmail gestuurd naar",
+                "We sent a confirmation email to",
+              )}{" "}
+              <strong>{email}</strong>.{" "}
+              {text(
+                "Klik op de link om je workspace te activeren.",
+                "Follow the link to activate your workspace.",
+              )}
             </p>
           ) : (
             <form onSubmit={submit} className="space-y-4">
               {mode === "signup" && (
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">Naam</Label>
+                  <Label htmlFor="name">{text("Naam", "Name")}</Label>
                   <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
               )}
@@ -132,7 +129,7 @@ function AuthPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="password">Wachtwoord</Label>
+                <Label htmlFor="password">{text("Wachtwoord", "Password")}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -144,36 +141,13 @@ function AuthPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={busy}>
-                {busy ? "Bezig…" : mode === "signin" ? "Inloggen" : "Account aanmaken"}
+                {busy
+                  ? text("Bezig…", "Working…")
+                  : mode === "signin"
+                    ? text("Inloggen", "Sign in")
+                    : text("Account aanmaken", "Create account")}
               </Button>
             </form>
-          )}
-
-          {!sent && (
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="h-px flex-1 bg-border" />
-                of ga verder met
-                <span className="h-px flex-1 bg-border" />
-              </div>
-              <div className="grid gap-2 sm:grid-cols-3">
-                {OAUTH_PROVIDERS.map((provider) => {
-                  const Icon = provider.icon;
-                  return (
-                    <Button
-                      key={provider.id}
-                      type="button"
-                      variant="outline"
-                      disabled={busy || Boolean(oauthBusy)}
-                      onClick={() => void signInWithOAuth(provider.id)}
-                    >
-                      <Icon className="size-4" />
-                      {oauthBusy === provider.id ? "Even…" : provider.label}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
           )}
 
           <button
@@ -185,8 +159,8 @@ function AuthPage() {
             className="mt-4 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
           >
             {mode === "signin"
-              ? "Nog geen account? Registreer gratis"
-              : "Al een account? Log in"}
+              ? text("Nog geen account? Registreer gratis", "No account yet? Create one for free")
+              : text("Al een account? Log in", "Already have an account? Sign in")}
           </button>
         </CardContent>
       </Card>

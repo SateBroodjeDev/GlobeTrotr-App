@@ -12,6 +12,11 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ### Naar de testopening — OAuth en app-e-mail uitgezonderd
 
+- [x] NL/EN-taalkeuze toegevoegd en opgeslagen per account; publieke homepage, authenticatie, gedeelde reis, hoofdnavigatie, footer, privacy en beta-voorwaarden zijn tweetalig
+- [x] Privacy-informatie en internationale beta-voorwaarden gepubliceerd en vanuit de footer bereikbaar
+- [x] OAuth-acties verborgen zolang de providers bewust niet tot de beta behoren
+- [x] Extra witruimte toegevoegd boven de knoppen voor wachtwoord- en reisinstellingen
+- [ ] Engelse vertaling afronden voor dashboard, reisbeheer, account, abonnement, meldingen en exports
 - [ ] Kritieke rooktest: registreren/inloggen met e-mail, reis aanmaken, wijzigen, herladen, archiveren en verwijderen
 - [ ] Reisinhoud testen: stops, planning, vlucht, verblijf, vervoer, huurauto, uitgave, verdeling, paklijst en export
 - [ ] Publiek delen testen: aan/uit, PIN, budget wel/niet delen, oude link, lege reis en reis met veel stops

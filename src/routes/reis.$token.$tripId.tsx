@@ -18,6 +18,7 @@ import { useAuth } from "@/lib/auth";
 import TripMap from "@/components/TripMap";
 import { Badge } from "@/components/ui/badge";
 import { TEMPLATES, type Stop } from "@/lib/types";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/reis/$token/$tripId")({
   head: () => ({
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/reis/$token/$tripId")({
 });
 
 function PublicTrip() {
+  const { locale, text } = useLocale();
   const { user, loading: authLoading } = useAuth();
   const { token, tripId } = Route.useParams();
   const [pin, setPin] = useState("");
@@ -53,7 +55,7 @@ function PublicTrip() {
 
   if (q.isLoading) {
     return (
-      <div className="space-y-5" aria-busy="true" aria-label="Reis laden">
+      <div className="space-y-5" aria-busy="true" aria-label={text("Reis laden", "Loading trip")}>
         <div className="h-64 animate-pulse rounded-3xl bg-muted" />
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="h-80 animate-pulse rounded-2xl bg-muted lg:col-span-2" />
@@ -70,9 +72,9 @@ function PublicTrip() {
             <LockKeyhole className="size-6" />
           </div>
           <div className="space-y-1">
-            <h1 className="font-display text-2xl font-semibold">Deze reis is beveiligd</h1>
+            <h1 className="font-display text-2xl font-semibold">{text("Deze reis is beveiligd", "This trip is protected")}</h1>
             <p className="text-sm text-muted-foreground">
-              Vraag de 6- tot 12-cijferige PIN aan de eigenaar van deze reis.
+              {text("Vraag de 6- tot 12-cijferige pincode aan de eigenaar van deze reis.", "Ask the trip owner for the 6 to 12 digit PIN.")}
             </p>
           </div>
           <form
@@ -83,7 +85,7 @@ function PublicTrip() {
             }}
           >
             <Input
-              aria-label="PIN voor deze reis"
+              aria-label={text("Pincode voor deze reis", "PIN for this trip")}
               type="password"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -94,7 +96,7 @@ function PublicTrip() {
               onChange={(event) => setPin(event.target.value.replace(/\D/g, ""))}
               placeholder="PIN"
             />
-            <Button type="submit">Openen</Button>
+            <Button type="submit">{text("Openen", "Open")}</Button>
           </form>
         </CardContent>
       </Card>
@@ -108,12 +110,12 @@ function PublicTrip() {
           <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted">
             <MapPin className="size-6 text-muted-foreground" />
           </div>
-          <h1 className="font-display text-2xl font-semibold">Deze reis is niet (meer) openbaar</h1>
+          <h1 className="font-display text-2xl font-semibold">{text("Deze reis is niet (meer) openbaar", "This trip is no longer public")}</h1>
           <p className="text-sm text-muted-foreground">
-            De eigenaar heeft deze link mogelijk uitgeschakeld.
+            {text("De eigenaar heeft deze link mogelijk uitgeschakeld.", "The owner may have disabled this link.")}
           </p>
           <Button asChild variant="outline">
-            <Link to="/">Terug naar home</Link>
+            <Link to="/">{text("Terug naar home", "Back home")}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -128,7 +130,7 @@ function PublicTrip() {
     for (const item of trip.itinerary) days.set(item.day, [...(days.get(item.day) ?? []), item]);
     return [...days.entries()];
   })();
-  const dateRange = formatDateRange(trip.start, trip.end);
+  const dateRange = formatDateRange(trip.start, trip.end, locale);
   const visibleStops = showAllStops ? stops : stops.slice(0, 4);
   const countryCount = new Set(stops.map((stop) => stop.country).filter(Boolean)).size;
   return (
@@ -136,7 +138,7 @@ function PublicTrip() {
       <header className="aurora relative overflow-hidden rounded-3xl px-6 py-10 sm:px-10 sm:py-14">
         <div className="relative max-w-3xl">
           <Badge variant="secondary" className="mb-5 gap-1.5">
-            <Sparkles className="size-3" /> Openbaar reisverhaal
+            <Sparkles className="size-3" /> {text("Openbaar reisverhaal", "Public travel story")}
           </Badge>
           <div className="flex items-start gap-4">
             <span className="text-4xl sm:text-5xl" aria-hidden>
@@ -148,15 +150,15 @@ function PublicTrip() {
               </h1>
               <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm opacity-90 sm:text-base">
                 <CalendarDays className="size-4" /> {dateRange}
-                <span aria-hidden>·</span> gedeeld door {trip.authorName}
+                <span aria-hidden>·</span> {text("gedeeld door", "shared by")} {trip.authorName}
               </p>
             </div>
           </div>
           <p className="mt-6 max-w-2xl text-sm leading-relaxed opacity-90 sm:text-base">
             {trip.description ||
               (stops.length
-                ? `Een reis langs ${stops.length} ${stops.length === 1 ? "bestemming" : "bestemmingen"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "land" : "landen"}` : ""}.`
-                : "De route en dagplanning van deze reis worden hier gedeeld.")}
+                ? text(`Een reis langs ${stops.length} ${stops.length === 1 ? "bestemming" : "bestemmingen"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "land" : "landen"}` : ""}.`, `A trip across ${stops.length} ${stops.length === 1 ? "destination" : "destinations"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "country" : "countries"}` : ""}.`)
+                : text("De route en dagplanning van deze reis worden hier gedeeld.", "The route and daily itinerary for this trip are shared here."))}
           </p>
         </div>
       </header>
@@ -165,7 +167,7 @@ function PublicTrip() {
         <Card className="surface min-w-0 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <RouteIcon className="size-4 text-primary" /> De route
+              <RouteIcon className="size-4 text-primary" /> {text("De route", "The route")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0 sm:p-5 sm:pt-0">
@@ -173,7 +175,7 @@ function PublicTrip() {
               <TripMap stops={stops} activeStopId={activeStopId} onStopSelect={setActiveStopId} />
             ) : (
               <div className="grid h-72 place-items-center rounded-xl bg-muted/50 text-sm text-muted-foreground">
-                Nog geen bestemmingen gedeeld.
+                {text("Nog geen bestemmingen gedeeld.", "No destinations shared yet.")}
               </div>
             )}
           </CardContent>
@@ -182,12 +184,12 @@ function PublicTrip() {
         <Card className="surface min-w-0 self-start">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <MapPin className="size-4 text-primary" /> Bestemmingen
+              <MapPin className="size-4 text-primary" /> {text("Bestemmingen", "Destinations")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {stops.length === 0 && (
-              <p className="text-sm text-muted-foreground">De route is nog leeg.</p>
+              <p className="text-sm text-muted-foreground">{text("De route is nog leeg.", "The route is empty.")}</p>
             )}
             {visibleStops.map((stop) => {
               const index = stops.findIndex((item) => item.id === stop.id);
@@ -206,9 +208,9 @@ function PublicTrip() {
                     <span className="block text-xs text-muted-foreground">
                       {[
                         stop.country,
-                        stop.arrive ? formatDate(stop.arrive) : "",
+                        stop.arrive ? formatDate(stop.arrive, locale) : "",
                         stop.nights
-                          ? `${stop.nights} ${stop.nights === 1 ? "nacht" : "nachten"}`
+                          ? `${stop.nights} ${text(stop.nights === 1 ? "nacht" : "nachten", stop.nights === 1 ? "night" : "nights")}`
                           : "",
                       ]
                         .filter(Boolean)
@@ -225,7 +227,7 @@ function PublicTrip() {
                 className="mt-3 w-full"
                 onClick={() => setShowAllStops((current) => !current)}
               >
-                {showAllStops ? "Minder bestemmingen" : `Alle ${stops.length} bestemmingen`}
+                {showAllStops ? text("Minder bestemmingen", "Fewer destinations") : text(`Alle ${stops.length} bestemmingen`, `All ${stops.length} destinations`)}
               </Button>
             )}
           </CardContent>
@@ -235,14 +237,14 @@ function PublicTrip() {
       <section className="space-y-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-            Van dag tot dag
+            {text("Van dag tot dag", "Day by day")}
           </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold">Dagplanning</h2>
+          <h2 className="mt-1 font-display text-2xl font-semibold">{text("Dagplanning", "Itinerary")}</h2>
         </div>
         {groupedDays.length === 0 ? (
           <Card className="surface">
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Nog geen dagplanning gedeeld.
+              {text("Nog geen dagplanning gedeeld.", "No itinerary shared yet.")}
             </CardContent>
           </Card>
         ) : (
@@ -251,9 +253,9 @@ function PublicTrip() {
               <Card key={day} className="surface overflow-hidden">
                 <CardHeader className="border-b border-border bg-muted/30 pb-3">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Dag {dayIndex + 1}
+                    {text("Dag", "Day")} {dayIndex + 1}
                   </p>
-                  <CardTitle className="text-base">{formatDate(day)}</CardTitle>
+                  <CardTitle className="text-base">{formatDate(day, locale)}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 pt-4">
                   {items.map((item, index) => (
@@ -282,14 +284,14 @@ function PublicTrip() {
           <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
             <div>
               <p className="flex items-center gap-2 text-sm font-medium">
-                <Wallet className="size-4 text-primary" /> Gedeeld reisbudget
+                <Wallet className="size-4 text-primary" /> {text("Gedeeld reisbudget", "Shared trip budget")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                De eigenaar heeft alleen het totaalbudget openbaar gemaakt.
+                {text("De eigenaar heeft alleen het totaalbudget openbaar gemaakt.", "The owner has only made the total budget public.")}
               </p>
             </div>
             <p className="font-display text-2xl font-semibold">
-              {formatMoney(trip.budget, trip.currency)}
+              {formatMoney(trip.budget, trip.currency, locale)}
             </p>
           </CardContent>
         </Card>
@@ -299,19 +301,19 @@ function PublicTrip() {
         <Card className="surface overflow-hidden">
           <CardContent className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center sm:p-8">
             <div>
-              <h2 className="font-display text-xl font-semibold">Klaar voor je eigen avontuur?</h2>
+              <h2 className="font-display text-xl font-semibold">{text("Klaar voor je eigen avontuur?", "Ready for your own adventure?")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Plan je route, dagprogramma en gezamenlijke kosten op één plek.
+                {text("Plan je route, dagprogramma en gezamenlijke kosten op één plek.", "Plan your route, itinerary and shared expenses in one place.")}
               </p>
             </div>
             <Button asChild>
               {user ? (
                 <Link to="/dashboard">
-                  Naar mijn reizen <ArrowRight className="size-4" />
+                  {text("Naar mijn reizen", "View my trips")} <ArrowRight className="size-4" />
                 </Link>
               ) : (
                 <Link to="/auth">
-                  Gratis account maken <ArrowRight className="size-4" />
+                  {text("Gratis account maken", "Create free account")} <ArrowRight className="size-4" />
                 </Link>
               )}
             </Button>
@@ -322,9 +324,9 @@ function PublicTrip() {
   );
 }
 
-function formatDate(value: string) {
+function formatDate(value: string, locale: "nl-NL" | "en-GB") {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  return new Intl.DateTimeFormat("nl-NL", {
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -332,14 +334,14 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-function formatDateRange(start: string, end: string) {
-  if (!start && !end) return "Reisdata nog niet bekend";
-  if (start === end || !end) return formatDate(start);
-  return `${formatDate(start)} – ${formatDate(end)}`;
+function formatDateRange(start: string, end: string, locale: "nl-NL" | "en-GB") {
+  if (!start && !end) return locale === "nl-NL" ? "Reisdata nog niet bekend" : "Travel dates not available yet";
+  if (start === end || !end) return formatDate(start, locale);
+  return `${formatDate(start, locale)} – ${formatDate(end, locale)}`;
 }
 
-function formatMoney(amount: number, currency = "EUR") {
-  return new Intl.NumberFormat("nl-NL", {
+function formatMoney(amount: number, currency = "EUR", locale: "nl-NL" | "en-GB") {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     maximumFractionDigits: 0,

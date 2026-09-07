@@ -4,6 +4,23 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-07 19:30 CEST — Basis voor internationale beta
+
+### Gebruikerservaring
+
+- Een globale NL/EN-keuze volgt de browsertaal en wordt voor ingelogde gebruikers in het profiel opgeslagen.
+- Homepage, e-mailauthenticatie, openbare reizen, hoofdnavigatie, footer, privacy en beta-voorwaarden zijn tweetalig gemaakt.
+- Datums en bedragen op openbare reizen volgen de gekozen taal.
+- Privacy-informatie en beta-voorwaarden zijn vanuit de footer bereikbaar.
+- OAuth-knoppen zijn verborgen zolang OAuth bewust buiten deze beta valt.
+- Opslaanknoppen voor het wachtwoord en de reisinstellingen hebben meer afstand tot de velden erboven.
+
+### Controles
+
+- Zeven geautomatiseerde tests geslaagd.
+- Productiebuild voor client, SSR en Cloudflare geslaagd.
+- De bestaande waarschuwingen over TanStack `inputValidator()` en de grote hoofdbundle blijven als technisch onderhoud openstaan.
+
 ## 2026-09-07 18:50 CEST — Rustigere publieke reisheader
 
 ### Gebruikerservaring

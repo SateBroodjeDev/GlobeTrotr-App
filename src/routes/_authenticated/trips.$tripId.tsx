@@ -723,7 +723,7 @@ function TripDetail() {
                     ))}
                   </select>
                 </label>
-                <div className="flex items-end sm:col-span-2">
+                <div className="mt-2 flex items-end sm:col-span-2">
                   <Button type="submit" disabled={!editable || settingsSaving}>
                     {settingsSaving ? "Opslaan…" : "Wijzigingen opslaan"}
                   </Button>
