@@ -3,8 +3,10 @@ import { fetchWeather, weatherLabel } from "@/lib/services";
 import type { Stop } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLocale } from "@/lib/locale";
 
 export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean }) {
+  const { locale, text } = useLocale();
   const q = useQuery({
     queryKey: ["weather", stop?.lat, stop?.lon],
     queryFn: () => fetchWeather(stop!.lat, stop!.lon),
@@ -16,20 +18,20 @@ export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean
     <Card className="surface">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold">
-          Weer · {stop ? `${stop.name}, ${stop.country}` : "geen bestemming"}
+          {text("Weer", "Weather")} · {stop ? `${stop.name}, ${stop.country}` : text("geen bestemming", "no destination")}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!enabled ? (
           <p className="text-sm text-muted-foreground">
-            Live weer is onderdeel van Pro. Upgrade om de verwachting per bestemming te zien.
+            {text("Live weer is onderdeel van Pro. Upgrade om de verwachting per bestemming te zien.", "Live weather is part of Pro. Upgrade to see the forecast for each destination.")}
           </p>
         ) : !stop ? (
-          <p className="text-sm text-muted-foreground">Voeg een bestemming toe op de kaart.</p>
+          <p className="text-sm text-muted-foreground">{text("Voeg een bestemming toe op de kaart.", "Add a destination to the map.")}</p>
         ) : q.isLoading ? (
           <Skeleton className="h-24 w-full" />
         ) : q.isError ? (
-          <p className="text-sm text-destructive">Weerdata tijdelijk niet beschikbaar.</p>
+          <p className="text-sm text-destructive">{text("Weerdata tijdelijk niet beschikbaar.", "Weather data is temporarily unavailable.")}</p>
         ) : q.data ? (
           <div>
             <div className="flex items-baseline gap-3">
@@ -45,7 +47,7 @@ export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean
               {q.data.daily.map((d) => (
                 <div key={d.date} className="rounded-lg bg-muted/70 py-2">
                   <div className="text-muted-foreground">
-                    {new Date(d.date).toLocaleDateString("nl-NL", { weekday: "short" })}
+                    {new Date(d.date).toLocaleDateString(locale, { weekday: "short" })}
                   </div>
                   <div className="text-base">{weatherLabel(d.code).icon}</div>
                   <div className="font-medium">

@@ -3,6 +3,7 @@ import { Search, Loader2 } from "lucide-react";
 import { searchPlaces, type GeoResult } from "@/lib/services";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/lib/locale";
 
 export function PlaceSearch({
   onPick,
@@ -11,6 +12,7 @@ export function PlaceSearch({
   onPick: (r: GeoResult) => void;
   disabled?: boolean;
 }) {
+  const { text } = useLocale();
   const [q, setQ] = useState("");
   const [results, setResults] = useState<GeoResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export function PlaceSearch({
     try {
       setResults(await searchPlaces(q));
     } catch {
-      setError("Zoeken lukte niet, probeer opnieuw.");
+      setError(text("Zoeken lukte niet, probeer opnieuw.", "Search failed. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -37,7 +39,7 @@ export function PlaceSearch({
           value={q}
           disabled={disabled}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Zoek elk dorp, stad of land ter wereld…"
+          placeholder={text("Zoek elk dorp, stad of land ter wereld…", "Search any town, city or country worldwide…")}
         />
         <Button type="submit" disabled={disabled || loading}>
           {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}

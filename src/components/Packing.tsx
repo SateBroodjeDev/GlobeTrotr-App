@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useLocale } from "@/lib/locale";
 
 export function Packing({
   items,
@@ -17,6 +18,7 @@ export function Packing({
   editable: boolean;
   onChange: (next: PackingItem[]) => void;
 }) {
+  const { text } = useLocale();
   const [label, setLabel] = useState("");
   const done = items.filter((i) => i.done).length;
   const pct = items.length ? (done / items.length) * 100 : 0;
@@ -29,14 +31,14 @@ export function Packing({
       .filter((l) => !existing.has(l.toLowerCase()))
       .map((l) => ({ id: uid(), label: l, done: false }));
     onChange([...items, ...added]);
-    toast.success(`${added.length} punten toegevoegd uit ${tpl.label}`);
+    toast.success(text(`${added.length} punten toegevoegd uit ${tpl.label}`, `${added.length} items added from ${tpl.label}`));
   }
 
   return (
     <div className="space-y-4">
       <Card className="surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Paklijst-sjablonen (1 klik)</CardTitle>
+          <CardTitle className="text-sm">{text("Paklijst-sjablonen (1 klik)", "Packing list templates (one click)")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {PACKING_TEMPLATES.map((t) => (
@@ -51,7 +53,7 @@ export function Packing({
       <Card className="surface">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">
-            Checklist — {done}/{items.length} afgevinkt
+            Checklist — {done}/{items.length} {text("afgevinkt", "checked")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -60,7 +62,7 @@ export function Packing({
             <Input
               value={label}
               disabled={!editable}
-              placeholder="Eigen punt toevoegen"
+              placeholder={text("Eigen punt toevoegen", "Add your own item")}
               onChange={(e) => setLabel(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && label.trim()) {
@@ -76,7 +78,7 @@ export function Packing({
                 setLabel("");
               }}
             >
-              <Plus className="size-4" /> Toevoegen
+              <Plus className="size-4" /> {text("Toevoegen", "Add")}
             </Button>
           </div>
           <ul className="grid gap-1 sm:grid-cols-2">
@@ -98,7 +100,7 @@ export function Packing({
                 </label>
                 {editable && (
                   <button
-                    aria-label="Verwijder punt"
+                    aria-label={text("Verwijder punt", "Delete item")}
                     onClick={() => onChange(items.filter((x) => x.id !== i.id))}
                   >
                     <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
@@ -109,7 +111,7 @@ export function Packing({
           </ul>
           {!items.length && (
             <p className="text-sm text-muted-foreground">
-              Nog niets ingepakt — laad hierboven een sjabloon.
+              {text("Nog niets ingepakt — laad hierboven een sjabloon.", "Nothing packed yet — load a template above.")}
             </p>
           )}
         </CardContent>

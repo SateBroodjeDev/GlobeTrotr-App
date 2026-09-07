@@ -2,7 +2,9 @@ export type PublicChangeKind = "new" | "improved" | "fixed" | "secure";
 
 export type PublicChange = {
   title: string;
+  titleEn: string;
   description: string;
+  descriptionEn: string;
   kind: PublicChangeKind;
 };
 
@@ -11,17 +13,22 @@ export type PublicRelease = {
   version: string;
   publishedAt: string;
   title: string;
+  titleEn: string;
   summary: string;
+  summaryEn: string;
   changes: PublicChange[];
 };
 
 export const PUBLIC_BETA_STATUS = {
   label: "Voorbereiding testopening",
+  labelEn: "Preparing the test launch",
   description:
     "De kern van GlobeTrotr wordt klaargemaakt voor de eerste groep testers. Reizen plannen, kosten bijhouden en openbaar delen staan centraal in deze test.",
+  descriptionEn:
+    "The core of GlobeTrotr is being prepared for the first group of testers, centred on planning, expenses and public trip sharing.",
   unavailable: [
-    "Inloggen met Apple, Google of Microsoft",
-    "Automatische app-e-mails en reisuitnodigingen per e-mail",
+    { nl: "Inloggen met Apple, Google of Microsoft", en: "Sign in with Apple, Google or Microsoft" },
+    { nl: "Automatische app-e-mails en reisuitnodigingen per e-mail", en: "Automated app emails and trip invitations by email" },
   ],
 } as const;
 
@@ -32,26 +39,38 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     version: "Beta 0.5",
     publishedAt: "2026-09-07T19:30:00+02:00",
     title: "Klaar voor internationale testers",
+    titleEn: "Ready for international testers",
     summary:
       "De eerste internationale beta-onderdelen zijn beschikbaar en belangrijke testinformatie is makkelijker te vinden.",
+    summaryEn:
+      "The first international beta features are available and essential testing information is easier to find.",
     changes: [
       {
         kind: "new",
         title: "Nederlands en Engels",
+        titleEn: "Dutch and English",
         description:
           "Kies vanuit de header je taal voor de homepage, het inloggen en openbare reisverhalen.",
+        descriptionEn:
+          "Choose your language for the homepage, sign-in flow and public travel stories.",
       },
       {
         kind: "new",
         title: "Privacy en beta-voorwaarden",
+        titleEn: "Privacy and beta terms",
         description:
           "De footer geeft rechtstreeks toegang tot heldere informatie over gegevens en verantwoord testen.",
+        descriptionEn:
+          "The footer links directly to clear information about data and responsible testing.",
       },
       {
         kind: "improved",
         title: "Rustigere formulieren",
+        titleEn: "Clearer forms",
         description:
           "Belangrijke opslaanknoppen hebben meer ruimte en zijn daardoor duidelijker van de invoervelden gescheiden.",
+        descriptionEn:
+          "Important save buttons have more space and are easier to distinguish from the fields above.",
       },
     ],
   },
@@ -60,26 +79,37 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     version: "Beta 0.4",
     publishedAt: "2026-09-07T18:50:00+02:00",
     title: "Meer verhaal, minder drukte",
+    titleEn: "More story, less clutter",
     summary:
       "Gedeelde reizen krijgen ruimte voor een persoonlijke introductie en tonen lange routes compacter.",
+    summaryEn:
+      "Shared trips now have room for a personal introduction and present long routes more compactly.",
     changes: [
       {
         kind: "new",
         title: "Eigen reisomschrijving",
+        titleEn: "Your own trip description",
         description:
           "Geef je reis een korte introductie die bovenaan de openbare reisweergave verschijnt.",
+        descriptionEn: "Add a short introduction that appears at the top of the public trip page.",
       },
       {
         kind: "improved",
         title: "Rustigere openbare reis",
+        titleEn: "Cleaner public trip",
         description:
           "De lange routezin is vervangen door de omschrijving of een korte samenvatting van bestemmingen en landen.",
+        descriptionEn:
+          "The long route line has been replaced by the description or a short destination and country summary.",
       },
       {
         kind: "improved",
         title: "Compacte bestemmingenlijst",
+        titleEn: "Compact destination list",
         description:
           "Naast de kaart zie je eerst vier stops; de hele route blijft bereikbaar met één duidelijke knop.",
+        descriptionEn:
+          "The first four stops appear beside the map, with one clear button to reveal the full route.",
       },
     ],
   },
@@ -88,32 +118,47 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     version: "Beta 0.3",
     publishedAt: "2026-09-07T18:40:00+02:00",
     title: "Openbare reizen komen tot leven",
+    titleEn: "Public trips come to life",
     summary:
       "Een gedeelde reis voelt nu als een echt reisverhaal, met route, planning en heldere details.",
+    summaryEn:
+      "A shared trip now feels like a real travel story, with its route, itinerary and clear details.",
     changes: [
       {
         kind: "new",
         title: "Interactieve routekaart",
+        titleEn: "Interactive route map",
         description:
           "Bekijk de volledige route, selecteer een bestemming en volg de genummerde stops op de kaart.",
+        descriptionEn:
+          "View the full route, select a destination and follow the numbered stops on the map.",
       },
       {
         kind: "improved",
         title: "Dagplanning in overzichtelijke kaarten",
+        titleEn: "Daily itinerary cards",
         description:
           "Activiteiten zijn per dag gegroepeerd in een rustige tijdlijn die ook op telefoon prettig leest.",
+        descriptionEn:
+          "Activities are grouped by day in a clear timeline that also reads well on mobile.",
       },
       {
         kind: "improved",
         title: "Een sterkere eerste indruk",
+        titleEn: "A stronger first impression",
         description:
           "Reisnaam, periode, eigenaar en bestemmingen staan samen in een nieuwe visuele introductie.",
+        descriptionEn:
+          "The trip name, dates, owner and destinations are brought together in a new visual introduction.",
       },
       {
         kind: "secure",
         title: "Alleen gedeelde gegevens",
+        titleEn: "Shared data only",
         description:
           "Privé-uitgaven, betalers, bonnetjes en boekingsdetails blijven buiten de openbare reisweergave.",
+        descriptionEn:
+          "Private expenses, payers, receipts and booking details remain outside the public trip page.",
       },
     ],
   },
@@ -122,31 +167,45 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     version: "Beta 0.2",
     publishedAt: "2026-09-07T17:30:00+02:00",
     title: "Betrouwbaarder opslaan en beter op mobiel",
+    titleEn: "More reliable saving and better mobile support",
     summary:
       "Uitgaven en reiswijzigingen worden veiliger bewaard en formulieren passen beter op kleine schermen.",
+    summaryEn:
+      "Expenses and trip changes are saved more safely, and forms fit smaller screens better.",
     changes: [
       {
         kind: "fixed",
         title: "Uitgaven weer bijwerken",
+        titleEn: "Edit expenses again",
         description:
           "Bestaande uitgaven kunnen weer worden aangepast en na herladen correct worden teruggelezen.",
+        descriptionEn:
+          "Existing expenses can be edited again and are restored correctly after reloading.",
       },
       {
         kind: "fixed",
         title: "Vluchtvelden binnen beeld",
+        titleEn: "Flight fields stay in view",
         description: "Vertrek- en aankomsttijd vallen op telefoons niet meer buiten het formulier.",
+        descriptionEn: "Departure and arrival times no longer overflow the form on mobile.",
       },
       {
         kind: "improved",
         title: "Uitgavenoverzicht op telefoon",
+        titleEn: "Mobile expense overview",
         description:
           "Brede kostengegevens blijven bereikbaar via een nette horizontale weergave binnen het overzicht.",
+        descriptionEn:
+          "Wide expense details remain accessible through a contained horizontal view.",
       },
       {
         kind: "secure",
         title: "Bescherming tegen overschrijven",
+        titleEn: "Protection against overwriting",
         description:
           "Bij wijzigingen vanuit twee tabbladen wordt een conflict gemeld voordat nieuwere gegevens verloren kunnen gaan.",
+        descriptionEn:
+          "Changes from two browser tabs now trigger a conflict before newer data can be lost.",
       },
     ],
   },
@@ -155,26 +214,38 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     version: "Beta 0.1",
     publishedAt: "2026-09-07T16:30:00+02:00",
     title: "Meer inzicht in je account",
+    titleEn: "More insight into your account",
     summary:
       "Je ziet nu direct welk plan actief is en hoeveel reizen binnen je account worden gebruikt.",
+    summaryEn:
+      "You can now see your active plan and trip usage directly in your account.",
     changes: [
       {
         kind: "new",
         title: "Plan en reisgebruik",
+        titleEn: "Plan and trip usage",
         description:
           "Accountinstellingen tonen je plan, planlimiet en het aantal actieve en totale reizen.",
+        descriptionEn:
+          "Account settings show your plan, its trip limit, and your active and total trip counts.",
       },
       {
         kind: "improved",
         title: "Slimme abonnementsknop",
+        titleEn: "Context-aware plan button",
         description:
           "Ga vanuit je account direct naar upgrades of naar het beheer van je huidige abonnement.",
+        descriptionEn:
+          "Go directly from your account to upgrades or management of your current plan.",
       },
       {
         kind: "fixed",
         title: "Juiste actie op gedeelde reizen",
+        titleEn: "The right action on shared trips",
         description:
           "Ben je al ingelogd, dan ga je vanuit een openbare reis direct naar je eigen reizen.",
+        descriptionEn:
+          "When signed in, a public trip now takes you directly to your own trips.",
       },
     ],
   },

@@ -52,6 +52,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocale } from "@/lib/locale";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
 
@@ -102,6 +103,7 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 });
 
 function TripDetail() {
+  const { text } = useLocale();
   const { tripId } = Route.useParams();
   const { state, updateTrip, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
   const navigate = useNavigate();
@@ -143,10 +145,10 @@ function TripDetail() {
           )
           .sort((a, b) => a.day.localeCompare(b.day)),
       }));
-      toast.success("Programma-item gewijzigd.");
+      toast.success(text("Programma-item gewijzigd.", "Itinerary item updated."));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Programma-item kon niet worden gewijzigd.",
+        error instanceof Error ? error.message : text("Programma-item kon niet worden gewijzigd.", "Itinerary item could not be updated."),
       );
       throw error;
     }
@@ -201,19 +203,19 @@ function TripDetail() {
     const name = settings.name.trim();
     const budget = Number(settings.budget);
     if (!name) {
-      toast.error("Een reisnaam is verplicht.");
+      toast.error(text("Een reisnaam is verplicht.", "A trip name is required."));
       return;
     }
     if (!settings.start || !settings.end) {
-      toast.error("Vul een start- en einddatum in.");
+      toast.error(text("Vul een start- en einddatum in.", "Enter a start and end date."));
       return;
     }
     if (settings.end < settings.start) {
-      toast.error("De einddatum kan niet vóór de startdatum liggen.");
+      toast.error(text("De einddatum kan niet vóór de startdatum liggen.", "The end date cannot be before the start date."));
       return;
     }
     if (!settings.budget.trim() || !Number.isFinite(budget) || budget < 0) {
-      toast.error("Vul een budget van nul of hoger in.");
+      toast.error(text("Vul een budget van nul of hoger in.", "Enter a budget of zero or more."));
       return;
     }
 
@@ -229,10 +231,10 @@ function TripDetail() {
         template: settings.template,
       }));
       setSettings((current) => ({ ...current, name, budget: String(budget) }));
-      toast.success("Reisinstellingen opgeslagen.");
+      toast.success(text("Reisinstellingen opgeslagen.", "Trip settings saved."));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Reisinstellingen konden niet worden opgeslagen.",
+        error instanceof Error ? error.message : text("Reisinstellingen konden niet worden opgeslagen.", "Trip settings could not be saved."),
       );
     } finally {
       setSettingsSaving(false);
@@ -544,12 +546,12 @@ function TripDetail() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Link to="/dashboard" className="text-xs text-muted-foreground hover:underline">
-            ← Alle reizen
+            ← {text("Alle reizen", "All trips")}
           </Link>
           <h1 className="font-display text-2xl font-semibold">{trip.name}</h1>
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
-            {trip.start} → {trip.end} · {trip.stops.length} bestemmingen
+            {trip.start} → {trip.end} · {trip.stops.length} {text(trip.stops.length === 1 ? "bestemming" : "bestemmingen", trip.stops.length === 1 ? "destination" : "destinations")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -558,7 +560,7 @@ function TripDetail() {
             disabled={!canExport(state.role)}
             onClick={() => {
               downloadCsv(trip, base, rates);
-              toast.success("CSV geëxporteerd");
+              toast.success(text("CSV geëxporteerd", "CSV exported"));
             }}
           >
             <FileDown className="size-4" /> CSV
@@ -568,23 +570,23 @@ function TripDetail() {
             disabled={!canExport(state.role)}
             onClick={() => {
               if (!openGuide(trip, base, rates, state.branding))
-                toast.error("Sta pop-ups toe om de reisgids te openen.");
+                toast.error(text("Sta pop-ups toe om de reisgids te openen.", "Allow pop-ups to open the trip guide."));
             }}
           >
-            <BookOpen className="size-4" /> Reisgids
+            <BookOpen className="size-4" /> {text("Reisgids", "Trip guide")}
           </Button>
           <Button
             disabled={!canExport(state.role)}
             onClick={() => {
               if (!hasFeature(state.plan, "pdf_export")) {
-                toast.error("PDF-declaraties zitten in Pro en hoger.");
+                toast.error(text("PDF-declaraties zitten in Pro en hoger.", "PDF expense reports are available on Pro and above."));
                 return;
               }
               if (!openPdf(trip, base, rates, state.branding))
-                toast.error("Sta pop-ups toe om de PDF te genereren.");
+                toast.error(text("Sta pop-ups toe om de PDF te genereren.", "Allow pop-ups to generate the PDF."));
             }}
           >
-            <FileText className="size-4" /> PDF declaratie
+            <FileText className="size-4" /> PDF {text("declaratie", "expense report")}
           </Button>
         </div>
       </div>
@@ -592,7 +594,7 @@ function TripDetail() {
       {tripStatus(trip) === "upcoming" && (
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Aftellen tot vertrek</CardTitle>
+            <CardTitle className="text-sm">{text("Aftellen tot vertrek", "Countdown to departure")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Countdown date={trip.start} />
@@ -603,37 +605,37 @@ function TripDetail() {
       <div
         className={`grid gap-4 ${canMarkBillable || estimatedFuel > 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
       >
-        <Stat label="Uitgegeven" value={formatMoney(spent, base)} />
+        <Stat label={text("Uitgegeven", "Spent")} value={formatMoney(spent, base)} />
         <Stat label="Budget" value={formatMoney(trip.budget, base)} />
         {estimatedFuel > 0 && (
-          <Stat label="Brandstofprognose" value={formatMoney(estimatedFuel, base)} />
+          <Stat label={text("Brandstofprognose", "Fuel estimate")} value={formatMoney(estimatedFuel, base)} />
         )}
-        {canMarkBillable && <Stat label="Declarabel" value={formatMoney(billable, base)} />}
+        {canMarkBillable && <Stat label={text("Declarabel", "Billable")} value={formatMoney(billable, base)} />}
       </div>
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
 
       <Tabs defaultValue="route">
         <TabsList className="h-auto max-w-full flex-wrap justify-start">
-          <TabsTrigger value="route">Routekaart</TabsTrigger>
-          <TabsTrigger value="plan">Reisschema</TabsTrigger>
-          {editable && <TabsTrigger value="plan-edit">Reisschema aanpassen</TabsTrigger>}
-          <TabsTrigger value="expenses">Uitgaven</TabsTrigger>
-          <TabsTrigger value="money">Geld-tools</TabsTrigger>
-          <TabsTrigger value="packing">Paklijst</TabsTrigger>
-          <TabsTrigger value="settings">Instellingen</TabsTrigger>
+          <TabsTrigger value="route">{text("Routekaart", "Route map")}</TabsTrigger>
+          <TabsTrigger value="plan">{text("Reisschema", "Itinerary")}</TabsTrigger>
+          {editable && <TabsTrigger value="plan-edit">{text("Reisschema aanpassen", "Edit itinerary")}</TabsTrigger>}
+          <TabsTrigger value="expenses">{text("Uitgaven", "Expenses")}</TabsTrigger>
+          <TabsTrigger value="money">{text("Geld-tools", "Money tools")}</TabsTrigger>
+          <TabsTrigger value="packing">{text("Paklijst", "Packing list")}</TabsTrigger>
+          <TabsTrigger value="settings">{text("Instellingen", "Settings")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings" className="space-y-4">
           <Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
-                <Settings2 className="size-4" /> Reisinstellingen
+                <Settings2 className="size-4" /> {text("Reisinstellingen", "Trip settings")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveTripSettings}>
                 <label className="space-y-1.5 text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">Reisnaam</span>
+                  <span className="text-muted-foreground">{text("Reisnaam", "Trip name")}</span>
                   <Input
                     value={settings.name}
                     disabled={!editable || settingsSaving}
@@ -644,13 +646,13 @@ function TripDetail() {
                   />
                 </label>
                 <label className="space-y-1.5 text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">Reisomschrijving</span>
+                  <span className="text-muted-foreground">{text("Reisomschrijving", "Trip description")}</span>
                   <Textarea
                     value={settings.description}
                     disabled={!editable || settingsSaving}
                     maxLength={500}
                     rows={4}
-                    placeholder="Vertel kort wat deze reis bijzonder maakt. Deze tekst verschijnt ook op de publieke reispagina."
+                    placeholder={text("Vertel kort wat deze reis bijzonder maakt. Deze tekst verschijnt ook op de publieke reispagina.", "Briefly describe what makes this trip special. This text also appears on the public trip page.")}
                     onChange={(event) =>
                       setSettings((current) => ({ ...current, description: event.target.value }))
                     }
@@ -660,7 +662,7 @@ function TripDetail() {
                   </span>
                 </label>
                 <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">Startdatum</span>
+                  <span className="text-muted-foreground">{text("Startdatum", "Start date")}</span>
                   <Input
                     type="date"
                     value={settings.start}
@@ -677,7 +679,7 @@ function TripDetail() {
                   />
                 </label>
                 <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">Einddatum</span>
+                  <span className="text-muted-foreground">{text("Einddatum", "End date")}</span>
                   <Input
                     type="date"
                     value={settings.end}
@@ -704,7 +706,7 @@ function TripDetail() {
                   />
                 </label>
                 <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">Reistemplate</span>
+                  <span className="text-muted-foreground">{text("Reistemplate", "Trip template")}</span>
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={settings.template}
@@ -725,7 +727,7 @@ function TripDetail() {
                 </label>
                 <div className="mt-2 flex items-end sm:col-span-2">
                   <Button type="submit" disabled={!editable || settingsSaving}>
-                    {settingsSaving ? "Opslaan…" : "Wijzigingen opslaan"}
+                    {settingsSaving ? text("Opslaan…", "Saving…") : text("Wijzigingen opslaan", "Save changes")}
                   </Button>
                 </div>
               </form>
@@ -735,27 +737,27 @@ function TripDetail() {
           <Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
-                <Globe2 className="size-4" /> Openbaar delen
+                <Globe2 className="size-4" /> {text("Openbaar delen", "Public sharing")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <ToggleSetting
-                label="Reis openbaar maken"
-                description="Toon deze reis op de homepage via een unieke link."
+                label={text("Reis openbaar maken", "Make trip public")}
+                description={text("Toon deze reis op de homepage via een unieke link.", "Show this trip on the homepage through a unique link.")}
                 checked={trip.public ?? false}
                 disabled={!editable || sharingSaving}
                 onChange={(checked) =>
                   void saveSharing(
                     { isPublic: checked },
-                    checked ? "Reis is openbaar gemaakt." : "Reis is privé gemaakt.",
+                    checked ? text("Reis is openbaar gemaakt.", "Trip is now public.") : text("Reis is privé gemaakt.", "Trip is now private."),
                   )
                 }
               />
               {trip.public && (
                 <>
                   <ToggleSetting
-                    label="Budget delen"
-                    description="Toon het budget op de openbare reispagina."
+                    label={text("Budget delen", "Share budget")}
+                    description={text("Toon het budget op de openbare reispagina.", "Show the budget on the public trip page.")}
                     checked={trip.shareFinancials ?? false}
                     disabled={!editable || sharingSaving}
                     onChange={(checked) =>
@@ -908,14 +910,14 @@ function TripDetail() {
             <div className="space-y-4">
               <Card className="surface">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Bestemming toevoegen</CardTitle>
+                  <CardTitle className="text-sm">{text("Bestemming toevoegen", "Add destination")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <PlaceSearch disabled={!editable} onPick={(location) => void addStop(location)} />
                   {trip.stops.length > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      {trip.stops.length} {trip.stops.length === 1 ? "bestemming" : "bestemmingen"}
-                      {activeStopId ? " · geselecteerde bestemming is op de kaart uitgelicht" : ""}
+                      {trip.stops.length} {text(trip.stops.length === 1 ? "bestemming" : "bestemmingen", trip.stops.length === 1 ? "destination" : "destinations")}
+                      {activeStopId ? text(" · geselecteerde bestemming is op de kaart uitgelicht", " · selected destination is highlighted on the map") : ""}
                     </p>
                   )}
                   <ol className="space-y-2">
@@ -939,7 +941,7 @@ function TripDetail() {
                           {editable && (
                             <button
                               type="button"
-                              aria-label="Verwijder bestemming"
+                              aria-label={text("Verwijder bestemming", "Delete destination")}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 void removeStop(s.id);
@@ -961,8 +963,8 @@ function TripDetail() {
                       onClick={() => setShowAllStops((current) => !current)}
                     >
                       {showAllStops
-                        ? "Minder bestemmingen tonen"
-                        : `Alle ${trip.stops.length} bestemmingen tonen`}
+                        ? text("Minder bestemmingen tonen", "Show fewer destinations")
+                        : text(`Alle ${trip.stops.length} bestemmingen tonen`, `Show all ${trip.stops.length} destinations`)}
                     </Button>
                   )}
                 </CardContent>
@@ -1004,8 +1006,7 @@ function TripDetail() {
         {editable && (
           <TabsContent value="plan-edit" className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Voeg boekingen en eigen programma-items toe of wijzig ze. Het overzicht zelf staat in
-              Reisschema.
+              {text("Voeg boekingen en eigen programma-items toe of wijzig ze. Het overzicht zelf staat in Reisschema.", "Add or edit bookings and your own itinerary items. The overview is available under Itinerary.")}
             </p>
             <TripBookings
               trip={trip}
@@ -1028,12 +1029,12 @@ function TripDetail() {
                       a.day.localeCompare(b.day),
                     ),
                   }));
-                  toast.success("Programma-item opgeslagen.");
+                  toast.success(text("Programma-item opgeslagen.", "Itinerary item saved."));
                 } catch (error) {
                   toast.error(
                     error instanceof Error
                       ? error.message
-                      : "Programma-item kon niet worden opgeslagen.",
+                      : text("Programma-item kon niet worden opgeslagen.", "Itinerary item could not be saved."),
                   );
                   throw error;
                 }
@@ -1044,12 +1045,12 @@ function TripDetail() {
                     ...current,
                     itinerary: current.itinerary.filter((planningItem) => planningItem.id !== id),
                   }));
-                  toast.success("Programma-item verwijderd.");
+                  toast.success(text("Programma-item verwijderd.", "Itinerary item deleted."));
                 } catch (error) {
                   toast.error(
                     error instanceof Error
                       ? error.message
-                      : "Programma-item kon niet worden verwijderd.",
+                      : text("Programma-item kon niet worden verwijderd.", "Itinerary item could not be deleted."),
                   );
                   throw error;
                 }
@@ -1062,7 +1063,7 @@ function TripDetail() {
           <Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">
-                {editingExpenseId ? "Uitgave wijzigen" : "Uitgave boeken (elke valuta)"}
+                {editingExpenseId ? text("Uitgave wijzigen", "Edit expense") : text("Uitgave boeken (elke valuta)", "Add expense (any currency)")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -1077,11 +1078,11 @@ function TripDetail() {
                   className="md:col-span-2"
                   value={draft.title}
                   disabled={!editable}
-                  placeholder="Omschrijving"
+                  placeholder={text("Omschrijving", "Description")}
                   onChange={(e) => setDraft({ ...draft, title: e.target.value })}
                 />
                 <select
-                  aria-label="Categorie"
+                  aria-label={text("Categorie", "Category")}
                   className="rounded-lg border border-input bg-card px-3 text-sm"
                   value={draft.category}
                   disabled={!editable}
@@ -1096,7 +1097,7 @@ function TripDetail() {
                   ))}
                 </select>
                 <select
-                  aria-label="Betaald door"
+                  aria-label={text("Betaald door", "Paid by")}
                   className="rounded-lg border border-input bg-card px-3 text-sm"
                   value={draft.paidBy}
                   disabled={!editable}
@@ -1104,7 +1105,7 @@ function TripDetail() {
                 >
                   {financialTravelers.map((payer) => (
                     <option key={payer} value={payer}>
-                      Betaald door: {payer}
+                      {text("Betaald door", "Paid by")}: {payer}
                     </option>
                   ))}
                 </select>
@@ -1112,7 +1113,7 @@ function TripDetail() {
                   type="number"
                   value={draft.amount || ""}
                   disabled={!editable}
-                  placeholder="Bedrag"
+                  placeholder={text("Bedrag", "Amount")}
                   onChange={(e) => setDraft({ ...draft, amount: Number(e.target.value) })}
                 />
                 <select
@@ -1136,12 +1137,12 @@ function TripDetail() {
                       disabled={!editable}
                       onChange={(e) => setDraft({ ...draft, billable: e.target.checked })}
                     />
-                    Declarabel bij klant
+                    {text("Declarabel bij klant", "Billable to client")}
                   </label>
                 )}
               </div>
               <div className="rounded-xl border border-border bg-muted/25 p-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">Verdelen tussen</p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">{text("Verdelen tussen", "Split between")}</p>
                 <div className="flex flex-wrap gap-x-4 gap-y-2">
                   {financialTravelers.map((traveler) => {
                     const selected = !draft.splitWith?.length || draft.splitWith.includes(traveler);
@@ -1170,7 +1171,7 @@ function TripDetail() {
               <Input
                 value={draft.notes ?? ""}
                 disabled={!editable}
-                placeholder="Notitie (optioneel)"
+                placeholder={text("Notitie (optioneel)", "Note (optional)")}
                 onChange={(event) => setDraft({ ...draft, notes: event.target.value || undefined })}
               />
               <div className="flex flex-wrap justify-end gap-2">
@@ -1190,12 +1191,12 @@ function TripDetail() {
                       });
                     }}
                   >
-                    Annuleren
+                    {text("Annuleren", "Cancel")}
                   </Button>
                 )}
                 <Button onClick={() => void addExpense()} disabled={!editable || expenseSaving}>
                   <Plus className="size-4" />{" "}
-                  {expenseSaving ? "Opslaan…" : editingExpenseId ? "Opslaan" : "Boeken"} (
+                  {expenseSaving ? text("Opslaan…", "Saving…") : editingExpenseId ? text("Opslaan", "Save") : text("Boeken", "Add")} (
                   {formatMoney(convert(draft.amount || 0, draft.currency, base, rates), base)})
                 </Button>
               </div>
@@ -1207,16 +1208,16 @@ function TripDetail() {
               className="overflow-x-auto p-0"
               tabIndex={0}
               role="region"
-              aria-label="Uitgavenoverzicht"
+              aria-label={text("Uitgavenoverzicht", "Expense overview")}
             >
               <table className="w-full min-w-[640px] text-sm">
                 <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="p-3">Datum</th>
-                    <th className="p-3">Omschrijving</th>
-                    <th className="p-3">Categorie</th>
-                    <th className="p-3">Betaald door</th>
-                    <th className="p-3 text-right">Origineel</th>
+                    <th className="p-3">{text("Datum", "Date")}</th>
+                    <th className="p-3">{text("Omschrijving", "Description")}</th>
+                    <th className="p-3">{text("Categorie", "Category")}</th>
+                    <th className="p-3">{text("Betaald door", "Paid by")}</th>
+                    <th className="p-3 text-right">{text("Origineel", "Original")}</th>
                     <th className="p-3 text-right">{base}</th>
                     <th className="p-3" />
                   </tr>
@@ -1229,7 +1230,7 @@ function TripDetail() {
                         {e.title}
                         {canMarkBillable && e.billable && (
                           <Badge variant="secondary" className="ml-2">
-                            declarabel
+                            {text("declarabel", "billable")}
                           </Badge>
                         )}
                         {canManageReceipts && e.receiptPath && (
@@ -1238,7 +1239,7 @@ function TripDetail() {
                             className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
                             onClick={() => void openReceipt(e)}
                           >
-                            <Paperclip className="size-3" /> {e.receiptName || "Bon bekijken"}
+                            <Paperclip className="size-3" /> {e.receiptName || text("Bon bekijken", "View receipt")}
                           </button>
                         )}
                       </td>
@@ -1260,7 +1261,7 @@ function TripDetail() {
                                     ? "pointer-events-none opacity-50"
                                     : ""
                                 }`}
-                                title="Bon koppelen"
+                                title={text("Bon koppelen", "Attach receipt")}
                               >
                                 <Paperclip className="size-4" />
                                 <input
@@ -1273,7 +1274,7 @@ function TripDetail() {
                               </label>
                             )}
                             <button
-                              aria-label="Wijzig uitgave"
+                              aria-label={text("Wijzig uitgave", "Edit expense")}
                               className="p-1 text-muted-foreground hover:text-foreground"
                               onClick={() => {
                                 setEditingExpenseId(e.id);
@@ -1283,7 +1284,7 @@ function TripDetail() {
                               <Pencil className="size-4" />
                             </button>
                             <button
-                              aria-label="Verwijder uitgave"
+                              aria-label={text("Verwijder uitgave", "Delete expense")}
                               className="p-1 text-muted-foreground hover:text-destructive"
                               onClick={() => void removeExpense(e.id)}
                             >

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useLocale } from "@/lib/locale";
 
 export function Settlement({
   trip,
@@ -26,6 +27,7 @@ export function Settlement({
   /** Reisgenoten worden in de instellingen beheerd, niet in de geldtool. */
   manageTravelersInSettings?: boolean;
 }) {
+  const { text } = useLocale();
   const [name, setName] = useState("");
   const people = useMemo(() => travelersOf(trip, fallback), [trip, fallback]);
   const list = useMemo(() => balances(trip, people, base, rates), [trip, people, base, rates]);
@@ -35,7 +37,7 @@ export function Settlement({
     <Card className="surface">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <Users className="size-4" /> Slimme verrekening
+          <Users className="size-4" /> {text("Slimme verrekening", "Smart settlement")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -45,7 +47,7 @@ export function Settlement({
               {p}
               {editable && !manageTravelersInSettings && people.length > 1 && onTravelers && (
                 <button
-                  aria-label={`Verwijder ${p}`}
+                  aria-label={`${text("Verwijder", "Remove")} ${p}`}
                   onClick={() => onTravelers(people.filter((x) => x !== p))}
                 >
                   <X className="size-3" />
@@ -59,7 +61,7 @@ export function Settlement({
           <div className="flex gap-2">
             <Input
               value={name}
-              placeholder="Reisgenoot toevoegen"
+              placeholder={text("Reisgenoot toevoegen", "Add traveller")}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key !== "Enter") return;
@@ -85,8 +87,7 @@ export function Settlement({
 
         {manageTravelersInSettings && (
           <p className="text-xs text-muted-foreground">
-            Beheer deelnemers via Reisinstellingen → Reisgenoten. Dezelfde personen worden hier
-            gebruikt voor kosten en verrekening.
+            {text("Beheer deelnemers via Reisinstellingen → Reisgenoten. Dezelfde personen worden hier gebruikt voor kosten en verrekening.", "Manage participants under Trip settings → Travellers. The same people are used for expenses and settlement.")}
           </p>
         )}
 
@@ -94,10 +95,10 @@ export function Settlement({
           <table className="w-full text-sm">
             <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="p-3">Persoon</th>
-                <th className="p-3 text-right">Betaald</th>
-                <th className="p-3 text-right">Aandeel</th>
-                <th className="p-3 text-right">Saldo</th>
+                <th className="p-3">{text("Persoon", "Person")}</th>
+                <th className="p-3 text-right">{text("Betaald", "Paid")}</th>
+                <th className="p-3 text-right">{text("Aandeel", "Share")}</th>
+                <th className="p-3 text-right">{text("Saldo", "Balance")}</th>
               </tr>
             </thead>
             <tbody>
@@ -121,11 +122,11 @@ export function Settlement({
 
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Minimale overboekingen
+            {text("Minimale overboekingen", "Minimum transfers")}
           </p>
           {transfers.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              Alles staat gelijk — niets te verrekenen.
+              {text("Alles staat gelijk — niets te verrekenen.", "Everything is settled — no transfers needed.")}
             </p>
           ) : (
             <ul className="space-y-2">

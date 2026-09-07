@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useLocale } from "@/lib/locale";
 
 const styles = {
   account: {
@@ -29,6 +30,7 @@ const styles = {
 } as const;
 
 export function NotificationPanel({ userId }: { userId: string }) {
+  const { locale, text } = useLocale();
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const queryKey = ["notifications", userId];
@@ -58,10 +60,10 @@ export function NotificationPanel({ userId }: { userId: string }) {
         .eq("user_id", userId)
         .select("id")
         .single();
-      if (error || !data) throw error ?? new Error("Melding kon niet worden verwijderd.");
+      if (error || !data) throw error ?? new Error(text("Melding kon niet worden verwijderd.", "Notification could not be dismissed."));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
-    onError: () => toast.error("Melding kon niet worden weggeklikt. Probeer het opnieuw."),
+    onError: () => toast.error(text("Melding kon niet worden weggeklikt. Probeer het opnieuw.", "The notification could not be dismissed. Please try again.")),
   });
   const count = notifications.data?.count ?? 0;
   return (
@@ -71,7 +73,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
           variant="ghost"
           size="icon"
           className="relative"
-          aria-label={`Meldingen${count ? `: ${count} openstaand` : ""}`}
+          aria-label={`${text("Meldingen", "Notifications")}${count ? `: ${count} ${text("openstaand", "open")}` : ""}`}
         >
           <Bell className="size-5" />
           {count > 0 && (
@@ -87,12 +89,12 @@ export function NotificationPanel({ userId }: { userId: string }) {
       <PopoverContent
         align="end"
         className="w-[min(24rem,calc(100vw-2rem))] p-0"
-        aria-label="Meldingenpaneel"
+        aria-label={text("Meldingenpaneel", "Notifications panel")}
       >
         <div className="border-b p-4">
-          <h2 className="font-semibold">Meldingen{count > 0 ? ` (${count})` : ""}</h2>
+          <h2 className="font-semibold">{text("Meldingen", "Notifications")}{count > 0 ? ` (${count})` : ""}</h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Meldingen blijven staan totdat je ze met het kruisje wegklikt.
+            {text("Meldingen blijven staan totdat je ze met het kruisje wegklikt.", "Notifications remain here until you dismiss them.")}
           </p>
         </div>
         <div
@@ -101,19 +103,19 @@ export function NotificationPanel({ userId }: { userId: string }) {
         >
           {notifications.isPending && (
             <p role="status" className="p-3 text-sm text-muted-foreground">
-              Meldingen laden…
+              {text("Meldingen laden…", "Loading notifications…")}
             </p>
           )}
           {notifications.isError && (
             <div role="alert" className="space-y-2 p-3 text-sm">
-              <p>Meldingen zijn tijdelijk niet beschikbaar.</p>
+              <p>{text("Meldingen zijn tijdelijk niet beschikbaar.", "Notifications are temporarily unavailable.")}</p>
               <Button size="sm" variant="outline" onClick={() => void notifications.refetch()}>
-                Opnieuw proberen
+                {text("Opnieuw proberen", "Try again")}
               </Button>
             </div>
           )}
           {notifications.isSuccess && count === 0 && (
-            <p className="p-3 text-sm text-muted-foreground">Je hebt geen openstaande meldingen.</p>
+            <p className="p-3 text-sm text-muted-foreground">{text("Je hebt geen openstaande meldingen.", "You have no open notifications.")}</p>
           )}
           {notifications.data?.items.map((notification) => {
             const style = styles[notification.kind];
@@ -124,14 +126,14 @@ export function NotificationPanel({ userId }: { userId: string }) {
                     {style.emoji}
                   </span>
                   <div className="min-w-0 flex-1 break-words">
-                    <p className="text-xs font-medium">{style.label}</p>
+                    <p className="text-xs font-medium">{text(style.label, notification.kind === "account" ? "Account" : notification.kind === "trip_change" ? "Trip change" : "Invitation")}</p>
                     <h3 className="mt-1 text-sm font-semibold">{notification.title}</h3>
                     <p className="mt-1 whitespace-pre-wrap text-sm">{notification.body}</p>
                     <time
                       dateTime={notification.created_at}
                       className="mt-2 block text-xs opacity-75"
                     >
-                      {new Date(notification.created_at).toLocaleString("nl-NL", {
+                      {new Date(notification.created_at).toLocaleString(locale, {
                         day: "numeric",
                         month: "short",
                         hour: "2-digit",
@@ -144,7 +146,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
                         className="mt-2 inline-block text-xs font-medium underline"
                         onClick={() => setOpen(false)}
                       >
-                        Naar account
+                        {text("Naar account", "View account")}
                       </Link>
                     )}
                     {notification.kind === "trip_change" && notification.trip_uuid && (
@@ -154,7 +156,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
                         className="mt-2 inline-block text-xs font-medium underline"
                         onClick={() => setOpen(false)}
                       >
-                        Bekijk reis
+                        {text("Bekijk reis", "View trip")}
                       </Link>
                     )}
                   </div>
@@ -162,7 +164,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
                     size="icon"
                     variant="ghost"
                     className="size-7 shrink-0 text-inherit hover:bg-black/10 hover:text-inherit dark:hover:bg-white/10"
-                    aria-label={`Melding wegklikken: ${notification.title}`}
+                    aria-label={`${text("Melding wegklikken", "Dismiss notification")}: ${notification.title}`}
                     disabled={dismiss.isPending}
                     onClick={() => dismiss.mutate(notification.id)}
                   >
@@ -178,7 +180,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
           })}
           {count > 50 && (
             <p className="p-2 text-xs text-muted-foreground">
-              De nieuwste 50 meldingen worden getoond. Klik meldingen weg om oudere te zien.
+              {text("De nieuwste 50 meldingen worden getoond. Klik meldingen weg om oudere te zien.", "The latest 50 notifications are shown. Dismiss notifications to see older ones.")}
             </p>
           )}
         </div>

@@ -173,17 +173,20 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 {text("Opslaan…", "Saving…")}
               </span>
             )}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={text("Schakel naar Engels", "Switch to Dutch")}
-              title={locale === "nl-NL" ? "English" : "Nederlands"}
-              onClick={() => void setLocale(locale === "nl-NL" ? "en-GB" : "nl-NL")}
-            >
-              <Languages className="size-4" />
-              <span className="sr-only">{locale === "nl-NL" ? "EN" : "NL"}</span>
-            </Button>
+            {!user && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 px-2 font-semibold"
+                aria-label={text("Schakel naar Engels", "Switch to Dutch")}
+                title={locale === "nl-NL" ? "English" : "Nederlands"}
+                onClick={() => void setLocale(locale === "nl-NL" ? "en-GB" : "nl-NL")}
+              >
+                <Languages className="size-4" />
+                <span>{locale === "nl-NL" ? "EN" : "NL"}</span>
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"

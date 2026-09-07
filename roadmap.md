@@ -13,10 +13,15 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 ### Naar de testopening — OAuth en app-e-mail uitgezonderd
 
 - [x] NL/EN-taalkeuze toegevoegd en opgeslagen per account; publieke homepage, authenticatie, gedeelde reis, hoofdnavigatie, footer, privacy en beta-voorwaarden zijn tweetalig
+- [x] Publieke changeloginhoud volledig tweetalig gemaakt; bezoekers schakelen zichtbaar met `NL`/`EN`, ingelogde gebruikers beheren taal via Accountinstellingen
 - [x] Privacy-informatie en internationale beta-voorwaarden gepubliceerd en vanuit de footer bereikbaar
 - [x] OAuth-acties verborgen zolang de providers bewust niet tot de beta behoren
 - [x] Extra witruimte toegevoegd boven de knoppen voor wachtwoord- en reisinstellingen
-- [ ] Engelse vertaling afronden voor dashboard, reisbeheer, account, abonnement, meldingen en exports
+- [x] Dashboard, abonnementsoverzicht en meldingen volgen de gekozen NL/EN-taal, inclusief statussen, acties, foutmeldingen en datums
+- [x] Hoofdnavigatie van reisbeheer, instellingen, openbaar delen, route, uitgaven, verrekening, paklijst en weer volgen de gekozen NL/EN-taal
+- [x] Tijdlijn en reisgenoten volgen NL/EN, inclusief rollen, uitnodigingsstatussen, bewerken, lege staten en lokale datumlabels
+- [x] Basis van boekingsformulieren volgt NL/EN: boekingstype, datumvelden, vluchtlookup, titels, locaties en kritieke validatiemeldingen
+- [ ] Engelse vertaling afronden voor uitgebreide boekingsdetails, accountprofiel, Agency-pagina’s en exports
 - [ ] Kritieke rooktest: registreren/inloggen met e-mail, reis aanmaken, wijzigen, herladen, archiveren en verwijderen
 - [ ] Reisinhoud testen: stops, planning, vlucht, verblijf, vervoer, huurauto, uitgave, verdeling, paklijst en export
 - [ ] Publiek delen testen: aan/uit, PIN, budget wel/niet delen, oude link, lege reis en reis met veel stops
@@ -28,6 +33,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Bekende beperkingen op de changelogpagina vermeld: OAuth en automatische app-e-mails zijn bewust nog niet actief
 - [ ] Na geslaagde controles een gedateerde **Testopening**-release aanmaken in het technische en publieke changelog
 - [x] Herstelmigratie `20260907150000_fix_snapshot_column_ambiguity.sql` uitgevoerd, bevestigd door de gebruiker. De atomaire opslagfunctie gebruikt expliciete kolomverwijzingen voor `trip_uuid` en `updated_at`.
+- [x] Omschrijvingsmigratie `20260907170000_trip_description.sql` uitgevoerd, bevestigd door de gebruiker.
 - [x] Publieke reispagina toont ingelogde gebruikers **Naar mijn reizen** in plaats van **Gratis account maken**; tijdens het laden van de sessie verschijnt geen registratieknop.
 - [x] Mobiele boekingsvelden begrensd en uitgavenoverzicht binnen de kaart horizontaal scrollbaar gemaakt.
 - [x] Accountinstellingen tonen huidig plan, reisgebruik, actieve reizen en planlimiet, met een link naar upgrades/abonnementbeheer.
@@ -124,7 +130,8 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 - [x] Verzorgde laad-, lege, PIN- en niet-beschikbaarstatussen in dezelfde visuele stijl
 - [x] Korte reisomschrijving (maximaal 500 tekens) toegevoegd aan reisinstellingen en de publieke header; zonder omschrijving verschijnt een compacte route-samenvatting
 - [x] Lange bestemmingenketen uit de header verwijderd en de lijst naast de kaart standaard beperkt tot vier stops met een uitklapactie
-- [ ] Migratie `20260907170000_trip_description.sql` uitvoeren en daarna opslaan, leegmaken en publiek tonen van een reisomschrijving controleren
+- [x] Migratie `20260907170000_trip_description.sql` uitgevoerd
+- [ ] Reisomschrijving opslaan, publiek tonen en weer leegmaken in productie controleren
 
 ## Fase 7 — Abonnementen & Agency (deels klaar)
 

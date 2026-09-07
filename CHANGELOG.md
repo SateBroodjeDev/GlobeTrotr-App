@@ -14,6 +14,11 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Privacy-informatie en beta-voorwaarden zijn vanuit de footer bereikbaar.
 - OAuth-knoppen zijn verborgen zolang OAuth bewust buiten deze beta valt.
 - Opslaanknoppen voor het wachtwoord en de reisinstellingen hebben meer afstand tot de velden erboven.
+- Alle publieke releasetitels, samenvattingen en wijzigingskaarten zijn in Nederlands en Engels beschikbaar.
+- De taalactie toont bezoekers duidelijk `NL` of `EN`. Voor ingelogde gebruikers staat de taalkeuze alleen in Accountinstellingen en wordt deze na opslaan direct overal toegepast.
+- Dashboard, abonnementsoverzicht en meldingen volgen nu ook de opgeslagen NL/EN-voorkeur, inclusief acties, statuslabels, lege staten, foutmeldingen en meldingsdatums.
+- Het centrale reisbeheerscherm volgt NL/EN voor navigatie, reis- en deelinstellingen, routes, uitgaven, verrekening, paklijst en weerinformatie.
+- Tijdlijn en reisgenoten zijn tweetalig gemaakt. De belangrijkste boekingsvelden en validatiemeldingen volgen eveneens de accounttaal; specialistische voertuig- en vluchtinformatie volgt in de resterende vertaalslag.
 
 ### Controles
 
@@ -33,6 +38,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 ### Backend en database
 
 - `20260907170000_trip_description.sql` voegt `trips.description` met een lengtelimiet toe en neemt het veld op in de versiegestuurde opslag.
+- Uitvoering van deze migratie is op 7 september 2026 door de beheerder bevestigd; de functionele productiecontrole staat nog open.
 - De publieke endpoint levert de omschrijving mee, maar blijft uitgaven, betalers, bonnetjes en boekingsdetails uitsluiten.
 
 ## 2026-09-07 18:45 CEST — Changelog gereedmaken voor testopening

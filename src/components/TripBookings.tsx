@@ -29,6 +29,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { useLocale } from "@/lib/locale";
 
 const TYPES: { id: TravelItemType; label: string; icon: typeof Plane }[] = [
   { id: "flight", label: "Vlucht", icon: Plane },
@@ -59,6 +60,14 @@ const dateLabel = (type: TravelItemType) =>
         : "Datum";
 const endDateLabel = (type: TravelItemType) =>
   type === "lodging" ? "Uitcheckdatum" : type === "car_rental" ? "Inleverdatum" : "Einddatum";
+const dateLabelEn = (type: TravelItemType) =>
+  type === "flight" ? "Flight date" : type === "lodging" ? "Check-in date" : type === "car_rental" ? "Collection date" : "Date";
+const endDateLabelEn = (type: TravelItemType) =>
+  type === "lodging" ? "Check-out date" : type === "car_rental" ? "Return date" : "End date";
+function travelTypeLabel(type: TravelItemType, fallback: string, text: (nl: string, en: string) => string) {
+  const english: Record<TravelItemType, string> = { flight: "Flight", lodging: "Accommodation", car_rental: "Rental car", transport: "Travel / transport", activity: "Activity" };
+  return text(fallback, english[type]);
+}
 
 export function TripBookings({
   trip,
@@ -82,6 +91,7 @@ export function TripBookings({
   ) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 }) {
+  const { text } = useLocale();
   const [draft, setDraft] = useState<Draft>(() =>
     initialItem
       ? {
@@ -127,7 +137,7 @@ export function TripBookings({
   };
   async function refreshFlight() {
     if (!draft.flightNumber?.trim()) {
-      toast.error("Vul eerst een vluchtnummer in, bijvoorbeeld KL1234.");
+      toast.error(text("Vul eerst een vluchtnummer in, bijvoorbeeld KL1234.", "Enter a flight number first, for example KL1234."));
       return;
     }
     setLoadingFlight(true);
@@ -163,9 +173,9 @@ export function TripBookings({
           flightLastCheckedAt: new Date().toISOString(),
         },
       }));
-      toast.success("Live vluchtinformatie bijgewerkt.");
+      toast.success(text("Live vluchtinformatie bijgewerkt.", "Live flight information updated."));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Vluchtdata kon niet worden opgehaald.");
+      toast.error(error instanceof Error ? error.message : text("Vluchtdata kon niet worden opgehaald.", "Flight data could not be retrieved."));
     } finally {
       setLoadingFlight(false);
     }
@@ -174,11 +184,11 @@ export function TripBookings({
     if (!editable || saving || loadingFlight) return;
     const title = draft.title.trim();
     if (!title || !draft.date) {
-      toast.error("Vul minstens een naam en datum in.");
+      toast.error(text("Vul minstens een naam en datum in.", "Enter at least a name and date."));
       return;
     }
     if (draft.type !== "flight" && draft.endDate && draft.endDate < draft.date) {
-      toast.error("De einddatum kan niet vóór de startdatum liggen.");
+      toast.error(text("De einddatum kan niet vóór de startdatum liggen.", "The end date cannot be before the start date."));
       return;
     }
     const amount = Number(draft.amount);
@@ -212,7 +222,7 @@ export function TripBookings({
 
   async function remove(id: string) {
     if (
-      !window.confirm("Dit reisonderdeel verwijderen? Een gekoppelde uitgave wordt ook verwijderd.")
+      !window.confirm(text("Dit reisonderdeel verwijderen? Een gekoppelde uitgave wordt ook verwijderd.", "Delete this travel item? A linked expense will also be deleted."))
     ) {
       return;
     }
@@ -247,7 +257,7 @@ export function TripBookings({
       <CardHeader className="flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Icon className="size-4" />{" "}
-          {editingId ? "Reisonderdeel wijzigen" : "Reisonderdeel toevoegen"}
+          {editingId ? text("Reisonderdeel wijzigen", "Edit travel item") : text("Reisonderdeel toevoegen", "Add travel item")}
         </CardTitle>
         {editingId && (
           <Button
@@ -256,16 +266,16 @@ export function TripBookings({
             disabled={saving || loadingFlight}
             onClick={() => reset(draft.date)}
           >
-            Annuleren
+            {text("Annuleren", "Cancel")}
           </Button>
         )}
       </CardHeader>
       <CardContent>
         <fieldset disabled={saving || loadingFlight} className="space-y-4 min-w-0">
           <div className="grid items-end gap-3 md:grid-cols-4">
-            <Field label="Type">
+            <Field label={text("Type", "Type")}>
               <select
-                aria-label="Type reisonderdeel"
+                aria-label={text("Type reisonderdeel", "Travel item type")}
                 className="form-control"
                 value={draft.type}
                 disabled={!editable}
@@ -281,12 +291,12 @@ export function TripBookings({
               >
                 {TYPES.map((type) => (
                   <option key={type.id} value={type.id}>
-                    {type.label}
+                    {travelTypeLabel(type.id, type.label, text)}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label={dateLabel(draft.type)}>
+            <Field label={text(dateLabel(draft.type), dateLabelEn(draft.type))}>
               <Input
                 type="date"
                 value={draft.date}
@@ -297,7 +307,7 @@ export function TripBookings({
               />
             </Field>
             {draft.type === "flight" ? (
-              <Field label="Vluchtnummer">
+              <Field label={text("Vluchtnummer", "Flight number")}>
                 <Input
                   value={draft.flightNumber ?? ""}
                   disabled={!editable}
@@ -308,7 +318,7 @@ export function TripBookings({
                 />
               </Field>
             ) : (
-              <Field label={endDateLabel(draft.type)}>
+              <Field label={text(endDateLabel(draft.type), endDateLabelEn(draft.type))}>
                 <Input
                   type="date"
                   value={draft.endDate ?? ""}
@@ -322,7 +332,7 @@ export function TripBookings({
               </Field>
             )}
             {draft.type === "flight" ? (
-              <Field label="Live vluchtinformatie">
+              <Field label={text("Live vluchtinformatie", "Live flight information")}>
                 <Button
                   className="w-full"
                   type="button"
@@ -335,25 +345,25 @@ export function TripBookings({
                   ) : (
                     <RefreshCw className="size-4" />
                   )}{" "}
-                  Live vluchtdata
+                  {text("Live vluchtdata", "Live flight data")}
                 </Button>
               </Field>
             ) : (
               <Field
                 label={
                   draft.type === "activity"
-                    ? "Naam activiteit"
+                    ? text("Naam activiteit", "Activity name")
                     : draft.type === "lodging"
-                      ? "Hotelnaam"
+                      ? text("Hotelnaam", "Hotel name")
                       : draft.type === "car_rental"
-                        ? "Huurauto / reservering"
-                        : "Naam / verbinding"
+                        ? text("Huurauto / reservering", "Rental car / reservation")
+                        : text("Naam / verbinding", "Name / connection")
                 }
               >
                 <Input
                   value={draft.title}
                   disabled={!editable}
-                  placeholder="Naam"
+                  placeholder={text("Naam", "Name")}
                   onChange={(e) => setDraft((current) => ({ ...current, title: e.target.value }))}
                 />
               </Field>
@@ -361,15 +371,15 @@ export function TripBookings({
           </div>
           {draft.type === "flight" && (
             <div className="grid items-end gap-3 rounded-xl border border-border bg-muted/25 p-3 md:grid-cols-3">
-              <Field label="Titel">
+              <Field label={text("Titel", "Title")}>
                 <Input
                   value={draft.title}
                   disabled={!editable}
-                  placeholder="Wordt automatisch ingevuld"
+                  placeholder={text("Wordt automatisch ingevuld", "Filled automatically")}
                   onChange={(e) => setDraft((current) => ({ ...current, title: e.target.value }))}
                 />
               </Field>
-              <Field label="Vertrektijd">
+              <Field label={text("Vertrektijd", "Departure time")}>
                 <Input
                   type="time"
                   value={draft.details?.startTime ?? ""}
@@ -377,7 +387,7 @@ export function TripBookings({
                   onChange={(e) => detail("startTime", e.target.value)}
                 />
               </Field>
-              <Field label="Aankomsttijd">
+              <Field label={text("Aankomsttijd", "Arrival time")}>
                 <Input
                   type="time"
                   value={draft.details?.endTime ?? ""}
@@ -819,6 +829,7 @@ function LocationPicker({
   onPick: (location: GeoResult | undefined) => void;
   disabled: boolean;
 }) {
+  const { text } = useLocale();
   return (
     <div className="space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
@@ -833,10 +844,10 @@ function LocationPicker({
             variant="ghost"
             size="sm"
             disabled={disabled}
-            aria-label={`${label} wijzigen`}
+            aria-label={`${label} ${text("wijzigen", "edit")}`}
             onClick={() => onPick(undefined)}
           >
-            Wijzigen
+            {text("Wijzigen", "Edit")}
           </Button>
         </div>
       ) : (

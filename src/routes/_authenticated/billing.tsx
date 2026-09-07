@@ -8,6 +8,7 @@ import { CURRENCIES } from "@/lib/services";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/_authenticated/billing")({
   head: () => ({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/billing")({
 
 function Billing() {
   const { state, update, changePlan } = useWorkspace();
+  const { text } = useLocale();
   const current = planOf(state.plan);
   const mayBill = canBill(state.role);
   const [changingPlan, setChangingPlan] = useState(false);
@@ -36,10 +38,10 @@ function Billing() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Abonnement & facturatie</h1>
+        <h1 className="font-display text-2xl font-semibold">{text("Abonnement & facturatie", "Plan & billing")}</h1>
         <p className="text-sm text-muted-foreground">
-          Huidig plan: <strong>{current.name}</strong> · {current.seats} ·{" "}
-          {current.price === 0 ? "gratis" : `€${current.price}/maand`}
+          {text("Huidig plan", "Current plan")}: <strong>{current.name}</strong> · {seatLabel(current.id, current.seats, text)} ·{" "}
+          {current.price === 0 ? text("gratis", "free") : `€${current.price}/${text("maand", "month")}`}
         </p>
       </div>
 
@@ -51,18 +53,18 @@ function Billing() {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">{p.name}</CardTitle>
-                  {active && <Badge>Actief</Badge>}
+                  {active && <Badge>{text("Actief", "Active")}</Badge>}
                 </div>
                 <p className="font-display text-3xl font-semibold">
                   €{p.price}
-                  <span className="text-sm font-normal text-muted-foreground">/mnd</span>
+                  <span className="text-sm font-normal text-muted-foreground">/{text("mnd", "mo")}</span>
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-1.5 text-sm">
                   {p.highlights.map((h) => (
                     <li key={h} className="flex items-start gap-2">
-                      <Check className="mt-0.5 size-4 text-success" /> {h}
+                      <Check className="mt-0.5 size-4 text-success" /> {highlightLabel(h, text)}
                     </li>
                   ))}
                 </ul>
@@ -75,9 +77,9 @@ function Billing() {
                     try {
                       const saved = await changePlan(p.id);
                       if (saved) {
-                        toast.success(`Je abonnement is gewijzigd naar ${p.name}.`);
+                        toast.success(text(`Je abonnement is gewijzigd naar ${p.name}.`, `Your plan has been changed to ${p.name}.`));
                       } else {
-                        toast.error("Je abonnement kon niet worden opgeslagen. Probeer opnieuw.");
+                        toast.error(text("Je abonnement kon niet worden opgeslagen. Probeer opnieuw.", "Your plan could not be saved. Please try again."));
                       }
                     } finally {
                       setChangingPlan(false);
@@ -85,12 +87,12 @@ function Billing() {
                   }}
                 >
                   {active
-                    ? "Huidig plan"
+                    ? text("Huidig plan", "Current plan")
                     : changingPlan
-                      ? "Wijzigen…"
+                      ? text("Wijzigen…", "Changing…")
                       : mayBill
-                        ? `Kies ${p.name}`
-                        : "Alleen eigenaar"}
+                        ? text(`Kies ${p.name}`, `Choose ${p.name}`)
+                        : text("Alleen eigenaar", "Owner only")}
                 </Button>
               </CardContent>
             </Card>
@@ -100,31 +102,30 @@ function Billing() {
 
       {!mayBill && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Lock className="size-4" /> Alleen de workspace-eigenaar kan het abonnement wijzigen.
+          <Lock className="size-4" /> {text("Alleen de workspace-eigenaar kan het abonnement wijzigen.", "Only the workspace owner can change the plan.")}
         </p>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Betalingen & facturen</CardTitle>
+            <CardTitle className="text-sm">{text("Betalingen & facturen", "Payments & invoices")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>Er zijn nog geen echte GlobeTrotr-facturen of betalingen gekoppeld.</p>
+            <p>{text("Er zijn nog geen echte GlobeTrotr-facturen of betalingen gekoppeld.", "No real GlobeTrotr invoices or payments are connected yet.")}</p>
             <p>
-              Tot Stripe en webhookverificatie zijn gebouwd, wijzigt deze pagina alleen de
-              beschikbare functies in je testomgeving en wordt er niets afgeschreven.
+              {text("Tot Stripe en webhookverificatie zijn gebouwd, wijzigt deze pagina alleen de beschikbare functies in je testomgeving en wordt er niets afgeschreven.", "Until Stripe and webhook verification are available, this page only changes features in your test environment and no money is charged.")}
             </p>
           </CardContent>
         </Card>
 
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Reisinstellingen</CardTitle>
+            <CardTitle className="text-sm">{text("Reisinstellingen", "Trip settings")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <label className="block">
-              <span className="text-muted-foreground">Rapportagevaluta</span>
+              <span className="text-muted-foreground">{text("Rapportagevaluta", "Reporting currency")}</span>
               <select
                 className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2"
                 value={state.baseCurrency}
@@ -138,11 +139,24 @@ function Billing() {
               </select>
             </label>
             <p className="text-muted-foreground">
-              Alle uitgaven worden live omgerekend naar deze valuta met dagkoersen van de ECB.
+              {text("Alle uitgaven worden live omgerekend naar deze valuta met dagkoersen van de ECB.", "All expenses are converted to this currency using daily ECB rates.")}
             </p>
           </CardContent>
         </Card>
       </div>
     </div>
   );
+}
+
+function seatLabel(id: string, fallback: string, text: (nl: string, en: string) => string) {
+  return text(fallback, id === "free" ? "For you" : id === "pro" ? "For you and your travel group" : "Unlimited");
+}
+
+function highlightLabel(value: string, text: (nl: string, en: string) => string) {
+  const translations: Record<string, string> = {
+    "2 actieve reizen": "2 active trips", "Routekaart & uitgaven": "Route map & expenses", "CSV-export": "CSV export",
+    "Onbeperkt reizen": "Unlimited trips", "Live weer & valutakoersen": "Live weather & exchange rates", "PDF-reisoverzicht": "PDF trip overview",
+    "Eigen merk en domein": "Your own brand and domain", "Rollen en rechten": "Roles and permissions", "Declarabele klantuitgaven": "Billable client expenses", "Bonnetjes bij uitgaven": "Expense receipts",
+  };
+  return text(value, translations[value] ?? value);
 }

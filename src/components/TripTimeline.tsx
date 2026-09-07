@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useLocale } from "@/lib/locale";
 
 type TimelineEntry = {
   id: string;
@@ -63,15 +64,15 @@ function daysBetween(start: string, end: string) {
   return out;
 }
 
-function dateLabel(date: string) {
-  return new Intl.DateTimeFormat("nl-NL", {
+function dateLabel(date: string, locale: "nl-NL" | "en-GB") {
+  return new Intl.DateTimeFormat(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
   }).format(new Date(`${date}T12:00:00`));
 }
 
-function bookingEntries(item: TravelItem): TimelineEntry[] {
+function bookingEntries(item: TravelItem, text: (nl: string, en: string) => string): TimelineEntry[] {
   const end = item.endDate && item.endDate >= item.date ? item.endDate : item.date;
   const multiDay = (item.type === "lodging" || item.type === "car_rental") && end > item.date;
   if (!multiDay) {
@@ -98,17 +99,17 @@ function bookingEntries(item: TravelItem): TimelineEntry[] {
       item,
       phase: isStart ? "start" : isEnd ? "end" : "ongoing",
       title: isStart
-        ? `${lodging ? "Inchecken" : "Huurauto ophalen"} · ${item.title}`
+        ? `${lodging ? text("Inchecken", "Check in") : text("Huurauto ophalen", "Collect rental car")} · ${item.title}`
         : isEnd
-          ? `${lodging ? "Uitchecken" : "Huurauto inleveren"} · ${item.title}`
-          : `${lodging ? "Overnachting" : "Huurauto beschikbaar"} · ${item.title}`,
-      subtitle: isStart || isEnd ? undefined : `Dag ${index + 1} van ${dates.length}`,
+          ? `${lodging ? text("Uitchecken", "Check out") : text("Huurauto inleveren", "Return rental car")} · ${item.title}`
+          : `${lodging ? text("Overnachting", "Overnight stay") : text("Huurauto beschikbaar", "Rental car available")} · ${item.title}`,
+      subtitle: isStart || isEnd ? undefined : text(`Dag ${index + 1} van ${dates.length}`, `Day ${index + 1} of ${dates.length}`),
       time: isStart ? item.details?.startTime : isEnd ? item.details?.endTime : undefined,
     };
   });
 }
 
-function detailFor(item: TravelItem) {
+function detailFor(item: TravelItem, text: (nl: string, en: string) => string) {
   const location =
     item.departure && item.arrival
       ? `${item.departure.name} → ${item.arrival.name}`
@@ -116,7 +117,7 @@ function detailFor(item: TravelItem) {
   const values = [
     location,
     item.provider,
-    item.bookingReference ? `Boeking ${item.bookingReference}` : undefined,
+    item.bookingReference ? `${text("Boeking", "Booking")} ${item.bookingReference}` : undefined,
     item.flightStatus,
   ].filter(Boolean);
   return values.join(" · ");
@@ -139,6 +140,7 @@ export function TripTimeline({
   onUpdate?: (item: ItineraryItem) => Promise<void>;
   onEditBooking?: (item: TravelItem) => void;
 }) {
+  const { locale, text } = useLocale();
   // A long trip stays usable by opening one day at a time. The complete
   // itinerary remains one click away for overview and printing.
   const [mode, setMode] = useState<"all" | "day">("day");
@@ -165,11 +167,11 @@ export function TripTimeline({
         kind: "manual",
         manual: item,
       }));
-    return [...manual, ...(trip.travelItems ?? []).flatMap(bookingEntries)].sort((a, b) => {
+    return [...manual, ...(trip.travelItems ?? []).flatMap((item) => bookingEntries(item, text))].sort((a, b) => {
       const byDay = a.day.localeCompare(b.day);
       return byDay || (a.time ?? "99:99").localeCompare(b.time ?? "99:99");
     });
-  }, [trip.itinerary, trip.travelItems]);
+  }, [text, trip.itinerary, trip.travelItems]);
   const dates = useMemo(
     () => Array.from(new Set([trip.start, trip.end, ...entries.map((entry) => entry.day)])).sort(),
     [entries, trip.end, trip.start],
@@ -197,7 +199,7 @@ export function TripTimeline({
   }
 
   async function removeManualItem(id: string) {
-    if (!window.confirm("Dit programma-item verwijderen?")) return;
+    if (!window.confirm(text("Dit programma-item verwijderen?", "Delete this itinerary item?"))) return;
     setSaving(true);
     try {
       await onRemove(id);
@@ -225,21 +227,21 @@ export function TripTimeline({
   return (
     <Card className="surface">
       <CardHeader className="gap-3 pb-2 sm:flex-row sm:items-center sm:justify-between">
-        <CardTitle className="text-sm">Dagplanning</CardTitle>
+        <CardTitle className="text-sm">{text("Dagplanning", "Daily itinerary")}</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
             variant={mode === "all" ? "default" : "outline"}
             onClick={() => setMode("all")}
           >
-            Hele reis
+            {text("Hele reis", "Full trip")}
           </Button>
           <Button
             size="sm"
             variant={mode === "day" ? "default" : "outline"}
             onClick={() => setMode("day")}
           >
-            Per dag
+            {text("Per dag", "By day")}
           </Button>
         </div>
       </CardHeader>
@@ -252,8 +254,8 @@ export function TripTimeline({
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Programma-item wijzigen</DialogTitle>
-              <DialogDescription>Pas de datum, naam of notities aan.</DialogDescription>
+              <DialogTitle>{text("Programma-item wijzigen", "Edit itinerary item")}</DialogTitle>
+              <DialogDescription>{text("Pas de datum, naam of notities aan.", "Change the date, name or notes.")}</DialogDescription>
             </DialogHeader>
             {editing && (
               <form
@@ -264,7 +266,7 @@ export function TripTimeline({
               >
                 <fieldset disabled={saving} className="space-y-4">
                   <label className="block space-y-1 text-sm">
-                    Datum
+                    {text("Datum", "Date")}
                     <Input
                       required
                       type="date"
@@ -273,7 +275,7 @@ export function TripTimeline({
                     />
                   </label>
                   <label className="block space-y-1 text-sm">
-                    Naam
+                    {text("Naam", "Name")}
                     <Input
                       required
                       value={editing.title}
@@ -281,7 +283,7 @@ export function TripTimeline({
                     />
                   </label>
                   <label className="block space-y-1 text-sm">
-                    Notities
+                    {text("Notities", "Notes")}
                     <Input
                       value={editing.notes ?? ""}
                       onChange={(event) => setEditing({ ...editing, notes: event.target.value })}
@@ -289,10 +291,10 @@ export function TripTimeline({
                   </label>
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => setEditing(null)}>
-                      Annuleren
+                      {text("Annuleren", "Cancel")}
                     </Button>
                     <Button type="submit" disabled={!editing.title.trim() || !editing.day}>
-                      {saving ? "Opslaan…" : "Wijzigingen opslaan"}
+                      {saving ? text("Opslaan…", "Saving…") : text("Wijzigingen opslaan", "Save changes")}
                     </Button>
                   </div>
                 </fieldset>
@@ -302,11 +304,11 @@ export function TripTimeline({
         </Dialog>
         {mode === "day" && (
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/35 p-2">
-            <Button size="icon" variant="ghost" aria-label="Vorige dag" onClick={() => moveDay(-1)}>
+            <Button size="icon" variant="ghost" aria-label={text("Vorige dag", "Previous day")} onClick={() => moveDay(-1)}>
               <ChevronLeft className="size-4" />
             </Button>
             <Input
-              aria-label="Kies een dag"
+              aria-label={text("Kies een dag", "Choose a day")}
               type="date"
               value={selectedDay}
               min={trip.start}
@@ -317,7 +319,7 @@ export function TripTimeline({
             <Button
               size="icon"
               variant="ghost"
-              aria-label="Volgende dag"
+              aria-label={text("Volgende dag", "Next day")}
               onClick={() => moveDay(1)}
             >
               <ChevronRight className="size-4" />
@@ -328,7 +330,7 @@ export function TripTimeline({
         {editable && (
           <div className="grid items-end gap-2 rounded-xl border border-border p-3 sm:grid-cols-[10rem_minmax(0,1fr)_auto]">
             <label className="space-y-1 text-xs text-muted-foreground">
-              Datum
+              {text("Datum", "Date")}
               <Input
                 type="date"
                 value={selectedDay}
@@ -336,10 +338,10 @@ export function TripTimeline({
               />
             </label>
             <label className="space-y-1 text-xs text-muted-foreground">
-              Eigen programma-item
+              {text("Eigen programma-item", "Custom itinerary item")}
               <Input
                 value={title}
-                placeholder="Bijvoorbeeld: Diner reserveren"
+                placeholder={text("Bijvoorbeeld: Diner reserveren", "For example: Book dinner")}
                 onChange={(event) => setTitle(event.target.value)}
               />
             </label>
@@ -349,13 +351,13 @@ export function TripTimeline({
                 void addManualItem();
               }}
             >
-              <Plus className="size-4" /> {saving ? "Opslaan…" : "Toevoegen"}
+              <Plus className="size-4" /> {saving ? text("Opslaan…", "Saving…") : text("Toevoegen", "Add")}
             </Button>
           </div>
         )}
 
         {visible.length === 0 ? (
-          <p className="py-4 text-sm text-muted-foreground">Nog geen onderdelen voor deze dag.</p>
+          <p className="py-4 text-sm text-muted-foreground">{text("Nog geen onderdelen voor deze dag.", "No items for this day yet.")}</p>
         ) : (
           <div className="space-y-6">
             {dates
@@ -366,7 +368,7 @@ export function TripTimeline({
                 return (
                   <section key={day} className="space-y-3">
                     <h3 className="font-display text-base font-semibold capitalize">
-                      {dateLabel(day)}
+                      {dateLabel(day, locale)}
                     </h3>
                     <div className="relative space-y-3 border-l border-border pl-5 before:absolute before:-left-1 before:top-1 before:size-2 before:rounded-full before:bg-primary">
                       {dayEntries.map((entry) => {
@@ -385,7 +387,7 @@ export function TripTimeline({
                                 <p className="font-medium">{entry.title}</p>
                                 {(entry.subtitle || entry.item) && (
                                   <p className="mt-1 text-xs text-muted-foreground">
-                                    {entry.subtitle || detailFor(entry.item!)}
+                                    {entry.subtitle || detailFor(entry.item!, text)}
                                   </p>
                                 )}
                               </div>
@@ -404,20 +406,20 @@ export function TripTimeline({
                                   size="sm"
                                   variant="ghost"
                                   disabled={saving}
-                                  aria-label={`${entry.title} wijzigen`}
+                                  aria-label={text(`${entry.title} wijzigen`, `Edit ${entry.title}`)}
                                   onClick={() => {
                                     if (entry.manual) setEditing({ ...entry.manual });
                                     else if (entry.item) onEditBooking?.(entry.item);
                                   }}
                                 >
-                                  <Pencil className="size-4" /> Wijzigen
+                                  <Pencil className="size-4" /> {text("Wijzigen", "Edit")}
                                 </Button>
                               )}
                               {entry.manual && editable && (
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  aria-label="Verwijder programma-item"
+                                  aria-label={text("Verwijder programma-item", "Delete itinerary item")}
                                   disabled={saving}
                                   onClick={() => void removeManualItem(entry.manual!.id)}
                                 >
@@ -446,8 +448,7 @@ export function TripTimeline({
         )}
         {entries.some((entry) => entry.item?.amount) && (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <CircleDollarSign className="size-3" /> Kosten zijn gekoppeld aan het reisonderdeel en
-            staan ook bij Uitgaven.
+            <CircleDollarSign className="size-3" /> {text("Kosten zijn gekoppeld aan het reisonderdeel en staan ook bij Uitgaven.", "Costs are linked to the travel item and also appear under Expenses.")}
           </p>
         )}
       </CardContent>

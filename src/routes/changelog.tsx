@@ -72,11 +72,11 @@ function ChangelogPage() {
           </span>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-lg font-semibold">{text(PUBLIC_BETA_STATUS.label, "Preparing the test launch")}</h2>
+              <h2 className="font-display text-lg font-semibold">{text(PUBLIC_BETA_STATUS.label, PUBLIC_BETA_STATUS.labelEn)}</h2>
               <Badge variant="outline">Beta</Badge>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {text(PUBLIC_BETA_STATUS.description, "The core of GlobeTrotr is being prepared for the first group of testers, centred on planning, expenses and public trip sharing.")}
+              {text(PUBLIC_BETA_STATUS.description, PUBLIC_BETA_STATUS.descriptionEn)}
             </p>
             <div className="mt-4 rounded-xl bg-muted/50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -84,11 +84,11 @@ function ChangelogPage() {
               </p>
               <ul className="mt-2 space-y-1.5 text-sm">
                 {PUBLIC_BETA_STATUS.unavailable.map((item) => (
-                  <li key={item} className="flex gap-2">
+                  <li key={item.nl} className="flex gap-2">
                     <span aria-hidden className="text-muted-foreground">
                       •
                     </span>{" "}
-                    {text(item, item.startsWith("Inloggen") ? "Sign in with Apple, Google or Microsoft" : "Automated app emails and trip invitations by email")}
+                    {text(item.nl, item.en)}
                   </li>
                 ))}
               </ul>
@@ -119,9 +119,9 @@ function ChangelogPage() {
             </div>
             <Card className="surface overflow-hidden">
               <CardContent className="p-5 sm:p-7">
-                <h2 className="font-display text-xl font-semibold sm:text-2xl">{release.title}</h2>
+                <h2 className="font-display text-xl font-semibold sm:text-2xl">{text(release.title, release.titleEn)}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {release.summary}
+                  {text(release.summary, release.summaryEn)}
                 </p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
                   {release.changes.map((change) => {
@@ -142,9 +142,9 @@ function ChangelogPage() {
                             {text(config.label[0], config.label[1])}
                           </span>
                         </div>
-                        <h3 className="mt-3 text-sm font-semibold">{change.title}</h3>
+                        <h3 className="mt-3 text-sm font-semibold">{text(change.title, change.titleEn)}</h3>
                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                          {change.description}
+                          {text(change.description, change.descriptionEn)}
                         </p>
                       </div>
                     );

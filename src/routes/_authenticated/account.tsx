@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({ meta: [{ title: "Accountinstellingen — GlobeTrotr" }] }),
@@ -71,6 +72,7 @@ function asThemePreference(value: string | null | undefined): ThemePreference {
 function AccountPage() {
   const { user } = useAuth();
   const { state, cloud } = useWorkspace();
+  const { setLocale: applyLocale } = useLocale();
   const plan = planOf(state.plan);
   const activeTripCount = state.trips.filter((trip) => !trip.archived).length;
   const queryClient = useQueryClient();
@@ -191,6 +193,7 @@ function AccountPage() {
         theme,
       });
       if (error) throw error;
+      await applyLocale(locale === "en-GB" ? "en-GB" : "nl-NL");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["profile", user.id] }),
         queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] }),

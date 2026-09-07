@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function TripsOverview() {
   const { state, addTrip, removeTrip, rates, ratesLive } = useWorkspace();
+  const { text } = useLocale();
   const navigate = useNavigate();
   const plan = planOf(state.plan);
   const editable = canEdit(state.role);
@@ -66,20 +68,20 @@ function TripsOverview() {
 
   async function create() {
     if (!name.trim()) {
-      toast.error("Geef de reis een naam");
+      toast.error(text("Geef de reis een naam", "Give your trip a name"));
       return;
     }
     if (atLimit) {
-      toast.error(`Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`);
+      toast.error(text(`Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`, `Your ${plan.name} plan allows ${plan.tripLimit} trips. Upgrade to Pro.`));
       return;
     }
     try {
       const id = await addTrip(name.trim(), template);
       setName("");
-      toast.success("Reis aangemaakt");
+      toast.success(text("Reis aangemaakt", "Trip created"));
       navigate({ to: "/trips/$tripId", params: { tripId: id } });
     } catch {
-      toast.error("De reis kon niet in de database worden aangemaakt. Probeer het opnieuw.");
+      toast.error(text("De reis kon niet worden aangemaakt. Probeer het opnieuw.", "The trip could not be created. Please try again."));
     }
   }
 
@@ -88,21 +90,20 @@ function TripsOverview() {
       <section className="aurora relative overflow-hidden rounded-3xl px-6 py-10 md:px-10">
         <div className="max-w-2xl">
           <Badge variant="secondary" className="mb-3">
-            {ratesLive ? "Live ECB-koersen actief" : "Fallback koersen"}
+            {ratesLive ? text("Live ECB-koersen actief", "Live ECB rates active") : text("Fallback koersen", "Fallback rates")}
           </Badge>
           <h1 className="font-display text-3xl font-semibold md:text-4xl">
             {state.branding.tagline}
           </h1>
           <p className="mt-3 text-sm opacity-90">
-            {state.trips.length} actieve reizen · {formatMoney(grand, base)} geboekte uitgaven ·
-            wereldwijde geocoding, multi-valuta en live weer.
+            {text(`${state.trips.length} actieve reizen`, `${state.trips.length} active trips`)} · {formatMoney(grand, base)} {text("geboekte uitgaven", "recorded expenses")} · {text("wereldwijde geocoding, multi-valuta en live weer.", "global geocoding, multiple currencies and live weather.")}
           </p>
         </div>
       </section>
 
       <Card className="surface">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Nieuwe reis vanuit sjabloon</CardTitle>
+          <CardTitle className="text-base">{text("Nieuwe reis vanuit sjabloon", "New trip from template")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -117,7 +118,7 @@ function TripsOverview() {
                 }`}
               >
                 <span className="mr-1">{t.emoji}</span>
-                {t.label}
+                {templateLabel(t.id, t.label, text)}
               </button>
             ))}
           </div>
@@ -126,20 +127,20 @@ function TripsOverview() {
               value={name}
               disabled={!editable}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Bijv. Namibië familie-safari"
+              placeholder={text("Bijv. Namibië familie-safari", "For example, Namibia family safari")}
             />
             <Button onClick={create} disabled={!editable || atLimit}>
-              <Plus className="size-4" /> Reis aanmaken
+              <Plus className="size-4" /> {text("Reis aanmaken", "Create trip")}
             </Button>
           </div>
           {!editable && (
             <p className="text-sm text-muted-foreground">
-              Je huidige rol is alleen-lezen. Wissel rechtsboven van rol om te bewerken.
+              {text("Je huidige rol is alleen-lezen.", "Your current role is read-only.")}
             </p>
           )}
           {atLimit && (
             <p className="flex items-center gap-2 text-sm text-warning">
-              <Lock className="size-4" /> Limiet van {plan.tripLimit} reizen bereikt op {plan.name}.{" "}
+              <Lock className="size-4" /> {text(`Limiet van ${plan.tripLimit} reizen bereikt op ${plan.name}.`, `${plan.name} limit of ${plan.tripLimit} trips reached.`)}{" "}
               <Link to="/billing" className="underline">
                 Upgrade
               </Link>
@@ -152,7 +153,7 @@ function TripsOverview() {
         <Card className="surface">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">
-              Aftellen naar {nextTrip.name} · {nextTrip.start}
+              {text("Aftellen naar", "Countdown to")} {nextTrip.name} · {nextTrip.start}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -172,7 +173,7 @@ function TripsOverview() {
                 : "border-border hover:bg-muted"
             }`}
           >
-            {f === "all" ? `Alles (${state.trips.length})` : `${STATUS_LABEL[f]} (${counts[f]})`}
+            {f === "all" ? `${text("Alles", "All")} (${state.trips.length})` : `${statusLabel(f, text)} (${counts[f]})`}
           </button>
         ))}
         <Button
@@ -181,10 +182,10 @@ function TripsOverview() {
           className="ml-auto"
           onClick={() => {
             downloadJson(state, state.branding.brandName);
-            toast.success("Back-up gedownload");
+            toast.success(text("Back-up gedownload", "Backup downloaded"));
           }}
         >
-          <Download className="size-4" /> JSON back-up
+          <Download className="size-4" /> JSON {text("back-up", "backup")}
         </Button>
       </div>
 
@@ -213,23 +214,23 @@ function TripsOverview() {
                       onClick={async () => {
                         try {
                           await removeTrip(trip.id);
-                          toast.success("Reis verwijderd");
+                          toast.success(text("Reis verwijderd", "Trip deleted"));
                         } catch (error) {
                           toast.error(
                             error instanceof Error
                               ? error.message
-                              : "Reis kon niet worden verwijderd.",
+                              : text("Reis kon niet worden verwijderd.", "Trip could not be deleted."),
                           );
                         }
                       }}
-                      aria-label="Reis verwijderen"
+                      aria-label={text("Reis verwijderen", "Delete trip")}
                     >
                       <Trash2 className="size-4" />
                     </Button>
                   )}
                 </div>
                 <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
+                  <Badge variant="secondary">{statusLabel(tripStatus(trip), text)}</Badge>
                   {trip.start} → {trip.end}
                   {tripStatus(trip) === "upcoming" && <Countdown date={trip.start} compact />}
                 </p>
@@ -247,7 +248,7 @@ function TripsOverview() {
                 <p className="text-sm">
                   <span className="font-semibold">{formatMoney(spent, base)}</span>{" "}
                   <span className="text-muted-foreground">
-                    van {formatMoney(trip.budget, base)}
+                    {text("van", "of")} {formatMoney(trip.budget, base)}
                   </span>
                 </p>
               </CardContent>
@@ -257,4 +258,13 @@ function TripsOverview() {
       </div>
     </div>
   );
+}
+
+function statusLabel(status: TripStatus, text: (nl: string, en: string) => string) {
+  return text(STATUS_LABEL[status], { current: "Current", upcoming: "Upcoming", archived: "Archived" }[status]);
+}
+
+function templateLabel(id: TripTemplate, fallback: string, text: (nl: string, en: string) => string) {
+  const english: Record<TripTemplate, string> = { safari: "Safari", cruise: "Cruise", citytrip: "City trip", roadtrip: "Road trip", backpacking: "Backpacking", beach: "Beach holiday", winter: "Winter trip", business: "Business trip" };
+  return text(fallback, english[id]);
 }

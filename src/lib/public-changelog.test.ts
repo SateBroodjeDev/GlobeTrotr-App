@@ -4,9 +4,15 @@ import { PUBLIC_BETA_STATUS, PUBLIC_RELEASES } from "./public-changelog.ts";
 
 test("beta status clearly lists intentionally unavailable features", () => {
   assert.ok(PUBLIC_BETA_STATUS.label.trim());
+  assert.ok(PUBLIC_BETA_STATUS.labelEn.trim());
   assert.ok(PUBLIC_BETA_STATUS.description.trim());
+  assert.ok(PUBLIC_BETA_STATUS.descriptionEn.trim());
   assert.ok(PUBLIC_BETA_STATUS.unavailable.length > 0);
-  assert.equal(new Set(PUBLIC_BETA_STATUS.unavailable).size, PUBLIC_BETA_STATUS.unavailable.length);
+  for (const item of PUBLIC_BETA_STATUS.unavailable) {
+    assert.ok(item.nl.trim());
+    assert.ok(item.en.trim());
+  }
+  assert.equal(new Set(PUBLIC_BETA_STATUS.unavailable.map((item) => item.nl)).size, PUBLIC_BETA_STATUS.unavailable.length);
 });
 
 test("public releases have unique IDs and versions", () => {
@@ -35,14 +41,19 @@ test("public release text is complete, unique and safe to publish", () => {
   const forbidden = /(api[_ -]?key|service[_ -]?role|password|secret|token\s*[:=]|@example\.)/i;
   for (const release of PUBLIC_RELEASES) {
     assert.ok(release.title.trim());
+    assert.ok(release.titleEn.trim());
     assert.ok(release.summary.trim());
+    assert.ok(release.summaryEn.trim());
     assert.ok(release.changes.length > 0);
     assert.doesNotMatch(`${release.title} ${release.summary}`, forbidden);
     for (const change of release.changes) {
       assert.ok(change.title.trim());
+      assert.ok(change.titleEn.trim());
       assert.ok(change.description.trim());
+      assert.ok(change.descriptionEn.trim());
       assert.equal(titles.has(change.title), false, `Dubbele wijzigingstitel: ${change.title}`);
       assert.doesNotMatch(`${change.title} ${change.description}`, forbidden);
+      assert.doesNotMatch(`${change.titleEn} ${change.descriptionEn}`, forbidden);
       titles.add(change.title);
     }
   }

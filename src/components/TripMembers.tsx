@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useLocale } from "@/lib/locale";
 
 const PERSONAL_ROLES: { id: TripMemberRole; label: string; description: string }[] = [
   { id: "traveler", label: "Medereiziger", description: "Plant mee en voegt kosten toe." },
@@ -43,6 +44,7 @@ export function TripMembers({
   ownerName?: string;
   ownerEmail?: string;
 }) {
+  const { text } = useLocale();
   const roles = plan === "agency" ? AGENCY_ROLES : PERSONAL_ROLES;
   const maxMembers = plan === "free" ? 2 : Infinity;
   const [name, setName] = useState("");
@@ -51,15 +53,15 @@ export function TripMembers({
 
   function addMember() {
     if (!name.trim() || !email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast.error("Vul een naam en geldig e-mailadres in.");
+      toast.error(text("Vul een naam en geldig e-mailadres in.", "Enter a name and valid email address."));
       return;
     }
     if (members.some((member) => member.email.toLowerCase() === email.trim().toLowerCase())) {
-      toast.error("Dit e-mailadres is al toegevoegd aan deze reis.");
+      toast.error(text("Dit e-mailadres is al toegevoegd aan deze reis.", "This email address has already been added to this trip."));
       return;
     }
     if (members.length >= maxMembers) {
-      toast.error("Free bevat maximaal twee reisgenoten. Upgrade naar Pro voor onbeperkt.");
+      toast.error(text("Free bevat maximaal twee reisgenoten. Upgrade naar Pro voor onbeperkt.", "Free supports up to two travellers. Upgrade to Pro for unlimited travellers."));
       return;
     }
     onChange([
@@ -75,7 +77,7 @@ export function TripMembers({
     ]);
     setName("");
     setEmail("");
-    toast.success("Reisgenoot toegevoegd als uitgenodigd.");
+    toast.success(text("Reisgenoot toegevoegd als uitgenodigd.", "Traveller added as invited."));
   }
 
   function updateMember(id: string, patch: Partial<Pick<TripMember, "role" | "status">>) {
@@ -86,20 +88,18 @@ export function TripMembers({
     <Card className="surface">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <Users className="size-4" /> Reisgenoten
+          <Users className="size-4" /> {text("Reisgenoten", "Travellers")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Voeg reisgenoten toe met een rol voor alleen deze reis. E-mailverzending en accepteren
-          worden geactiveerd zodra Lovable Cloud Emails is ingesteld. Deze lijst wordt ook gebruikt
-          voor de kostenverdeling en de betaler bij boekingen.
+          {text("Voeg reisgenoten toe met een rol voor alleen deze reis. E-mailverzending en accepteren worden geactiveerd zodra Lovable Cloud Emails is ingesteld. Deze lijst wordt ook gebruikt voor de kostenverdeling en de betaler bij boekingen.", "Add travellers with a role for this trip. Email delivery and acceptance will be enabled once Lovable Cloud Emails is configured. This list is also used for expense splitting and booking payers.")}
         </p>
         <div className="grid gap-2 md:grid-cols-4">
           <Input
             value={name}
             disabled={!editable}
-            placeholder="Naam"
+            placeholder={text("Naam", "Name")}
             onChange={(event) => setName(event.target.value)}
           />
           <Input
@@ -110,7 +110,7 @@ export function TripMembers({
             onChange={(event) => setEmail(event.target.value)}
           />
           <select
-            aria-label="Rol reisgenoot"
+            aria-label={text("Rol reisgenoot", "Traveller role")}
             className="rounded-lg border border-input bg-card px-3 text-sm"
             value={role}
             disabled={!editable}
@@ -118,12 +118,12 @@ export function TripMembers({
           >
             {roles.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.label}
+                {roleLabel(item.id, item.label, text)}
               </option>
             ))}
           </select>
           <Button disabled={!editable} onClick={addMember}>
-            <Plus className="size-4" /> Toevoegen
+            <Plus className="size-4" /> {text("Toevoegen", "Add")}
           </Button>
         </div>
         <div className="space-y-2">
@@ -146,7 +146,7 @@ export function TripMembers({
         </div>
         {plan === "free" && (
           <p className="text-xs text-muted-foreground">
-            Free: maximaal twee reisgenoten per reis. Pro biedt onbeperkte reisgenoten.
+            {text("Free: maximaal twee reisgenoten per reis. Pro biedt onbeperkte reisgenoten.", "Free: up to two travellers per trip. Pro offers unlimited travellers.")}
           </p>
         )}
       </CardContent>
@@ -173,6 +173,7 @@ function MemberRow({
   onChangeStatus?: (status: TripMember["status"]) => void;
   onRemove?: () => void;
 }) {
+  const { text } = useLocale();
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2 text-sm">
       <span className="min-w-0">
@@ -182,23 +183,23 @@ function MemberRow({
       <span className="flex shrink-0 items-center gap-2">
         {editable && roles && onChangeRole ? (
           <select
-            aria-label={`Rol van ${name}`}
+            aria-label={`${text("Rol van", "Role of")} ${name}`}
             className="h-8 rounded-md border border-input bg-card px-2 text-xs"
             value={role}
             onChange={(event) => onChangeRole(event.target.value as TripMemberRole)}
           >
             {roles.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.label}
+                {roleLabel(item.id, item.label, text)}
               </option>
             ))}
           </select>
         ) : (
-          <Badge variant="secondary">{labels[role]}</Badge>
+          <Badge variant="secondary">{roleLabel(role, labels[role], text)}</Badge>
         )}
         {!owner && (
           <Badge variant={status === "active" ? "default" : "outline"}>
-            {status === "active" ? "Actief" : "Uitgenodigd"}
+            {status === "active" ? text("Actief", "Active") : text("Uitgenodigd", "Invited")}
           </Badge>
         )}
         {!owner && editable && onChangeStatus && (
@@ -207,10 +208,10 @@ function MemberRow({
             variant="ghost"
             size="icon"
             aria-label={
-              status === "active" ? `${name} weer als uitgenodigd markeren` : `${name} activeren`
+              status === "active" ? text(`${name} weer als uitgenodigd markeren`, `Mark ${name} as invited again`) : text(`${name} activeren`, `Activate ${name}`)
             }
             title={
-              status === "active" ? "Zet terug op uitgenodigd" : "Handmatig als actief markeren"
+              status === "active" ? text("Zet terug op uitgenodigd", "Set back to invited") : text("Handmatig als actief markeren", "Mark as active manually")
             }
             onClick={() => onChangeStatus(status === "active" ? "invited" : "active")}
           >
@@ -222,7 +223,7 @@ function MemberRow({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={`${name} verwijderen`}
+            aria-label={text(`${name} verwijderen`, `Remove ${name}`)}
             onClick={onRemove}
           >
             <Trash2 className="size-4" />
@@ -231,4 +232,9 @@ function MemberRow({
       </span>
     </div>
   );
+}
+
+function roleLabel(role: TripMemberRole, fallback: string, text: (nl: string, en: string) => string) {
+  const english: Record<TripMemberRole, string> = { owner: "Owner", traveler: "Traveller", viewer: "Viewer", advisor: "Travel advisor", finance: "Finance", client: "Client / traveller" };
+  return text(fallback, english[role]);
 }
