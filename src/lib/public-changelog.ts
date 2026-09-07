@@ -72,6 +72,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         descriptionEn:
           "Important save buttons have more space and are easier to distinguish from the fields above.",
       },
+      {
+        kind: "improved",
+        title: "Engelse exports en Agency-schermen",
+        titleEn: "English exports and Agency screens",
+        description:
+          "CSV-bestanden, reisgidsen, declaraties en Agency-schermen volgen nu de taal van je account.",
+        descriptionEn:
+          "CSV files, trip guides, expense claims and Agency screens now follow your account language.",
+      },
     ],
   },
   {

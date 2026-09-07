@@ -1,18 +1,23 @@
 import { CATEGORIES, type Trip } from "./types";
 import { convert, formatMoney, type Rates } from "./services";
+import type { AppLocale } from "./locale";
+import { localizeCountry } from "./localized-values";
 
-export function downloadCsv(trip: Trip, base: string, rates: Rates) {
+export function downloadCsv(trip: Trip, base: string, rates: Rates, locale: AppLocale) {
+  const en = locale === "en-GB";
   const rows = [
-    ["Datum", "Omschrijving", "Categorie", "Bedrag", "Valuta", `Bedrag (${base})`, "Betaald door", "Declarabel"],
+    en
+      ? ["Date", "Description", "Category", "Amount", "Currency", `Amount (${base})`, "Paid by", "Billable"]
+      : ["Datum", "Omschrijving", "Categorie", "Bedrag", "Valuta", `Bedrag (${base})`, "Betaald door", "Declarabel"],
     ...trip.expenses.map((e) => [
       e.date,
       e.title,
-      CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category,
+      exportCategory(e.category, locale),
       e.amount.toFixed(2),
       e.currency,
       convert(e.amount, e.currency, base, rates).toFixed(2),
       e.paidBy,
-      e.billable ? "ja" : "nee",
+      e.billable ? (en ? "yes" : "ja") : (en ? "no" : "nee"),
     ]),
   ];
   const csv = rows
@@ -22,7 +27,7 @@ export function downloadCsv(trip: Trip, base: string, rates: Rates) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${slug(trip.name)}-uitgaven.csv`;
+  a.download = `${slug(trip.name)}-${en ? "expenses" : "uitgaven"}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -36,14 +41,16 @@ export function openPdf(
   base: string,
   rates: Rates,
   brand: { brandName: string; domain: string },
+  locale: AppLocale,
 ) {
+  const en = locale === "en-GB";
   const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const billable = trip.expenses
     .filter((e) => e.billable)
     .reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
 
-  const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8">
-<title>Declaratie — ${escapeHtml(trip.name)}</title>
+  const html = `<!doctype html><html lang="${en ? "en" : "nl"}"><head><meta charset="utf-8">
+<title>${en ? "Expense claim" : "Declaratie"} — ${escapeHtml(trip.name)}</title>
 <style>
  body{font-family:ui-sans-serif,system-ui,Helvetica,Arial;margin:40px;color:#12211f}
  h1{font-size:22px;margin:0 0 4px}
@@ -58,27 +65,27 @@ export function openPdf(
 </style></head><body>
 <div class="brand"><div><h1>${escapeHtml(brand.brandName)}</h1>
 <div class="muted">${escapeHtml(brand.domain)}</div></div>
-<div class="muted">Gegenereerd ${new Date().toLocaleDateString("nl-NL")}</div></div>
+<div class="muted">${en ? "Generated" : "Gegenereerd"} ${new Date().toLocaleDateString(locale)}</div></div>
 <h1>${escapeHtml(trip.name)}</h1>
-<div class="muted">${trip.start} t/m ${trip.end} · ${trip.stops.length} bestemmingen</div>
-<h3>Reisschema</h3><ul class="sched">${trip.itinerary
+<div class="muted">${trip.start} ${en ? "to" : "t/m"} ${trip.end} · ${trip.stops.length} ${en ? "destinations" : "bestemmingen"}</div>
+<h3>${en ? "Itinerary" : "Reisschema"}</h3><ul class="sched">${trip.itinerary
     .map((i) => `<li><b>${i.day}</b> — ${escapeHtml(i.title)}${i.notes ? ` <span class="muted">(${escapeHtml(i.notes)})</span>` : ""}</li>`)
     .join("")}</ul>
-<h3>Uitgaven & declaratie</h3>
-<table><thead><tr><th>Datum</th><th>Omschrijving</th><th>Categorie</th><th>Origineel</th><th>${base}</th><th>Declarabel</th></tr></thead>
+<h3>${en ? "Expenses & claim" : "Uitgaven & declaratie"}</h3>
+<table><thead><tr><th>${en ? "Date" : "Datum"}</th><th>${en ? "Description" : "Omschrijving"}</th><th>${en ? "Category" : "Categorie"}</th><th>${en ? "Original" : "Origineel"}</th><th>${base}</th><th>${en ? "Billable" : "Declarabel"}</th></tr></thead>
 <tbody>${trip.expenses
     .map(
       (e) => `<tr><td>${e.date}</td><td>${escapeHtml(e.title)}</td><td>${
-        CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category
+        exportCategory(e.category, locale)
       }</td><td>${e.amount.toFixed(2)} ${e.currency}</td><td>${formatMoney(
         convert(e.amount, e.currency, base, rates),
         base,
-      )}</td><td>${e.billable ? "ja" : "—"}</td></tr>`,
+      )}</td><td>${e.billable ? (en ? "yes" : "ja") : "—"}</td></tr>`,
     )
     .join("")}</tbody>
-<tfoot><tr><td colspan="4">Totaal</td><td>${formatMoney(total, base)}</td><td>${formatMoney(billable, base)}</td></tr></tfoot>
+<tfoot><tr><td colspan="4">${en ? "Total" : "Totaal"}</td><td>${formatMoney(total, base)}</td><td>${formatMoney(billable, base)}</td></tr></tfoot>
 </table>
-<p class="muted">Budget: ${formatMoney(trip.budget, base)} · Restant: ${formatMoney(trip.budget - total, base)}</p>
+<p class="muted">${en ? "Budget" : "Budget"}: ${formatMoney(trip.budget, base)} · ${en ? "Remaining" : "Restant"}: ${formatMoney(trip.budget - total, base)}</p>
 <script>window.onload=()=>window.print()<\/script>
 </body></html>`;
 
@@ -112,14 +119,16 @@ export function openGuide(
   base: string,
   rates: Rates,
   brand: { brandName: string; domain: string },
+  locale: AppLocale,
 ) {
+  const en = locale === "en-GB";
   const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const days = [...new Set(trip.itinerary.map((i) => i.day))].sort();
   const nav = (lat: number, lon: number) =>
     `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
 
-  const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8">
-<title>Reisgids — ${escapeHtml(trip.name)}</title>
+  const html = `<!doctype html><html lang="${en ? "en" : "nl"}"><head><meta charset="utf-8">
+<title>${en ? "Trip guide" : "Reisgids"} — ${escapeHtml(trip.name)}</title>
 <style>
  body{font-family:ui-sans-serif,system-ui,Helvetica,Arial;margin:36px;color:#12211f}
  h1{font-size:26px;margin:0 0 4px}
@@ -134,20 +143,20 @@ export function openGuide(
  @media print{@page{margin:14mm} a{text-decoration:none}}
 </style></head><body>
 <div class="cover"><div><h1>${escapeHtml(trip.name)}</h1>
-<div class="muted">${trip.start} t/m ${trip.end} · ${trip.stops.length} bestemmingen · budget ${formatMoney(trip.budget, base)}</div></div>
+<div class="muted">${trip.start} ${en ? "to" : "t/m"} ${trip.end} · ${trip.stops.length} ${en ? "destinations" : "bestemmingen"} · ${en ? "budget" : "budget"} ${formatMoney(trip.budget, base)}</div></div>
 <div class="muted">${escapeHtml(brand.brandName)}<br>${escapeHtml(brand.domain)}</div></div>
 
-<h2>Route & navigatie</h2>
+<h2>${en ? "Route & navigation" : "Route & navigatie"}</h2>
 <div class="grid">${trip.stops
     .map(
       (s, i) =>
         `<div class="chip"><b>${i + 1}. ${escapeHtml(s.name)}</b> <span class="muted">${escapeHtml(
-          s.country,
-        )}</span><br><a href="${nav(s.lat, s.lon)}">Navigeer met Google Maps</a></div>`,
+          localizeCountry(s.country, locale),
+        )}</span><br><a href="${nav(s.lat, s.lon)}">${en ? "Navigate with Google Maps" : "Navigeer met Google Maps"}</a></div>`,
     )
     .join("")}</div>
 
-<h2>Dag voor dag</h2>
+<h2>${en ? "Day by day" : "Dag voor dag"}</h2>
 ${days
     .map(
       (d) =>
@@ -163,14 +172,14 @@ ${days
 
 ${
     trip.packing?.length
-      ? `<h2>Paklijst</h2><ul>${trip.packing
+      ? `<h2>${en ? "Packing list" : "Paklijst"}</h2><ul>${trip.packing
           .map((p) => `<li>${p.done ? "☑" : "☐"} ${escapeHtml(p.label)}</li>`)
           .join("")}</ul>`
       : ""
   }
 
 <h2>Budget</h2>
-<p class="muted">Uitgegeven ${formatMoney(total, base)} van ${formatMoney(trip.budget, base)} · restant ${formatMoney(
+<p class="muted">${en ? "Spent" : "Uitgegeven"} ${formatMoney(total, base)} ${en ? "of" : "van"} ${formatMoney(trip.budget, base)} · ${en ? "remaining" : "restant"} ${formatMoney(
     trip.budget - total,
     base,
   )}</p>
@@ -182,4 +191,14 @@ ${
   w.document.write(html);
   w.document.close();
   return true;
+}
+
+function exportCategory(id: string, locale: AppLocale) {
+  const fallback = CATEGORIES.find((category) => category.id === id)?.label ?? id;
+  if (locale === "nl-NL") return fallback;
+  const labels: Record<string, string> = {
+    transport: "Transport", lodging: "Accommodation", food: "Food and drink",
+    activities: "Activities", shopping: "Shopping", other: "Other",
+  };
+  return labels[id] ?? fallback;
 }

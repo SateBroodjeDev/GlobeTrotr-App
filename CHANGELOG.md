@@ -22,6 +22,9 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Ook specialistische velden voor vluchtstatus, verblijf, huurauto, vervoer en brandstof zijn vertaald. Accountprofiel, wachtwoordbeheer, voorkeuren en planinformatie volgen nu dezelfde taalkeuze.
 - Landnamen, weeromschrijvingen, aftel-eenheden en de standaardtagline worden nu ook in het Engels weergegeven wanneer Engels actief is.
 - Bestemmingslijsten tonen ieder volgnummer één keer en de opslaanknop in het formulier voor reisonderdelen heeft meer ruimte tot het laatste veld.
+- Agency-overzicht, team- en reisrechten en white-labelinstellingen volgen de opgeslagen NL/EN-voorkeur.
+- CSV-uitgaven, declaratie-PDF's en reisgidsen gebruiken de gekozen accounttaal voor koppen, categorieën, landen en bestandsnamen.
+- Bevestigingen, foutmeldingen, reisstatussen, uitgavencategorieën en bonacties in het reisbeheer zijn verder vertaald.
 
 ### Controles
 

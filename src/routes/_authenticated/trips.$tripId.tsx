@@ -19,7 +19,6 @@ import { useWorkspace } from "@/lib/workspace";
 import { canEdit, canExport, hasFeature } from "@/lib/plans";
 import {
   CATEGORIES,
-  STATUS_LABEL,
   TEMPLATES,
   tripStatus,
   type Expense,
@@ -303,9 +302,9 @@ function TripDetail() {
       }));
       setDraft({ ...draft, title: "", amount: 0, notes: undefined, splitWith: undefined });
       setEditingExpenseId(undefined);
-      toast.success(editingExpenseId ? "Uitgave bijgewerkt" : "Uitgave geboekt");
+      toast.success(editingExpenseId ? text("Uitgave bijgewerkt", "Expense updated") : text("Uitgave geboekt", "Expense added"));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Uitgave kon niet worden opgeslagen.");
+      toast.error(error instanceof Error ? error.message : text("Uitgave kon niet worden opgeslagen.", "Expense could not be saved."));
     } finally {
       setExpenseSaving(false);
     }
@@ -368,15 +367,15 @@ function TripDetail() {
       toast.success(
         item.amount
           ? previousId
-            ? "Onderdeel en gekoppelde kosten bijgewerkt."
-            : "Onderdeel, kaartlocatie en kosten opgeslagen."
+            ? text("Onderdeel en gekoppelde kosten bijgewerkt.", "Item and linked expense updated.")
+            : text("Onderdeel, kaartlocatie en kosten opgeslagen.", "Item, map location and expense saved.")
           : previousId
-            ? "Reisonderdeel bijgewerkt."
-            : "Onderdeel en kaartlocatie opgeslagen.",
+            ? text("Reisonderdeel bijgewerkt.", "Travel item updated.")
+            : text("Onderdeel en kaartlocatie opgeslagen.", "Item and map location saved."),
       );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Reisonderdeel kon niet worden opgeslagen.",
+        error instanceof Error ? error.message : text("Reisonderdeel kon niet worden opgeslagen.", "Travel item could not be saved."),
       );
       throw error;
     }
@@ -398,11 +397,11 @@ function TripDetail() {
           : current.expenses,
       }));
       toast.success(
-        item?.expenseId ? "Onderdeel en gekoppelde kosten verwijderd." : "Onderdeel verwijderd.",
+        item?.expenseId ? text("Onderdeel en gekoppelde kosten verwijderd.", "Item and linked expense deleted.") : text("Onderdeel verwijderd.", "Item deleted."),
       );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Reisonderdeel kon niet worden verwijderd.",
+        error instanceof Error ? error.message : text("Reisonderdeel kon niet worden verwijderd.", "Travel item could not be deleted."),
       );
       throw error;
     }
@@ -416,40 +415,40 @@ function TripDetail() {
         stops: [...current.stops, { id: stopId, ...location, nights: 1 }],
       }));
       setActiveStopId(stopId);
-      toast.success(`${location.name} toegevoegd.`);
+      toast.success(text(`${location.name} toegevoegd.`, `${location.name} added.`));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Bestemming kon niet worden opgeslagen.",
+        error instanceof Error ? error.message : text("Bestemming kon niet worden opgeslagen.", "Destination could not be saved."),
       );
     }
   }
 
   async function removeStop(stopId: string) {
-    if (!window.confirm("Deze bestemming van de routekaart verwijderen?")) return;
+    if (!window.confirm(text("Deze bestemming van de routekaart verwijderen?", "Remove this destination from the route map?"))) return;
     try {
       await saveTripNow(trip.id, (current) => ({
         ...current,
         stops: current.stops.filter((stop) => stop.id !== stopId),
       }));
       if (activeStopId === stopId) setActiveStopId(undefined);
-      toast.success("Bestemming verwijderd.");
+      toast.success(text("Bestemming verwijderd.", "Destination deleted."));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Bestemming kon niet worden verwijderd.",
+        error instanceof Error ? error.message : text("Bestemming kon niet worden verwijderd.", "Destination could not be deleted."),
       );
     }
   }
 
   async function toggleArchive() {
-    if (!window.confirm(trip.archived ? "Deze reis weer actief maken?" : "Deze reis archiveren?")) {
+    if (!window.confirm(trip.archived ? text("Deze reis weer actief maken?", "Reactivate this trip?") : text("Deze reis archiveren?", "Archive this trip?"))) {
       return;
     }
     try {
       await saveTripNow(trip.id, (current) => ({ ...current, archived: !current.archived }));
-      toast.success(trip.archived ? "Reis heractiveerd." : "Reis gearchiveerd.");
+      toast.success(trip.archived ? text("Reis heractiveerd.", "Trip reactivated.") : text("Reis gearchiveerd.", "Trip archived."));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Reisstatus kon niet worden opgeslagen.",
+        error instanceof Error ? error.message : text("Reisstatus kon niet worden opgeslagen.", "Trip status could not be saved."),
       );
     }
   }
@@ -457,7 +456,7 @@ function TripDetail() {
   async function removeExpense(expenseId: string) {
     if (
       !window.confirm(
-        "Deze uitgave verwijderen? De koppeling met een eventueel reisonderdeel wordt losgemaakt.",
+        text("Deze uitgave verwijderen? De koppeling met een eventueel reisonderdeel wordt losgemaakt.", "Delete this expense? Any link to a travel item will be removed."),
       )
     ) {
       return;
@@ -472,9 +471,9 @@ function TripDetail() {
             : travelItem,
         ),
       }));
-      toast.success("Uitgave verwijderd.");
+      toast.success(text("Uitgave verwijderd.", "Expense deleted."));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Uitgave kon niet worden verwijderd.");
+      toast.error(error instanceof Error ? error.message : text("Uitgave kon niet worden verwijderd.", "Expense could not be deleted."));
     }
   }
 
@@ -482,13 +481,13 @@ function TripDetail() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
     if (!canManageReceipts) {
-      toast.error("Bonnetjes koppelen is beschikbaar in het Agency-plan.");
+      toast.error(text("Bonnetjes koppelen is beschikbaar in het Agency-plan.", "Attaching receipts is available with the Agency plan."));
       event.target.value = "";
       return;
     }
     const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
-      toast.error("Kies een PDF, JPG, PNG of WebP tot 10 MB.");
+      toast.error(text("Kies een PDF, JPG, PNG of WebP tot 10 MB.", "Choose a PDF, JPG, PNG or WebP file up to 10 MB."));
       event.target.value = "";
       return;
     }
@@ -515,9 +514,9 @@ function TripDetail() {
         await supabase.storage.from("receipts").remove([storagePath]);
         throw error;
       }
-      toast.success("Bon gekoppeld aan de uitgave.");
+      toast.success(text("Bon gekoppeld aan de uitgave.", "Receipt attached to the expense."));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Bon kon niet worden geüpload.");
+      toast.error(error instanceof Error ? error.message : text("Bon kon niet worden geüpload.", "Receipt could not be uploaded."));
     } finally {
       setUploadingReceiptId(undefined);
       event.target.value = "";
@@ -527,7 +526,7 @@ function TripDetail() {
   async function openReceipt(expense: Expense) {
     if (!expense.receiptPath) return;
     if (!canManageReceipts) {
-      toast.error("Bonnetjes bekijken is beschikbaar in het Agency-plan.");
+      toast.error(text("Bonnetjes bekijken is beschikbaar in het Agency-plan.", "Viewing receipts is available with the Agency plan."));
       return;
     }
     try {
@@ -535,10 +534,10 @@ function TripDetail() {
         .from("receipts")
         .createSignedUrl(expense.receiptPath, 60 * 5);
       if (error) throw error;
-      if (!data?.signedUrl) throw new Error("Bon kon niet worden geopend.");
+      if (!data?.signedUrl) throw new Error(text("Bon kon niet worden geopend.", "Receipt could not be opened."));
       window.open(data.signedUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Bon kon niet worden geopend.");
+      toast.error(error instanceof Error ? error.message : text("Bon kon niet worden geopend.", "Receipt could not be opened."));
     }
   }
 
@@ -551,7 +550,7 @@ function TripDetail() {
           </Link>
           <h1 className="font-display text-2xl font-semibold">{trip.name}</h1>
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
+            <Badge variant="secondary">{tripStatusLabel(tripStatus(trip), text)}</Badge>
             {trip.start} → {trip.end} · {trip.stops.length} {text(trip.stops.length === 1 ? "bestemming" : "bestemmingen", trip.stops.length === 1 ? "destination" : "destinations")}
           </p>
         </div>
@@ -560,7 +559,7 @@ function TripDetail() {
             variant="outline"
             disabled={!canExport(state.role)}
             onClick={() => {
-              downloadCsv(trip, base, rates);
+              downloadCsv(trip, base, rates, locale);
               toast.success(text("CSV geëxporteerd", "CSV exported"));
             }}
           >
@@ -570,7 +569,7 @@ function TripDetail() {
             variant="outline"
             disabled={!canExport(state.role)}
             onClick={() => {
-              if (!openGuide(trip, base, rates, state.branding))
+              if (!openGuide(trip, base, rates, state.branding, locale))
                 toast.error(text("Sta pop-ups toe om de reisgids te openen.", "Allow pop-ups to open the trip guide."));
             }}
           >
@@ -583,7 +582,7 @@ function TripDetail() {
                 toast.error(text("PDF-declaraties zitten in Pro en hoger.", "PDF expense reports are available on Pro and above."));
                 return;
               }
-              if (!openPdf(trip, base, rates, state.branding))
+              if (!openPdf(trip, base, rates, state.branding, locale))
                 toast.error(text("Sta pop-ups toe om de PDF te genereren.", "Allow pop-ups to generate the PDF."));
             }}
           >
@@ -845,11 +844,11 @@ function TripDetail() {
             </CardHeader>
             <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm">
               <p className="text-muted-foreground">
-                Archiveer de reis of verwijder hem definitief.
+                {text("Archiveer de reis of verwijder hem definitief.", "Archive the trip or delete it permanently.")}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" disabled={!editable} onClick={() => void toggleArchive()}>
-                  <Archive className="size-4" /> {trip.archived ? "Heractiveren" : "Archiveren"}
+                  <Archive className="size-4" /> {trip.archived ? text("Heractiveren", "Reactivate") : text("Archiveren", "Archive")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -857,24 +856,24 @@ function TripDetail() {
                   onClick={async () => {
                     if (
                       window.confirm(
-                        `Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`,
+                        text(`Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`, `Are you sure you want to permanently delete ${trip.name}?`),
                       )
                     ) {
                       try {
                         await removeTrip(trip.id);
-                        toast.success("Reis verwijderd");
+                        toast.success(text("Reis verwijderd", "Trip deleted"));
                         navigate({ to: "/dashboard" });
                       } catch (error) {
                         toast.error(
                           error instanceof Error
                             ? error.message
-                            : "Reis kon niet worden verwijderd.",
+                            : text("Reis kon niet worden verwijderd.", "Trip could not be deleted."),
                         );
                       }
                     }
                   }}
                 >
-                  <Trash2 className="size-4" /> Verwijderen
+                  <Trash2 className="size-4" /> {text("Verwijderen", "Delete")}
                 </Button>
               </div>
             </CardContent>
@@ -1093,7 +1092,7 @@ function TripDetail() {
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.label}
+                      {expenseCategoryLabel(c.id, c.label, text)}
                     </option>
                   ))}
                 </select>
@@ -1244,7 +1243,7 @@ function TripDetail() {
                           </button>
                         )}
                       </td>
-                      <td className="p-3">{CATEGORIES.find((c) => c.id === e.category)?.label}</td>
+                      <td className="p-3">{expenseCategoryLabel(e.category, CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category, text)}</td>
                       <td className="p-3">{e.paidBy}</td>
                       <td className="p-3 text-right">
                         {e.amount.toFixed(2)} {e.currency}
@@ -1319,6 +1318,20 @@ function TripDetail() {
       </Tabs>
     </div>
   );
+}
+
+function tripStatusLabel(status: ReturnType<typeof tripStatus>, text: (nl: string, en: string) => string) {
+  if (status === "current") return text("Huidig", "Current");
+  if (status === "upcoming") return text("Aankomend", "Upcoming");
+  return text("Gearchiveerd", "Archived");
+}
+
+function expenseCategoryLabel(id: string, fallback: string, text: (nl: string, en: string) => string) {
+  const labels: Record<string, string> = {
+    transport: "Transport", lodging: "Accommodation", food: "Food and drink",
+    activities: "Activities", shopping: "Shopping", other: "Other",
+  };
+  return text(fallback, labels[id] ?? fallback);
 }
 
 function Stat({ label, value }: { label: string; value: string }) {

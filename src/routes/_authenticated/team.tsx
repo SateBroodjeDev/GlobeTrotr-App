@@ -6,6 +6,7 @@ import type { TripMemberRole } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({
@@ -45,6 +46,7 @@ const ALL_PERMISSIONS = [
 ];
 
 function TeamPage() {
+  const { text } = useLocale();
   const { state } = useWorkspace();
   const allowed = hasFeature(state.plan, "roles") && canBill(state.role);
   const trips = state.trips ?? [];
@@ -52,30 +54,28 @@ function TeamPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Team & reisrechten</h1>
+        <h1 className="font-display text-2xl font-semibold">{text("Team & reisrechten", "Team & trip permissions")}</h1>
         <p className="text-sm text-muted-foreground">
-          Beheer toegang per reis. Een reisgenoot krijgt nooit automatisch toegang tot al je reizen.
+          {text("Beheer toegang per reis. Een reisgenoot krijgt nooit automatisch toegang tot al je reizen.", "Manage access per trip. A traveller never automatically gains access to all your trips.")}
         </p>
       </div>
 
       {!allowed && (
         <p className="flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">
-          <Lock className="size-4" /> Uitgebreid rollenbeheer zit in Agency (eigenaarsrol).{" "}
+          <Lock className="size-4" /> {text("Uitgebreid rollenbeheer zit in Agency (eigenaarsrol).", "Advanced role management is part of Agency (owner role).")} {" "}
           <Link to="/billing" className="underline">
-            Upgrade
+            {text("Upgraden", "Upgrade")}
           </Link>
         </p>
       )}
 
       <Card className="surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Reisteams</CardTitle>
+          <CardTitle className="text-sm">{text("Reisteams", "Trip teams")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Reisgenoten voeg je toe in <strong>Reisinstellingen → Reisgenoten</strong>. E-mailuitnodigingen
-            volgen zodra Lovable Cloud Emails is geactiveerd; deze pagina doet dus niet alsof er al een
-            uitnodiging is verstuurd.
+            {text("Reisgenoten voeg je toe in Reisinstellingen → Reisgenoten. E-mailuitnodigingen volgen zodra Lovable Cloud Emails is geactiveerd; deze pagina toont daarom geen verzendbevestiging.", "Add travellers under Trip settings → Travellers. Email invitations will follow once Lovable Cloud Emails is enabled; this page therefore shows no delivery confirmation.")}
           </p>
           {trips.length ? (
             <ul className="space-y-3">
@@ -88,12 +88,12 @@ function TeamPage() {
                       <div>
                         <p className="font-medium">{trip.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {memberCount} {memberCount === 1 ? "lid" : "leden"}
+                          {memberCount} {text(memberCount === 1 ? "lid" : "leden", memberCount === 1 ? "member" : "members")}
                         </p>
                       </div>
                       <Button asChild variant="outline" size="sm" disabled={!allowed}>
                         <Link to="/trips/$tripId" params={{ tripId: trip.id }}>
-                          <Users className="size-4" /> Reisinstellingen
+                          <Users className="size-4" /> {text("Reisinstellingen", "Trip settings")}
                         </Link>
                       </Button>
                     </div>
@@ -102,7 +102,7 @@ function TeamPage() {
                         {members.map((member) => (
                           <Badge key={member.id} variant="secondary">
                             {member.name} ·{" "}
-                            {AGENCY_ROLES.find((role) => role.id === member.role)?.label ?? member.role}
+                            {roleLabel(member.role, text)}
                           </Badge>
                         ))}
                       </div>
@@ -113,7 +113,7 @@ function TeamPage() {
             </ul>
           ) : (
             <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-              Maak eerst een reis aan om een reisteam samen te stellen.
+              {text("Maak eerst een reis aan om een reisteam samen te stellen.", "Create a trip first to assemble a trip team.")}
             </p>
           )}
         </CardContent>
@@ -121,16 +121,16 @@ function TeamPage() {
 
       <Card className="surface">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Rechtenmatrix</CardTitle>
+          <CardTitle className="text-sm">{text("Rechtenmatrix", "Permissions matrix")}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead className="bg-muted/60 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="p-3 text-left">Recht</th>
+                <th className="p-3 text-left">{text("Recht", "Permission")}</th>
                 {AGENCY_ROLES.map((role) => (
                   <th key={role.id} className="p-3">
-                    {role.label}
+                    {roleLabel(role.id, text)}
                   </th>
                 ))}
               </tr>
@@ -138,7 +138,7 @@ function TeamPage() {
             <tbody>
               {ALL_PERMISSIONS.map((permission) => (
                 <tr key={permission} className="border-t border-border">
-                  <td className="p-3">{permission}</td>
+                  <td className="p-3">{permissionLabel(permission, text)}</td>
                   {AGENCY_ROLES.map((role) => (
                     <td key={role.id} className="p-3 text-center">
                       {role.permissions.includes(permission) ? (
@@ -156,4 +156,22 @@ function TeamPage() {
       </Card>
     </div>
   );
+}
+
+function roleLabel(role: TripMemberRole, text: (nl: string, en: string) => string) {
+  const labels: Record<TripMemberRole, [string, string]> = {
+    owner: ["Workspace-eigenaar", "Workspace owner"], advisor: ["Reisadviseur", "Travel advisor"],
+    finance: ["Financiën", "Finance"], client: ["Klant / reiziger", "Client / traveller"],
+    viewer: ["Kijker", "Viewer"], traveler: ["Reisgenoot", "Traveller"],
+  };
+  return text(...labels[role]);
+}
+
+function permissionLabel(permission: string, text: (nl: string, en: string) => string) {
+  const labels: Record<string, string> = {
+    "Reizen beheren": "Manage trips", "Uitgaven beheren": "Manage expenses",
+    "Leden beheren": "Manage members", "Abonnement beheren": "Manage subscription",
+    "Reis bekijken": "View trip",
+  };
+  return text(permission, labels[permission] ?? permission);
 }

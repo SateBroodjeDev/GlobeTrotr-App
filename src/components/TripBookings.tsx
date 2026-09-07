@@ -831,7 +831,7 @@ function LocationPicker({
   onPick: (location: GeoResult | undefined) => void;
   disabled: boolean;
 }) {
-  const { text } = useLocale();
+  const { locale, text } = useLocale();
   return (
     <div className="space-y-1">
       <p className="text-xs text-muted-foreground">{label}</p>
