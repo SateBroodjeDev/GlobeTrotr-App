@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLocale } from "@/lib/locale";
+import { localizeTagline } from "@/lib/localized-values";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function TripsOverview() {
   const { state, addTrip, removeTrip, rates, ratesLive } = useWorkspace();
-  const { text } = useLocale();
+  const { locale, text } = useLocale();
   const navigate = useNavigate();
   const plan = planOf(state.plan);
   const editable = canEdit(state.role);
@@ -93,7 +94,7 @@ function TripsOverview() {
             {ratesLive ? text("Live ECB-koersen actief", "Live ECB rates active") : text("Fallback koersen", "Fallback rates")}
           </Badge>
           <h1 className="font-display text-3xl font-semibold md:text-4xl">
-            {state.branding.tagline}
+            {localizeTagline(state.branding.tagline, locale)}
           </h1>
           <p className="mt-3 text-sm opacity-90">
             {text(`${state.trips.length} actieve reizen`, `${state.trips.length} active trips`)} · {formatMoney(grand, base)} {text("geboekte uitgaven", "recorded expenses")} · {text("wereldwijde geocoding, multi-valuta en live weer.", "global geocoding, multiple currencies and live weather.")}

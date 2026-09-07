@@ -4,6 +4,7 @@ import { searchPlaces, type GeoResult } from "@/lib/services";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
+import { localizeCountry } from "@/lib/localized-values";
 
 export function PlaceSearch({
   onPick,
@@ -12,7 +13,7 @@ export function PlaceSearch({
   onPick: (r: GeoResult) => void;
   disabled?: boolean;
 }) {
-  const { text } = useLocale();
+  const { locale, text } = useLocale();
   const [q, setQ] = useState("");
   const [results, setResults] = useState<GeoResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -60,7 +61,7 @@ export function PlaceSearch({
                 }}
               >
                 <span className="font-medium">{r.name}</span>
-                <span className="text-xs text-muted-foreground">{r.country}</span>
+                <span className="text-xs text-muted-foreground">{localizeCountry(r.country, locale)}</span>
               </button>
             </li>
           ))}

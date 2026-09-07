@@ -4,6 +4,7 @@ import type { Stop } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocale } from "@/lib/locale";
+import { localizeCountry, localizedWeather } from "@/lib/localized-values";
 
 export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean }) {
   const { locale, text } = useLocale();
@@ -18,7 +19,7 @@ export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean
     <Card className="surface">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-semibold">
-          {text("Weer", "Weather")} · {stop ? `${stop.name}, ${stop.country}` : text("geen bestemming", "no destination")}
+          {text("Weer", "Weather")} · {stop ? `${stop.name}, ${localizeCountry(stop.country, locale)}` : text("geen bestemming", "no destination")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -40,7 +41,7 @@ export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean
                 {Math.round(q.data.temperature)}°C
               </span>
               <span className="text-sm text-muted-foreground">
-                {weatherLabel(q.data.code).text} · {Math.round(q.data.windspeed)} km/u
+                {localizedWeather(q.data.code, locale)} · {Math.round(q.data.windspeed)} km/h
               </span>
             </div>
             <div className="mt-4 grid grid-cols-5 gap-2 text-center text-xs">

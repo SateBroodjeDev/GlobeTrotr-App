@@ -20,8 +20,10 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Dashboard, abonnementsoverzicht en meldingen volgen de gekozen NL/EN-taal, inclusief statussen, acties, foutmeldingen en datums
 - [x] Hoofdnavigatie van reisbeheer, instellingen, openbaar delen, route, uitgaven, verrekening, paklijst en weer volgen de gekozen NL/EN-taal
 - [x] Tijdlijn en reisgenoten volgen NL/EN, inclusief rollen, uitnodigingsstatussen, bewerken, lege staten en lokale datumlabels
-- [x] Basis van boekingsformulieren volgt NL/EN: boekingstype, datumvelden, vluchtlookup, titels, locaties en kritieke validatiemeldingen
-- [ ] Engelse vertaling afronden voor uitgebreide boekingsdetails, accountprofiel, Agency-pagina’s en exports
+- [x] Boekingsformulieren volledig gekoppeld aan NL/EN: vlucht, verblijf, huurauto, vervoer, activiteit, locaties, brandstofprognose, kosten en statussen
+- [x] Dynamische reiswaarden volgen NL/EN: landen, weeromschrijving, aftel-eenheden en de standaardtagline; dubbele nummering in bestemmingslijsten is verwijderd en de opslaanknop van reisonderdelen heeft extra afstand
+- [x] Accountprofiel, taal/weergave, beveiliging, planinformatie en beta-communicatie volgen NL/EN
+- [ ] Engelse vertaling afronden voor Agency-pagina’s en exports; daarna een laatste controle op losse Nederlandse runtime-teksten
 - [ ] Kritieke rooktest: registreren/inloggen met e-mail, reis aanmaken, wijzigen, herladen, archiveren en verwijderen
 - [ ] Reisinhoud testen: stops, planning, vlucht, verblijf, vervoer, huurauto, uitgave, verdeling, paklijst en export
 - [ ] Publiek delen testen: aan/uit, PIN, budget wel/niet delen, oude link, lege reis en reis met veel stops

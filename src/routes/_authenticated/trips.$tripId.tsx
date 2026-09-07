@@ -53,6 +53,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/lib/locale";
+import { localizeCountry } from "@/lib/localized-values";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
 
@@ -103,7 +104,7 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 });
 
 function TripDetail() {
-  const { text } = useLocale();
+  const { locale, text } = useLocale();
   const { tripId } = Route.useParams();
   const { state, updateTrip, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
   const navigate = useNavigate();
@@ -920,7 +921,7 @@ function TripDetail() {
                       {activeStopId ? text(" · geselecteerde bestemming is op de kaart uitgelicht", " · selected destination is highlighted on the map") : ""}
                     </p>
                   )}
-                  <ol className="space-y-2">
+                  <ul className="space-y-2">
                     {visibleStops.map((s) => {
                       const stopIndex = trip.stops.findIndex((stop) => stop.id === s.id);
                       return (
@@ -936,7 +937,7 @@ function TripDetail() {
                           <button type="button" className="min-w-0 flex-1 text-left">
                             <span className="mr-2 text-muted-foreground">{stopIndex + 1}.</span>
                             {s.name}
-                            <span className="ml-2 text-xs text-muted-foreground">{s.country}</span>
+                            <span className="ml-2 text-xs text-muted-foreground">{localizeCountry(s.country, locale)}</span>
                           </button>
                           {editable && (
                             <button
@@ -953,7 +954,7 @@ function TripDetail() {
                         </li>
                       );
                     })}
-                  </ol>
+                  </ul>
                   {trip.stops.length > 4 && (
                     <Button
                       type="button"

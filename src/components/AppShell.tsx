@@ -32,6 +32,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { useLocale } from "@/lib/locale";
+import { localizeTagline } from "@/lib/localized-values";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
@@ -264,7 +265,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-4 pb-10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {state.branding.brandName} — {state.branding.tagline}
+          {state.branding.brandName} — {localizeTagline(state.branding.tagline, locale)}
         </p>
         <nav
           aria-label={text("Voetnavigatie", "Footer navigation")}

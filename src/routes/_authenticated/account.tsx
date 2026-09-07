@@ -72,7 +72,7 @@ function asThemePreference(value: string | null | undefined): ThemePreference {
 function AccountPage() {
   const { user } = useAuth();
   const { state, cloud } = useWorkspace();
-  const { setLocale: applyLocale } = useLocale();
+  const { setLocale: applyLocale, text } = useLocale();
   const plan = planOf(state.plan);
   const activeTripCount = state.trips.filter((trip) => !trip.archived).length;
   const queryClient = useQueryClient();
@@ -136,12 +136,12 @@ function AccountPage() {
 
   async function saveProfile() {
     if (!name.trim()) {
-      toast.error("Vul je naam in.");
+      toast.error(text("Vul je naam in.", "Enter your name."));
       return;
     }
     const requestedEmail = email.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(requestedEmail)) {
-      toast.error("Vul een geldig e-mailadres in.");
+      toast.error(text("Vul een geldig e-mailadres in.", "Enter a valid email address."));
       return;
     }
     setSaving(true);
@@ -164,16 +164,16 @@ function AccountPage() {
       if (requestedEmail !== (user.email ?? "").toLowerCase()) {
         const { error: emailError } = await supabase.auth.updateUser({ email: requestedEmail });
         if (emailError) throw emailError;
-        toast.success("Profiel opgeslagen. Bevestig je nieuwe e-mailadres via je mail.");
+        toast.success(text("Profiel opgeslagen. Bevestig je nieuwe e-mailadres via je mail.", "Profile saved. Confirm your new email address by email."));
       } else {
-        toast.success("Accountinstellingen opgeslagen.");
+        toast.success(text("Accountinstellingen opgeslagen.", "Account settings saved."));
       }
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["profile", user.id] }),
         queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] }),
       ]);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Opslaan lukte niet.");
+      toast.error(error instanceof Error ? error.message : text("Opslaan lukte niet.", "Saving failed."));
     } finally {
       setSaving(false);
     }
@@ -181,7 +181,7 @@ function AccountPage() {
 
   async function savePreferences() {
     if (!timezone.trim()) {
-      toast.error("Kies een tijdzone.");
+      toast.error(text("Kies een tijdzone.", "Choose a time zone."));
       return;
     }
     setSavingPreferences(true);
@@ -198,7 +198,7 @@ function AccountPage() {
         queryClient.invalidateQueries({ queryKey: ["profile", user.id] }),
         queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] }),
       ]);
-      toast.success("Weergavevoorkeuren opgeslagen.");
+      toast.success(text("Weergavevoorkeuren opgeslagen.", "Display preferences saved."));
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -249,11 +249,11 @@ function AccountPage() {
 
   async function savePassword() {
     if (newPassword.length < 6) {
-      toast.error("Gebruik een wachtwoord van minimaal 6 tekens.");
+      toast.error(text("Gebruik een wachtwoord van minimaal 6 tekens.", "Use a password of at least 6 characters."));
       return;
     }
     if (newPassword !== repeatPassword) {
-      toast.error("De wachtwoorden komen niet overeen.");
+      toast.error(text("De wachtwoorden komen niet overeen.", "The passwords do not match."));
       return;
     }
     setSavingPassword(true);
@@ -262,7 +262,7 @@ function AccountPage() {
       if (error) throw error;
       setNewPassword("");
       setRepeatPassword("");
-      toast.success("Wachtwoord gewijzigd.");
+      toast.success(text("Wachtwoord gewijzigd.", "Password changed."));
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -299,16 +299,16 @@ function AccountPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Accountinstellingen</h1>
+        <h1 className="font-display text-2xl font-semibold">{text("Accountinstellingen", "Account settings")}</h1>
         <p className="text-sm text-muted-foreground">
-          Je persoonlijke profiel, inlogmethodes en abonnement.
+          {text("Je persoonlijke profiel, inlogmethodes en abonnement.", "Your personal profile, sign-in methods and plan.")}
         </p>
       </div>
 
       <Card className="surface">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm">
-            <UserRound className="size-4" /> Profiel
+            <UserRound className="size-4" /> {text("Profiel", "Profile")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -320,7 +320,7 @@ function AccountPage() {
             <label>
               <Button type="button" variant="outline" asChild>
                 <span>
-                  <Camera className="size-4" /> Profielfoto wijzigen
+                  <Camera className="size-4" /> {text("Profielfoto wijzigen", "Change profile picture")}
                 </span>
               </Button>
               <input
@@ -333,7 +333,7 @@ function AccountPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-1.5">
-              <Label htmlFor="account-name">Naam</Label>
+              <Label htmlFor="account-name">{text("Naam", "Name")}</Label>
               <Input
                 id="account-name"
                 value={name}
@@ -341,18 +341,18 @@ function AccountPage() {
               />
             </label>
             <label className="space-y-1.5">
-              <Label htmlFor="account-phone">Telefoonnummer</Label>
+              <Label htmlFor="account-phone">{text("Telefoonnummer", "Phone number")}</Label>
               <Input
                 id="account-phone"
                 type="tel"
                 autoComplete="tel"
                 value={phone}
-                placeholder="Optioneel"
+                placeholder={text("Optioneel", "Optional")}
                 onChange={(event) => setPhone(event.target.value)}
               />
             </label>
             <label className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="account-email">E-mailadres</Label>
+              <Label htmlFor="account-email">{text("E-mailadres", "Email address")}</Label>
               <Input
                 id="account-email"
                 type="email"
@@ -361,13 +361,12 @@ function AccountPage() {
                 onChange={(event) => setEmail(event.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Bij een nieuw adres ontvang je eerst een bevestigingsmail. Tot die bevestiging
-                blijft je huidige e-mailadres actief.
+                {text("Bij een nieuw adres ontvang je eerst een bevestigingsmail. Tot die bevestiging blijft je huidige e-mailadres actief.", "A new address must be confirmed by email. Your current email address remains active until then.")}
               </p>
             </label>
           </div>
           <Button disabled={saving || profileQuery.isLoading} onClick={saveProfile}>
-            {saving ? "Opslaan…" : "Profiel en e-mailadres opslaan"}
+            {saving ? text("Opslaan…", "Saving…") : text("Profiel en e-mailadres opslaan", "Save profile and email address")}
           </Button>
         </CardContent>
       </Card>
@@ -375,14 +374,14 @@ function AccountPage() {
       <Card className="surface">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm">
-            <Monitor className="size-4" /> Taal & weergave
+            <Monitor className="size-4" /> {text("Taal & weergave", "Language & appearance")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="space-y-1.5">
               <Label htmlFor="account-locale" className="flex items-center gap-2">
-                <Languages className="size-4" /> Taal
+                <Languages className="size-4" /> {text("Taal", "Language")}
               </Label>
               <select
                 id="account-locale"
@@ -400,7 +399,7 @@ function AccountPage() {
             </label>
             <label className="space-y-1.5">
               <Label htmlFor="account-timezone" className="flex items-center gap-2">
-                <Clock3 className="size-4" /> Tijdzone
+                <Clock3 className="size-4" /> {text("Tijdzone", "Time zone")}
               </Label>
               <select
                 id="account-timezone"
@@ -420,7 +419,7 @@ function AccountPage() {
               </select>
             </label>
             <label className="space-y-1.5">
-              <Label htmlFor="account-theme">Weergave</Label>
+              <Label htmlFor="account-theme">{text("Weergave", "Appearance")}</Label>
               <select
                 id="account-theme"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -428,18 +427,17 @@ function AccountPage() {
                 disabled={savingPreferences}
                 onChange={(event) => setTheme(asThemePreference(event.target.value))}
               >
-                <option value="system">Systeeminstelling volgen</option>
-                <option value="light">Lichte modus</option>
-                <option value="dark">Donkere modus</option>
+                <option value="system">{text("Systeeminstelling volgen", "Use system setting")}</option>
+                <option value="light">{text("Lichte modus", "Light mode")}</option>
+                <option value="dark">{text("Donkere modus", "Dark mode")}</option>
               </select>
             </label>
           </div>
           <p className="text-xs text-muted-foreground">
-            De taalkeuze wordt nu opgeslagen; de volledige Engelse vertaling volgt in een aparte
-            productstap. Tijdzones worden daarna gebruikt voor boekingen, meldingen en exports.
+            {text("Je taal, tijdzone en weergave worden voor dit account opgeslagen.", "Your language, time zone and appearance are saved for this account.")}
           </p>
           <Button disabled={savingPreferences || profileQuery.isLoading} onClick={savePreferences}>
-            {savingPreferences ? "Opslaan…" : "Voorkeuren opslaan"}
+            {savingPreferences ? text("Opslaan…", "Saving…") : text("Voorkeuren opslaan", "Save preferences")}
           </Button>
         </CardContent>
       </Card>
@@ -448,17 +446,17 @@ function AccountPage() {
         <Card className="surface">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <KeyRound className="size-4" /> Inloggen & beveiliging
+              <KeyRound className="size-4" /> {text("Inloggen & beveiliging", "Sign-in & security")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <p className="text-muted-foreground">
-              Inlogmethodes die aan dit account gekoppeld zijn.
+              {text("Inlogmethodes die aan dit account gekoppeld zijn.", "Sign-in methods linked to this account.")}
             </p>
             <div className="space-y-2">
               <div className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
-                <span>E-mail en wachtwoord</span>
-                <Badge variant="secondary">Gekoppeld</Badge>
+                <span>{text("E-mail en wachtwoord", "Email and password")}</span>
+                <Badge variant="secondary">{text("Gekoppeld", "Linked")}</Badge>
               </div>
               {identities
                 .filter((identity) =>
@@ -488,13 +486,13 @@ function AccountPage() {
             </div>
             <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
               <div>
-                <p className="font-medium">Wachtwoord wijzigen</p>
+                <p className="font-medium">{text("Wachtwoord wijzigen", "Change password")}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Gebruik minimaal 6 tekens en bewaar je wachtwoord veilig.
+                  {text("Gebruik minimaal 6 tekens en bewaar je wachtwoord veilig.", "Use at least 6 characters and store your password securely.")}
                 </p>
               </div>
               <label className="space-y-1.5">
-                <Label htmlFor="new-password">Nieuw wachtwoord</Label>
+                <Label htmlFor="new-password">{text("Nieuw wachtwoord", "New password")}</Label>
                 <Input
                   id="new-password"
                   type="password"
@@ -505,7 +503,7 @@ function AccountPage() {
                 />
               </label>
               <label className="space-y-1.5">
-                <Label htmlFor="repeat-password">Herhaal nieuw wachtwoord</Label>
+                <Label htmlFor="repeat-password">{text("Herhaal nieuw wachtwoord", "Repeat new password")}</Label>
                 <Input
                   id="repeat-password"
                   type="password"
@@ -522,7 +520,7 @@ function AccountPage() {
                 onClick={() => void savePassword()}
               >
                 <KeyRound className="size-4" />
-                {savingPassword ? "Wachtwoord opslaan…" : "Nieuw wachtwoord opslaan"}
+                {savingPassword ? text("Wachtwoord opslaan…", "Saving password…") : text("Nieuw wachtwoord opslaan", "Save new password")}
               </Button>
             </div>
           </CardContent>
@@ -530,40 +528,40 @@ function AccountPage() {
         <Card className="surface">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm">
-              <CreditCard className="size-4" /> Abonnement
+              <CreditCard className="size-4" /> {text("Abonnement", "Plan")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             {cloud === "loading" ? (
               <p className="text-muted-foreground" role="status">
-                Abonnement laden…
+                {text("Abonnement laden…", "Loading plan…")}
               </p>
             ) : (
               <>
                 <p>
-                  Huidig plan: <Badge variant="secondary">{plan.name}</Badge>
+                  {text("Huidig plan", "Current plan")}: <Badge variant="secondary">{plan.name}</Badge>
                 </p>
                 <dl className="space-y-1">
                   <div className="flex flex-wrap justify-between gap-x-4">
-                    <dt className="text-muted-foreground">Reizen in je account</dt>
+                    <dt className="text-muted-foreground">{text("Reizen in je account", "Trips in your account")}</dt>
                     <dd>
                       {state.trips.length} /{" "}
-                      {Number.isFinite(plan.tripLimit) ? plan.tripLimit : "onbeperkt"}
+                      {Number.isFinite(plan.tripLimit) ? plan.tripLimit : text("onbeperkt", "unlimited")}
                     </dd>
                   </div>
                   <div className="flex flex-wrap justify-between gap-x-4">
-                    <dt className="text-muted-foreground">Actieve reizen</dt>
+                    <dt className="text-muted-foreground">{text("Actieve reizen", "Active trips")}</dt>
                     <dd>{activeTripCount}</dd>
                   </div>
                 </dl>
                 <p className="text-muted-foreground">
-                  Vergelijk plannen en beheer je abonnement op de abonnementspagina.
+                  {text("Vergelijk plannen en beheer je abonnement op de abonnementspagina.", "Compare plans and manage your subscription on the plan page.")}
                 </p>
               </>
             )}
             <Button asChild variant="outline">
               <Link to="/billing">
-                {state.plan === "free" ? "Bekijk upgrades" : "Abonnement beheren"}
+                {state.plan === "free" ? text("Bekijk upgrades", "View upgrades") : text("Abonnement beheren", "Manage plan")}
               </Link>
             </Button>
           </CardContent>
@@ -573,12 +571,11 @@ function AccountPage() {
       <Card className="surface">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm">
-            <Mail className="size-4" /> Communicatie
+            <Mail className="size-4" /> {text("Communicatie", "Communication")}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Meldingsvoorkeuren voor uitnodigingen, betalingen en vluchtalerts komen hier zodra de
-          e-mailfunctie is geactiveerd.
+          {text("Meldingsvoorkeuren voor uitnodigingen, betalingen en vluchtalerts komen hier zodra de e-mailfunctie is geactiveerd.", "Notification preferences for invitations, payments and flight alerts will appear here once email is enabled.")}
         </CardContent>
       </Card>
       <Card className="border-destructive/40 surface">
@@ -588,8 +585,7 @@ function AccountPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Account verwijderen en gegevens exporteren worden toegevoegd nadat de SQL-migratie en
-          documentopslag zijn afgerond.
+          {text("Account verwijderen en gegevens exporteren worden toegevoegd nadat de SQL-migratie en documentopslag zijn afgerond.", "Account deletion and data export will be added after the SQL migration and document storage are complete.")}
         </CardContent>
       </Card>
     </div>

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useLocale } from "@/lib/locale";
+import { localizeCountry } from "@/lib/localized-values";
 
 const TYPES: { id: TravelItemType; label: string; icon: typeof Plane }[] = [
   { id: "flight", label: "Vlucht", icon: Plane },
@@ -91,7 +92,7 @@ export function TripBookings({
   ) => Promise<void>;
   onRemove: (id: string) => Promise<void>;
 }) {
-  const { text } = useLocale();
+  const { locale, text } = useLocale();
   const [draft, setDraft] = useState<Draft>(() =>
     initialItem
       ? {
@@ -400,7 +401,7 @@ export function TripBookings({
           )}
           {draft.type === "activity" && (
             <div className="grid items-end gap-3 md:grid-cols-2">
-              <Field label="Begintijd">
+              <Field label={text("Begintijd", "Start time")}>
                 <Input
                   type="time"
                   value={draft.details?.startTime ?? ""}
@@ -408,7 +409,7 @@ export function TripBookings({
                   onChange={(e) => detail("startTime", e.target.value)}
                 />
               </Field>
-              <Field label="Eindtijd">
+              <Field label={text("Eindtijd", "End time")}>
                 <Input
                   type="time"
                   value={draft.details?.endTime ?? ""}
@@ -420,7 +421,7 @@ export function TripBookings({
           )}
           {(draft.type === "lodging" || draft.type === "car_rental") && (
             <div className="grid items-end gap-3 md:grid-cols-2">
-              <Field label={draft.type === "lodging" ? "Inchecktijd" : "Ophaaltijd"}>
+              <Field label={draft.type === "lodging" ? text("Inchecktijd", "Check-in time") : text("Ophaaltijd", "Collection time")}>
                 <Input
                   type="time"
                   value={draft.details?.startTime ?? ""}
@@ -428,7 +429,7 @@ export function TripBookings({
                   onChange={(e) => detail("startTime", e.target.value)}
                 />
               </Field>
-              <Field label={draft.type === "lodging" ? "Uitchecktijd" : "Inlevertijd"}>
+              <Field label={draft.type === "lodging" ? text("Uitchecktijd", "Check-out time") : text("Inlevertijd", "Return time")}>
                 <Input
                   type="time"
                   value={draft.details?.endTime ?? ""}
@@ -440,7 +441,7 @@ export function TripBookings({
           )}
           {draft.type === "car_rental" && (
             <div className="grid items-end gap-3 rounded-xl border border-border bg-muted/25 p-3 md:grid-cols-4">
-              <Field label="Verhuurder">
+              <Field label={text("Verhuurder", "Rental company")}>
                 <Input
                   value={draft.provider ?? ""}
                   disabled={!editable}
@@ -450,7 +451,7 @@ export function TripBookings({
                   }
                 />
               </Field>
-              <Field label="Auto">
+              <Field label={text("Auto", "Vehicle")}>
                 <Input
                   value={draft.details?.vehicle ?? ""}
                   disabled={!editable}
@@ -458,7 +459,7 @@ export function TripBookings({
                   onChange={(e) => detail("vehicle", e.target.value)}
                 />
               </Field>
-              <Field label="Categorie">
+              <Field label={text("Categorie", "Category")}>
                 <Input
                   value={draft.details?.vehicleCategory ?? ""}
                   disabled={!editable}
@@ -466,7 +467,7 @@ export function TripBookings({
                   onChange={(e) => detail("vehicleCategory", e.target.value)}
                 />
               </Field>
-              <Field label="Borg">
+              <Field label={text("Borg", "Deposit")}>
                 <Input
                   type="number"
                   min="0"
@@ -475,15 +476,15 @@ export function TripBookings({
                   onChange={(e) => detail("deposit", Number(e.target.value))}
                 />
               </Field>
-              <Field label="Verzekering">
+              <Field label={text("Verzekering", "Insurance")}>
                 <Input
                   value={draft.details?.insurance ?? ""}
                   disabled={!editable}
-                  placeholder="Bijv. all-risk"
+                  placeholder={text("Bijv. all-risk", "For example, comprehensive")}
                   onChange={(e) => detail("insurance", e.target.value)}
                 />
               </Field>
-              <Field label="Eigen risico">
+              <Field label={text("Eigen risico", "Excess")}>
                 <Input
                   type="number"
                   min="0"
@@ -497,7 +498,7 @@ export function TripBookings({
           {draft.type === "transport" && (
             <div className="space-y-3 rounded-xl border border-border bg-muted/25 p-3">
               <div className="grid items-end gap-3 md:grid-cols-4">
-                <Field label="Afstand (km)">
+                <Field label={text("Afstand (km)", "Distance (km)")}>
                   <Input
                     type="number"
                     min="0"
@@ -506,7 +507,7 @@ export function TripBookings({
                     onChange={(e) => detail("distanceKm", Number(e.target.value))}
                   />
                 </Field>
-                <Field label="Verbruik (L/100 km)">
+                <Field label={text("Verbruik (L/100 km)", "Consumption (L/100 km)")}>
                   <Input
                     type="number"
                     min="0"
@@ -516,7 +517,7 @@ export function TripBookings({
                     onChange={(e) => detail("consumptionPer100Km", Number(e.target.value))}
                   />
                 </Field>
-                <Field label="Brandstofprijs / L">
+                <Field label={text("Brandstofprijs / L", "Fuel price / L")}>
                   <Input
                     type="number"
                     min="0"
@@ -526,7 +527,7 @@ export function TripBookings({
                     onChange={(e) => detail("fuelPricePerLiter", Number(e.target.value))}
                   />
                 </Field>
-                <Field label="Brandstofvaluta">
+                <Field label={text("Brandstofvaluta", "Fuel currency")}>
                   <select
                     className="form-control"
                     value={draft.details?.fuelCurrency ?? draft.currency ?? "EUR"}
@@ -543,12 +544,12 @@ export function TripBookings({
               </div>
               {fuelEstimate.cost > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Schatting: {fuelEstimate.liters.toFixed(1)} liter ·{" "}
+                  {text("Schatting", "Estimate")}: {fuelEstimate.liters.toFixed(1)} {text("liter", "litres")} ·{" "}
                   {formatMoney(
                     fuelEstimate.cost,
                     draft.details?.fuelCurrency ?? draft.currency ?? "EUR",
                   )}
-                  . Dit telt als prognose, niet als werkelijke uitgave.
+                  . {text("Dit telt als prognose, niet als werkelijke uitgave.", "This is a forecast and does not count as an actual expense.")}
                 </p>
               )}
             </div>
@@ -557,13 +558,13 @@ export function TripBookings({
             {typeIsMoving ? (
               <>
                 <LocationPicker
-                  label={draft.type === "car_rental" ? "Ophaallocatie" : "Vertreklocatie"}
+                  label={draft.type === "car_rental" ? text("Ophaallocatie", "Collection location") : text("Vertreklocatie", "Departure location")}
                   value={departure}
                   onPick={setDeparture}
                   disabled={!editable}
                 />
                 <LocationPicker
-                  label={draft.type === "car_rental" ? "Inleverlocatie" : "Aankomstlocatie"}
+                  label={draft.type === "car_rental" ? text("Inleverlocatie", "Return location") : text("Aankomstlocatie", "Arrival location")}
                   value={arrival}
                   onPick={setArrival}
                   disabled={!editable}
@@ -571,7 +572,7 @@ export function TripBookings({
               </>
             ) : (
               <LocationPicker
-                label="Locatie"
+                label={text("Locatie", "Location")}
                 value={location}
                 onPick={setLocation}
                 disabled={!editable}
@@ -579,43 +580,43 @@ export function TripBookings({
             )}
           </div>
           <p className="-mt-2 text-xs text-muted-foreground">
-            Geselecteerde locaties worden automatisch met de routekaart gesynchroniseerd.
+            {text("Geselecteerde locaties worden automatisch met de routekaart gesynchroniseerd.", "Selected locations are automatically synchronised with the route map.")}
           </p>
           <div className="grid items-end gap-3 md:grid-cols-5">
             {draft.type !== "car_rental" && (
-              <Field label="Aanbieder">
+              <Field label={text("Aanbieder", "Provider")}>
                 <Input
                   value={draft.provider ?? ""}
                   disabled={!editable}
-                  placeholder="Optioneel"
+                  placeholder={text("Optioneel", "Optional")}
                   onChange={(e) =>
                     setDraft((current) => ({ ...current, provider: e.target.value }))
                   }
                 />
               </Field>
             )}
-            <Field label="Boekingsnummer">
+            <Field label={text("Boekingsnummer", "Booking reference")}>
               <Input
                 value={draft.bookingReference ?? ""}
                 disabled={!editable}
-                placeholder="Optioneel"
+                placeholder={text("Optioneel", "Optional")}
                 onChange={(e) =>
                   setDraft((current) => ({ ...current, bookingReference: e.target.value }))
                 }
               />
             </Field>
-            <Field label="Prijs">
+            <Field label={text("Prijs", "Price")}>
               <Input
                 type="number"
                 min="0"
                 step="0.01"
                 value={draft.amount}
                 disabled={!editable}
-                placeholder="Optioneel"
+                placeholder={text("Optioneel", "Optional")}
                 onChange={(e) => setDraft((current) => ({ ...current, amount: e.target.value }))}
               />
             </Field>
-            <Field label="Valuta">
+            <Field label={text("Valuta", "Currency")}>
               <select
                 className="form-control"
                 value={draft.currency}
@@ -629,7 +630,7 @@ export function TripBookings({
                 ))}
               </select>
             </Field>
-            <Field label="Betaald door">
+            <Field label={text("Betaald door", "Paid by")}>
               <select
                 className="form-control"
                 value={paidBy}
@@ -644,24 +645,24 @@ export function TripBookings({
               </select>
             </Field>
           </div>
-          <Field label="Notities / omschrijving">
+          <Field label={text("Notities / omschrijving", "Notes / description")}>
             <Input
               value={draft.notes ?? ""}
               disabled={!editable}
-              placeholder="Optioneel"
+              placeholder={text("Optioneel", "Optional")}
               onChange={(e) => setDraft((current) => ({ ...current, notes: e.target.value }))}
             />
           </Field>
-          <Button disabled={!editable || saving || loadingFlight} onClick={() => void save()}>
+          <Button className="mt-2" disabled={!editable || saving || loadingFlight} onClick={() => void save()}>
             {editingId ? (
               saving ? (
-                "Opslaan…"
+                text("Opslaan…", "Saving…")
               ) : (
-                "Wijzigingen opslaan"
+                text("Wijzigingen opslaan", "Save changes")
               )
             ) : (
               <>
-                <Plus className="size-4" /> {saving ? "Opslaan…" : "Onderdeel opslaan"}
+                <Plus className="size-4" /> {saving ? text("Opslaan…", "Saving…") : text("Onderdeel opslaan", "Save item")}
               </>
             )}
           </Button>
@@ -680,8 +681,8 @@ export function TripBookings({
         >
           <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-4xl">
             <DialogHeader>
-              <DialogTitle>Reisonderdeel wijzigen</DialogTitle>
-              <DialogDescription>Pas de boeking aan en sla je wijzigingen op.</DialogDescription>
+              <DialogTitle>{text("Reisonderdeel wijzigen", "Edit travel item")}</DialogTitle>
+              <DialogDescription>{text("Pas de boeking aan en sla je wijzigingen op.", "Update the booking and save your changes.")}</DialogDescription>
             </DialogHeader>
             {form}
           </DialogContent>
@@ -692,12 +693,12 @@ export function TripBookings({
       {!initialItem && (
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Geboekte onderdelen</CardTitle>
+            <CardTitle className="text-sm">{text("Geboekte onderdelen", "Booked items")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {(trip.travelItems ?? []).length === 0 && (
               <p className="text-sm text-muted-foreground">
-                Nog geen vluchten, overnachtingen of andere boekingen.
+                {text("Nog geen vluchten, overnachtingen of andere boekingen.", "No flights, accommodation or other bookings yet.")}
               </p>
             )}
             {(trip.travelItems ?? []).map((item) => {
@@ -711,25 +712,25 @@ export function TripBookings({
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 font-medium">
                       <ItemIcon className="size-4 shrink-0" /> {item.title}{" "}
-                      <Badge variant="secondary">{itemType?.label}</Badge>
+                      <Badge variant="secondary">{itemType ? travelTypeLabel(itemType.id, itemType.label, text) : ""}</Badge>
                     </p>
                     <p className="mt-1 text-muted-foreground">
                       {item.date}
-                      {item.endDate ? ` t/m ${item.endDate}` : ""}
-                      {item.bookingReference ? ` · Boeking: ${item.bookingReference}` : ""}
+                      {item.endDate ? ` ${text("t/m", "to")} ${item.endDate}` : ""}
+                      {item.bookingReference ? ` · ${text("Boeking", "Booking")}: ${item.bookingReference}` : ""}
                       {item.amount ? ` · ${formatMoney(item.amount, item.currency ?? "EUR")}` : ""}
                     </p>
                     {item.flightStatus && (
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Vluchtstatus: {item.flightStatus}
+                        {text("Vluchtstatus", "Flight status")}: {item.flightStatus}
                       </p>
                     )}
                     {item.type === "flight" &&
                       (item.details?.flightDepartureAirport ||
                         item.details?.flightArrivalAirport) && (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {item.details.flightDepartureAirport || "Vertrek onbekend"} →{" "}
-                          {item.details.flightArrivalAirport || "Aankomst onbekend"}
+                          {item.details.flightDepartureAirport || text("Vertrek onbekend", "Departure unknown")} →{" "}
+                          {item.details.flightArrivalAirport || text("Aankomst onbekend", "Arrival unknown")}
                           {item.details.flightDepartureGate
                             ? ` · Gate ${item.details.flightDepartureGate}`
                             : ""}
@@ -742,7 +743,7 @@ export function TripBookings({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        aria-label="Boeking wijzigen"
+                        aria-label={text("Boeking wijzigen", "Edit booking")}
                         disabled={saving}
                         onClick={() => edit(item)}
                       >
@@ -752,7 +753,7 @@ export function TripBookings({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        aria-label="Boeking verwijderen"
+                        aria-label={text("Boeking verwijderen", "Delete booking")}
                         disabled={saving}
                         onClick={() => void remove(item.id)}
                       >
@@ -771,19 +772,20 @@ export function TripBookings({
 }
 
 function FlightStatusSummary({ flight }: { flight: FlightLookup }) {
+  const { text } = useLocale();
   const departure = [
-    flight.departure?.actual && `Werkelijk ${flight.departure.actual}`,
+    flight.departure?.actual && `${text("Werkelijk", "Actual")} ${flight.departure.actual}`,
     !flight.departure?.actual &&
       flight.departure?.scheduled &&
-      `Gepland ${flight.departure.scheduled}`,
+      `${text("Gepland", "Scheduled")} ${flight.departure.scheduled}`,
     flight.departure?.terminal && `Terminal ${flight.departure.terminal}`,
     flight.departure?.gate && `Gate ${flight.departure.gate}`,
   ].filter(Boolean);
   const arrival = [
-    flight.arrival?.estimated && `Verwacht ${flight.arrival.estimated}`,
+    flight.arrival?.estimated && `${text("Verwacht", "Estimated")} ${flight.arrival.estimated}`,
     !flight.arrival?.estimated &&
       flight.arrival?.scheduled &&
-      `Gepland ${flight.arrival.scheduled}`,
+      `${text("Gepland", "Scheduled")} ${flight.arrival.scheduled}`,
     flight.arrival?.terminal && `Terminal ${flight.arrival.terminal}`,
     flight.arrival?.gate && `Gate ${flight.arrival.gate}`,
   ].filter(Boolean);
@@ -796,13 +798,13 @@ function FlightStatusSummary({ flight }: { flight: FlightLookup }) {
       </p>
       <div className="mt-2 grid gap-2 text-muted-foreground sm:grid-cols-2">
         <p>
-          <span className="font-medium text-foreground">Vertrek:</span>{" "}
-          {flight.departure?.airportFull || flight.departure?.airport || "Onbekend"}
+          <span className="font-medium text-foreground">{text("Vertrek", "Departure")}:</span>{" "}
+          {flight.departure?.airportFull || flight.departure?.airport || text("Onbekend", "Unknown")}
           {departure.length ? ` · ${departure.join(" · ")}` : ""}
         </p>
         <p>
-          <span className="font-medium text-foreground">Aankomst:</span>{" "}
-          {flight.arrival?.airportFull || flight.arrival?.airport || "Onbekend"}
+          <span className="font-medium text-foreground">{text("Aankomst", "Arrival")}:</span>{" "}
+          {flight.arrival?.airportFull || flight.arrival?.airport || text("Onbekend", "Unknown")}
           {arrival.length ? ` · ${arrival.join(" · ")}` : ""}
         </p>
       </div>
@@ -837,7 +839,7 @@ function LocationPicker({
         <div className="flex h-10 items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm">
           <MapPin className="size-4 shrink-0" />
           <span className="min-w-0 flex-1 truncate">
-            {value.name}, {value.country}
+            {value.name}, {localizeCountry(value.country, locale)}
           </span>
           <Button
             type="button"

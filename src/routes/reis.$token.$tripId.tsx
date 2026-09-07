@@ -19,6 +19,7 @@ import TripMap from "@/components/TripMap";
 import { Badge } from "@/components/ui/badge";
 import { TEMPLATES, type Stop } from "@/lib/types";
 import { useLocale } from "@/lib/locale";
+import { localizeCountry } from "@/lib/localized-values";
 
 export const Route = createFileRoute("/reis/$token/$tripId")({
   head: () => ({
@@ -207,7 +208,7 @@ function PublicTrip() {
                     <span className="block font-medium">{stop.name}</span>
                     <span className="block text-xs text-muted-foreground">
                       {[
-                        stop.country,
+                        localizeCountry(stop.country, locale),
                         stop.arrive ? formatDate(stop.arrive, locale) : "",
                         stop.nights
                           ? `${stop.nights} ${text(stop.nights === 1 ? "nacht" : "nachten", stop.nights === 1 ? "night" : "nights")}`

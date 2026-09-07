@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocale } from "@/lib/locale";
 
 function parts(target: number, now: number) {
   const diff = Math.max(0, target - now);
@@ -12,6 +13,7 @@ function parts(target: number, now: number) {
 }
 
 export function Countdown({ date, compact = false }: { date: string; compact?: boolean }) {
+  const { text } = useLocale();
   const target = new Date(`${date}T00:00:00`).getTime();
   const [now, setNow] = useState(() => Date.now());
 
@@ -26,14 +28,14 @@ export function Countdown({ date, compact = false }: { date: string; compact?: b
   if (compact) {
     return (
       <span className="text-xs font-medium text-primary">
-        {p.done ? "Onderweg" : `nog ${p.days}d ${p.hours}u`}
+        {p.done ? text("Onderweg", "Travelling") : text(`nog ${p.days}d ${p.hours}u`, `${p.days}d ${p.hours}h remaining`)}
       </span>
     );
   }
 
   const cells: [number, string][] = [
-    [p.days, "dagen"],
-    [p.hours, "uur"],
+    [p.days, text("dagen", "days")],
+    [p.hours, text("uur", "hours")],
     [p.minutes, "min"],
     [p.seconds, "sec"],
   ];

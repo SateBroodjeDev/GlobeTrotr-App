@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { Stop } from "@/lib/types";
+import { useLocale } from "@/lib/locale";
+import { localizeCountry } from "@/lib/localized-values";
 
 export default function TripMap({
   stops,
@@ -10,6 +12,7 @@ export default function TripMap({
   activeStopId?: string;
   onStopSelect?: (id: string) => void;
 }) {
+  const { locale } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<unknown>(null);
 
@@ -49,7 +52,7 @@ export default function TripMap({
             }),
           })
             .addTo(map)
-            .bindPopup(`<b>${s.name}</b><br/>${s.country}`)
+            .bindPopup(`<b>${s.name}</b><br/>${localizeCountry(s.country, locale)}`)
             .on("click", () => onStopSelect?.(s.id));
         });
         if (latlngs.length > 1) {
@@ -69,7 +72,7 @@ export default function TripMap({
     return () => {
       cancelled = true;
     };
-  }, [activeStopId, onStopSelect, stops]);
+  }, [activeStopId, locale, onStopSelect, stops]);
 
   useEffect(() => {
     return () => {
