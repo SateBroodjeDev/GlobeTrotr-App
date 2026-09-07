@@ -46,6 +46,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -56,6 +57,7 @@ const TripMap = lazy(() => import("@/components/TripMap"));
 
 type TripSettingsDraft = {
   name: string;
+  description: string;
   start: string;
   end: string;
   budget: string;
@@ -65,6 +67,7 @@ type TripSettingsDraft = {
 function settingsFromTrip(trip: Trip): TripSettingsDraft {
   return {
     name: trip.name,
+    description: trip.description ?? "",
     start: trip.start,
     end: trip.end,
     budget: String(trip.budget),
@@ -191,7 +194,7 @@ function TripDetail() {
 
   useEffect(() => {
     setSettings(settingsFromTrip(trip));
-  }, [trip.id, trip.name, trip.start, trip.end, trip.budget, trip.template]);
+  }, [trip.id, trip.name, trip.description, trip.start, trip.end, trip.budget, trip.template]);
 
   async function saveTripSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -219,6 +222,7 @@ function TripDetail() {
       await saveTripNow(trip.id, (current) => ({
         ...current,
         name,
+        description: settings.description.trim() || undefined,
         start: settings.start,
         end: settings.end,
         budget,
@@ -638,6 +642,22 @@ function TripDetail() {
                       setSettings((current) => ({ ...current, name: event.target.value }))
                     }
                   />
+                </label>
+                <label className="space-y-1.5 text-sm sm:col-span-2">
+                  <span className="text-muted-foreground">Reisomschrijving</span>
+                  <Textarea
+                    value={settings.description}
+                    disabled={!editable || settingsSaving}
+                    maxLength={500}
+                    rows={4}
+                    placeholder="Vertel kort wat deze reis bijzonder maakt. Deze tekst verschijnt ook op de publieke reispagina."
+                    onChange={(event) =>
+                      setSettings((current) => ({ ...current, description: event.target.value }))
+                    }
+                  />
+                  <span className="block text-right text-xs text-muted-foreground">
+                    {settings.description.length}/500
+                  </span>
                 </label>
                 <label className="space-y-1.5 text-sm">
                   <span className="text-muted-foreground">Startdatum</span>

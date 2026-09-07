@@ -117,6 +117,9 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 - [x] Een compacte GlobeTrotr-call-to-action tonen; ingelogde gebruikers gaan naar **Mijn reizen**, bezoekers kunnen een account maken
 - [ ] Mobiele vormgeving in productie controleren op smalle schermen, lange reisnamen en veel stops
 - [x] Verzorgde laad-, lege, PIN- en niet-beschikbaarstatussen in dezelfde visuele stijl
+- [x] Korte reisomschrijving (maximaal 500 tekens) toegevoegd aan reisinstellingen en de publieke header; zonder omschrijving verschijnt een compacte route-samenvatting
+- [x] Lange bestemmingenketen uit de header verwijderd en de lijst naast de kaart standaard beperkt tot vier stops met een uitklapactie
+- [ ] Migratie `20260907170000_trip_description.sql` uitvoeren en daarna opslaan, leegmaken en publiek tonen van een reisomschrijving controleren
 
 ## Fase 7 — Abonnementen & Agency (deels klaar)
 

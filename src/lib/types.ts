@@ -197,6 +197,8 @@ export type Trip = {
   /** Database version, kept as text to preserve BIGINT precision. */
   revision?: string;
   name: string;
+  /** Korte introductie van de reis, zichtbaar op de publieke pagina wanneer gedeeld. */
+  description?: string | undefined;
   template: TripTemplate;
   start: string;
   end: string;

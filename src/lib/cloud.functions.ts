@@ -17,7 +17,11 @@ function isIsoDate(value: string) {
 /** Keep invalid trip settings out of both relational storage and the JSON backup. */
 function normalizeTripForPersistence(trip: Trip): Trip {
   const name = trip.name.trim();
+  const description = trip.description?.trim();
   if (!name) throw new Error("Een reisnaam is verplicht.");
+  if (description && description.length > 500) {
+    throw new Error("De reisomschrijving mag maximaal 500 tekens bevatten.");
+  }
   if (!isIsoDate(trip.start) || !isIsoDate(trip.end)) {
     throw new Error("Vul een geldige start- en einddatum in.");
   }
@@ -25,7 +29,7 @@ function normalizeTripForPersistence(trip: Trip): Trip {
   if (!Number.isFinite(trip.budget) || trip.budget < 0) {
     throw new Error("Het budget moet een bedrag van nul of hoger zijn.");
   }
-  return { ...trip, name };
+  return { ...trip, name, description };
 }
 
 async function withinTimeout<T>(operation: Promise<T>, milliseconds: number): Promise<T> {
@@ -75,6 +79,7 @@ async function syncTripsFromWorkspaceJson(
           workspace_user_id: userId,
           id: legacyId,
           name: trip.name,
+          description: trip.description ?? null,
           template: trip.template,
           start_date: trip.start || null,
           end_date: trip.end || null,
@@ -231,6 +236,7 @@ async function saveRelationalTrip(client: UntypedSupabase, userId: string, trip:
         id: legacyId,
         trip_uuid: trip.id,
         name: trip.name,
+        description: trip.description ?? null,
         template: trip.template,
         start_date: trip.start || null,
         end_date: trip.end || null,
@@ -299,7 +305,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   const { data: parents, error } = await client
     .from("trips")
     .select(
-      "trip_uuid, revision::text, name, template, start_date, end_date, budget, travelers, archived, is_public, share_financials, share_pin_hash",
+      "trip_uuid, revision::text, name, description, template, start_date, end_date, budget, travelers, archived, is_public, share_financials, share_pin_hash",
     )
     .eq("workspace_user_id", userId)
     .order("start_date", { ascending: true });
@@ -339,6 +345,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
       id,
       ...(row["revision"] == null ? {} : { revision: String(row["revision"]) }),
       name: String(row.name ?? "Reis"),
+      ...(row.description ? { description: String(row.description) } : {}),
       template: row.template,
       start: row.start_date ?? "",
       end: row.end_date ?? "",

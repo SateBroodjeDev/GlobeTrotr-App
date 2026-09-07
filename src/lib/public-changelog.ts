@@ -28,6 +28,34 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-07-public-trip-description",
+    version: "Beta 0.4",
+    publishedAt: "2026-09-07T18:50:00+02:00",
+    title: "Meer verhaal, minder drukte",
+    summary:
+      "Gedeelde reizen krijgen ruimte voor een persoonlijke introductie en tonen lange routes compacter.",
+    changes: [
+      {
+        kind: "new",
+        title: "Eigen reisomschrijving",
+        description:
+          "Geef je reis een korte introductie die bovenaan de openbare reisweergave verschijnt.",
+      },
+      {
+        kind: "improved",
+        title: "Rustigere openbare reis",
+        description:
+          "De lange routezin is vervangen door de omschrijving of een korte samenvatting van bestemmingen en landen.",
+      },
+      {
+        kind: "improved",
+        title: "Compacte bestemmingenlijst",
+        description:
+          "Naast de kaart zie je eerst vier stops; de hele route blijft bereikbaar met één duidelijke knop.",
+      },
+    ],
+  },
+  {
     id: "2026-09-07-public-trips",
     version: "Beta 0.3",
     publishedAt: "2026-09-07T18:40:00+02:00",

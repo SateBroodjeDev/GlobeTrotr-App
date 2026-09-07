@@ -14,6 +14,7 @@ export type PublicTripCard = {
   token: string;
   tripId: string;
   name: string;
+  description?: string;
   template: string;
   start: string;
   end: string;
@@ -40,6 +41,7 @@ type RelationalTrip = {
   trip_uuid: string;
   workspace_user_id: string;
   name: string;
+  description: string | null;
   template: string;
   start_date: string | null;
   end_date: string | null;
@@ -82,6 +84,7 @@ function relationalCard(
     token: workspace.public_token,
     tripId: trip.trip_uuid,
     name: trip.name,
+    ...(trip.description ? { description: trip.description } : {}),
     template: trip.template,
     start: trip.start_date ?? "",
     end: trip.end_date ?? "",
@@ -99,6 +102,7 @@ function card(row: Row, t: AnyTrip, authorName: string): PublicTripCard {
     token: row.public_token,
     tripId: String(t["id"] ?? ""),
     name: String(t["name"] ?? "Reis"),
+    ...(t["description"] ? { description: String(t["description"]) } : {}),
     template: String(t["template"] ?? "citytrip"),
     start: String(t["start"] ?? ""),
     end: String(t["end"] ?? ""),
@@ -120,7 +124,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
   const { data: normalizedTrips, error: normalizedError } = await db
     .from("trips")
     .select(
-      "trip_uuid, workspace_user_id, name, template, start_date, end_date, budget, share_financials, share_pin_hash",
+      "trip_uuid, workspace_user_id, name, description, template, start_date, end_date, budget, share_financials, share_pin_hash",
     )
     .eq("is_public", true)
     .eq("archived", false)
@@ -215,7 +219,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     const { data: byUuid, error: uuidError } = await db
       .from("trips")
       .select(
-        "trip_uuid, workspace_user_id, name, template, start_date, end_date, budget, share_financials, share_pin_hash",
+        "trip_uuid, workspace_user_id, name, description, template, start_date, end_date, budget, share_financials, share_pin_hash",
       )
       .eq("workspace_user_id", workspace.user_id)
       .eq("trip_uuid", input.tripId)
@@ -228,7 +232,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
         ? await db
             .from("trips")
             .select(
-              "trip_uuid, workspace_user_id, name, template, start_date, end_date, budget, share_financials, share_pin_hash",
+              "trip_uuid, workspace_user_id, name, description, template, start_date, end_date, budget, share_financials, share_pin_hash",
             )
             .eq("workspace_user_id", workspace.user_id)
             .eq("id", input.tripId)

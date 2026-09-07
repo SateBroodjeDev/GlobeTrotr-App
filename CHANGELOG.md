@@ -4,6 +4,20 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-07 18:50 CEST — Rustigere publieke reisheader
+
+### Gebruikerservaring
+
+- Een reis kan vanuit Reisinstellingen een omschrijving van maximaal 500 tekens krijgen.
+- De openbare reis toont deze omschrijving in de hero. Zonder omschrijving verschijnt een korte samenvatting van het aantal bestemmingen en landen.
+- De lange bestemmingenketen is uit de hero verwijderd.
+- De lijst naast de kaart toont eerst vier bestemmingen en heeft een knop om de volledige route te openen.
+
+### Backend en database
+
+- `20260907170000_trip_description.sql` voegt `trips.description` met een lengtelimiet toe en neemt het veld op in de versiegestuurde opslag.
+- De publieke endpoint levert de omschrijving mee, maar blijft uitgaven, betalers, bonnetjes en boekingsdetails uitsluiten.
+
 ## 2026-09-07 18:45 CEST — Changelog gereedmaken voor testopening
 
 ### Releaseproces

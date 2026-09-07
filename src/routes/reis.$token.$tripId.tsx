@@ -45,6 +45,7 @@ function PublicTrip() {
   const [pin, setPin] = useState("");
   const [submittedPin, setSubmittedPin] = useState<string | undefined>();
   const [activeStopId, setActiveStopId] = useState<string>();
+  const [showAllStops, setShowAllStops] = useState(false);
   const q = useQuery({
     queryKey: ["public-trip", token, tripId, submittedPin],
     queryFn: () => getPublicTrip({ data: { token, tripId, pin: submittedPin } }),
@@ -128,6 +129,8 @@ function PublicTrip() {
     return [...days.entries()];
   })();
   const dateRange = formatDateRange(trip.start, trip.end);
+  const visibleStops = showAllStops ? stops : stops.slice(0, 4);
+  const countryCount = new Set(stops.map((stop) => stop.country).filter(Boolean)).size;
   return (
     <div className="space-y-6 sm:space-y-8">
       <header className="aurora relative overflow-hidden rounded-3xl px-6 py-10 sm:px-10 sm:py-14">
@@ -149,11 +152,12 @@ function PublicTrip() {
               </p>
             </div>
           </div>
-          {stops.length > 0 && (
-            <p className="mt-6 max-w-2xl text-sm opacity-90 sm:text-base">
-              {stops.map((stop) => stop.name).join(" → ")}
-            </p>
-          )}
+          <p className="mt-6 max-w-2xl text-sm leading-relaxed opacity-90 sm:text-base">
+            {trip.description ||
+              (stops.length
+                ? `Een reis langs ${stops.length} ${stops.length === 1 ? "bestemming" : "bestemmingen"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "land" : "landen"}` : ""}.`
+                : "De route en dagplanning van deze reis worden hier gedeeld.")}
+          </p>
         </div>
       </header>
 
@@ -175,7 +179,7 @@ function PublicTrip() {
           </CardContent>
         </Card>
 
-        <Card className="surface min-w-0">
+        <Card className="surface min-w-0 self-start">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <MapPin className="size-4 text-primary" /> Bestemmingen
@@ -185,32 +189,45 @@ function PublicTrip() {
             {stops.length === 0 && (
               <p className="text-sm text-muted-foreground">De route is nog leeg.</p>
             )}
-            {stops.map((stop, index) => (
-              <button
-                key={stop.id}
-                type="button"
-                onClick={() => setActiveStopId(stop.id)}
-                className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-muted/50 ${activeStopId === stop.id ? "border-primary bg-primary/5" : "border-border"}`}
-              >
-                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                  {index + 1}
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-medium">{stop.name}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {[
-                      stop.country,
-                      stop.arrive ? formatDate(stop.arrive) : "",
-                      stop.nights
-                        ? `${stop.nights} ${stop.nights === 1 ? "nacht" : "nachten"}`
-                        : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
+            {visibleStops.map((stop) => {
+              const index = stops.findIndex((item) => item.id === stop.id);
+              return (
+                <button
+                  key={stop.id}
+                  type="button"
+                  onClick={() => setActiveStopId(stop.id)}
+                  className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-muted/50 ${activeStopId === stop.id ? "border-primary bg-primary/5" : "border-border"}`}
+                >
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                    {index + 1}
                   </span>
-                </span>
-              </button>
-            ))}
+                  <span className="min-w-0">
+                    <span className="block font-medium">{stop.name}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {[
+                        stop.country,
+                        stop.arrive ? formatDate(stop.arrive) : "",
+                        stop.nights
+                          ? `${stop.nights} ${stop.nights === 1 ? "nacht" : "nachten"}`
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+            {stops.length > 4 && (
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-3 w-full"
+                onClick={() => setShowAllStops((current) => !current)}
+              >
+                {showAllStops ? "Minder bestemmingen" : `Alle ${stops.length} bestemmingen`}
+              </Button>
+            )}
           </CardContent>
         </Card>
       </section>
