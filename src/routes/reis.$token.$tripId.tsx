@@ -6,6 +6,7 @@ import { getPublicTrip } from "@/lib/public.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/reis/$token/$tripId")({
   head: () => ({
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/reis/$token/$tripId")({
 });
 
 function PublicTrip() {
+  const { user, loading: authLoading } = useAuth();
   const { token, tripId } = Route.useParams();
   const [pin, setPin] = useState("");
   const [submittedPin, setSubmittedPin] = useState<string | undefined>();
@@ -144,14 +146,20 @@ function PublicTrip() {
         </Card>
       )}
 
-      <Card className="surface">
-        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-6">
-          <p className="text-sm">Zelf zo'n reis plannen en kosten eerlijk verdelen?</p>
-          <Button asChild>
-            <Link to="/auth">Gratis account maken</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      {!authLoading && (
+        <Card className="surface">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 py-6">
+            <p className="text-sm">Zelf zo'n reis plannen en kosten eerlijk verdelen?</p>
+            <Button asChild>
+              {user ? (
+                <Link to="/dashboard">Naar mijn reizen</Link>
+              ) : (
+                <Link to="/auth">Gratis account maken</Link>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

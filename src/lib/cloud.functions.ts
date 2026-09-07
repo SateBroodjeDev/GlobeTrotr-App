@@ -299,7 +299,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   const { data: parents, error } = await client
     .from("trips")
     .select(
-      "trip_uuid, name, template, start_date, end_date, budget, travelers, archived, is_public, share_financials, share_pin_hash",
+      "trip_uuid, revision::text, name, template, start_date, end_date, budget, travelers, archived, is_public, share_financials, share_pin_hash",
     )
     .eq("workspace_user_id", userId)
     .order("start_date", { ascending: true });
@@ -337,6 +337,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
     const id = String(row.trip_uuid);
     return {
       id,
+      ...(row["revision"] == null ? {} : { revision: String(row["revision"]) }),
       name: String(row.name ?? "Reis"),
       template: row.template,
       start: row.start_date ?? "",
@@ -474,127 +475,78 @@ export const createTrip = createServerFn({ method: "POST" })
         end_date: data.start,
         budget: data.budget,
       })
-      .select("trip_uuid")
+      .select("trip_uuid, revision::text")
       .single();
     if (error) throw error;
     const tripUuid = (trip as { trip_uuid?: unknown } | null)?.trip_uuid;
     if (typeof tripUuid !== "string") throw new Error("Reis-ID kon niet worden aangemaakt.");
-    return { tripId: tripUuid };
+    return { tripId: tripUuid, revision: String(trip.revision) };
   });
 
-/** Keeps public visibility reliable even if a later child-row sync fails. */
-export const syncTripPublication = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: {
-      tripId: string;
-      isPublic: boolean;
-      shareFinancials: boolean;
-      sharePinHash?: string;
-    }) => input,
-  )
-  .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const db = supabaseAdmin as unknown as UntypedSupabase;
-    const fields = {
-      is_public: data.isPublic,
-      share_financials: data.shareFinancials,
-      share_pin_hash: data.sharePinHash ?? null,
-    };
-    const { data: byUuid, error: uuidError } = await db
-      .from("trips")
-      .update(fields)
-      .eq("workspace_user_id", context.userId)
-      .eq("trip_uuid", data.tripId)
-      .select("trip_uuid")
-      .maybeSingle();
-    if (!uuidError && byUuid) return { synced: true };
-
-    // Alleen tijdens de overgang kan de browser nog een oude JSON-ID hebben.
-    const { data: byLegacyId, error: legacyError } = await db
-      .from("trips")
-      .update(fields)
-      .eq("workspace_user_id", context.userId)
-      .eq("id", data.tripId)
-      .select("trip_uuid")
-      .maybeSingle();
-    if (legacyError) throw legacyError;
-    return { synced: Boolean(byLegacyId) };
-  });
-
-/** Primary write path for a private trip and all of its child records. */
+/** Primary version-checked, atomic write path, including publication settings. */
 export const saveTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { trip: Trip }) => input)
   .handler(async ({ data, context }) => {
     const trip = normalizeTripForPersistence(data.trip);
+    if (!trip.revision || !/^\d+$/.test(trip.revision)) {
+      throw new Error(
+        "De reisversie ontbreekt. Herlaad de pagina; controleer of de versiemigratie is uitgevoerd.",
+      );
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
-    const { data: saved, error } = await db.rpc("save_trip_snapshot", {
+    const { data: saved, error } = await db.rpc("save_trip_snapshot_versioned", {
       p_workspace_user_id: context.userId,
       p_trip: trip,
     });
-
     if (error) {
-      // De code kan veilig eerder dan de SQL-migratie worden uitgerold. Alleen
-      // in dat geval blijft de bestaande overgangsroute bruikbaar; andere
-      // databasefouten worden nooit verborgen of half herhaald.
-      const message =
-        error instanceof Error
-          ? error.message
-          : error && typeof error === "object" && "message" in error && typeof error.message === "string"
-            ? error.message
-            : String(error);
-      const code =
-        error && typeof error === "object" && "code" in error && typeof error.code === "string"
-          ? error.code
-          : undefined;
-      if (code !== "PGRST202" && (!message.includes("save_trip_snapshot") || !message.includes("function"))) {
-        throw error;
+      const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+      if (code === "PT409") {
+        throw new Error(
+          "Deze reis is intussen gewijzigd of verwijderd in een ander tabblad of op een ander apparaat. Je wijziging is niet opgeslagen. Kopieer je invoer en herlaad de pagina.",
+        );
       }
-      const fallback = await saveRelationalTrip(db, context.userId, trip);
-      await updateTripJsonBackup(db, context.userId, trip, fallback.id);
-      return { tripId: fallback.trip_uuid };
+      if (code === "PGRST202") {
+        throw new Error(
+          "De database-update voor veilige reisopslag ontbreekt. Voer de versiemigratie uit en herlaad de pagina.",
+        );
+      }
+      throw new Error(
+        "Reis kon niet worden opgeslagen. Kopieer je invoer en herlaad de pagina voordat je opnieuw probeert.",
+      );
     }
-
     const row = Array.isArray(saved) ? saved[0] : saved;
-    const tripId = row && typeof row === "object" && "trip_uuid" in row ? row.trip_uuid : undefined;
-    if (typeof tripId !== "string") throw new Error("Reis kon niet atomair worden opgeslagen.");
-    return { tripId };
+    if (
+      !row ||
+      typeof row !== "object" ||
+      !("trip_uuid" in row) ||
+      !("revision" in row) ||
+      typeof row.trip_uuid !== "string" ||
+      typeof row.revision !== "string"
+    ) {
+      throw new Error("Opslag kon niet worden bevestigd. Herlaad de pagina voordat je verdergaat.");
+    }
+    return { tripId: row.trip_uuid, revision: row.revision };
   });
 
 export const deleteTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { tripId: string }) => input)
+  .inputValidator((input: { tripId: string; revision: string }) => input)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
-    const { data: stored, error } = await db
-      .from("trips")
-      .delete()
-      .eq("workspace_user_id", context.userId)
-      .eq("trip_uuid", data.tripId)
-      .select("id")
-      .maybeSingle();
-    if (error) throw error;
-    const { data: workspace, error: workspaceError } = await db
-      .from("workspaces")
-      .select("data")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (workspaceError) throw workspaceError;
-    const current = (workspace?.data ?? {}) as Partial<WorkspaceState>;
-    const dataCopy = {
-      ...current,
-      trips: (current.trips ?? []).filter(
-        (trip) => trip.id !== data.tripId && trip.id !== (stored as StoredTrip | null)?.id,
-      ),
-    };
-    const { error: backupError } = await db
-      .from("workspaces")
-      .upsert({ user_id: context.userId, data: dataCopy }, { onConflict: "user_id" });
-    if (backupError) throw backupError;
-    return { deleted: Boolean(stored) };
+    const { error } = await db.rpc("delete_trip_versioned", {
+      p_workspace_user_id: context.userId,
+      p_trip_id: data.tripId,
+      p_revision: data.revision,
+    });
+    if (error) {
+      throw new Error(
+        "Reis kon niet worden verwijderd. Mogelijk is deze intussen gewijzigd. Herlaad de pagina voordat je opnieuw probeert.",
+      );
+    }
+    return { deleted: true };
   });
 
 export const saveWorkspace = createServerFn({ method: "POST" })
@@ -604,25 +556,21 @@ export const saveWorkspace = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
     const workspace = data.data as Partial<WorkspaceState>;
-    const plan = ["free", "pro", "agency"].includes(workspace.plan ?? "")
-      ? workspace.plan
-      : "free";
+    const plan = ["free", "pro", "agency"].includes(workspace.plan ?? "") ? workspace.plan : "free";
     const baseCurrency =
       typeof workspace.baseCurrency === "string" && /^[A-Z]{3}$/.test(workspace.baseCurrency)
         ? workspace.baseCurrency
         : "EUR";
-    const { error } = await db
-      .from("workspaces")
-      .upsert(
-        {
-          user_id: context.userId,
-          data: workspace as never,
-          plan,
-          base_currency: baseCurrency,
-          branding: workspace.branding ?? {},
-        },
-        { onConflict: "user_id" },
-      );
+    const { error } = await db.from("workspaces").upsert(
+      {
+        user_id: context.userId,
+        data: workspace as never,
+        plan,
+        base_currency: baseCurrency,
+        branding: workspace.branding ?? {},
+      },
+      { onConflict: "user_id" },
+    );
     if (error) throw error;
     return { ok: true };
   });

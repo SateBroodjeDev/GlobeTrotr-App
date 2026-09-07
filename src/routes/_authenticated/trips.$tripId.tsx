@@ -32,7 +32,6 @@ import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
 import { downloadCsv, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
-import { syncTripPublication } from "@/lib/cloud.functions";
 import { travelersOf } from "@/lib/settle";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { WeatherWidget } from "@/components/WeatherWidget";
@@ -244,40 +243,22 @@ function TripDetail() {
     }>,
     successMessage: string,
   ) {
-    const previous = {
-      isPublic: trip.public ?? false,
-      shareFinancials: trip.shareFinancials ?? false,
-      sharePinHash: trip.sharePinHash,
-    };
-    const next = { ...previous, ...changes };
-    const apply = (settings: typeof next) =>
-      updateTrip(trip.id, (current) => {
+    setSharingSaving(true);
+    try {
+      await saveTripNow(trip.id, (current) => {
         const updated = {
           ...current,
-          public: settings.isPublic,
-          shareFinancials: settings.shareFinancials,
+          public: changes.isPublic ?? current.public ?? false,
+          shareFinancials: changes.shareFinancials ?? current.shareFinancials ?? false,
         };
-        if (settings.sharePinHash) return { ...updated, sharePinHash: settings.sharePinHash };
+        if (!("sharePinHash" in changes)) return updated;
+        if (changes.sharePinHash) return { ...updated, sharePinHash: changes.sharePinHash };
         const { sharePinHash: _sharePinHash, ...withoutPin } = updated;
         return withoutPin;
       });
-
-    apply(next);
-    setSharingSaving(true);
-    try {
-      const result = await syncTripPublication({
-        data: {
-          tripId: trip.id,
-          isPublic: next.isPublic,
-          shareFinancials: next.shareFinancials,
-          sharePinHash: next.sharePinHash,
-        },
-      });
-      if (!result.synced) throw new Error("Reis niet gevonden in de database.");
       toast.success(successMessage);
-    } catch {
-      apply(previous);
-      toast.error("Wijziging kon niet worden opgeslagen. De vorige instelling is hersteld.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Wijziging kon niet worden opgeslagen.");
     } finally {
       setSharingSaving(false);
     }
@@ -850,15 +831,23 @@ function TripDetail() {
                 <Button
                   variant="destructive"
                   disabled={!editable}
-                  onClick={() => {
+                  onClick={async () => {
                     if (
                       window.confirm(
                         `Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`,
                       )
                     ) {
-                      removeTrip(trip.id);
-                      toast.success("Reis verwijderd");
-                      navigate({ to: "/dashboard" });
+                      try {
+                        await removeTrip(trip.id);
+                        toast.success("Reis verwijderd");
+                        navigate({ to: "/dashboard" });
+                      } catch (error) {
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Reis kon niet worden verwijderd.",
+                        );
+                      }
                     }
                   }}
                 >
@@ -1193,9 +1182,14 @@ function TripDetail() {
             </CardContent>
           </Card>
 
-          <Card className="surface">
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
+          <Card className="surface min-w-0 overflow-hidden">
+            <CardContent
+              className="overflow-x-auto p-0"
+              tabIndex={0}
+              role="region"
+              aria-label="Uitgavenoverzicht"
+            >
+              <table className="w-full min-w-[640px] text-sm">
                 <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
                   <tr>
                     <th className="p-3">Datum</th>

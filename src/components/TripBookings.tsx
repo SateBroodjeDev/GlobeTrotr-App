@@ -802,7 +802,7 @@ function FlightStatusSummary({ flight }: { flight: FlightLookup }) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="space-y-1 text-xs text-muted-foreground">
+    <label className="min-w-0 space-y-1 text-xs text-muted-foreground [&_input]:min-w-0 [&_input]:max-w-full">
       <span>{label}</span>
       {children}
     </label>

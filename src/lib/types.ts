@@ -194,6 +194,8 @@ export type PackingItem = {
 
 export type Trip = {
   id: string;
+  /** Database version, kept as text to preserve BIGINT precision. */
+  revision?: string;
   name: string;
   template: TripTemplate;
   start: string;

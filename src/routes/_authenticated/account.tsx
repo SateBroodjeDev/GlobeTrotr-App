@@ -17,6 +17,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { useWorkspace } from "@/lib/workspace";
+import { planOf } from "@/lib/plans";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,6 +72,9 @@ function asThemePreference(value: string | null | undefined): ThemePreference {
 
 function AccountPage() {
   const { user } = useAuth();
+  const { state, cloud } = useWorkspace();
+  const plan = planOf(state.plan);
+  const activeTripCount = state.trips.filter((trip) => !trip.archived).length;
   const queryClient = useQueryClient();
   const profileQuery = useQuery({
     queryKey: ["profile", user?.id],
@@ -287,7 +292,9 @@ function AccountPage() {
       toast.error("Je kunt niet je laatste inlogmethode verwijderen.");
       return;
     }
-    if (!window.confirm(`Weet je zeker dat je ${providerLabel(identity.provider)} wilt ontkoppelen?`)) {
+    if (
+      !window.confirm(`Weet je zeker dat je ${providerLabel(identity.provider)} wilt ontkoppelen?`)
+    ) {
       return;
     }
     setOauthAction(`unlink-${identity.identity_id}`);
@@ -367,8 +374,8 @@ function AccountPage() {
                 onChange={(event) => setEmail(event.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Bij een nieuw adres ontvang je eerst een bevestigingsmail. Tot die bevestiging blijft
-                je huidige e-mailadres actief.
+                Bij een nieuw adres ontvang je eerst een bevestigingsmail. Tot die bevestiging
+                blijft je huidige e-mailadres actief.
               </p>
             </label>
           </div>
@@ -467,7 +474,9 @@ function AccountPage() {
                 <Badge variant="secondary">Gekoppeld</Badge>
               </div>
               {identities
-                .filter((identity) => OAUTH_PROVIDERS.some((provider) => provider.id === identity.provider))
+                .filter((identity) =>
+                  OAUTH_PROVIDERS.some((provider) => provider.id === identity.provider),
+                )
                 .map((identity) => (
                   <div
                     key={identity.identity_id}
@@ -555,11 +564,37 @@ function AccountPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <p className="text-muted-foreground">
-              Beheer plan, facturen en betaalgegevens apart van je persoonlijke profiel.
-            </p>
+            {cloud === "loading" ? (
+              <p className="text-muted-foreground" role="status">
+                Abonnement laden…
+              </p>
+            ) : (
+              <>
+                <p>
+                  Huidig plan: <Badge variant="secondary">{plan.name}</Badge>
+                </p>
+                <dl className="space-y-1">
+                  <div className="flex flex-wrap justify-between gap-x-4">
+                    <dt className="text-muted-foreground">Reizen in je account</dt>
+                    <dd>
+                      {state.trips.length} /{" "}
+                      {Number.isFinite(plan.tripLimit) ? plan.tripLimit : "onbeperkt"}
+                    </dd>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-x-4">
+                    <dt className="text-muted-foreground">Actieve reizen</dt>
+                    <dd>{activeTripCount}</dd>
+                  </div>
+                </dl>
+                <p className="text-muted-foreground">
+                  Vergelijk plannen en beheer je abonnement op de abonnementspagina.
+                </p>
+              </>
+            )}
             <Button asChild variant="outline">
-              <Link to="/billing">Naar abonnement</Link>
+              <Link to="/billing">
+                {state.plan === "free" ? "Bekijk upgrades" : "Abonnement beheren"}
+              </Link>
             </Button>
           </CardContent>
         </Card>

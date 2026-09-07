@@ -2,7 +2,22 @@
 
 GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels en families. Agency-functionaliteit blijft als premium optie beschikbaar voor reisorganisaties.
 
-> **Legenda:** `[x]` is gebouwd en beschikbaar. `[ ]` is gepland. Nieuwe werkzaamheden staan vanaf “Gepland” op prioriteit: **P0** eerst, daarna **P1** en **P2**.
+> **Legenda:** `[x]` is gebouwd of expliciet als uitgevoerd bevestigd. `[ ]` is open: bouw, configuratie of controle. Gebouwd betekent niet automatisch in productie getest. Nieuwe werkzaamheden staan vanaf “Gepland” op prioriteit: **P0** eerst, daarna **P1** en **P2**.
+
+## Actuele stand — 7 september 2026
+
+- [x] Herstelmigratie `20260907150000_fix_snapshot_column_ambiguity.sql` uitgevoerd, bevestigd door de gebruiker. De atomaire opslagfunctie gebruikt expliciete kolomverwijzingen voor `trip_uuid` en `updated_at`.
+- [x] Publieke reispagina toont ingelogde gebruikers **Naar mijn reizen** in plaats van **Gratis account maken**; tijdens het laden van de sessie verschijnt geen registratieknop.
+- [x] Mobiele boekingsvelden begrensd en uitgavenoverzicht binnen de kaart horizontaal scrollbaar gemaakt.
+- [x] Accountinstellingen tonen huidig plan, reisgebruik, actieve reizen en planlimiet, met een link naar upgrades/abonnementbeheer.
+- [ ] Productiecontrole: bestaande uitgave wijzigen, pagina herladen en controleren dat bedrag, betaler en verdeling behouden blijven; vluchtvelden en uitgavenoverzicht op telefoon controleren.
+- [x] Versiecontrole gebouwd voor reisopslag, publicatie en verwijderen; lokale opslagacties lopen per reis achter elkaar. Een conflict of onzekere opslag blokkeert verdere writes tot herladen.
+- [ ] Activeer met `20260907160000_trip_snapshot_versions.sql` en publiceer de bijbehorende appcode aansluitend. De migratie trekt de oude onbeschermde RPC-rechten in: oude appcode kan daarna geen snapshots meer opslaan. Nieuwe code slaat zonder migratie evenmin op. Herlaad open tabbladen na uitrol.
+- [x] Drie geautomatiseerde wachtrijtests geslaagd: volgorde/versiedoorgifte, blokkeren na fout en geen opslag na verwijderen. Productiebuild geslaagd; de bestaande projectbrede TypeScript-fouten blijven open.
+- [ ] Voer `supabase/tests/trip_snapshot_versions.sql` uit voor versieconflicten, ontbrekende versie, verkeerde eigenaar, atomaire rollback en verwijderen. Test daarna dezelfde reis in twee tabbladen: sla in A op, controleer de conflictmelding in B en herlaad B. De SQL-test draait testdata terug; hij is lokaal nog niet uitgevoerd.
+- [ ] Volgende stap na deze controles: geaccepteerde reisleden aansluiten op de bestaande relationele rechten en RLS per rol testen. E-mailbezorging blijft apart geblokkeerd op activering.
+
+OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en domeinverificatie. Overige migraties worden alleen als uitgevoerd gemarkeerd wanneer dat is bevestigd. SkyLink-configuratie en live tests blijven open.
 
 # ✅ Al gebouwd
 
@@ -39,9 +54,9 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Aviationstack in de app vervangen door SkyLinkAPI v3.1; de directe SkyLinkAPI-route is bevestigd
 - [ ] `SKYLINK_API_KEY` als server-secret instellen in Lovable Cloud; de sleutel komt nooit in browsercode, Git of `workspaces.data`
 - [x] SkyLinkAPI Flight Status server-side koppelen aan een vluchtnummer en de respons veilig omzetten naar GlobeTrotr-velden
-- [ ] Live vertrek-/aankomsttijden en eventuele gate/terminal uitgebreider tonen
+- [x] Geleverde live vertrek-/aankomsttijden, gate en terminal opslaan en tonen
 - [ ] Een Schedule-lookup alleen als nabije fallback toevoegen wanneer vertrek-IATA bekend is; SkyLink ondersteunt hiervoor slechts vijf dagen terug tot één dag vooruit en dus geen verre toekomstige reizen
-- [ ] Duidelijke Nederlandse foutstatussen voor ongeldige vluchtnummers, geen resultaat, limiet bereikt en tijdelijke providerfout
+- [x] Nederlandse foutstatussen voor ongeldige vluchtnummers, geen resultaat, limiet bereikt en tijdelijke providerfout
 - [ ] Automatisch periodiek verversen van vluchtstatus voor reizen die binnenkort vertrekken
 
 ## Fase 4 — Groepen & geld (klaar)
@@ -61,7 +76,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Openbare reizen tonen op de homepage
 - [x] PIN-beveiliging per gedeelde reis
 - [x] Budget per openbare reis wel of niet delen
-- [x] Serverbevestiging en fout-herstel bij openbaar/privÃ© maken, budget delen en PIN-wijzigingen
+- [x] Serverbevestiging en fout-herstel bij openbaar/privé maken, budget delen en PIN-wijzigingen
 
 ## Fase 6 — Documenten & export (deels klaar)
 
@@ -100,17 +115,17 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - SkyLinkAPI wordt de vluchtprovider. De key staat uitsluitend als `SKYLINK_API_KEY` in Lovable Cloud; de app praat alleen via een serverfunctie met SkyLink.
 - Stripe is de beoogde betaalprovider voor GlobeTrotr-abonnementen en Agency-facturen; deze koppeling volgt pas nadat uitnodigingen en veilige reisrechten bestaan.
 - Lovable/Supabase SQL is beschikbaar en wordt de bron van waarheid voor accounts, reizen, reisleden en financiële gegevens. JSON wordt gefaseerd uitgefaseerd, niet in één risicovolle stap verwijderd.
-- De eerste relationele import is op 6 september 2026 uitgevoerd. Dit is een momentopname: tot de app op SQL leest en schrijft, blijft `workspaces.data` de feitelijke runtimebron.
+- De eerste relationele import is op 6 september 2026 uitgevoerd. Reizen worden inmiddels relationeel gelezen en geschreven; `workspaces.data` bewaart workspace-instellingen en een tijdelijke compatibiliteitskopie van reizen.
 
 ## Definitieve uitvoeringsvolgorde
 
 1. **SQL-validatie & unieke reis-ID**: afgerond; relationele reizen hebben een globale UUID en de controles zijn uitgevoerd.
 2. **Relationele reisopslag**: afgerond en handmatig gevalideerd; laden en wijzigen van reizen en kindgegevens loopt via SQL, met JSON als tijdelijke compatibiliteitskopie.
-3. **Interface & boekingsbasis**: gebouwd; voer de nieuwe SQL-migratie uit en controleer huurauto's, timeline, kosten en leden in productie.
+3. **Interface & boekingsbasis**: gebouwd en boekingsmigratie als uitgevoerd genoteerd; productiecontrole van huurauto's, timeline, kosten en leden blijft open.
 4. **SkyLink live vluchtdata**: server-side key instellen, één handmatige lookup betrouwbaar maken en pas daarna uitgebreidere velden tonen.
-5. **Agency-basis herstellen**: bonnetjes uitsluitend voor Agency afdwingen en Agency-schermen op relationele data baseren.
+5. **Agency-basis herstellen**: gebouwd; uitvoering van de receipts-RLS-migratie en productiecontrole blijven te bevestigen.
 6. **Accountafwerking; OAuth gepauzeerd**: e-mailbevestiging en accountafwerking kunnen doorgaan. OAuth-werk voor Apple, Google en Microsoft overslaan totdat Lovable Pro is aangeschaft; daarna providerconfiguratie, foutoplossing en handmatige tests hervatten. De volgende bouwstappen hoeven hier niet op te wachten.
-7. **Relationele hardening**: parent- en kindwijzigingen atomair maken en gelijktijdige wijzigingen beschermen vóór toegang voor meerdere accounts.
+7. **Relationele hardening**: atomaire opslag en versiecontrole gebouwd; versiemigratie, SQL-tests en tweebladentest uitvoeren vóór toegang voor meerdere accounts.
 8. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
 9. **Agency-administratie**: echte workspace-teamleden, rechten en operationele dashboards bovenop de per-reisrollen bouwen.
 10. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
@@ -119,19 +134,19 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 13. **Lovable-e-mail**: pas na activering en domeinverificatie templates maken en de echte uitnodigingsstroom activeren.
 14. **Groei**: referrals, prijsvergelijking, AI en de uitgebreide Agency-operatie.
 
-## Huidige technische stand â€” 6 september 2026
+## Relationele basis — voortgang
 
 - [x] De eerste twee SQL-migraties zijn uitgevoerd: relationele tabellen, globale `trip_uuid`, child foreign keys, owner-trigger, uitnodigingstabel en RLS-hulpfuncties bestaan in Lovable Cloud.
-- [x] De UUID-controles zijn uitgevoerd zonder lege UUIDâ€™s, verweesde kindrijen of dubbele UUIDâ€™s.
+- [x] De UUID-controles zijn uitgevoerd zonder lege UUID’s, verweesde kindrijen of dubbele UUID’s.
 - [x] Een herstelmigratie is beschikbaar voor reizen die tijdens de overgang alleen in `workspaces.data` waren beland: `20260906160000_repair_missing_trips_and_json_ids.sql`.
 - [x] Nieuwe reizen worden op de server als UUID in `trips` aangemaakt; publicatie gebruikt dezelfde UUID en wordt direct relationeel bevestigd.
 - [x] Reizen worden bij laden uit `trips` en alle relationele kindtabellen opgebouwd. Reismutaties schrijven rechtstreeks naar SQL en werken daarna de JSON-kopie bij.
 - [x] Handmatige productiecontrole: relationeel laden en wijzigen werkt na het laden van de laatste Lovable-commit.
 - [ ] `workspaces.data` blijft voorlopig de bron voor workspace-instellingen en als compatibiliteitskopie van reizen. Verwijder deze kopie pas na relationele transacties, collaboratieve RLS-tests en productiecontrole.
 - [x] Profielvoorkeuren voor taal, tijdzone en dark mode zijn gebouwd; de tijdzone-migratie moet nog per omgeving worden uitgevoerd.
-- [ ] Volgende data-mijlpaal daarna: relationele transacties/optimistic concurrency voor gelijktijdige wijzigingen, daarna toegang voor geaccepteerde reisleden met een eigen account.
+- [ ] Volgende data-mijlpaal: versiemigratie en transactietests uitvoeren, daarna toegang voor geaccepteerde reisleden met een eigen account.
 
-## Huidige interface- en boekingsupdate — klaar na SQL-import
+## Interface- en boekingsbasis — gebouwd, productiecontrole open
 
 - [x] Light mode is omgezet naar neutraal wit/lichtgrijs met donker leesbare tekst, subtiele borders en accentkleur alleen voor kleine accenten.
 - [x] Dark mode blijft beschikbaar en is neutraler gemaakt; de globale zon/maan-knop werkt ook voor bezoekers zonder account.
@@ -190,7 +205,6 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [x] Tijdzone-migratie toegevoegd: `supabase/migrations/20260906170000_add_profile_timezone.sql`; veilige standaard is `Europe/Amsterdam`
 - [ ] Voer `20260906170000_add_profile_timezone.sql` eenmalig uit in Lovable Cloud / Supabase SQL Editor
 - [x] De gekozen weergavemodus wordt direct appbreed toegepast, inclusief systeemmodus via `prefers-color-scheme`; vertalingen volgen in een afzonderlijke stap
-- [x] E-mailadres wijzigen via Supabase Auth met zichtbare bevestigingsuitleg; het oude adres blijft actief tot de bevestigingslink is gebruikt
 
 ### Beveiliging & inloggen
 
@@ -210,7 +224,7 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 
 ### Abonnement & meldingen
 
-- [ ] Huidig plan, limieten en upgrade-link tonen; de bestaande abonnementspagina blijft de plek om een plan te wijzigen
+- [x] Huidig plan, reisgebruik, actieve reizen en planlimiet tonen met upgrade-/beheerlink; de bestaande abonnementspagina blijft de plek om een plan te wijzigen
 - [ ] Facturen en betaalgegevens alleen tonen zodra Stripe is gekoppeld
 - [ ] Meldingsvoorkeuren voor productmails, reisuitnodigingen, betalingen en vluchtalerts
 - [x] Meldingenpaneel rechtsboven gebouwd met een teller voor openstaande meldingen, kleuren en emoji per soort: blauw/👤 voor accounts, amber/🧳 voor reiswijzigingen en paars/✉️ voor uitnodigingen. Openen of doorklikken verwijdert niets; meldingen blijven per account bewaard totdat de gebruiker ze expliciet met het kruisje wegklikt.
@@ -232,15 +246,15 @@ De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup
 - [x] `trip_members`: tabel voor lid, e-mail, rol, uitnodigingsstatus en latere Auth-koppeling is aangemaakt.
 - [x] `trip_stops`, `trip_itinerary_items`, `trip_expenses`, `trip_travel_items` en `trip_packing_items`: relationele tabellen zijn aangemaakt en gevuld.
 - [x] `trip_documents`: metadata-tabel voor private tickets, bonnetjes en boekingsbevestigingen is aangemaakt; bestanden zelf blijven in Storage.
-- [ ] Voer `20260906180000_booking_details_and_clean_members.sql` uit: `trip_travel_items.details`, `trip_expenses.notes`, huurauto-type, legacy-planningkoppelingen en opschoning van oude workspace-demoleden.
+- [x] `20260906180000_booking_details_and_clean_members.sql` uitgevoerd volgens de bestaande voortgangsregistratie: boekingsdetails/notities, huurauto-type, legacy-planningkoppelingen en opschoning van oude workspace-demoleden.
 - [ ] Voer `20260906190000_restrict_receipts_to_agency.sql` uit: de bestaande JSON-planwaarde wordt eenmalig met `workspaces.plan` gesynchroniseerd; Storage-RLS voor de `receipts`-bucket staat daarna alleen lezen, uploaden, wijzigen en verwijderen toe wanneer `workspaces.plan = 'agency'`.
-- [ ] Voer `20260906200000_atomic_trip_snapshots.sql` uit: één server-only RPC slaat de parent-reis, alle kindgegevens en de JSON-compatibiliteitskopie in één database-transactie op. Een fout laat dus geen half opgeslagen reis achter.
+- [x] Atomaire RPC `save_trip_snapshot` geïnstalleerd via de op 7 september bevestigde herstelmigratie `20260907150000_fix_snapshot_column_ambiguity.sql`; deze vervangt de functie uit `20260906200000_atomic_trip_snapshots.sql`. Oudere functie niet opnieuw over het herstel heen uitvoeren.
 - [ ] Genereer na deze import de Supabase TypeScript-types opnieuw en werk de lokale type-definities bij.
 - [ ] `referrals`, `subscription_events`, `invoices` en `payment_events` pas toevoegen wanneer referrals/Stripe daadwerkelijk worden gebouwd.
 
 ### Directe vervolgmigratie — globale, unieke reis-ID
 
-De huidige sleutel is `(workspace_user_id, id)`: dubbele reisnamen zijn dus al toegestaan en de app gebruikt de naam niet als sleutel. De huidige `id` is echter een korte browser-ID (`uid()`), geen database-gegarandeerde globale UUID. Voor gedeelde reizen en meerdere accounts is één onveranderlijke UUID per reis nodig.
+De oorspronkelijke sleutel `(workspace_user_id, id)` blijft tijdelijk behouden voor compatibiliteit. De app gebruikt inmiddels de globale `trip_uuid`; dubbele reisnamen zijn toegestaan en namen worden niet als sleutel gebruikt.
 
 - [x] Uitvoerbare vervolgscript toegevoegd: `supabase/migrations/20260906150000_add_global_trip_uuid_and_collaboration_rls.sql`
 - [x] Vervolgscript uitgevoerd in Lovable Cloud / Supabase SQL Editor; de controlequeries op lege, verweesde en dubbele UUID's gaven nul terug.
@@ -258,8 +272,8 @@ De UUID-migratie is pas klaar wanneer ieder pad dezelfde sleutel gebruikt. Tijde
 - [x] **Privéweergave**: `/trips/$tripId`, dashboardlinks, `updateTrip` en nieuwe reizen gebruiken de UUID. Reizen en kindgegevens worden relationeel geladen en gewijzigd.
 - [x] **Publieke weergave (deels)**: `/reis/$token/$tripId`, `listPublicTrips` en `getPublicTrip` gebruiken relationele `trip_uuid`; tijdelijke fallback houdt oude URLs en JSON-data bruikbaar.
 - [x] **Serverfuncties (basis)**: relationeel laden, aanmaken, wijzigen, publicatie en verwijderen gebruiken UUID-invoer. Elke reiswijziging werkt ook de JSON-compatibiliteitskopie bij.
-- [x] **Serverfuncties (atomaire basis)**: `saveTrip` gebruikt na SQL-import `save_trip_snapshot`: parent, kindgegevens en JSON-kopie worden onder een parent-lock in één transactie opgeslagen. Vóór de import blijft alleen als compatibiliteit de oude route actief.
-- [ ] **Serverfuncties (concurrency)**: voeg daarna `updated_at`/versiecontrole in de interface toe, zodat een tweede gelijktijdige wijziging een duidelijke conflictmelding krijgt in plaats van stil overschrijven.
+- [x] **Serverfuncties (atomaire basis)**: `saveTrip` gebruikt `save_trip_snapshot_versioned` rond de bestaande atomaire opslag. Parent, kindgegevens en JSON-kopie worden onder een parent-lock opgeslagen. Geen onbeschermde fallback bij ontbrekende migratie.
+- [x] **Serverfuncties (concurrency)**: databaseversie wordt geladen, gecontroleerd en na opslag bevestigd; verouderde wijzigingen en verwijderingen worden geweigerd. Publicatie gebruikt dezelfde snapshotroute.
 - [x] **Kindgegevens (schema)**: stops, dagplanning, uitgaven, boekingen, paklijst, reisgenoten en documenten hebben een foreign key naar dezelfde reis-UUID.
 - [x] **Kindgegevens (runtime)**: stops, planning, uitgaven, boekingen, paklijst en reisgenoten worden relationeel geladen en via de reisschrijfroute bijgewerkt.
 - [ ] **Delen en bestanden**: maak publieke tokens en Storage-paden (`avatars` uitgezonderd) onafhankelijk van reisnaam; documenten krijgen een reis-UUID-pad en publieke data bevat alleen expliciet deelbare velden.
@@ -269,18 +283,19 @@ De UUID-migratie is pas klaar wanneer ieder pad dezelfde sleutel gebruikt. Tijde
 
 ### SQL voor meerdere gebruikers en gedeelde reizen
 
-De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.uid()`) toegang. Dat is correct voor privédata, maar nog niet voldoende voor een reisgenoot met een eigen account.
+Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijft momenteel binnen de workspace van de eigenaar; toegang voor geaccepteerde reisgenoten met een eigen account moet nog worden aangesloten en getest.
 
 - [x] `trip_members` is als relationele toegangsbron aangemaakt: eigenaar wordt bij een nieuwe reis automatisch als actief lid toegevoegd.
 - [x] Databaseconstraints/indexen voor één eigenaar per reis, één actief lid per reis + `user_id` en één open uitnodiging per e-mailadres zijn toegevoegd.
 - [x] `trip_invitations` bestaat als aparte tabel met gehashte token, e-mail, rol, verloop- en statusvelden; tokens staan niet in `workspaces.data`.
 - [x] Owner-only RLS is vervangen door rolgerichte policies en afgeschermde `private`-hulpfuncties voor reizen en kindtabellen.
-- [ ] Sluit de app nu op deze relationele rechten aan: de huidige privé-interface leest nog de owner-workspace JSON en verleent nog geen toegang aan een geaccepteerd lid met een eigen account.
-- [ ] Gebruik voor herbruikbare RLS-controles een niet-publiek `private` schema met zorgvuldig afgeschermde `SECURITY DEFINER`-functie, vaste `search_path` en rolchecks. Hiermee worden recursieve policies tussen reizen en leden voorkomen.
+- [ ] Sluit de app op de relationele reisrechten aan: de huidige privé-interface laadt relationele reizen van de eigenaar en verleent nog geen toegang aan een geaccepteerd lid met een eigen account.
+- [x] Herbruikbare RLS-controles staan in het niet-publieke `private` schema, met afgeschermde `SECURITY DEFINER`-functies, vaste `search_path` en rolchecks.
 - [ ] Koppel een betaler en kostenverdeling uiteindelijk aan een reisgenoot-ID, niet aan alleen een weergavenaam. Dit voorkomt fouten bij twee personen met dezelfde naam of een naamswijziging.
 - [ ] Maak `expense_shares` relationeel zodra gedeeltelijke kostenverdeling wordt opgeslagen; vervang het JSON-veld `split_with` pas na een gecontroleerde backfill.
 - [ ] Verplaats documenten naar een pad met de globale reis-ID en maak Storage-RLS op reisrechten, zodat actieve leden alleen documenten van hun eigen reis kunnen zien.
-- [ ] Voeg optimistic concurrency toe (versie of `updated_at`-controle) voor gelijktijdige wijzigingen, plus een activiteitenlog met actor-ID en tijdstip.
+- [x] Optimistic concurrency met een oplopende databaseversie toegevoegd; activering en productiecontrole staan bovenaan.
+- [ ] Activiteitenlog met actor-ID en tijdstip toevoegen.
 - [ ] Test RLS met minimaal eigenaar, actieve medereiziger, kijker, uitgenodigde gebruiker en niet-lid. Test ook dat een lid nooit een andere reis van dezelfde eigenaar kan lezen.
 - [ ] Genereer na iedere schemawijziging de Supabase TypeScript-types opnieuw en vervang de handmatige types in `src/integrations/supabase/types.ts`.
 
@@ -295,11 +310,11 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 - [ ] Maak vóór elke volgende wijziging een export/back-up. De eerste import is geen doorlopende synchronisatie: kindtabellen gebruiken `ON CONFLICT DO NOTHING` en worden niet automatisch bijgewerkt bij latere JSON-wijzigingen.
 - [x] Overgangslaag toegevoegd: na de UUID-migratie schrijft een bestaande JSON-save ook de relationele reis en kindgegevens bij; vóór die migratie blijft JSON zonder foutmelding werken.
 - [x] Publieke serverweergave leest relationele reizen via `trip_uuid`, met tijdelijke fallback voor bestaande JSON-data en oude deel-URLs.
-- [x] Een atomaire serverwrite is voorbereid in `20260906200000_atomic_trip_snapshots.sql`; na uitvoering worden relationele data en JSON-kopie samen bevestigd of samen teruggedraaid.
+- [x] Atomaire serverwrite is geïnstalleerd met de bevestigde herstelmigratie; relationele data en JSON-kopie worden samen bevestigd of samen teruggedraaid.
 - [ ] Test na die SQL-import één reis met stops, planning, boeking, uitgave, paklijst en reisgenoot. Forceer daarna bewust een ongeldige kindrij en controleer dat de vorige volledige reis intact blijft.
-- [ ] Start die omzetting met één eigenaar en één privéreis als eerste testpad; migreer daarna stops, planning, uitgaven, boekingen, paklijst en leden afzonderlijk.
-- [ ] Zet per onderdeel een featureflag om nadat lees-, schrijf- en RLS-tests slagen; begin met privé-reizen van de eigenaar, daarna leden, kosten en documenten.
-- [ ] Na productiecontrole wordt SQL de bron van waarheid; daarna wordt de JSON-compatibiliteitskopie in een aparte, goedgekeurde migratie verwijderd.
+- [x] Relationele omzetting voor de eigenaar omvat reizen, stops, planning, uitgaven, boekingen, paklijst en leden.
+- [ ] Breid toegang pas naar andere accounts uit nadat lees-, schrijf- en RLS-tests slagen.
+- [ ] Verwijder de JSON-compatibiliteitskopie in een aparte, goedgekeurde migratie na productiecontrole; SQL is al de runtimebron voor reizen.
 - [ ] Per-reis toegang wordt via RLS op `trips` en `trip_members` afgedwongen; rollen in de browser zijn nooit de beveiliging.
 
 ## P0 — Reiservaring & instellingen (klaar)
@@ -311,7 +326,9 @@ De huidige RLS-regels geven uitsluitend de eigenaar (`workspace_user_id = auth.u
 - [x] Reisschema is gericht op dagplanning, boekingen en kosten
 - [x] Toon na serverbevestiging een succesmelding bij openbaar/privé maken, budget delen en PIN-wijzigingen; herstel de vorige status bij een fout.
 - [x] Reisnaam, datums, budget en template gebruiken een gevalideerde, expliciete opslagactie met serverbevestiging en fout-herstel.
-- [ ] Breid deze bevestigingen uit naar leden, archiveren/verwijderen, reisonderdelen, uitgaven, stops en dagplanning zodra deze ieder een eigen relationele schrijfroute hebben.
+- [x] Serverbevestiging en fout-herstel uitgebreid naar archiveren, reisonderdelen, uitgaven, stops en eigen dagplanning.
+- [x] Reisverwijdering wacht op serverbevestiging en controleert de versie; bij een fout blijft de reis zichtbaar en wordt niet genavigeerd.
+- [ ] Bevestigde opslag en fout-herstel voor ledenbeheer apart controleren.
 
 ## P0 — Planning, boekingen & kosten
 
@@ -350,9 +367,9 @@ De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijkti
 
 ## P0 — E-mail, uitnodigingen & logische rollen
 
-De huidige knop “Uitnodigen” registreert alleen een lid in de workspace; echte bezorging en toegang bestaan nog niet. Dit onderdeel maakt de volledige, veilige stroom af.
+De huidige knop “Uitnodigen” registreert een reisgenoot; echte bezorging en toegang voor diens account bestaan nog niet. Dit onderdeel maakt de volledige, veilige stroom af.
 
-> **Uitgesteld:** begin pas met de e-mailimplementatie nadat Lovable Cloud Emails is geactiveerd en `globetrotr.nl` in Lovable is geverifieerd. Tot die tijd blijven reisgenoten als JSON-status `Uitgenodigd` beheerd worden.
+> **Uitgesteld:** begin pas met de e-mailimplementatie nadat Lovable Cloud Emails is geactiveerd en `globetrotr.nl` in Lovable is geverifieerd. Tot die tijd wordt de uitnodigingsstatus handmatig beheerd; die verleent geen toegang aan een ander account.
 
 - [ ] Lovable Cloud Emails activeren voor het project
 - [ ] `globetrotr.nl` verifiëren in **Lovable Cloud → Emails** met de vereiste SPF/DKIM-records
@@ -366,14 +383,14 @@ De huidige knop “Uitnodigen” registreert alleen een lid in de workspace; ech
 
 ### Rollen voor vriendengroepen — Free en Pro
 
-- [x] **Eigenaar**, **Medereiziger** en **Kijker** als JSON-rollen per reis
+- [x] **Eigenaar**, **Medereiziger** en **Kijker** als rollen per reis
 - [x] Free: maximaal twee reisgenoten; Pro: onbeperkt reisgenoten
 - [ ] Rechten bij iedere serveractie afdwingen zodra toegangsverlening voor andere accounts is gebouwd
 - [ ] Geen accountant-, declaratie- of klantrollen in de vriendengroep-interface
 
 ### Rollen voor Agency
 
-- [x] **Reisadviseur**, **Financiën** en **Klant/reiziger** als JSON-rollen per reis
+- [x] **Reisadviseur**, **Financiën** en **Klant/reiziger** als rollen per reis
 - [ ] Workspace-eigenaar: abonnement, branding, team en alle reizen
 - [ ] Rechten voor adviseur, financiën en klant daadwerkelijk per actie afdwingen
 - [ ] Rechten daadwerkelijk op de server afdwingen; een rol in de browser of in JSON is niet voldoende

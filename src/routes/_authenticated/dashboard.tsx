@@ -210,9 +210,17 @@ function TripsOverview() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        removeTrip(trip.id);
-                        toast.success("Reis verwijderd");
+                      onClick={async () => {
+                        try {
+                          await removeTrip(trip.id);
+                          toast.success("Reis verwijderd");
+                        } catch (error) {
+                          toast.error(
+                            error instanceof Error
+                              ? error.message
+                              : "Reis kon niet worden verwijderd.",
+                          );
+                        }
                       }}
                       aria-label="Reis verwijderen"
                     >
