@@ -4,6 +4,19 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 00:08 CEST — Rolwijziging voor gekoppelde reisleden
+
+### Oplossing
+
+- Een Agency-eigenaar kan de rol van een bestaand reisgenootaccount weer wijzigen.
+- De versiegestuurde opslag synchroniseert alleen de nieuwe rol en behoudt de gekoppelde Auth-gebruiker, actieve status en oorspronkelijke acceptatietijd.
+
+### Database
+
+- Nieuwe migratie: `supabase/migrations/20260908000000_update_linked_member_roles.sql`.
+- Nieuwe regressietest: `supabase/tests/trip_member_role_updates.sql`.
+- Migratie en SQL-test moeten nog in Lovable Cloud / Supabase SQL Editor worden uitgevoerd.
+
 ## 2026-09-07 23:56 CEST — Compactere reisplanning
 
 ### Gebruikerservaring
@@ -15,6 +28,8 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 ### Controles
 
 - Negen geautomatiseerde regressietests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+- De beheerder heeft bevestigd dat alle aanwezige SQL-migraties en SQL-testbestanden volledig zijn uitgevoerd.
+- `SKYLINK_API_KEY` is als Lovable Cloud-secret ingesteld; de sleutel is niet aan repositorybestanden toegevoegd. De live vluchtlookup blijft afzonderlijk te testen.
 
 ## 2026-09-07 23:51 CEST — Samenwerken per reis
 

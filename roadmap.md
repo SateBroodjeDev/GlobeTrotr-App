@@ -4,7 +4,9 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 > **Legenda:** `[x]` is gebouwd of expliciet als uitgevoerd bevestigd. `[ ]` is open: bouw, configuratie of controle. Gebouwd betekent niet automatisch in productie getest. Nieuwe werkzaamheden staan vanaf “Gepland” op prioriteit: **P0** eerst, daarna **P1** en **P2**.
 
-## Actuele stand — 7 september 2026
+## Actuele stand — 8 september 2026
+
+- [ ] Herstelmigratie `20260908000000_update_linked_member_roles.sql` uitvoeren en daarna `supabase/tests/trip_member_role_updates.sql` draaien; hiermee blijven `user_id`, actieve status en acceptatietijd behouden wanneer een Agency-eigenaar de rol van een bestaand gekoppeld lid wijzigt.
 
 - [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
 - [x] Publieke pagina `/changelog` toegevoegd met gebruikersgerichte releases, categorie-iconen, datum en tijd; link staat in de footer.
@@ -52,7 +54,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Praktijktest samenwerking geslaagd met een bestaand tweede account: gedeelde reis zichtbaar en toegestane acties gecontroleerd voor traveler, advisor, finance, viewer en client.
 - [x] Samenwerking opgenomen in publieke release **Beta 0.7**. E-mailbezorging blijft apart geblokkeerd op activering.
 
-OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en domeinverificatie. Overige migraties worden alleen als uitgevoerd gemarkeerd wanneer dat is bevestigd. SkyLink-configuratie en live tests blijven open.
+OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en domeinverificatie. Alle aanwezige SQL-migraties en SQL-tests zijn op 7 september 2026 als uitgevoerd bevestigd. De SkyLink-secret is ingesteld; de live praktijktest blijft open.
 
 # ✅ Al gebouwd
 
@@ -87,7 +89,7 @@ OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en
 - [x] Eerste server-side koppeling met Aviationstack gebouwd als technische basis
 - [x] Duidelijke melding bij een ontbrekende API-functie in het voormalige Aviationstack-plan of bij een bereikt quotum
 - [x] Aviationstack in de app vervangen door SkyLinkAPI v3.1; de directe SkyLinkAPI-route is bevestigd
-- [ ] `SKYLINK_API_KEY` als server-secret instellen in Lovable Cloud; de sleutel komt nooit in browsercode, Git of `workspaces.data`
+- [x] `SKYLINK_API_KEY` als server-secret ingesteld in Lovable Cloud; de sleutel komt nooit in browsercode, Git of `workspaces.data`
 - [x] SkyLinkAPI Flight Status server-side koppelen aan een vluchtnummer en de respons veilig omzetten naar GlobeTrotr-velden
 - [x] Geleverde live vertrek-/aankomsttijden, gate en terminal opslaan en tonen
 - [ ] Een Schedule-lookup alleen als nabije fallback toevoegen wanneer vertrek-IATA bekend is; SkyLink ondersteunt hiervoor slechts vijf dagen terug tot één dag vooruit en dus geen verre toekomstige reizen
@@ -175,10 +177,10 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 1. **SQL-validatie & unieke reis-ID**: afgerond; relationele reizen hebben een globale UUID en de controles zijn uitgevoerd.
 2. **Relationele reisopslag**: afgerond en handmatig gevalideerd; laden en wijzigen van reizen en kindgegevens loopt via SQL, met JSON als tijdelijke compatibiliteitskopie.
 3. **Interface & boekingsbasis**: gebouwd en boekingsmigratie als uitgevoerd genoteerd; productiecontrole van huurauto's, timeline, kosten en leden blijft open.
-4. **SkyLink live vluchtdata**: server-side key instellen, één handmatige lookup betrouwbaar maken en pas daarna uitgebreidere velden tonen.
-5. **Agency-basis herstellen**: gebouwd; uitvoering van de receipts-RLS-migratie en productiecontrole blijven te bevestigen.
+4. **SkyLink live vluchtdata**: server-side key is ingesteld; één handmatige lookup betrouwbaar testen en pas daarna uitgebreidere velden tonen.
+5. **Agency-basis herstellen**: gebouwd en de receipts-RLS-migratie is uitgevoerd; de productiecontrole blijft te bevestigen.
 6. **Accountafwerking; OAuth gepauzeerd**: e-mailbevestiging en accountafwerking kunnen doorgaan. OAuth-werk voor Apple, Google en Microsoft overslaan totdat Lovable Pro is aangeschaft; daarna providerconfiguratie, foutoplossing en handmatige tests hervatten. De volgende bouwstappen hoeven hier niet op te wachten.
-7. **Relationele hardening**: atomaire opslag en versiecontrole gebouwd; versiemigratie, SQL-tests en tweebladentest uitvoeren vóór toegang voor meerdere accounts.
+7. **Relationele hardening**: atomaire opslag, versiecontrole, versiemigratie, SQL-tests en tweebladentest zijn afgerond.
 8. **Veilige samenwerking**: toegang, rollen en uitnodigingstokens per reis server-side afdwingen.
 9. **Agency-administratie**: echte workspace-teamleden, rechten en operationele dashboards bovenop de per-reisrollen bouwen.
 10. **Boekingen & documenten**: opslag, tickets en boekingsimport toevoegen.
@@ -196,8 +198,8 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 - [x] Reizen worden bij laden uit `trips` en alle relationele kindtabellen opgebouwd. Reismutaties schrijven rechtstreeks naar SQL en werken daarna de JSON-kopie bij.
 - [x] Handmatige productiecontrole: relationeel laden en wijzigen werkt na het laden van de laatste Lovable-commit.
 - [ ] `workspaces.data` blijft voorlopig de bron voor workspace-instellingen en als compatibiliteitskopie van reizen. Verwijder deze kopie pas na relationele transacties, collaboratieve RLS-tests en productiecontrole.
-- [x] Profielvoorkeuren voor taal, tijdzone en dark mode zijn gebouwd; de tijdzone-migratie moet nog per omgeving worden uitgevoerd.
-- [ ] Volgende data-mijlpaal: versiemigratie en transactietests uitvoeren, daarna toegang voor geaccepteerde reisleden met een eigen account.
+- [x] Profielvoorkeuren voor taal, tijdzone en dark mode zijn gebouwd; de tijdzone-migratie is uitgevoerd.
+- [x] Versiemigratie en transactietests zijn uitgevoerd; geaccepteerde reisleden met een eigen account krijgen inmiddels toegang volgens hun reisrol.
 
 ## Interface- en boekingsbasis — gebouwd, productiecontrole open
 
@@ -221,9 +223,9 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 SkyLinkAPI vervangt Aviationstack omdat de huidige Aviationstack-functie niet binnen het beschikbare abonnement valt. Versie één blijft bewust klein: de gebruiker voert een vluchtnummer in en vraagt zelf een actuele status op. Er is dus nog geen automatische polling, webhook of achtergrondtaak nodig.
 
 - [x] Vastgesteld: de key komt rechtstreeks van SkyLinkAPI; gebruik `https://data.skylinkapi.com/v3.1` met de header `x-api-key`.
-- [ ] In **Lovable Cloud → Secrets** `SKYLINK_API_KEY` toevoegen. Niet in `.env` committen, niet in de client en niet in een screenshot of workspace-JSON plakken.
+- [x] In **Lovable Cloud → Secrets** `SKYLINK_API_KEY` toegevoegd. De sleutel staat niet in Git, clientcode of workspace-JSON.
 - [x] `src/lib/flight.functions.ts` vervangen door een serverfunctie voor SkyLinkAPI v3.1 Flight Status; de browser roept uitsluitend deze eigen serverfunctie aan.
-- [ ] Eén invoerformaat valideren: IATA-vluchtnummer zoals `KL1234` of ICAO zoals `KLM1234`, zonder de key of ruwe providerfout in de UI te tonen.
+- [x] IATA-vluchtnummers zoals `KL1234` en ICAO-vluchtnummers zoals `KLM1234` worden server-side genormaliseerd en gevalideerd; de key en ruwe providerfouten komen niet in de UI.
 - [x] Maatschappij, vluchtstatus, vertrek- en aankomstluchthaven, geplande/verwachte/werkelijke tijden, terminal en gate opslaan en tonen wanneer SkyLink die levert.
 - [ ] De bij de boeking gekozen vlucht-datum gebruiken voor weergave en alleen binnen SkyLink's beperkte datumvenster voor een Schedule-fallback; Flight Status zelf zoekt op vluchtnummer en heeft geen datumparameter.
 - [x] Foutmeldingen mappen op een bruikbare actie: geen vlucht gevonden, ongeldige invoer, tijdelijk niet beschikbaar of maandlimiet bereikt.
@@ -256,7 +258,7 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [x] Telefoonnummer opslaan voor contact en optionele notificaties; nooit publiek tonen
 - [x] Taal-, tijdzone- en dark-modevoorkeur kunnen vanuit Accountinstellingen in `profiles` worden opgeslagen (niet meer in `workspaces.data`)
 - [x] Tijdzone-migratie toegevoegd: `supabase/migrations/20260906170000_add_profile_timezone.sql`; veilige standaard is `Europe/Amsterdam`
-- [ ] Voer `20260906170000_add_profile_timezone.sql` eenmalig uit in Lovable Cloud / Supabase SQL Editor
+- [x] `20260906170000_add_profile_timezone.sql` uitgevoerd in Lovable Cloud / Supabase SQL Editor
 - [x] De gekozen weergavemodus wordt direct appbreed toegepast, inclusief systeemmodus via `prefers-color-scheme`; vertalingen volgen in een afzonderlijke stap
 
 ### Beveiliging & inloggen
@@ -281,8 +283,8 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [ ] Facturen en betaalgegevens alleen tonen zodra Stripe is gekoppeld
 - [ ] Meldingsvoorkeuren voor productmails, reisuitnodigingen, betalingen en vluchtalerts
 - [x] Meldingenpaneel rechtsboven gebouwd met een teller voor openstaande meldingen, kleuren en emoji per soort: blauw/👤 voor accounts, amber/🧳 voor reiswijzigingen en paars/✉️ voor uitnodigingen. Openen of doorklikken verwijdert niets; meldingen blijven per account bewaard totdat de gebruiker ze expliciet met het kruisje wegklikt.
-- [ ] Meldingen activeren: voer `supabase/migrations/20260907120000_persistent_notifications.sql` uit na de bestaande migraties. Deze voegt opslag, ontvangergebonden RLS, profiel-/abonnementsmeldingen en triggers voor reiswijzigingen en uitnodigingen toe. Zonder migratie toont het paneel een niet-beschikbaarmelding.
-- [ ] Voer `supabase/tests/persistent_notifications.sql` uit voor RLS, bundeling per transactie en blijvend wegklikken; controleer daarna het paneel met twee accounts, opnieuw inloggen en light/dark mode. De SQL-controle draait alle testdata terug.
+- [x] Persistente meldingen geactiveerd met `supabase/migrations/20260907120000_persistent_notifications.sql`: opslag, ontvangergebonden RLS en triggers zijn geïnstalleerd.
+- [x] `supabase/tests/persistent_notifications.sql` volledig uitgevoerd voor RLS, bundeling per transactie en blijvend wegklikken; de aparte praktijktest van het paneel blijft onderdeel van de rooktest.
 - [ ] Na aansluiting van samenwerking: reiswijzigingen met twee actieve accounts controleren en bij toekomstige service-role schrijfstromen de geverifieerde actor doorgeven. Uitnodigingen voor bestaande en nieuwe geverifieerde accounts controleren; accepteren/doorklikken vanuit een uitnodigingsmelding aansluiten zodra de uitnodigingsstroom bestaat.
 
 ## P0 — SQL-fundament & JSON-migratie
@@ -300,7 +302,7 @@ De migratie gebeurt in afzonderlijke, omkeerbare stappen. Voor elke stap: backup
 - [x] `trip_stops`, `trip_itinerary_items`, `trip_expenses`, `trip_travel_items` en `trip_packing_items`: relationele tabellen zijn aangemaakt en gevuld.
 - [x] `trip_documents`: metadata-tabel voor private tickets, bonnetjes en boekingsbevestigingen is aangemaakt; bestanden zelf blijven in Storage.
 - [x] `20260906180000_booking_details_and_clean_members.sql` uitgevoerd volgens de bestaande voortgangsregistratie: boekingsdetails/notities, huurauto-type, legacy-planningkoppelingen en opschoning van oude workspace-demoleden.
-- [ ] Voer `20260906190000_restrict_receipts_to_agency.sql` uit: de bestaande JSON-planwaarde wordt eenmalig met `workspaces.plan` gesynchroniseerd; Storage-RLS voor de `receipts`-bucket staat daarna alleen lezen, uploaden, wijzigen en verwijderen toe wanneer `workspaces.plan = 'agency'`.
+- [x] `20260906190000_restrict_receipts_to_agency.sql` uitgevoerd: de planwaarde is gesynchroniseerd en Storage-RLS voor de `receipts`-bucket beperkt toegang tot Agency-accounts.
 - [x] Atomaire RPC `save_trip_snapshot` geïnstalleerd via de op 7 september bevestigde herstelmigratie `20260907150000_fix_snapshot_column_ambiguity.sql`; deze vervangt de functie uit `20260906200000_atomic_trip_snapshots.sql`. Oudere functie niet opnieuw over het herstel heen uitvoeren.
 - [ ] Genereer na deze import de Supabase TypeScript-types opnieuw en werk de lokale type-definities bij.
 - [ ] `referrals`, `subscription_events`, `invoices` en `payment_events` pas toevoegen wanneer referrals/Stripe daadwerkelijk worden gebouwd.
@@ -381,7 +383,7 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 - [x] Reisnaam, datums, budget en template gebruiken een gevalideerde, expliciete opslagactie met serverbevestiging en fout-herstel.
 - [x] Serverbevestiging en fout-herstel uitgebreid naar archiveren, reisonderdelen, uitgaven, stops en eigen dagplanning.
 - [x] Reisverwijdering wacht op serverbevestiging en controleert de versie; bij een fout blijft de reis zichtbaar en wordt niet genavigeerd.
-- [ ] Bevestigde opslag en fout-herstel voor ledenbeheer apart controleren.
+- [ ] Bevestigde opslag en fout-herstel voor ledenbeheer apart controleren; de correctie voor rolwijzigingen van gekoppelde accounts staat klaar in `20260908000000_update_linked_member_roles.sql`.
 
 ## P0 — Planning, boekingen & kosten
 
