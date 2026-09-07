@@ -15,6 +15,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 ### Database
 
 - Nieuwe migratie `supabase/migrations/20260908002000_trip_text_limits.sql` kort bestaande langere waarden gecontroleerd in en voegt databaseconstraints toe.
+- De migratie handelt uitgestelde `trips`-triggers af voordat constraints worden gewijzigd, zodat PostgreSQL-fout `55006` niet optreedt.
 - Nieuwe regressietest `supabase/tests/trip_text_limits.sql` controleert toegestane grenswaarden en weigert 31/376 tekens.
 - Migratie en SQL-test moeten nog in Lovable Cloud / Supabase SQL Editor worden uitgevoerd.
 

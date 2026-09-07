@@ -11,6 +11,10 @@ UPDATE public.trips
 SET description = left(description, 375)
 WHERE char_length(description) > 375;
 
+-- De trips-tabel heeft uitgestelde wijzigingstriggers. Handel die eerst af,
+-- anders weigert PostgreSQL de onderstaande constraintwijzigingen met 55006.
+SET CONSTRAINTS ALL IMMEDIATE;
+
 ALTER TABLE public.trips DROP CONSTRAINT IF EXISTS trips_name_length_check;
 ALTER TABLE public.trips ADD CONSTRAINT trips_name_length_check
   CHECK (char_length(name) BETWEEN 1 AND 30);
