@@ -4,6 +4,33 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 00:23 CEST — Grenzen voor reisteksten
+
+### Gebruikerservaring
+
+- Reisnamen zijn begrensd op 30 tekens en reisomschrijvingen op 375 tekens.
+- Dashboardkaarten, de afteller, het reisbeheer, het Agency-overzicht en publieke reispagina's breken bestaande lange woorden veilig af.
+- Invoervelden tonen dezelfde grenzen als de server en database.
+
+### Database
+
+- Nieuwe migratie `supabase/migrations/20260908002000_trip_text_limits.sql` kort bestaande langere waarden gecontroleerd in en voegt databaseconstraints toe.
+- Nieuwe regressietest `supabase/tests/trip_text_limits.sql` controleert toegestane grenswaarden en weigert 31/376 tekens.
+- Migratie en SQL-test moeten nog in Lovable Cloud / Supabase SQL Editor worden uitgevoerd.
+
+## 2026-09-08 00:15 CEST — Mobiele slimme verrekening
+
+### Oplossing
+
+- Op telefoon toont Slimme verrekening voortaan een compacte kaart per persoon; Saldo krijgt een eigen volledige rij en blijft daardoor volledig binnen het scherm.
+- Lange namen en overboekingsregels kunnen afbreken zonder bedragen of andere inhoud buiten de kaart te duwen.
+- Op grotere schermen blijft de bestaande overzichtstabel behouden.
+
+### Controles
+
+- Negen geautomatiseerde regressietests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+- De mobiele productiecontrole met lange namen en grote positieve en negatieve bedragen staat nog open.
+
 ## 2026-09-08 00:08 CEST — Rolwijziging voor gekoppelde reisleden
 
 ### Oplossing
@@ -15,7 +42,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 
 - Nieuwe migratie: `supabase/migrations/20260908000000_update_linked_member_roles.sql`.
 - Nieuwe regressietest: `supabase/tests/trip_member_role_updates.sql`.
-- Migratie en SQL-test moeten nog in Lovable Cloud / Supabase SQL Editor worden uitgevoerd.
+- Migratie en SQL-test zijn op 8 september 2026 volledig uitgevoerd; de praktische rolwijziging werkt eveneens zoals bedoeld.
 
 ## 2026-09-07 23:56 CEST — Compactere reisplanning
 

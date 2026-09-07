@@ -87,11 +87,46 @@ export function Settlement({
 
         {manageTravelersInSettings && (
           <p className="text-xs text-muted-foreground">
-            {text("Beheer deelnemers via Reisinstellingen → Reisgenoten. Dezelfde personen worden hier gebruikt voor kosten en verrekening.", "Manage participants under Trip settings → Travellers. The same people are used for expenses and settlement.")}
+            {text(
+              "Beheer deelnemers via Reisinstellingen → Reisgenoten. Dezelfde personen worden hier gebruikt voor kosten en verrekening.",
+              "Manage participants under Trip settings → Travellers. The same people are used for expenses and settlement.",
+            )}
           </p>
         )}
 
-        <div className="overflow-hidden rounded-xl border border-border">
+        <div className="space-y-2 sm:hidden">
+          {list.map((balance) => (
+            <div key={balance.name} className="rounded-xl border border-border p-3">
+              <p className="break-words font-medium">{balance.name}</p>
+              <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div className="min-w-0">
+                  <dt className="text-muted-foreground">{text("Betaald", "Paid")}</dt>
+                  <dd className="mt-1 break-words font-medium">
+                    {formatMoney(balance.paid, base)}
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-muted-foreground">{text("Aandeel", "Share")}</dt>
+                  <dd className="mt-1 break-words font-medium">
+                    {formatMoney(balance.owes, base)}
+                  </dd>
+                </div>
+                <div className="col-span-2 mt-1 flex min-w-0 items-baseline justify-between gap-3 border-t border-border pt-2">
+                  <dt className="text-muted-foreground">{text("Saldo", "Balance")}</dt>
+                  <dd
+                    className={`min-w-0 break-words text-right font-semibold ${
+                      balance.net < -0.01 ? "text-destructive" : ""
+                    }`}
+                  >
+                    {formatMoney(balance.net, base)}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-hidden rounded-xl border border-border sm:block">
           <table className="w-full text-sm">
             <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
               <tr>
@@ -126,19 +161,24 @@ export function Settlement({
           </p>
           {transfers.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {text("Alles staat gelijk — niets te verrekenen.", "Everything is settled — no transfers needed.")}
+              {text(
+                "Alles staat gelijk — niets te verrekenen.",
+                "Everything is settled — no transfers needed.",
+              )}
             </p>
           ) : (
             <ul className="space-y-2">
               {transfers.map((t, i) => (
                 <li
                   key={i}
-                  className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm"
+                  className="flex flex-wrap items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm"
                 >
-                  <span className="font-medium">{t.from}</span>
-                  <ArrowRight className="size-4 text-muted-foreground" />
-                  <span className="font-medium">{t.to}</span>
-                  <span className="ml-auto">{formatMoney(t.amount, base)}</span>
+                  <span className="min-w-0 break-words font-medium">{t.from}</span>
+                  <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 break-words font-medium">{t.to}</span>
+                  <span className="ml-auto shrink-0 font-medium">
+                    {formatMoney(t.amount, base)}
+                  </span>
                 </li>
               ))}
             </ul>

@@ -34,22 +34,34 @@ const FEATURES = [
   {
     icon: MapPin,
     title: ["Route & kaart", "Route & map"],
-    copy: ["Bestemmingen zoeken wereldwijd, dag-voor-dag schema en navigatie per stop.", "Find destinations worldwide, create a daily itinerary and navigate each stop."],
+    copy: [
+      "Bestemmingen zoeken wereldwijd, dag-voor-dag schema en navigatie per stop.",
+      "Find destinations worldwide, create a daily itinerary and navigate each stop.",
+    ],
   },
   {
     icon: Wallet,
     title: ["Budget & valuta", "Budget & currencies"],
-    copy: ["Uitgaven in elke munt met live koersen, budget versus werkelijk.", "Track spending in any currency with current rates and budget comparisons."],
+    copy: [
+      "Uitgaven in elke munt met live koersen, budget versus werkelijk.",
+      "Track spending in any currency with current rates and budget comparisons.",
+    ],
   },
   {
     icon: Users,
     title: ["Eerlijk verdelen", "Split fairly"],
-    copy: ["Kosten 50/50 of per persoon, met het minimale aantal overboekingen.", "Split expenses equally or per person with fewer repayments."],
+    copy: [
+      "Kosten 50/50 of per persoon, met het minimale aantal overboekingen.",
+      "Split expenses equally or per person with fewer repayments.",
+    ],
   },
   {
     icon: ShieldCheck,
     title: ["Privé per account", "Private by default"],
-    copy: ["Je reizen staan veilig in je eigen account. Delen doe je alleen als je dat wilt.", "Your trips stay in your account and are only shared when you choose."],
+    copy: [
+      "Je reizen staan veilig in je eigen account. Delen doe je alleen als je dat wilt.",
+      "Your trips stay in your account and are only shared when you choose.",
+    ],
   },
 ];
 
@@ -70,10 +82,16 @@ function Landing() {
             <Globe2 className="size-3" /> globetrotr.nl
           </Badge>
           <h1 className="font-display text-4xl font-semibold leading-tight md:text-5xl">
-            {text("Plan elke reis. Verantwoord elke euro.", "Plan every trip. Account for every expense.")}
+            {text(
+              "Plan elke reis. Verantwoord elke euro.",
+              "Plan every trip. Account for every expense.",
+            )}
           </h1>
           <p className="mt-4 max-w-xl text-sm opacity-90 md:text-base">
-            {text("GlobeTrotr bundelt je route, dagplanning, paklijst en alle kosten in één overzicht — voor jezelf, je reisgenoten en je hele vriendengroep.", "GlobeTrotr brings your route, daily itinerary, packing list and expenses together for you and everyone travelling with you.")}
+            {text(
+              "GlobeTrotr bundelt je route, dagplanning, paklijst en alle kosten in één overzicht — voor jezelf, je reisgenoten en je hele vriendengroep.",
+              "GlobeTrotr brings your route, daily itinerary, packing list and expenses together for you and everyone travelling with you.",
+            )}
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             {user ? (
@@ -108,7 +126,9 @@ function Landing() {
               <f.icon className="size-5 text-primary" />
               <CardTitle className="text-base">{text(f.title[0], f.title[1])}</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">{text(f.copy[0], f.copy[1])}</CardContent>
+            <CardContent className="text-sm text-muted-foreground">
+              {text(f.copy[0], f.copy[1])}
+            </CardContent>
           </Card>
         ))}
       </section>
@@ -116,9 +136,14 @@ function Landing() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="font-display text-2xl font-semibold">{text("Openbare reizen", "Public trips")}</h2>
+            <h2 className="font-display text-2xl font-semibold">
+              {text("Openbare reizen", "Public trips")}
+            </h2>
             <p className="text-sm text-muted-foreground">
-              {text("Reizen die andere reizigers openbaar hebben gedeeld — laat je inspireren.", "Trips shared publicly by other travellers — find inspiration for your next journey.")}
+              {text(
+                "Reizen die andere reizigers openbaar hebben gedeeld — laat je inspireren.",
+                "Trips shared publicly by other travellers — find inspiration for your next journey.",
+              )}
             </p>
           </div>
         </div>
@@ -128,7 +153,10 @@ function Landing() {
         ) : (publicTrips.data ?? []).length === 0 ? (
           <Card className="surface">
             <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              {text("Er zijn nog geen openbare reizen gedeeld. Maak een account en deel de jouwe als eerste.", "No public trips have been shared yet. Create an account and be the first to share yours.")}
+              {text(
+                "Er zijn nog geen openbare reizen gedeeld. Maak een account en deel de jouwe als eerste.",
+                "No public trips have been shared yet. Create an account and be the first to share yours.",
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -136,7 +164,7 @@ function Landing() {
             {(publicTrips.data ?? []).map((t) => (
               <Card key={`${t.token}-${t.tripId}`} className="surface flex flex-col">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">
+                  <CardTitle className="break-anywhere text-base">
                     <Link
                       to="/reis/$token/$tripId"
                       params={{ token: t.token, tripId: t.tripId }}

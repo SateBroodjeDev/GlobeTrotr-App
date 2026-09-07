@@ -73,9 +73,14 @@ function PublicTrip() {
             <LockKeyhole className="size-6" />
           </div>
           <div className="space-y-1">
-            <h1 className="font-display text-2xl font-semibold">{text("Deze reis is beveiligd", "This trip is protected")}</h1>
+            <h1 className="font-display text-2xl font-semibold">
+              {text("Deze reis is beveiligd", "This trip is protected")}
+            </h1>
             <p className="text-sm text-muted-foreground">
-              {text("Vraag de 6- tot 12-cijferige pincode aan de eigenaar van deze reis.", "Ask the trip owner for the 6 to 12 digit PIN.")}
+              {text(
+                "Vraag de 6- tot 12-cijferige pincode aan de eigenaar van deze reis.",
+                "Ask the trip owner for the 6 to 12 digit PIN.",
+              )}
             </p>
           </div>
           <form
@@ -111,9 +116,14 @@ function PublicTrip() {
           <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-muted">
             <MapPin className="size-6 text-muted-foreground" />
           </div>
-          <h1 className="font-display text-2xl font-semibold">{text("Deze reis is niet (meer) openbaar", "This trip is no longer public")}</h1>
+          <h1 className="font-display text-2xl font-semibold">
+            {text("Deze reis is niet (meer) openbaar", "This trip is no longer public")}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            {text("De eigenaar heeft deze link mogelijk uitgeschakeld.", "The owner may have disabled this link.")}
+            {text(
+              "De eigenaar heeft deze link mogelijk uitgeschakeld.",
+              "The owner may have disabled this link.",
+            )}
           </p>
           <Button asChild variant="outline">
             <Link to="/">{text("Terug naar home", "Back home")}</Link>
@@ -145,8 +155,8 @@ function PublicTrip() {
             <span className="text-4xl sm:text-5xl" aria-hidden>
               {template?.emoji ?? "🌍"}
             </span>
-            <div>
-              <h1 className="font-display text-3xl font-semibold leading-tight sm:text-5xl">
+            <div className="min-w-0">
+              <h1 className="break-anywhere font-display text-3xl font-semibold leading-tight sm:text-5xl">
                 {trip.name}
               </h1>
               <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm opacity-90 sm:text-base">
@@ -155,11 +165,17 @@ function PublicTrip() {
               </p>
             </div>
           </div>
-          <p className="mt-6 max-w-2xl text-sm leading-relaxed opacity-90 sm:text-base">
+          <p className="mt-6 max-w-2xl break-anywhere text-sm leading-relaxed opacity-90 sm:text-base">
             {trip.description ||
               (stops.length
-                ? text(`Een reis langs ${stops.length} ${stops.length === 1 ? "bestemming" : "bestemmingen"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "land" : "landen"}` : ""}.`, `A trip across ${stops.length} ${stops.length === 1 ? "destination" : "destinations"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "country" : "countries"}` : ""}.`)
-                : text("De route en dagplanning van deze reis worden hier gedeeld.", "The route and daily itinerary for this trip are shared here."))}
+                ? text(
+                    `Een reis langs ${stops.length} ${stops.length === 1 ? "bestemming" : "bestemmingen"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "land" : "landen"}` : ""}.`,
+                    `A trip across ${stops.length} ${stops.length === 1 ? "destination" : "destinations"}${countryCount ? ` in ${countryCount} ${countryCount === 1 ? "country" : "countries"}` : ""}.`,
+                  )
+                : text(
+                    "De route en dagplanning van deze reis worden hier gedeeld.",
+                    "The route and daily itinerary for this trip are shared here.",
+                  ))}
           </p>
         </div>
       </header>
@@ -190,7 +206,9 @@ function PublicTrip() {
           </CardHeader>
           <CardContent className="space-y-2">
             {stops.length === 0 && (
-              <p className="text-sm text-muted-foreground">{text("De route is nog leeg.", "The route is empty.")}</p>
+              <p className="text-sm text-muted-foreground">
+                {text("De route is nog leeg.", "The route is empty.")}
+              </p>
             )}
             {visibleStops.map((stop) => {
               const index = stops.findIndex((item) => item.id === stop.id);
@@ -228,7 +246,9 @@ function PublicTrip() {
                 className="mt-3 w-full"
                 onClick={() => setShowAllStops((current) => !current)}
               >
-                {showAllStops ? text("Minder bestemmingen", "Fewer destinations") : text(`Alle ${stops.length} bestemmingen`, `All ${stops.length} destinations`)}
+                {showAllStops
+                  ? text("Minder bestemmingen", "Fewer destinations")
+                  : text(`Alle ${stops.length} bestemmingen`, `All ${stops.length} destinations`)}
               </Button>
             )}
           </CardContent>
@@ -240,7 +260,9 @@ function PublicTrip() {
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">
             {text("Van dag tot dag", "Day by day")}
           </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold">{text("Dagplanning", "Itinerary")}</h2>
+          <h2 className="mt-1 font-display text-2xl font-semibold">
+            {text("Dagplanning", "Itinerary")}
+          </h2>
         </div>
         {groupedDays.length === 0 ? (
           <Card className="surface">
@@ -285,10 +307,14 @@ function PublicTrip() {
           <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
             <div>
               <p className="flex items-center gap-2 text-sm font-medium">
-                <Wallet className="size-4 text-primary" /> {text("Gedeeld reisbudget", "Shared trip budget")}
+                <Wallet className="size-4 text-primary" />{" "}
+                {text("Gedeeld reisbudget", "Shared trip budget")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {text("De eigenaar heeft alleen het totaalbudget openbaar gemaakt.", "The owner has only made the total budget public.")}
+                {text(
+                  "De eigenaar heeft alleen het totaalbudget openbaar gemaakt.",
+                  "The owner has only made the total budget public.",
+                )}
               </p>
             </div>
             <p className="font-display text-2xl font-semibold">
@@ -302,9 +328,14 @@ function PublicTrip() {
         <Card className="surface overflow-hidden">
           <CardContent className="flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center sm:p-8">
             <div>
-              <h2 className="font-display text-xl font-semibold">{text("Klaar voor je eigen avontuur?", "Ready for your own adventure?")}</h2>
+              <h2 className="font-display text-xl font-semibold">
+                {text("Klaar voor je eigen avontuur?", "Ready for your own adventure?")}
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {text("Plan je route, dagprogramma en gezamenlijke kosten op één plek.", "Plan your route, itinerary and shared expenses in one place.")}
+                {text(
+                  "Plan je route, dagprogramma en gezamenlijke kosten op één plek.",
+                  "Plan your route, itinerary and shared expenses in one place.",
+                )}
               </p>
             </div>
             <Button asChild>
@@ -314,7 +345,8 @@ function PublicTrip() {
                 </Link>
               ) : (
                 <Link to="/auth">
-                  {text("Gratis account maken", "Create free account")} <ArrowRight className="size-4" />
+                  {text("Gratis account maken", "Create free account")}{" "}
+                  <ArrowRight className="size-4" />
                 </Link>
               )}
             </Button>
@@ -336,7 +368,8 @@ function formatDate(value: string, locale: "nl-NL" | "en-GB") {
 }
 
 function formatDateRange(start: string, end: string, locale: "nl-NL" | "en-GB") {
-  if (!start && !end) return locale === "nl-NL" ? "Reisdata nog niet bekend" : "Travel dates not available yet";
+  if (!start && !end)
+    return locale === "nl-NL" ? "Reisdata nog niet bekend" : "Travel dates not available yet";
   if (start === end || !end) return formatDate(start, locale);
   return `${formatDate(start, locale)} – ${formatDate(end, locale)}`;
 }

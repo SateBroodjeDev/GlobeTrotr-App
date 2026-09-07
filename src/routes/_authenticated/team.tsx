@@ -54,15 +54,24 @@ function TeamPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">{text("Team & reisrechten", "Team & trip permissions")}</h1>
+        <h1 className="font-display text-2xl font-semibold">
+          {text("Team & reisrechten", "Team & trip permissions")}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          {text("Beheer toegang per reis. Een reisgenoot krijgt nooit automatisch toegang tot al je reizen.", "Manage access per trip. A traveller never automatically gains access to all your trips.")}
+          {text(
+            "Beheer toegang per reis. Een reisgenoot krijgt nooit automatisch toegang tot al je reizen.",
+            "Manage access per trip. A traveller never automatically gains access to all your trips.",
+          )}
         </p>
       </div>
 
       {!allowed && (
         <p className="flex items-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm text-accent-foreground">
-          <Lock className="size-4" /> {text("Uitgebreid rollenbeheer zit in Agency (eigenaarsrol).", "Advanced role management is part of Agency (owner role).")} {" "}
+          <Lock className="size-4" />{" "}
+          {text(
+            "Uitgebreid rollenbeheer zit in Agency (eigenaarsrol).",
+            "Advanced role management is part of Agency (owner role).",
+          )}{" "}
           <Link to="/billing" className="underline">
             {text("Upgraden", "Upgrade")}
           </Link>
@@ -75,7 +84,10 @@ function TeamPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            {text("Reisgenoten voeg je toe in Reisinstellingen → Reisgenoten. E-mailuitnodigingen volgen zodra Lovable Cloud Emails is geactiveerd; deze pagina toont daarom geen verzendbevestiging.", "Add travellers under Trip settings → Travellers. Email invitations will follow once Lovable Cloud Emails is enabled; this page therefore shows no delivery confirmation.")}
+            {text(
+              "Reisgenoten voeg je toe in Reisinstellingen → Reisgenoten. E-mailuitnodigingen volgen zodra Lovable Cloud Emails is geactiveerd; deze pagina toont daarom geen verzendbevestiging.",
+              "Add travellers under Trip settings → Travellers. Email invitations will follow once Lovable Cloud Emails is enabled; this page therefore shows no delivery confirmation.",
+            )}
           </p>
           {trips.length ? (
             <ul className="space-y-3">
@@ -85,10 +97,14 @@ function TeamPage() {
                 return (
                   <li key={trip.id} className="rounded-xl border border-border p-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium">{trip.name}</p>
+                      <div className="min-w-0">
+                        <p className="break-anywhere font-medium">{trip.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {memberCount} {text(memberCount === 1 ? "lid" : "leden", memberCount === 1 ? "member" : "members")}
+                          {memberCount}{" "}
+                          {text(
+                            memberCount === 1 ? "lid" : "leden",
+                            memberCount === 1 ? "member" : "members",
+                          )}
                         </p>
                       </div>
                       <Button asChild variant="outline" size="sm" disabled={!allowed}>
@@ -101,8 +117,7 @@ function TeamPage() {
                       <div className="mt-3 flex flex-wrap gap-2">
                         {members.map((member) => (
                           <Badge key={member.id} variant="secondary">
-                            {member.name} ·{" "}
-                            {roleLabel(member.role, text)}
+                            {member.name} · {roleLabel(member.role, text)}
                           </Badge>
                         ))}
                       </div>
@@ -113,7 +128,10 @@ function TeamPage() {
             </ul>
           ) : (
             <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-              {text("Maak eerst een reis aan om een reisteam samen te stellen.", "Create a trip first to assemble a trip team.")}
+              {text(
+                "Maak eerst een reis aan om een reisteam samen te stellen.",
+                "Create a trip first to assemble a trip team.",
+              )}
             </p>
           )}
         </CardContent>
@@ -160,17 +178,22 @@ function TeamPage() {
 
 function roleLabel(role: TripMemberRole, text: (nl: string, en: string) => string) {
   const labels: Record<TripMemberRole, [string, string]> = {
-    owner: ["Workspace-eigenaar", "Workspace owner"], advisor: ["Reisadviseur", "Travel advisor"],
-    finance: ["Financiën", "Finance"], client: ["Klant / reiziger", "Client / traveller"],
-    viewer: ["Kijker", "Viewer"], traveler: ["Reisgenoot", "Traveller"],
+    owner: ["Workspace-eigenaar", "Workspace owner"],
+    advisor: ["Reisadviseur", "Travel advisor"],
+    finance: ["Financiën", "Finance"],
+    client: ["Klant / reiziger", "Client / traveller"],
+    viewer: ["Kijker", "Viewer"],
+    traveler: ["Reisgenoot", "Traveller"],
   };
   return text(...labels[role]);
 }
 
 function permissionLabel(permission: string, text: (nl: string, en: string) => string) {
   const labels: Record<string, string> = {
-    "Reizen beheren": "Manage trips", "Uitgaven beheren": "Manage expenses",
-    "Leden beheren": "Manage members", "Abonnement beheren": "Manage subscription",
+    "Reizen beheren": "Manage trips",
+    "Uitgaven beheren": "Manage expenses",
+    "Leden beheren": "Manage members",
+    "Abonnement beheren": "Manage subscription",
     "Reis bekijken": "View trip",
   };
   return text(permission, labels[permission] ?? permission);

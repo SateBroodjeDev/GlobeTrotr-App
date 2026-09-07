@@ -6,7 +6,10 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Actuele stand — 8 september 2026
 
-- [ ] Herstelmigratie `20260908000000_update_linked_member_roles.sql` uitvoeren en daarna `supabase/tests/trip_member_role_updates.sql` draaien; hiermee blijven `user_id`, actieve status en acceptatietijd behouden wanneer een Agency-eigenaar de rol van een bestaand gekoppeld lid wijzigt.
+- [ ] Migratie `20260908002000_trip_text_limits.sql` uitvoeren en daarna `supabase/tests/trip_text_limits.sql` draaien; reisnamen zijn voortaan maximaal 30 tekens en reisomschrijvingen maximaal 375 tekens.
+- [x] Mobiele slimme verrekening hersteld: de vierkolomstabel is op telefoon vervangen door compacte kaarten en Saldo krijgt een eigen volledige rij binnen de kaart.
+- [ ] Mobiele slimme verrekening in productie opnieuw controleren met korte en lange namen en een groot positief en negatief saldo.
+- [x] Herstelmigratie `20260908000000_update_linked_member_roles.sql` en regressietest `supabase/tests/trip_member_role_updates.sql` uitgevoerd; een Agency-eigenaar kan de rol van een bestaand gekoppeld lid wijzigen met behoud van `user_id`, actieve status en acceptatietijd.
 
 - [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
 - [x] Publieke pagina `/changelog` toegevoegd met gebruikersgerichte releases, categorie-iconen, datum en tijd; link staat in de footer.
@@ -137,7 +140,7 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 - [x] Een compacte GlobeTrotr-call-to-action tonen; ingelogde gebruikers gaan naar **Mijn reizen**, bezoekers kunnen een account maken
 - [ ] Mobiele vormgeving in productie controleren op smalle schermen, lange reisnamen en veel stops
 - [x] Verzorgde laad-, lege, PIN- en niet-beschikbaarstatussen in dezelfde visuele stijl
-- [x] Korte reisomschrijving (maximaal 500 tekens) toegevoegd aan reisinstellingen en de publieke header; zonder omschrijving verschijnt een compacte route-samenvatting
+- [x] Korte reisomschrijving (maximaal 375 tekens) toegevoegd aan reisinstellingen en de publieke header; zonder omschrijving verschijnt een compacte route-samenvatting
 - [x] Lange bestemmingenketen uit de header verwijderd en de lijst naast de kaart standaard beperkt tot vier stops met een uitklapactie
 - [x] Migratie `20260907170000_trip_description.sql` uitgevoerd
 - [ ] Reisomschrijving opslaan, publiek tonen en weer leegmaken in productie controleren
@@ -383,7 +386,7 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 - [x] Reisnaam, datums, budget en template gebruiken een gevalideerde, expliciete opslagactie met serverbevestiging en fout-herstel.
 - [x] Serverbevestiging en fout-herstel uitgebreid naar archiveren, reisonderdelen, uitgaven, stops en eigen dagplanning.
 - [x] Reisverwijdering wacht op serverbevestiging en controleert de versie; bij een fout blijft de reis zichtbaar en wordt niet genavigeerd.
-- [ ] Bevestigde opslag en fout-herstel voor ledenbeheer apart controleren; de correctie voor rolwijzigingen van gekoppelde accounts staat klaar in `20260908000000_update_linked_member_roles.sql`.
+- [x] Rolwijziging van een bestaand gekoppeld Agency-lid praktisch gecontroleerd; de wijziging blijft opgeslagen en de accountkoppeling blijft behouden.
 
 ## P0 — Planning, boekingen & kosten
 

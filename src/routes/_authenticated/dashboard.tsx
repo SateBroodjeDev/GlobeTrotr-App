@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLocale } from "@/lib/locale";
 import { localizeTagline } from "@/lib/localized-values";
+import { TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -73,8 +74,22 @@ function TripsOverview() {
       toast.error(text("Geef de reis een naam", "Give your trip a name"));
       return;
     }
+    if (name.trim().length > TRIP_NAME_MAX_LENGTH) {
+      toast.error(
+        text(
+          `De reisnaam mag maximaal ${TRIP_NAME_MAX_LENGTH} tekens bevatten.`,
+          `The trip name can contain up to ${TRIP_NAME_MAX_LENGTH} characters.`,
+        ),
+      );
+      return;
+    }
     if (atLimit) {
-      toast.error(text(`Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`, `Your ${plan.name} plan allows ${plan.tripLimit} trips. Upgrade to Pro.`));
+      toast.error(
+        text(
+          `Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`,
+          `Your ${plan.name} plan allows ${plan.tripLimit} trips. Upgrade to Pro.`,
+        ),
+      );
       return;
     }
     try {
@@ -83,7 +98,12 @@ function TripsOverview() {
       toast.success(text("Reis aangemaakt", "Trip created"));
       navigate({ to: "/trips/$tripId", params: { tripId: id } });
     } catch {
-      toast.error(text("De reis kon niet worden aangemaakt. Probeer het opnieuw.", "The trip could not be created. Please try again."));
+      toast.error(
+        text(
+          "De reis kon niet worden aangemaakt. Probeer het opnieuw.",
+          "The trip could not be created. Please try again.",
+        ),
+      );
     }
   }
 
@@ -92,20 +112,29 @@ function TripsOverview() {
       <section className="aurora relative overflow-hidden rounded-3xl px-6 py-10 md:px-10">
         <div className="max-w-2xl">
           <Badge variant="secondary" className="mb-3">
-            {ratesLive ? text("Live ECB-koersen actief", "Live ECB rates active") : text("Fallback koersen", "Fallback rates")}
+            {ratesLive
+              ? text("Live ECB-koersen actief", "Live ECB rates active")
+              : text("Fallback koersen", "Fallback rates")}
           </Badge>
           <h1 className="font-display text-3xl font-semibold md:text-4xl">
             {localizeTagline(state.branding.tagline, locale)}
           </h1>
           <p className="mt-3 text-sm opacity-90">
-            {text(`${state.trips.length} actieve reizen`, `${state.trips.length} active trips`)} · {formatMoney(grand, base)} {text("geboekte uitgaven", "recorded expenses")} · {text("wereldwijde geocoding, multi-valuta en live weer.", "global geocoding, multiple currencies and live weather.")}
+            {text(`${state.trips.length} actieve reizen`, `${state.trips.length} active trips`)} ·{" "}
+            {formatMoney(grand, base)} {text("geboekte uitgaven", "recorded expenses")} ·{" "}
+            {text(
+              "wereldwijde geocoding, multi-valuta en live weer.",
+              "global geocoding, multiple currencies and live weather.",
+            )}
           </p>
         </div>
       </section>
 
       <Card className="surface">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{text("Nieuwe reis vanuit sjabloon", "New trip from template")}</CardTitle>
+          <CardTitle className="text-base">
+            {text("Nieuwe reis vanuit sjabloon", "New trip from template")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -127,9 +156,13 @@ function TripsOverview() {
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               value={name}
+              maxLength={TRIP_NAME_MAX_LENGTH}
               disabled={!editable}
               onChange={(e) => setName(e.target.value)}
-              placeholder={text("Bijv. Namibië familie-safari", "For example, Namibia family safari")}
+              placeholder={text(
+                "Bijv. Namibië familie-safari",
+                "For example, Namibia family safari",
+              )}
             />
             <Button onClick={create} disabled={!editable || atLimit}>
               <Plus className="size-4" /> {text("Reis aanmaken", "Create trip")}
@@ -142,7 +175,11 @@ function TripsOverview() {
           )}
           {atLimit && (
             <p className="flex items-center gap-2 text-sm text-warning">
-              <Lock className="size-4" /> {text(`Limiet van ${plan.tripLimit} reizen bereikt op ${plan.name}.`, `${plan.name} limit of ${plan.tripLimit} trips reached.`)}{" "}
+              <Lock className="size-4" />{" "}
+              {text(
+                `Limiet van ${plan.tripLimit} reizen bereikt op ${plan.name}.`,
+                `${plan.name} limit of ${plan.tripLimit} trips reached.`,
+              )}{" "}
               <Link to="/billing" className="underline">
                 Upgrade
               </Link>
@@ -154,7 +191,7 @@ function TripsOverview() {
       {nextTrip && (
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">
+            <CardTitle className="break-anywhere text-base">
               {text("Aftellen naar", "Countdown to")} {nextTrip.name} · {nextTrip.start}
             </CardTitle>
           </CardHeader>
@@ -175,7 +212,9 @@ function TripsOverview() {
                 : "border-border hover:bg-muted"
             }`}
           >
-            {f === "all" ? `${text("Alles", "All")} (${state.trips.length})` : `${statusLabel(f, text)} (${counts[f]})`}
+            {f === "all"
+              ? `${text("Alles", "All")} (${state.trips.length})`
+              : `${statusLabel(f, text)} (${counts[f]})`}
           </button>
         ))}
         <Button
@@ -200,7 +239,7 @@ function TripsOverview() {
             <Card key={trip.id} className="surface flex flex-col">
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base">
+                  <CardTitle className="min-w-0 break-anywhere text-base">
                     <Link
                       to="/trips/$tripId"
                       params={{ tripId: trip.id }}
@@ -221,7 +260,10 @@ function TripsOverview() {
                           toast.error(
                             error instanceof Error
                               ? error.message
-                              : text("Reis kon niet worden verwijderd.", "Trip could not be deleted."),
+                              : text(
+                                  "Reis kon niet worden verwijderd.",
+                                  "Trip could not be deleted.",
+                                ),
                           );
                         }
                       }}
@@ -266,10 +308,26 @@ function TripsOverview() {
 }
 
 function statusLabel(status: TripStatus, text: (nl: string, en: string) => string) {
-  return text(STATUS_LABEL[status], { current: "Current", upcoming: "Upcoming", archived: "Archived" }[status]);
+  return text(
+    STATUS_LABEL[status],
+    { current: "Current", upcoming: "Upcoming", archived: "Archived" }[status],
+  );
 }
 
-function templateLabel(id: TripTemplate, fallback: string, text: (nl: string, en: string) => string) {
-  const english: Record<TripTemplate, string> = { safari: "Safari", cruise: "Cruise", citytrip: "City trip", roadtrip: "Road trip", backpacking: "Backpacking", beach: "Beach holiday", winter: "Winter trip", business: "Business trip" };
+function templateLabel(
+  id: TripTemplate,
+  fallback: string,
+  text: (nl: string, en: string) => string,
+) {
+  const english: Record<TripTemplate, string> = {
+    safari: "Safari",
+    cruise: "Cruise",
+    citytrip: "City trip",
+    roadtrip: "Road trip",
+    backpacking: "Backpacking",
+    beach: "Beach holiday",
+    winter: "Winter trip",
+    business: "Business trip",
+  };
   return text(fallback, english[id]);
 }

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Trip, TripMemberRole, WorkspaceState } from "@/lib/types";
 import { protectTripUpdate } from "@/lib/trip-access";
+import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 
 type UntypedSupabase = {
   from: (relation: string) => any;
@@ -20,8 +21,13 @@ function normalizeTripForPersistence(trip: Trip): Trip {
   const name = trip.name.trim();
   const description = trip.description?.trim();
   if (!name) throw new Error("Een reisnaam is verplicht.");
-  if (description && description.length > 500) {
-    throw new Error("De reisomschrijving mag maximaal 500 tekens bevatten.");
+  if (name.length > TRIP_NAME_MAX_LENGTH) {
+    throw new Error(`De reisnaam mag maximaal ${TRIP_NAME_MAX_LENGTH} tekens bevatten.`);
+  }
+  if (description && description.length > TRIP_DESCRIPTION_MAX_LENGTH) {
+    throw new Error(
+      `De reisomschrijving mag maximaal ${TRIP_DESCRIPTION_MAX_LENGTH} tekens bevatten.`,
+    );
   }
   if (!isIsoDate(trip.start) || !isIsoDate(trip.end)) {
     throw new Error("Vul een geldige start- en einddatum in.");
@@ -326,7 +332,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   const sharedIds = membershipRows.map((membership) => membership.trip_uuid);
   const { data: sharedParents, error: sharedError } = sharedIds.length
     ? await client
-    .from("trips")
+        .from("trips")
         .select(parentColumns)
         .in("trip_uuid", sharedIds)
         .order("start_date", { ascending: true })
@@ -402,7 +408,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         notes: item.notes ?? undefined,
         sourceTravelItemId: item.source_travel_item_id ?? undefined,
       })),
-      expenses: (maySeeMoney ? expensesByTrip.get(id) ?? [] : []).map((expense) => ({
+      expenses: (maySeeMoney ? (expensesByTrip.get(id) ?? []) : []).map((expense) => ({
         id: String(expense.id),
         date: String(expense.expense_date),
         title: String(expense.title),
@@ -511,6 +517,9 @@ export const createTrip = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const name = data.name.trim();
     if (!name) throw new Error("Een reisnaam is verplicht.");
+    if (name.length > TRIP_NAME_MAX_LENGTH) {
+      throw new Error(`De reisnaam mag maximaal ${TRIP_NAME_MAX_LENGTH} tekens bevatten.`);
+    }
     if (!isIsoDate(data.start)) throw new Error("Vul een geldige startdatum in.");
     if (!Number.isFinite(data.budget) || data.budget < 0) {
       throw new Error("Het budget moet een bedrag van nul of hoger zijn.");

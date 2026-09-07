@@ -53,6 +53,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
+import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
 
@@ -151,7 +152,12 @@ function TripDetail() {
       toast.success(text("Programma-item gewijzigd.", "Itinerary item updated."));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : text("Programma-item kon niet worden gewijzigd.", "Itinerary item could not be updated."),
+        error instanceof Error
+          ? error.message
+          : text(
+              "Programma-item kon niet worden gewijzigd.",
+              "Itinerary item could not be updated.",
+            ),
       );
       throw error;
     }
@@ -209,12 +215,35 @@ function TripDetail() {
       toast.error(text("Een reisnaam is verplicht.", "A trip name is required."));
       return;
     }
+    if (name.length > TRIP_NAME_MAX_LENGTH) {
+      toast.error(
+        text(
+          `De reisnaam mag maximaal ${TRIP_NAME_MAX_LENGTH} tekens bevatten.`,
+          `The trip name can contain up to ${TRIP_NAME_MAX_LENGTH} characters.`,
+        ),
+      );
+      return;
+    }
+    if (settings.description.trim().length > TRIP_DESCRIPTION_MAX_LENGTH) {
+      toast.error(
+        text(
+          `De reisomschrijving mag maximaal ${TRIP_DESCRIPTION_MAX_LENGTH} tekens bevatten.`,
+          `The trip description can contain up to ${TRIP_DESCRIPTION_MAX_LENGTH} characters.`,
+        ),
+      );
+      return;
+    }
     if (!settings.start || !settings.end) {
       toast.error(text("Vul een start- en einddatum in.", "Enter a start and end date."));
       return;
     }
     if (settings.end < settings.start) {
-      toast.error(text("De einddatum kan niet vóór de startdatum liggen.", "The end date cannot be before the start date."));
+      toast.error(
+        text(
+          "De einddatum kan niet vóór de startdatum liggen.",
+          "The end date cannot be before the start date.",
+        ),
+      );
       return;
     }
     if (!settings.budget.trim() || !Number.isFinite(budget) || budget < 0) {
@@ -237,7 +266,12 @@ function TripDetail() {
       toast.success(text("Reisinstellingen opgeslagen.", "Trip settings saved."));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : text("Reisinstellingen konden niet worden opgeslagen.", "Trip settings could not be saved."),
+        error instanceof Error
+          ? error.message
+          : text(
+              "Reisinstellingen konden niet worden opgeslagen.",
+              "Trip settings could not be saved.",
+            ),
       );
     } finally {
       setSettingsSaving(false);
@@ -305,9 +339,17 @@ function TripDetail() {
       }));
       setDraft({ ...draft, title: "", amount: 0, notes: undefined, splitWith: undefined });
       setEditingExpenseId(undefined);
-      toast.success(editingExpenseId ? text("Uitgave bijgewerkt", "Expense updated") : text("Uitgave geboekt", "Expense added"));
+      toast.success(
+        editingExpenseId
+          ? text("Uitgave bijgewerkt", "Expense updated")
+          : text("Uitgave geboekt", "Expense added"),
+      );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : text("Uitgave kon niet worden opgeslagen.", "Expense could not be saved."));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("Uitgave kon niet worden opgeslagen.", "Expense could not be saved."),
+      );
     } finally {
       setExpenseSaving(false);
     }
@@ -371,14 +413,19 @@ function TripDetail() {
         item.amount
           ? previousId
             ? text("Onderdeel en gekoppelde kosten bijgewerkt.", "Item and linked expense updated.")
-            : text("Onderdeel, kaartlocatie en kosten opgeslagen.", "Item, map location and expense saved.")
+            : text(
+                "Onderdeel, kaartlocatie en kosten opgeslagen.",
+                "Item, map location and expense saved.",
+              )
           : previousId
             ? text("Reisonderdeel bijgewerkt.", "Travel item updated.")
             : text("Onderdeel en kaartlocatie opgeslagen.", "Item and map location saved."),
       );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : text("Reisonderdeel kon niet worden opgeslagen.", "Travel item could not be saved."),
+        error instanceof Error
+          ? error.message
+          : text("Reisonderdeel kon niet worden opgeslagen.", "Travel item could not be saved."),
       );
       throw error;
     }
@@ -400,11 +447,15 @@ function TripDetail() {
           : current.expenses,
       }));
       toast.success(
-        item?.expenseId ? text("Onderdeel en gekoppelde kosten verwijderd.", "Item and linked expense deleted.") : text("Onderdeel verwijderd.", "Item deleted."),
+        item?.expenseId
+          ? text("Onderdeel en gekoppelde kosten verwijderd.", "Item and linked expense deleted.")
+          : text("Onderdeel verwijderd.", "Item deleted."),
       );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : text("Reisonderdeel kon niet worden verwijderd.", "Travel item could not be deleted."),
+        error instanceof Error
+          ? error.message
+          : text("Reisonderdeel kon niet worden verwijderd.", "Travel item could not be deleted."),
       );
       throw error;
     }
@@ -421,13 +472,23 @@ function TripDetail() {
       toast.success(text(`${location.name} toegevoegd.`, `${location.name} added.`));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : text("Bestemming kon niet worden opgeslagen.", "Destination could not be saved."),
+        error instanceof Error
+          ? error.message
+          : text("Bestemming kon niet worden opgeslagen.", "Destination could not be saved."),
       );
     }
   }
 
   async function removeStop(stopId: string) {
-    if (!window.confirm(text("Deze bestemming van de routekaart verwijderen?", "Remove this destination from the route map?"))) return;
+    if (
+      !window.confirm(
+        text(
+          "Deze bestemming van de routekaart verwijderen?",
+          "Remove this destination from the route map?",
+        ),
+      )
+    )
+      return;
     try {
       await saveTripNow(trip.id, (current) => ({
         ...current,
@@ -437,21 +498,35 @@ function TripDetail() {
       toast.success(text("Bestemming verwijderd.", "Destination deleted."));
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : text("Bestemming kon niet worden verwijderd.", "Destination could not be deleted."),
+        error instanceof Error
+          ? error.message
+          : text("Bestemming kon niet worden verwijderd.", "Destination could not be deleted."),
       );
     }
   }
 
   async function toggleArchive() {
-    if (!window.confirm(trip.archived ? text("Deze reis weer actief maken?", "Reactivate this trip?") : text("Deze reis archiveren?", "Archive this trip?"))) {
+    if (
+      !window.confirm(
+        trip.archived
+          ? text("Deze reis weer actief maken?", "Reactivate this trip?")
+          : text("Deze reis archiveren?", "Archive this trip?"),
+      )
+    ) {
       return;
     }
     try {
       await saveTripNow(trip.id, (current) => ({ ...current, archived: !current.archived }));
-      toast.success(trip.archived ? text("Reis heractiveerd.", "Trip reactivated.") : text("Reis gearchiveerd.", "Trip archived."));
+      toast.success(
+        trip.archived
+          ? text("Reis heractiveerd.", "Trip reactivated.")
+          : text("Reis gearchiveerd.", "Trip archived."),
+      );
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : text("Reisstatus kon niet worden opgeslagen.", "Trip status could not be saved."),
+        error instanceof Error
+          ? error.message
+          : text("Reisstatus kon niet worden opgeslagen.", "Trip status could not be saved."),
       );
     }
   }
@@ -459,7 +534,10 @@ function TripDetail() {
   async function removeExpense(expenseId: string) {
     if (
       !window.confirm(
-        text("Deze uitgave verwijderen? De koppeling met een eventueel reisonderdeel wordt losgemaakt.", "Delete this expense? Any link to a travel item will be removed."),
+        text(
+          "Deze uitgave verwijderen? De koppeling met een eventueel reisonderdeel wordt losgemaakt.",
+          "Delete this expense? Any link to a travel item will be removed.",
+        ),
       )
     ) {
       return;
@@ -476,7 +554,11 @@ function TripDetail() {
       }));
       toast.success(text("Uitgave verwijderd.", "Expense deleted."));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : text("Uitgave kon niet worden verwijderd.", "Expense could not be deleted."));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("Uitgave kon niet worden verwijderd.", "Expense could not be deleted."),
+      );
     }
   }
 
@@ -484,13 +566,23 @@ function TripDetail() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
     if (!canManageReceipts) {
-      toast.error(text("Bonnetjes koppelen is beschikbaar in het Agency-plan.", "Attaching receipts is available with the Agency plan."));
+      toast.error(
+        text(
+          "Bonnetjes koppelen is beschikbaar in het Agency-plan.",
+          "Attaching receipts is available with the Agency plan.",
+        ),
+      );
       event.target.value = "";
       return;
     }
     const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
-      toast.error(text("Kies een PDF, JPG, PNG of WebP tot 10 MB.", "Choose a PDF, JPG, PNG or WebP file up to 10 MB."));
+      toast.error(
+        text(
+          "Kies een PDF, JPG, PNG of WebP tot 10 MB.",
+          "Choose a PDF, JPG, PNG or WebP file up to 10 MB.",
+        ),
+      );
       event.target.value = "";
       return;
     }
@@ -519,7 +611,11 @@ function TripDetail() {
       }
       toast.success(text("Bon gekoppeld aan de uitgave.", "Receipt attached to the expense."));
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : text("Bon kon niet worden geüpload.", "Receipt could not be uploaded."));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("Bon kon niet worden geüpload.", "Receipt could not be uploaded."),
+      );
     } finally {
       setUploadingReceiptId(undefined);
       event.target.value = "";
@@ -529,7 +625,12 @@ function TripDetail() {
   async function openReceipt(expense: Expense) {
     if (!expense.receiptPath) return;
     if (!canManageReceipts) {
-      toast.error(text("Bonnetjes bekijken is beschikbaar in het Agency-plan.", "Viewing receipts is available with the Agency plan."));
+      toast.error(
+        text(
+          "Bonnetjes bekijken is beschikbaar in het Agency-plan.",
+          "Viewing receipts is available with the Agency plan.",
+        ),
+      );
       return;
     }
     try {
@@ -537,10 +638,15 @@ function TripDetail() {
         .from("receipts")
         .createSignedUrl(expense.receiptPath, 60 * 5);
       if (error) throw error;
-      if (!data?.signedUrl) throw new Error(text("Bon kon niet worden geopend.", "Receipt could not be opened."));
+      if (!data?.signedUrl)
+        throw new Error(text("Bon kon niet worden geopend.", "Receipt could not be opened."));
       window.open(data.signedUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : text("Bon kon niet worden geopend.", "Receipt could not be opened."));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("Bon kon niet worden geopend.", "Receipt could not be opened."),
+      );
     }
   }
 
@@ -551,10 +657,14 @@ function TripDetail() {
           <Link to="/dashboard" className="text-xs text-muted-foreground hover:underline">
             ← {text("Alle reizen", "All trips")}
           </Link>
-          <h1 className="font-display text-2xl font-semibold">{trip.name}</h1>
+          <h1 className="break-anywhere font-display text-2xl font-semibold">{trip.name}</h1>
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <Badge variant="secondary">{tripStatusLabel(tripStatus(trip), text)}</Badge>
-            {trip.start} → {trip.end} · {trip.stops.length} {text(trip.stops.length === 1 ? "bestemming" : "bestemmingen", trip.stops.length === 1 ? "destination" : "destinations")}
+            {trip.start} → {trip.end} · {trip.stops.length}{" "}
+            {text(
+              trip.stops.length === 1 ? "bestemming" : "bestemmingen",
+              trip.stops.length === 1 ? "destination" : "destinations",
+            )}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -573,7 +683,12 @@ function TripDetail() {
             disabled={false}
             onClick={() => {
               if (!openGuide(trip, base, rates, state.branding, locale))
-                toast.error(text("Sta pop-ups toe om de reisgids te openen.", "Allow pop-ups to open the trip guide."));
+                toast.error(
+                  text(
+                    "Sta pop-ups toe om de reisgids te openen.",
+                    "Allow pop-ups to open the trip guide.",
+                  ),
+                );
             }}
           >
             <BookOpen className="size-4" /> {text("Reisgids", "Trip guide")}
@@ -582,11 +697,21 @@ function TripDetail() {
             disabled={!moneyEditable}
             onClick={() => {
               if (!hasFeature(state.plan, "pdf_export")) {
-                toast.error(text("PDF-declaraties zitten in Pro en hoger.", "PDF expense reports are available on Pro and above."));
+                toast.error(
+                  text(
+                    "PDF-declaraties zitten in Pro en hoger.",
+                    "PDF expense reports are available on Pro and above.",
+                  ),
+                );
                 return;
               }
               if (!openPdf(trip, base, rates, state.branding, locale))
-                toast.error(text("Sta pop-ups toe om de PDF te genereren.", "Allow pop-ups to generate the PDF."));
+                toast.error(
+                  text(
+                    "Sta pop-ups toe om de PDF te genereren.",
+                    "Allow pop-ups to generate the PDF.",
+                  ),
+                );
             }}
           >
             <FileText className="size-4" /> PDF {text("declaratie", "expense report")}
@@ -597,7 +722,9 @@ function TripDetail() {
       {tripStatus(trip) === "upcoming" && (
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">{text("Aftellen tot vertrek", "Countdown to departure")}</CardTitle>
+            <CardTitle className="text-sm">
+              {text("Aftellen tot vertrek", "Countdown to departure")}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Countdown date={trip.start} />
@@ -611,9 +738,14 @@ function TripDetail() {
         <Stat label={text("Uitgegeven", "Spent")} value={formatMoney(spent, base)} />
         <Stat label="Budget" value={formatMoney(trip.budget, base)} />
         {estimatedFuel > 0 && (
-          <Stat label={text("Brandstofprognose", "Fuel estimate")} value={formatMoney(estimatedFuel, base)} />
+          <Stat
+            label={text("Brandstofprognose", "Fuel estimate")}
+            value={formatMoney(estimatedFuel, base)}
+          />
         )}
-        {canMarkBillable && <Stat label={text("Declarabel", "Billable")} value={formatMoney(billable, base)} />}
+        {canMarkBillable && (
+          <Stat label={text("Declarabel", "Billable")} value={formatMoney(billable, base)} />
+        )}
       </div>
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
 
@@ -621,7 +753,11 @@ function TripDetail() {
         <TabsList className="h-auto max-w-full flex-wrap justify-start">
           <TabsTrigger value="route">{text("Routekaart", "Route map")}</TabsTrigger>
           <TabsTrigger value="plan">{text("Reisschema", "Itinerary")}</TabsTrigger>
-          {editable && <TabsTrigger value="plan-edit">{text("Reisschema aanpassen", "Edit itinerary")}</TabsTrigger>}
+          {editable && (
+            <TabsTrigger value="plan-edit">
+              {text("Reisschema aanpassen", "Edit itinerary")}
+            </TabsTrigger>
+          )}
           <TabsTrigger value="expenses">{text("Uitgaven", "Expenses")}</TabsTrigger>
           <TabsTrigger value="money">{text("Geld-tools", "Money tools")}</TabsTrigger>
           <TabsTrigger value="packing">{text("Paklijst", "Packing list")}</TabsTrigger>
@@ -641,6 +777,7 @@ function TripDetail() {
                   <span className="text-muted-foreground">{text("Reisnaam", "Trip name")}</span>
                   <Input
                     value={settings.name}
+                    maxLength={TRIP_NAME_MAX_LENGTH}
                     disabled={!editable || settingsSaving}
                     required
                     onChange={(event) =>
@@ -649,19 +786,24 @@ function TripDetail() {
                   />
                 </label>
                 <label className="space-y-1.5 text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">{text("Reisomschrijving", "Trip description")}</span>
+                  <span className="text-muted-foreground">
+                    {text("Reisomschrijving", "Trip description")}
+                  </span>
                   <Textarea
                     value={settings.description}
                     disabled={!editable || settingsSaving}
-                    maxLength={500}
+                    maxLength={TRIP_DESCRIPTION_MAX_LENGTH}
                     rows={4}
-                    placeholder={text("Vertel kort wat deze reis bijzonder maakt. Deze tekst verschijnt ook op de publieke reispagina.", "Briefly describe what makes this trip special. This text also appears on the public trip page.")}
+                    placeholder={text(
+                      "Vertel kort wat deze reis bijzonder maakt. Deze tekst verschijnt ook op de publieke reispagina.",
+                      "Briefly describe what makes this trip special. This text also appears on the public trip page.",
+                    )}
                     onChange={(event) =>
                       setSettings((current) => ({ ...current, description: event.target.value }))
                     }
                   />
                   <span className="block text-right text-xs text-muted-foreground">
-                    {settings.description.length}/500
+                    {settings.description.length}/{TRIP_DESCRIPTION_MAX_LENGTH}
                   </span>
                 </label>
                 <label className="space-y-1.5 text-sm">
@@ -709,7 +851,9 @@ function TripDetail() {
                   />
                 </label>
                 <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">{text("Reistemplate", "Trip template")}</span>
+                  <span className="text-muted-foreground">
+                    {text("Reistemplate", "Trip template")}
+                  </span>
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={settings.template}
@@ -730,7 +874,9 @@ function TripDetail() {
                 </label>
                 <div className="mt-2 flex items-end sm:col-span-2">
                   <Button type="submit" disabled={!editable || settingsSaving}>
-                    {settingsSaving ? text("Opslaan…", "Saving…") : text("Wijzigingen opslaan", "Save changes")}
+                    {settingsSaving
+                      ? text("Opslaan…", "Saving…")
+                      : text("Wijzigingen opslaan", "Save changes")}
                   </Button>
                 </div>
               </form>
@@ -746,13 +892,18 @@ function TripDetail() {
             <CardContent className="space-y-4 text-sm">
               <ToggleSetting
                 label={text("Reis openbaar maken", "Make trip public")}
-                description={text("Toon deze reis op de homepage via een unieke link.", "Show this trip on the homepage through a unique link.")}
+                description={text(
+                  "Toon deze reis op de homepage via een unieke link.",
+                  "Show this trip on the homepage through a unique link.",
+                )}
                 checked={trip.public ?? false}
                 disabled={!tripOwner || sharingSaving}
                 onChange={(checked) =>
                   void saveSharing(
                     { isPublic: checked },
-                    checked ? text("Reis is openbaar gemaakt.", "Trip is now public.") : text("Reis is privé gemaakt.", "Trip is now private."),
+                    checked
+                      ? text("Reis is openbaar gemaakt.", "Trip is now public.")
+                      : text("Reis is privé gemaakt.", "Trip is now private."),
                   )
                 }
               />
@@ -760,7 +911,10 @@ function TripDetail() {
                 <>
                   <ToggleSetting
                     label={text("Budget delen", "Share budget")}
-                    description={text("Toon het budget op de openbare reispagina.", "Show the budget on the public trip page.")}
+                    description={text(
+                      "Toon het budget op de openbare reispagina.",
+                      "Show the budget on the public trip page.",
+                    )}
                     checked={trip.shareFinancials ?? false}
                     disabled={!tripOwner || sharingSaving}
                     onChange={(checked) =>
@@ -847,11 +1001,21 @@ function TripDetail() {
             </CardHeader>
             <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm">
               <p className="text-muted-foreground">
-                {text("Archiveer de reis of verwijder hem definitief.", "Archive the trip or delete it permanently.")}
+                {text(
+                  "Archiveer de reis of verwijder hem definitief.",
+                  "Archive the trip or delete it permanently.",
+                )}
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" disabled={!tripOwner} onClick={() => void toggleArchive()}>
-                  <Archive className="size-4" /> {trip.archived ? text("Heractiveren", "Reactivate") : text("Archiveren", "Archive")}
+                <Button
+                  variant="outline"
+                  disabled={!tripOwner}
+                  onClick={() => void toggleArchive()}
+                >
+                  <Archive className="size-4" />{" "}
+                  {trip.archived
+                    ? text("Heractiveren", "Reactivate")
+                    : text("Archiveren", "Archive")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -859,7 +1023,10 @@ function TripDetail() {
                   onClick={async () => {
                     if (
                       window.confirm(
-                        text(`Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`, `Are you sure you want to permanently delete ${trip.name}?`),
+                        text(
+                          `Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`,
+                          `Are you sure you want to permanently delete ${trip.name}?`,
+                        ),
                       )
                     ) {
                       try {
@@ -870,7 +1037,10 @@ function TripDetail() {
                         toast.error(
                           error instanceof Error
                             ? error.message
-                            : text("Reis kon niet worden verwijderd.", "Trip could not be deleted."),
+                            : text(
+                                "Reis kon niet worden verwijderd.",
+                                "Trip could not be deleted.",
+                              ),
                         );
                       }
                     }
@@ -913,14 +1083,25 @@ function TripDetail() {
             <div className="space-y-4">
               <Card className="surface">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">{text("Bestemming toevoegen", "Add destination")}</CardTitle>
+                  <CardTitle className="text-sm">
+                    {text("Bestemming toevoegen", "Add destination")}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <PlaceSearch disabled={!editable} onPick={(location) => void addStop(location)} />
                   {trip.stops.length > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      {trip.stops.length} {text(trip.stops.length === 1 ? "bestemming" : "bestemmingen", trip.stops.length === 1 ? "destination" : "destinations")}
-                      {activeStopId ? text(" · geselecteerde bestemming is op de kaart uitgelicht", " · selected destination is highlighted on the map") : ""}
+                      {trip.stops.length}{" "}
+                      {text(
+                        trip.stops.length === 1 ? "bestemming" : "bestemmingen",
+                        trip.stops.length === 1 ? "destination" : "destinations",
+                      )}
+                      {activeStopId
+                        ? text(
+                            " · geselecteerde bestemming is op de kaart uitgelicht",
+                            " · selected destination is highlighted on the map",
+                          )
+                        : ""}
                     </p>
                   )}
                   <ul className="space-y-2">
@@ -939,7 +1120,9 @@ function TripDetail() {
                           <button type="button" className="min-w-0 flex-1 text-left">
                             <span className="mr-2 text-muted-foreground">{stopIndex + 1}.</span>
                             {s.name}
-                            <span className="ml-2 text-xs text-muted-foreground">{localizeCountry(s.country, locale)}</span>
+                            <span className="ml-2 text-xs text-muted-foreground">
+                              {localizeCountry(s.country, locale)}
+                            </span>
                           </button>
                           {editable && (
                             <button
@@ -967,7 +1150,10 @@ function TripDetail() {
                     >
                       {showAllStops
                         ? text("Minder bestemmingen tonen", "Show fewer destinations")
-                        : text(`Alle ${trip.stops.length} bestemmingen tonen`, `Show all ${trip.stops.length} destinations`)}
+                        : text(
+                            `Alle ${trip.stops.length} bestemmingen tonen`,
+                            `Show all ${trip.stops.length} destinations`,
+                          )}
                     </Button>
                   )}
                 </CardContent>
@@ -1009,7 +1195,10 @@ function TripDetail() {
         {editable && (
           <TabsContent value="plan-edit" className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              {text("Voeg boekingen en eigen programma-items toe of wijzig ze. Het overzicht zelf staat in Reisschema.", "Add or edit bookings and your own itinerary items. The overview is available under Itinerary.")}
+              {text(
+                "Voeg boekingen en eigen programma-items toe of wijzig ze. Het overzicht zelf staat in Reisschema.",
+                "Add or edit bookings and your own itinerary items. The overview is available under Itinerary.",
+              )}
             </p>
             <TripBookings
               trip={trip}
@@ -1037,7 +1226,10 @@ function TripDetail() {
                   toast.error(
                     error instanceof Error
                       ? error.message
-                      : text("Programma-item kon niet worden opgeslagen.", "Itinerary item could not be saved."),
+                      : text(
+                          "Programma-item kon niet worden opgeslagen.",
+                          "Itinerary item could not be saved.",
+                        ),
                   );
                   throw error;
                 }
@@ -1053,7 +1245,10 @@ function TripDetail() {
                   toast.error(
                     error instanceof Error
                       ? error.message
-                      : text("Programma-item kon niet worden verwijderd.", "Itinerary item could not be deleted."),
+                      : text(
+                          "Programma-item kon niet worden verwijderd.",
+                          "Itinerary item could not be deleted.",
+                        ),
                   );
                   throw error;
                 }
@@ -1066,7 +1261,9 @@ function TripDetail() {
           <Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">
-                {editingExpenseId ? text("Uitgave wijzigen", "Edit expense") : text("Uitgave boeken (elke valuta)", "Add expense (any currency)")}
+                {editingExpenseId
+                  ? text("Uitgave wijzigen", "Edit expense")
+                  : text("Uitgave boeken (elke valuta)", "Add expense (any currency)")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -1145,7 +1342,9 @@ function TripDetail() {
                 )}
               </div>
               <div className="rounded-xl border border-border bg-muted/25 p-3">
-                <p className="mb-2 text-xs font-medium text-muted-foreground">{text("Verdelen tussen", "Split between")}</p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">
+                  {text("Verdelen tussen", "Split between")}
+                </p>
                 <div className="flex flex-wrap gap-x-4 gap-y-2">
                   {financialTravelers.map((traveler) => {
                     const selected = !draft.splitWith?.length || draft.splitWith.includes(traveler);
@@ -1197,10 +1396,17 @@ function TripDetail() {
                     {text("Annuleren", "Cancel")}
                   </Button>
                 )}
-                <Button onClick={() => void addExpense()} disabled={!moneyEditable || expenseSaving}>
+                <Button
+                  onClick={() => void addExpense()}
+                  disabled={!moneyEditable || expenseSaving}
+                >
                   <Plus className="size-4" />{" "}
-                  {expenseSaving ? text("Opslaan…", "Saving…") : editingExpenseId ? text("Opslaan", "Save") : text("Boeken", "Add")} (
-                  {formatMoney(convert(draft.amount || 0, draft.currency, base, rates), base)})
+                  {expenseSaving
+                    ? text("Opslaan…", "Saving…")
+                    : editingExpenseId
+                      ? text("Opslaan", "Save")
+                      : text("Boeken", "Add")}{" "}
+                  ({formatMoney(convert(draft.amount || 0, draft.currency, base, rates), base)})
                 </Button>
               </div>
             </CardContent>
@@ -1242,11 +1448,18 @@ function TripDetail() {
                             className="mt-1 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
                             onClick={() => void openReceipt(e)}
                           >
-                            <Paperclip className="size-3" /> {e.receiptName || text("Bon bekijken", "View receipt")}
+                            <Paperclip className="size-3" />{" "}
+                            {e.receiptName || text("Bon bekijken", "View receipt")}
                           </button>
                         )}
                       </td>
-                      <td className="p-3">{expenseCategoryLabel(e.category, CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category, text)}</td>
+                      <td className="p-3">
+                        {expenseCategoryLabel(
+                          e.category,
+                          CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category,
+                          text,
+                        )}
+                      </td>
                       <td className="p-3">{e.paidBy}</td>
                       <td className="p-3 text-right">
                         {e.amount.toFixed(2)} {e.currency}
@@ -1323,16 +1536,27 @@ function TripDetail() {
   );
 }
 
-function tripStatusLabel(status: ReturnType<typeof tripStatus>, text: (nl: string, en: string) => string) {
+function tripStatusLabel(
+  status: ReturnType<typeof tripStatus>,
+  text: (nl: string, en: string) => string,
+) {
   if (status === "current") return text("Huidig", "Current");
   if (status === "upcoming") return text("Aankomend", "Upcoming");
   return text("Gearchiveerd", "Archived");
 }
 
-function expenseCategoryLabel(id: string, fallback: string, text: (nl: string, en: string) => string) {
+function expenseCategoryLabel(
+  id: string,
+  fallback: string,
+  text: (nl: string, en: string) => string,
+) {
   const labels: Record<string, string> = {
-    transport: "Transport", lodging: "Accommodation", food: "Food and drink",
-    activities: "Activities", shopping: "Shopping", other: "Other",
+    transport: "Transport",
+    lodging: "Accommodation",
+    food: "Food and drink",
+    activities: "Activities",
+    shopping: "Shopping",
+    other: "Other",
   };
   return text(fallback, labels[id] ?? fallback);
 }
