@@ -2,9 +2,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3,
+  AlertTriangle,
   BookOpenText,
   ChevronDown,
   CreditCard,
+  Compass,
   Languages,
   LogIn,
   LogOut,
@@ -279,10 +281,10 @@ function AppShellContent({ children }: { children: ReactNode }) {
           className="flex flex-wrap items-center gap-x-4 gap-y-2"
         >
           <FooterMenu label={text("Ontdek", "Explore")}>
-            <DropdownMenuItem asChild><Link to="/mogelijkheden">{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/roadmap">Roadmap</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/mogelijkheden"><Map className="size-4"/>{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/roadmap"><Compass className="size-4"/>Roadmap</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/changelog"><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/bekende-problemen">{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/bekende-problemen"><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
             <DropdownMenuItem asChild><Link to="/privacy">{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>

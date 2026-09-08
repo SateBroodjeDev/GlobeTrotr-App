@@ -57,12 +57,6 @@ async function syncGithub(issue: any) {
   return { synced: true, number: result.number };
 }
 
-const BETA_KNOWN_ISSUES = [
-  { title_nl: "Automatische e-mails zijn nog niet actief", title_en: "Automated emails are not active yet", description_nl: "Account- en reisuitnodigingen worden tijdens de beta nog niet automatisch per e-mail verzonden. Deel uitnodigingen voorlopig rechtstreeks met de reiziger.", description_en: "Account and trip invitations are not sent automatically by email during the beta. For now, share invitations directly with the traveller.", category: "improvement", status: "planned", severity: "medium", public: true },
-  { title_nl: "Inloggen via Apple, Google en Microsoft volgt later", title_en: "Apple, Google and Microsoft sign-in will follow later", description_nl: "De internationale beta gebruikt e-mail en wachtwoord. Inloggen via externe accounts wordt na de beta-infrastructuur toegevoegd.", description_en: "The international beta uses email and password. Sign-in with external accounts will be added after the beta infrastructure is ready.", category: "improvement", status: "planned", severity: "low", public: true },
-  { title_nl: "Feedback wordt nog niet automatisch vertaald", title_en: "Feedback is not translated automatically yet", description_nl: "Feedback en bekende problemen ondersteunen Nederlands en Engels, maar vertalingen moeten tijdens de beta nog handmatig worden ingevoerd.", description_en: "Feedback and known issues support Dutch and English, but translations still need to be entered manually during the beta.", category: "translation", status: "planned", severity: "low", public: true },
-] as const;
-
 export const getCorporateAdminData = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const db = await adminDb(context.userId);
   const [feedback, issues, workspaces, trips, auditLog, profiles, authUsers] = await Promise.all([
@@ -135,6 +129,37 @@ export const updatePlatformUser = createServerFn({ method: "POST" }).middleware(
     return { ok: true };
   });
 
+type HealthStatus = "operational" | "degraded" | "not_configured";
+async function timedCheck(name: string, check: () => Promise<boolean>, configured = true) {
+  const started = Date.now();
+  if (!configured) return { name, status: "not_configured" as HealthStatus, durationMs: 0 };
+  try { return { name, status: await check() ? "operational" as HealthStatus : "degraded" as HealthStatus, durationMs: Date.now() - started }; }
+  catch { return { name, status: "degraded" as HealthStatus, durationMs: Date.now() - started }; }
+}
+async function reachable(url: string, headers?: Record<string,string>) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+  try { const response = await fetch(url, { headers, signal: controller.signal }); return response.ok; }
+  finally { clearTimeout(timeout); }
+}
+
+export const runPlatformHealthChecks = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  const db = await adminDb(context.userId);
+  const githubToken = process.env["GITHUB_ISSUES_TOKEN"]?.trim();
+  const githubRepository = process.env["GITHUB_ISSUES_REPOSITORY"]?.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
+  const checks = await Promise.all([
+    timedCheck("database", async () => !(await db.from("workspaces").select("user_id", { head: true, count: "exact" })).error),
+    timedCheck("storage", async () => !(await db.storage.listBuckets()).error),
+    timedCheck("weather", () => reachable("https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current_weather=true")),
+    timedCheck("rates", () => reachable("https://api.frankfurter.app/latest?from=EUR&to=USD")),
+    timedCheck("github", () => reachable(`https://api.github.com/repos/${githubRepository}`, { Accept: "application/vnd.github+json", Authorization: `Bearer ${githubToken}`, "User-Agent": "GlobeTrotr-Corporate-Admin" }), Boolean(githubToken && githubRepository)),
+    timedCheck("flights", async () => true, Boolean(process.env["SKYLINK_API_KEY"]?.trim())),
+  ]);
+  const result = checks.some(check => check.status === "degraded") ? "failure" : "success";
+  await audit(db, context.userId, "platform.health_check", "platform", null, result, { statuses: Object.fromEntries(checks.map(check => [check.name, check.status])) });
+  return { checkedAt: new Date().toISOString(), checks };
+});
+
 export const saveKnownIssue = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((input: IssueInput) => input).handler(async ({ data, context }) => {
     const db = await adminDb(context.userId);
@@ -163,24 +188,6 @@ export const updateFeedbackStatus = createServerFn({ method: "POST" }).middlewar
     await audit(db, context.userId, "feedback.status.update", "feedback", data.id, "success", { status: data.status });
     return { ok: true };
   });
-
-export const importBetaKnownIssues = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
-  const db = await adminDb(context.userId);
-  const { data: existing, error: readError } = await db.from("known_issues").select("title_en").in("title_en", BETA_KNOWN_ISSUES.map((issue) => issue.title_en));
-  if (readError) throw readError;
-  const existingTitles = new Set((existing ?? []).map((issue: any) => issue.title_en));
-  let imported = 0;
-  for (const issue of BETA_KNOWN_ISSUES) {
-    if (existingTitles.has(issue.title_en)) continue;
-    const { data: saved, error } = await db.from("known_issues").insert(issue).select("*").single();
-    if (error) throw error;
-    const github = await syncGithub(saved);
-    if (github.synced) await db.from("known_issues").update({ github_issue_number: github.number }).eq("id", saved.id);
-    imported += 1;
-  }
-  await audit(db, context.userId, "known_issue.beta_import", "known_issue", null, "success", { imported, skipped: BETA_KNOWN_ISSUES.length - imported });
-  return { imported, skipped: BETA_KNOWN_ISSUES.length - imported };
-});
 
 export const manageAdminRecord = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((input: { kind: "feedback"|"issue"; id: string; action: "archive"|"restore"|"delete" }) => input)

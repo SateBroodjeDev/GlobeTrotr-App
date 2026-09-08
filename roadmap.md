@@ -21,9 +21,11 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Migratie `20260908016000_beta_feedback_and_known_issues.sql` en test `supabase/tests/beta_feedback_and_known_issues.sql` uitgevoerd.
 - [x] Corporate Admin-claim `app_metadata.corporate_admin=true` uitsluitend aan het GlobeTrotr-beheerdersaccount toegekend en opnieuw ingelogd.
 - [x] Server-secrets `GITHUB_ISSUES_TOKEN` en `GITHUB_ISSUES_REPOSITORY` ingesteld; aanmaken en wijzigen synchroniseren correct met GitHub Issues.
-- [x] Corporate Admin kan de drie actuele beta-beperkingen eenmalig importeren en direct naar GitHub synchroniseren: automatische e-mails, OAuth-login en automatische feedbackvertaling.
+- [x] De drie actuele beta-beperkingen zijn eenmalig geïmporteerd en naar GitHub gesynchroniseerd; de tijdelijke importactie is daarna uit Corporate Admin verwijderd.
 - [x] Veilige publieke roadmap op `/roadmap` toegevoegd en vanuit de footer bereikbaar; interne techniek, secrets en beheerwerk blijven uitsluitend in dit bestand.
 - [x] Publieke footer vereenvoudigd tot de menu's **Ontdek** en **Privacy & voorwaarden**; databronnen staan compact op één regel.
+- [x] Footerlinks voor Mogelijkheden, Roadmap en Bekende problemen hebben herkenbare iconen; Corporate Admin heeft vaste onderdeelnavigatie en begrensde, uitklapbare gebruikers- en auditlijsten.
+- [x] Handmatige platformstatus in Corporate Admin controleert database, Storage, Open-Meteo, Frankfurter/ECB en GitHub; SkyLink wordt zonder quotumverbruik op serverconfiguratie gecontroleerd en de controle komt in de auditlog.
 - [x] Corporate Admin versterkt met een relationele `platform_admins`-allowlist naast de bestaande Auth-claim en een server-side auditlog voor inzage en beheeracties.
 - [x] Afgeschermd gebruikersoverzicht toegevoegd met zoeken, bevestigingsstatus, laatste login, taal en abonnement; profielnaam, taal en plan zijn met verplichte reden en auditregistratie wijzigbaar.
 - [ ] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitvoeren.
@@ -659,7 +661,8 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 - [ ] Feedback-inbox verder uitbreiden met labels, eigenaar, prioriteit, interne notities, duplicaten koppelen en bulkstatus
 - [ ] Bekende problemen vanuit Corporate Admin publiceren, wijzigen, vertalen en oplossen; openbare statuspagina en GitHub Issues blijven gesynchroniseerd
 - [ ] Storings- en foutoverzicht met aantallen, getroffen routes/versies en trend, zonder onnodige persoonsgegevens in foutmeldingen
-- [ ] Operationele status van Supabase, Storage, vluchtprovider, kaarten, weer, valuta, e-mail en betalingen tonen op basis van veilige healthchecks
+- [ ] Operationele status verder uitbreiden met kaarten, e-mail en betalingen zodra daarvoor gecontroleerde serverintegraties bestaan
+- [x] Veilige handmatige healthchecks voor database, Storage, vluchtconfiguratie, weer, valuta en GitHub Issues toegevoegd
 - [ ] Interne taken en incidenten koppelen aan feedback, bekende problemen, GitHub Issues en releases
 
 ### Platform- en gebruikersbeheer

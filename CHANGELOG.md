@@ -20,11 +20,13 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Migratie `20260908017000_archive_feedback_and_issues.sql` voegt de archiveerstatus toe.
 - Feedback en bekende problemen gebruiken dezelfde vertaalde categorieën: fout, verbetering, idee, gebruiksgemak, vertaling, beveiliging en overig.
 - Corporate Admin toont echte platform-KPI's voor workspaces, plannen, reizen en open werk, plus zoeken en filteren in feedback en bekende problemen.
-- Corporate Admin kan de actuele beta-beperkingen zonder dubbelingen importeren en als bekende problemen naar GitHub synchroniseren.
+- De actuele beta-beperkingen zijn eenmalig zonder dubbelingen geïmporteerd en naar GitHub gesynchroniseerd; de tijdelijke importknop is daarna opgeruimd.
 - Een nieuwe publieke roadmap toont in NL/EN waar GlobeTrotr nu, hierna en later aan werkt en is via de footer bereikbaar.
 - Corporate Admin vereist nu naast de beveiligde Auth-claim ook een actieve relationele beheerderstoewijzing; dashboardinzage en beheeracties worden in een afgeschermde auditlog vastgelegd.
 - Corporate Admin heeft nu doorzoekbaar gebruikersbeheer voor profielnaam, accounttaal en abonnement; iedere wijziging vereist een interne reden en verschijnt in de auditlog.
 - De footer groepeert productpagina's en juridische informatie in twee compacte menu's en toont databronnen op één regel.
+- Mogelijkheden, Roadmap en Bekende problemen hebben iconen; Corporate Admin heeft een vaste sectienavigatie en korte gebruikers- en activiteitenlijsten die op verzoek uitklappen.
+- Corporate Admin bevat een handmatige platformcontrole voor database, Storage, weer, valuta, GitHub en SkyLink-configuratie, inclusief responstijd en auditregistratie.
 
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 
