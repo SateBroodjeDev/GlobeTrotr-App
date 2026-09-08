@@ -10,6 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" && search.redirect.startsWith("/") && !search.redirect.startsWith("//")
+      ? search.redirect.slice(0, 500)
+      : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Inloggen — GlobeTrotr workspace" },
@@ -36,12 +41,15 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const { session } = useAuth();
+  const { redirect } = Route.useSearch();
   const { text } = useLocale();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (session) navigate({ to: "/dashboard", replace: true });
-  }, [session, navigate]);
+    if (!session) return;
+    if (redirect) window.location.replace(redirect);
+    else navigate({ to: "/dashboard", replace: true });
+  }, [session, navigate, redirect]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,7 +60,7 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}${redirect ?? ""}`,
             data: { full_name: name },
           },
         });
@@ -111,8 +119,12 @@ function AuthPage() {
               )}{" "}
               <strong>{email}</strong>.{" "}
               {text(
-                "Klik op de link om je workspace te activeren.",
-                "Follow the link to activate your workspace.",
+                redirect
+                  ? "Klik op de link om je account te bevestigen. Daarna kom je terug bij de uitnodiging."
+                  : "Klik op de link om je workspace te activeren.",
+                redirect
+                  ? "Follow the link to confirm your account. You will then return to the invitation."
+                  : "Follow the link to activate your workspace.",
               )}
             </p>
           ) : (

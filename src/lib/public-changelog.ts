@@ -41,6 +41,22 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-secure-trip-invitations",
+    version: "Beta 0.14",
+    publishedAt: "2026-09-09T12:15:00+02:00",
+    title: "Zelf kiezen bij een reisuitnodiging",
+    titleEn: "Choose how to respond to a trip invitation",
+    summary: "Reisuitnodigingen werken nu via één beveiligde route met een duidelijke keuze om deel te nemen of te weigeren.",
+    summaryEn: "Trip invitations now use one secure flow with a clear choice to join or decline.",
+    changes: [
+      { kind: "new", title: "Beveiligde uitnodigingslink", titleEn: "Secure invitation link", description: "Een reisbeheerder kan na het toevoegen van een reisgenoot direct een zeven dagen geldige link kopiëren en delen.", descriptionEn: "After adding a traveller, a trip manager can immediately copy and share a link that remains valid for seven days." },
+      { kind: "new", title: "Accepteren of weigeren", titleEn: "Accept or decline", description: "De genodigde ziet de reis en aangeboden rol en beslist zelf of die wil deelnemen.", descriptionEn: "The invitee sees the trip and offered role and decides whether to join." },
+      { kind: "new", title: "Antwoorden vanuit meldingen", titleEn: "Respond from notifications", description: "Bestaande accounts kunnen een reisuitnodiging rechtstreeks vanuit hun meldingen accepteren of weigeren.", descriptionEn: "Existing accounts can accept or decline a trip invitation directly from their notifications." },
+      { kind: "secure", title: "Toegang pas na acceptatie", titleEn: "Access only after acceptance", description: "Alleen het account met het bevestigde uitgenodigde e-mailadres kan deelnemen; toevoegen alleen verleent geen toegang.", descriptionEn: "Only the account with the confirmed invited email address can join; being added alone does not grant access." },
+      { kind: "improved", title: "Registreren vanuit een uitnodiging", titleEn: "Register from an invitation", description: "Nieuwe gebruikers keren na accountbevestiging terug naar dezelfde uitnodiging om hun keuze af te ronden.", descriptionEn: "New users return to the same invitation after confirming their account to complete their choice." },
+    ],
+  },
+  {
     id: "2026-09-09-platform-administration",
     version: "Beta 0.13",
     publishedAt: "2026-09-09T10:30:00+02:00",
@@ -53,7 +69,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
       { kind: "improved", title: "Beter accountbeheer", titleEn: "Better account administration", description: "Geautoriseerd beheer kan accountinstellingen gecontroleerd corrigeren en gebruikersdetails met reis- en workspaceactiviteit bekijken.", descriptionEn: "Authorised administration can correct account settings in a controlled way and review user details with trip and workspace activity." },
       { kind: "secure", title: "Veilige accountblokkering", titleEn: "Secure account blocking", description: "Een account kan gecontroleerd worden geblokkeerd en hersteld met een verplichte reden en extra bevestiging.", descriptionEn: "An account can be blocked and restored in a controlled way with a required reason and extra confirmation." },
       { kind: "improved", title: "Duidelijke melding bij accountblokkering", titleEn: "Clear account blocking message", description: "Geblokkeerde gebruikers krijgen een Nederlandse of Engelse uitleg met het juiste contactadres.", descriptionEn: "Blocked users receive a Dutch or English explanation with the correct contact address." },
-      { kind: "fixed", title: "Bestaande reisgenoten correct gekoppeld", titleEn: "Existing travellers linked correctly", description: "Een toegevoegd reisgenootadres wordt bij een bestaand account nu betrouwbaar aan de gedeelde reis gekoppeld.", descriptionEn: "An added traveller email is now reliably linked to an existing account and its shared trip." },
+      { kind: "fixed", title: "Bestaande reisgenoten correct herkend", titleEn: "Existing travellers recognised correctly", description: "Een bestaand account ontvangt bij een exact overeenkomend reisgenootadres betrouwbaar een uitnodiging en kiest daarna zelf of het deelneemt.", descriptionEn: "An existing account reliably receives an invitation when its email exactly matches the traveller address and then chooses whether to join." },
       { kind: "fixed", title: "Donkere modus zonder witte flits", titleEn: "Dark mode without a white flash", description: "De gekozen weergave wordt bij vernieuwen toegepast voordat de pagina zichtbaar wordt.", descriptionEn: "The selected appearance is applied on refresh before the page becomes visible." },
       { kind: "secure", title: "Bewaakte platformstatus", titleEn: "Monitored platform status", description: "Beheer kan belangrijke technische diensten veilig controleren zonder vluchtquotum te verbruiken.", descriptionEn: "Administration can safely check important technical services without consuming flight quota." },
       { kind: "improved", title: "Eigen beheerpagina's", titleEn: "Dedicated administration pages", description: "Gebruikers, status, feedback, problemen en auditinformatie hebben ieder een compacte beheerpagina.", descriptionEn: "Users, status, feedback, issues and audit information each have a compact administration page." },

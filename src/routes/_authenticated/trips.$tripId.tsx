@@ -1006,6 +1006,7 @@ function TripDetail() {
 
           <TripMembers
             members={trip.members ?? []}
+            tripId={trip.id}
             plan={state.plan}
             editable={tripOwner}
             ownerName={ownerName}

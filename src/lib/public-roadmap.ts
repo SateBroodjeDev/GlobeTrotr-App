@@ -15,6 +15,6 @@ export const PUBLIC_ROADMAP = [
     status: "later",
     title: ["Slimmere reisassistentie", "Smarter travel assistance"],
     description: ["Meer handwerk wegnemen zonder controle over je reis over te nemen.", "Remove more manual work while keeping you in control of your trip."],
-    items: [["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Uitgebreidere Agency-automatisering", "Expanded Agency automation"]],
+    items: [["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Agencybreed samenwerken met gedeelde reizen en herkenbare branding", "Agency-wide collaboration with shared trips and recognisable branding"], ["Agency-logo en optionele branding per reis", "Agency logo and optional branding per trip"]],
   },
 ] as const;

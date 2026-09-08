@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Bell, Loader2, X } from "lucide-react";
+import { Bell, Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useLocale } from "@/lib/locale";
+import { respondToTripInvitation } from "@/lib/invitation.functions";
 
 const styles = {
   account: {
@@ -65,6 +66,21 @@ export function NotificationPanel({ userId }: { userId: string }) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
     onError: () => toast.error(text("Melding kon niet worden weggeklikt. Probeer het opnieuw.", "The notification could not be dismissed. Please try again.")),
   });
+  const respondInvitation = useMutation({
+    mutationFn: async ({ notificationId, invitationId, response }: { notificationId: string; invitationId: string; response: "accept" | "decline" }) => {
+      const result = await respondToTripInvitation({ data: { invitationId, response } });
+      if (result.status !== "accepted" && result.status !== "declined") throw new Error(result.status);
+      const { error } = await supabase.from("notifications").update({ dismissed_at: new Date().toISOString() }).eq("id", notificationId).eq("user_id", userId);
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: async (result) => {
+      await queryClient.invalidateQueries({ queryKey });
+      toast.success(result.status === "accepted" ? text("Uitnodiging geaccepteerd.", "Invitation accepted.") : text("Uitnodiging geweigerd.", "Invitation declined."));
+      if (result.status === "accepted") window.location.assign("/dashboard");
+    },
+    onError: () => toast.error(text("De uitnodiging kon niet worden verwerkt. Open de uitnodigingslink of probeer het opnieuw.", "The invitation could not be processed. Open the invitation link or try again.")),
+  });
   const count = notifications.data?.count ?? 0;
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -119,6 +135,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
           )}
           {notifications.data?.items.map((notification) => {
             const style = styles[notification.kind];
+            const invitationId = notification.kind === "invitation" && notification.event_key.startsWith("invitation:") ? notification.event_key.slice("invitation:".length) : "";
             return (
               <article key={notification.id} className={`rounded-xl border p-3 ${style.color}`}>
                 <div className="flex items-start gap-2">
@@ -158,6 +175,12 @@ export function NotificationPanel({ userId }: { userId: string }) {
                       >
                         {text("Bekijk reis", "View trip")}
                       </Link>
+                    )}
+                    {invitationId && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <Button size="sm" disabled={respondInvitation.isPending} onClick={() => respondInvitation.mutate({ notificationId: notification.id, invitationId, response: "accept" })}><Check className="size-4" />{text("Accepteren", "Accept")}</Button>
+                        <Button size="sm" variant="outline" disabled={respondInvitation.isPending} onClick={() => respondInvitation.mutate({ notificationId: notification.id, invitationId, response: "decline" })}><X className="size-4" />{text("Weigeren", "Decline")}</Button>
+                      </div>
                     )}
                   </div>
                   <Button

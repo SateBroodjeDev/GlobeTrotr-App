@@ -4,6 +4,16 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 12:15 CEST — Uitnodigingen zichtbaar aangesloten
+
+- Reisbeheerders krijgen na het toevoegen van een reisgenoot een eenmalig getoonde, zeven dagen geldige uitnodigingslink die ze veilig kunnen kopiëren.
+- De nieuwe route `/uitnodiging/$token` toont uitsluitend veilige uitnodigingsinformatie en laat het geverifieerde uitgenodigde account accepteren of weigeren.
+- Bestaande accounts kunnen uitnodigingen rechtstreeks in het persistente meldingenpaneel accepteren of weigeren.
+- Nieuwe gebruikers keren na registratie en e-mailbevestiging terug naar dezelfde uitnodiging; de interne redirect wordt begrensd en accepteert uitsluitend lokale paden.
+- De oude automatische koppeling tijdens het laden van een workspace is verwijderd. Alleen de atomaire database-respons activeert een reisdeelname.
+- Gebruikersteksten bij Reisgenoten beschrijven nu de expliciete acceptatie in NL en EN; de uitnodigingslink blijft ook op smalle schermen bruikbaar en meldt een mislukte clipboardactie.
+- De publieke changelog bevat hiervoor een zelfstandige Beta 0.14-release.
+
 ## 2026-09-09 11:15 CEST — Uitnodigingsflow uitgewerkt
 
 - De roadmap beschrijft één beveiligde uitnodigingsbron met drie kanalen: e-mail, persistente accountmelding en deelbare link.
@@ -11,6 +21,9 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Bestaande accounts krijgen uiteindelijk accepteren/weigeren in hun meldingen; nieuwe gebruikers kunnen via de uitnodigingslink registreren en daarna naar dezelfde uitnodiging terugkeren.
 - E-mailbezorging blijft afhankelijk van Lovable Cloud Emails, maar de melding- en linkroutes kunnen eerder worden gebouwd.
 - De thema-initialisatie draait vóór de eerste browserpaint en gebruikt een kleine functionele voorkeurcache, waardoor vernieuwen in donkere modus geen witte flits meer geeft; de opslag staat in de privacy-inventaris.
+- Migratie `20260908020000_trip_invitation_responses.sql` voegt expliciet weigeren toe en maakt accepteren/weigeren atomair, idempotent, aan het bevestigde accountadres gebonden en uitsluitend uitvoerbaar via de service-role.
+- Nieuwe serverfuncties maken een zeven dagen geldige uitnodiging, geven uitsluitend veilige uitnodigingsdetails terug en verwerken een antwoord via een linktoken of melding-ID.
+- SQL-regressietest `supabase/tests/trip_invitation_responses.sql` controleert verkeerde accounts, actieve toegang na acceptatie, geen toegang na weigeren en herhaalde acceptatie.
 
 ## 2026-09-09 10:30 CEST — Corporate Admin en gebruikersinzage
 

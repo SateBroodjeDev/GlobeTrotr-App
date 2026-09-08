@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Plus, RotateCcw, Trash2, Users } from "lucide-react";
+import { Check, Copy, Link2, Plus, RotateCcw, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { PlanId, TripMember, TripMemberRole } from "@/lib/types";
 import { uid } from "@/lib/workspace";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/locale";
+import { createTripInvitation } from "@/lib/invitation.functions";
 
 const PERSONAL_ROLES: { id: TripMemberRole; label: string; description: string }[] = [
   { id: "traveler", label: "Medereiziger", description: "Plant mee en voegt kosten toe." },
@@ -31,6 +32,7 @@ const labels: Record<TripMemberRole, string> = {
 
 export function TripMembers({
   members,
+  tripId,
   plan,
   editable,
   onChange,
@@ -38,6 +40,7 @@ export function TripMembers({
   ownerEmail = "Eigenaar van deze reis",
 }: {
   members: TripMember[];
+  tripId: string;
   plan: PlanId;
   editable: boolean;
   onChange: (members: TripMember[]) => Promise<void>;
@@ -51,6 +54,7 @@ export function TripMembers({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TripMemberRole>(roles[0]!.id);
   const [saving, setSaving] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
 
   async function saveMembers(next: TripMember[], successMessage: string) {
     setSaving(true);
@@ -107,9 +111,16 @@ export function TripMembers({
           invitedAt: new Date().toISOString(),
         },
       ],
-      text("Reisgenoot toegevoegd. Een bestaand account wordt bij de volgende keer laden automatisch gekoppeld.", "Traveller added. An existing account is linked automatically the next time it loads."),
+      text("Reisgenoot toegevoegd. De genodigde krijgt pas toegang na acceptatie.", "Traveller added. The invitee gets access only after accepting."),
     );
     if (!saved) return;
+    try {
+      const invitation = await createTripInvitation({ data: { tripId, email: email.trim().toLowerCase(), role } });
+      setInviteLink(`${window.location.origin}/uitnodiging/${invitation.token}`);
+      toast.success(text("Uitnodiging aangemaakt. Kopieer de link om hem zelf te delen.", "Invitation created. Copy the link to share it yourself."));
+    } catch {
+      toast.error(text("De reisgenoot is bewaard, maar de beveiligde uitnodigingslink kon niet worden gemaakt.", "The traveller was saved, but the secure invitation link could not be created."));
+    }
     setName("");
     setEmail("");
   }
@@ -131,8 +142,8 @@ export function TripMembers({
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
           {text(
-            "Voeg reisgenoten toe met een rol voor alleen deze reis. Een bestaand account met dit e-mailadres krijgt toegang zodra het opnieuw inlogt. Uitnodigingsmails volgen zodra app-e-mail is geactiveerd. Deze lijst wordt ook gebruikt voor kostenverdeling en de betaler bij boekingen.",
-            "Add travellers with a role for this trip. An existing account with this email address gains access when it signs in again. Invitation emails will follow once app email is enabled. This list is also used for expense splitting and booking payers.",
+            "Voeg reisgenoten toe met een rol voor alleen deze reis. Deel daarna de beveiligde link; bestaande accounts krijgen ook een melding. Toegang ontstaat pas nadat de genodigde accepteert. Uitnodigingsmails volgen zodra app-e-mail is geactiveerd.",
+            "Add travellers with a role for this trip, then share the secure link. Existing accounts also receive a notification. Access is granted only after the invitee accepts. Invitation emails will follow once app email is enabled.",
           )}
         </p>
         <div className="grid gap-2 md:grid-cols-4">
@@ -166,6 +177,7 @@ export function TripMembers({
             <Plus className="size-4" /> {text("Toevoegen", "Add")}
           </Button>
         </div>
+        {inviteLink && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3"><p className="flex items-center gap-2 text-sm font-medium"><Link2 className="size-4" />{text("Uitnodigingslink", "Invitation link")}</p><p className="mt-1 text-xs text-muted-foreground">{text("Deze link wordt alleen nu volledig getoond en verloopt na zeven dagen.", "This link is shown in full only now and expires after seven days.")}</p><div className="mt-3 flex flex-col gap-2 sm:flex-row"><Input className="min-w-0" readOnly value={inviteLink} aria-label={text("Uitnodigingslink", "Invitation link")} /><Button type="button" variant="outline" onClick={async () => { try { await navigator.clipboard.writeText(inviteLink); toast.success(text("Link gekopieerd.", "Link copied.")); } catch { toast.error(text("Kopiëren lukte niet. Selecteer de link handmatig.", "Copying failed. Select the link manually.")); } }}><Copy className="size-4" />{text("Kopiëren", "Copy")}</Button></div></div>}
         <div className="space-y-2">
           <MemberRow name={ownerName} email={ownerEmail} role="owner" status="active" owner />
           {members.map((member) => (

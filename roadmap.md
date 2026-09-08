@@ -33,7 +33,12 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Los gebruikersdetail toegevoegd met aantallen actieve, openbare en gearchiveerde reizen, workspace-aanmaak, laatste activiteit en auditregistratie van iedere inzage.
 - [x] Accounts kunnen vanuit het gebruikersdetail tijdelijk worden geblokkeerd en hersteld; een verplichte reden, herbevestiging, eigen-accountbescherming en auditregistratie beveiligen de actie.
 - [x] Geblokkeerde accounts krijgen bij inloggen een vertaalde uitleg en kunnen via info@globetrotr.nl contact opnemen.
-- [x] Bestaande accounts worden na toevoegen als reisgenoot betrouwbaar gekoppeld via hun server-side geverifieerde en exact overeenkomende e-mailadres.
+- [x] Bestaande accounts krijgen een accountmelding en beveiligde uitnodigingslink; alleen expliciete acceptatie met het server-side geverifieerde, exact overeenkomende e-mailadres activeert de deelname.
+- [x] Databasefundament voor expliciete uitnodigingsacceptatie gebouwd: weigertijdstip, exclusieve responsconstraint en atomaire accepteren/weigeren-RPC's met e-mailbinding en service-role-only uitvoering.
+- [x] Serverfuncties toegevoegd voor een uitnodiging aanmaken, veilig bekijken en accepteren/weigeren via token of accountmelding-ID.
+- [x] Uitnodigingspagina gebouwd voor bestaande en nieuwe accounts, inclusief terugkeer na inloggen of bevestigen van een nieuw account.
+- [x] Accepteren en weigeren vanuit persistente accountmeldingen aangesloten; geaccepteerde reizen verschijnen daarna in het dashboard.
+- [x] Een zeven dagen geldige uitnodigingslink kan vanuit Reisgenoten worden gekopieerd en gedeeld.
 - [x] Licht/donker/systeemthema wordt vóór de eerste browserpaint toegepast, zodat vernieuwen geen korte witte flits meer veroorzaakt.
 - [x] Corporate Admin heeft een eigen operationele shell zonder reis-, Agency- of footernavigatie, met alleen een expliciete terugweg naar het reisplatform.
 - [x] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitgevoerd.
@@ -120,7 +125,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Laatste appversie in de praktijktest gecontroleerd.
 - [x] Drie geautomatiseerde wachtrijtests geslaagd: volgorde/versiedoorgifte, blokkeren na fout en geen opslag na verwijderen. Gerichte TypeScript-controle van de wachtrij en tests, formatteringscontrole en productiebuild geslaagd; bestaande projectbrede TypeScript-fouten blijven open.
 - [x] `supabase/tests/trip_snapshot_versions.sql` zonder foutmelding voltooid; de eerdere praktijktest met twee tabbladen is eveneens geslaagd.
-- [x] Actieve reisleden worden relationeel geladen in hun eigen dashboard; een bestaand account claimt bij opnieuw inloggen alleen uitnodigingen voor het geverifieerde eigen e-mailadres.
+- [x] Actieve, expliciet geaccepteerde reisleden worden relationeel geladen in hun eigen dashboard; alleen de beveiligde uitnodigingsrespons kan een lidmaatschap activeren.
 - [x] Rolgrenzen ook server-side afgedwongen: owner beheert delen/leden/archief, traveler en advisor plannen en beheren kosten, finance beheert alleen kosten en viewer/client zijn alleen-lezen zonder financiële response.
 - [x] Praktijktest samenwerking geslaagd met een bestaand tweede account: gedeelde reis zichtbaar en toegestane acties gecontroleerd voor traveler, advisor, finance, viewer en client.
 - [x] Samenwerking opgenomen in publieke release **Beta 0.7**. E-mailbezorging blijft apart geblokkeerd op activering.
@@ -476,12 +481,12 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 
 De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijktijdig plannen. Grote planners zoals Wanderlog en Roadtrippers behandelen samenwerken als kernfunctionaliteit, niet als Agency-extra. [Wanderlog](https://wanderlog.com/travel-maps) [Roadtrippers](https://roadtrippers.com/about/features/)
 
-- [ ] Eén veilige uitnodigingsbron per reis bouwen in `trip_invitations`; e-mail, accountmelding en deelbare link gebruiken dezelfde eenmalige token, rol, vervaldatum en acceptatiestatus.
+- [x] Eén veilige uitnodigingsbron per reis gebouwd in `trip_invitations`; accountmelding en deelbare link gebruiken dezelfde token, rol, vervaldatum en acceptatiestatus. E-mail sluit hier later op aan.
 - [ ] Route 1 — e-mail: iemand zonder account ontvangt na activering van Lovable Cloud Emails een uitnodiging met reisnaam, afzender en een verlopen/eenmalige acceptatielink.
-- [ ] Route 2 — accountmelding: een bestaand account ontvangt een melding met **Accepteren** en **Weigeren**; GlobeTrotr maakt nooit stilzwijgend een actief lidmaatschap op basis van alleen een e-mailadres.
-- [ ] Route 3 — uitnodigingslink: een genodigde kan via dezelfde link inloggen of een account maken, keert daarna terug naar de uitnodiging en kiest zelf voor deelnemen of weigeren.
+- [x] Route 2 — accountmelding: een bestaand account ontvangt een melding met **Accepteren** en **Weigeren**; GlobeTrotr maakt nooit stilzwijgend een actief lidmaatschap op basis van alleen een e-mailadres.
+- [x] Route 3 — uitnodigingslink: een genodigde kan via dezelfde link inloggen of een account maken, keert daarna terug naar de uitnodiging en kiest zelf voor deelnemen of weigeren.
 - [ ] Reizigers per e-mail uitnodigen voor één specifieke reis, zonder toegang tot alle reizen van de eigenaar
-- [ ] Deelbare uitnodigingslink voor een specifieke reis die werkt voor bestaande én nieuwe accounts: na inloggen of registreren terugkeren naar dezelfde uitnodiging en pas na acceptatie toegang tot de reis krijgen, met server-side controle van het uitnodigingstoken.
+- [x] Deelbare uitnodigingslink voor een specifieke reis die werkt voor bestaande én nieuwe accounts: na inloggen of registreren terugkeren naar dezelfde uitnodiging en pas na acceptatie toegang tot de reis krijgen, met server-side controle van het uitnodigingstoken.
 - [ ] Rollen per reis: eigenaar, bewerker, deelnemer en alleen-lezen
 - [ ] Uitnodiging accepteren/weigeren en lid weer verwijderen
 - [ ] Gedeelde, live wijzigingen met conflictveilige opslag en zichtbare “laatst gewijzigd door”-informatie
@@ -500,18 +505,19 @@ De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijkti
 
 De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij het laden te koppelen. Dit wordt vervangen door expliciete toestemming: iedere uitnodiging wordt eerst `pending`; alleen een server-side geverifieerde acceptatie maakt een actief `trip_members`-record. Weigeren, verlopen en intrekken geven nooit toegang.
 
-> **Uitgesteld:** begin pas met de e-mailimplementatie nadat Lovable Cloud Emails is geactiveerd en `globetrotr.nl` in Lovable is geverifieerd. Tot die tijd wordt de uitnodigingsstatus handmatig beheerd; die verleent geen toegang aan een ander account.
+> **Uitgesteld:** begin pas met de e-mailimplementatie nadat Lovable Cloud Emails is geactiveerd en `globetrotr.nl` in Lovable is geverifieerd. Tot die tijd werken accountmeldingen en deelbare links; alleen expliciete acceptatie verleent toegang.
 
 - [ ] Lovable Cloud Emails activeren voor het project
 - [ ] `globetrotr.nl` verifiëren in **Lovable Cloud → Emails** met de vereiste SPF/DKIM-records
 - [ ] Branded templates maken voor uitnodiging, herinnering, referral en betaalverzoek, met verplichte afmeldvoet waar nodig
 - [ ] Lovable’s server-side e-mailfunctie gebruiken; geen externe SMTP- of e-mailprovider toevoegen
 - [ ] Uitnodigingsmail met persoonlijke naam, reisnaam, afzender en verlopen/eenmalige acceptatielink
-- [ ] Bestaand account herkennen zonder het bestaan van dat account aan de uitnodiger prijs te geven en een persistente uitnodigingsmelding klaarzetten
-- [ ] Uitnodigingsmelding uitbreiden met accepteren/weigeren en een veilige detailpagina met reisnaam, eigenaar, aangeboden rol en vervaldatum
-- [ ] Uitnodiging accepteren via bestaand account of registratie; na Auth terugkeren naar dezelfde link en pas daarna toegang verlenen
-- [ ] Deelbare link kunnen kopiëren vanuit Reisgenoten, ook zolang e-mailbezorging uitstaat
-- [ ] Statussen `pending`, `accepted`, `declined`, `expired` en `revoked` eenduidig tonen; accepteren en weigeren zijn idempotent en worden geaudit
+- [x] Bestaand account herkennen zonder het bestaan van dat account aan de uitnodiger prijs te geven en een persistente uitnodigingsmelding klaarzetten
+- [x] Uitnodigingsmelding uitgebreid met accepteren/weigeren en een veilige detailpagina met reisnaam, aangeboden rol en vervaldatum
+- [x] Uitnodiging accepteren via bestaand account of registratie; na Auth terugkeren naar dezelfde link en pas daarna toegang verlenen
+- [x] Deelbare link kunnen kopiëren vanuit Reisgenoten, ook zolang e-mailbezorging uitstaat
+- [x] Statussen `pending`, `accepted`, `declined`, `expired` en `revoked` in de uitnodigingsroute tonen; accepteren en weigeren zijn idempotent
+- [x] Atomaire database-respons voor `accepted` en `declined` gebouwd; verlopen, ingetrokken, verboden en ongeldige uitnodigingen worden zonder toegang afgewezen
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn
 - [ ] Rate limiting en auditlog voor e-mailverzending; geen mailadres uitlekken in foutmeldingen
 - [ ] De huidige één-workspace-per-account-opzet uitbreiden met veilige toegang per reis, zodat een genodigde niet alle reizen van de eigenaar ziet
@@ -527,6 +533,8 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 
 - [x] **Reisadviseur**, **Financiën** en **Klant/reiziger** als rollen per reis
 - [ ] Workspace-eigenaar: abonnement, branding, team en alle reizen
+- [ ] Actieve interne Agency-teamleden krijgen workspacebreed zicht op alle reizen van hun Agency; hun rol bepaalt vervolgens welke planning-, financiële en beheeracties zij mogen uitvoeren
+- [ ] Klanten en externe reizigers blijven uitsluitend per reis gekoppeld en krijgen nooit automatisch toegang tot alle Agency-reizen
 - [ ] Rechten voor adviseur, financiën en klant daadwerkelijk per actie afdwingen
 - [ ] Rechten daadwerkelijk op de server afdwingen; een rol in de browser of in JSON is niet voldoende
 
@@ -640,13 +648,21 @@ Dit wordt een duidelijk, verzorgd en zelfstandig **Agency Workspace Admin**-dash
 - [ ] Dashboard visueel uitwerken met duidelijke secties, statuskaarten, snelle acties, lege statussen en een goede mobiele weergave
 - [ ] Workspaceprofiel beheren: organisatienaam, bedrijfsgegevens, contactgegevens, standaardvaluta, tijdzone en standaardtaal
 - [ ] Agency-abonnement, gebruikslimieten en facturatie-instellingen op één herkenbare plaats tonen
-- [ ] Branding beheren met live voorbeeld van logo, accentkleur, afzendernaam, domein en klantweergave
+- [ ] Agencybrede branding beheren met live voorbeeld van organisatienaam, logo, accentkleur, afzendernaam, domein en klantweergave
+- [ ] Agency-logo uploaden, vervangen en verwijderen via een afgeschermd Storage-pad met bestandstype-, bestandsgrootte- en eigenaarscontrole
+- [ ] Per reis kunnen kiezen tussen de standaard Agency-branding en een reisafwijking voor logo, accentkleur, afzendernaam en klantweergave
+- [ ] Brandinghiërarchie eenduidig toepassen: geldige reisafwijking → actieve Agency-branding → standaard GlobeTrotr-branding
+- [ ] Agency-branding tonen aan alle actieve interne Agency-teamleden en op klant- en openbare reispagina's waar die branding bewust is ingeschakeld
+- [ ] Bij verlaten/verwijderen van het Agency-team direct alle Agency-branding, logo-URL's en workspacecache uit de sessie verwijderen en weer de normale GlobeTrotr-branding tonen
+- [ ] Bij downgrade of einde van het Agency-abonnement Agency- en reisbranding niet langer uitserveren; instellingen veilig bewaren volgens het bewaarbeleid zodat herstel na een nieuwe upgrade mogelijk is
 - [ ] Relationele `workspace_members`- en `workspace_invitations`-tabellen toevoegen, met UUID, status, verloopdatum en RLS per workspace
 - [ ] Teamleden beheren met rollen: eigenaar, reisadviseur en financiën; klanten blijven uitsluitend per reis gekoppeld
+- [ ] Workspacebrede reisqueries en alle brandingqueries server-side autoriseren via actief `workspace_members`-lidmaatschap en een actief Agency-plan; browserstate of een oud cacheobject verleent nooit toegang
 - [ ] Eigen teamoverzicht met actieve leden, open uitnodigingen, limieten en laatst actieve wijzigingen
 - [ ] Werkvoorraad: aankomende reizen, ontbrekende boekingsdetails, open kosten, onbetaalde facturen en verlopen uitnodigingen
 - [ ] Agency-statistieken alleen uit echte data: actieve klantreizen, uitgaven, declarabel, omzet/openstaand zodra Stripe bestaat en documentgebruik zodra Storage-meting bestaat
 - [ ] Auditlog voor team-, rol-, factuur- en klantwijzigingen met actor, tijdstip en context
+- [ ] Regressietests uitvoeren met twee Agency-teamleden en één klant: alle interne reizen zichtbaar, acties volgens rol begrensd, klant ziet alleen gekoppelde reis, branding gelijk op meerdere accounts en GlobeTrotr-branding direct terug na vertrek of downgrade
 
 ## P1 — GlobeTrotr Corporate Admin
 

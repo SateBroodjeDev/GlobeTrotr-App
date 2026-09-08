@@ -25,6 +25,7 @@ import { Route as AuthenticatedBrandingRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCorporateAdminRouteImport } from './routes/_authenticated/corporate-admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as UitnodigingTokenRouteImport } from './routes/uitnodiging.$token'
 import { Route as AuthenticatedCorporateAdminIndexRouteImport } from './routes/_authenticated/corporate-admin.index'
 import { Route as AuthenticatedCorporateAdminAuditRouteImport } from './routes/_authenticated/corporate-admin.audit'
 import { Route as AuthenticatedCorporateAdminFeedbackRouteImport } from './routes/_authenticated/corporate-admin.feedback'
@@ -115,6 +116,11 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const UitnodigingTokenRoute = UitnodigingTokenRouteImport.update({
+  id: '/uitnodiging/$token',
+  path: '/uitnodiging/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedCorporateAdminIndexRoute =
   AuthenticatedCorporateAdminIndexRouteImport.update({
     id: '/',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/branding': typeof AuthenticatedBrandingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
@@ -238,6 +246,7 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/_authenticated/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/_authenticated/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
@@ -266,6 +275,7 @@ export interface FileRouteTypes {
     | '/corporate-admin'
     | '/dashboard'
     | '/team'
+    | '/uitnodiging/$token'
     | '/corporate-admin/audit'
     | '/corporate-admin/feedback'
     | '/corporate-admin/issues'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/branding'
     | '/dashboard'
     | '/team'
+    | '/uitnodiging/$token'
     | '/corporate-admin/audit'
     | '/corporate-admin/feedback'
     | '/corporate-admin/issues'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/team'
+    | '/uitnodiging/$token'
     | '/_authenticated/corporate-admin/audit'
     | '/_authenticated/corporate-admin/feedback'
     | '/_authenticated/corporate-admin/issues'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   MogelijkhedenRoute: typeof MogelijkhedenRoute
   PrivacyRoute: typeof PrivacyRoute
   RoadmapRoute: typeof RoadmapRoute
+  UitnodigingTokenRoute: typeof UitnodigingTokenRoute
   ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
 }
 
@@ -455,6 +468,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/team'
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/uitnodiging/$token': {
+      id: '/uitnodiging/$token'
+      path: '/uitnodiging/$token'
+      fullPath: '/uitnodiging/$token'
+      preLoaderRoute: typeof UitnodigingTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/corporate-admin/': {
       id: '/_authenticated/corporate-admin/'
@@ -591,6 +611,7 @@ const rootRouteChildren: RootRouteChildren = {
   MogelijkhedenRoute: MogelijkhedenRoute,
   PrivacyRoute: PrivacyRoute,
   RoadmapRoute: RoadmapRoute,
+  UitnodigingTokenRoute: UitnodigingTokenRoute,
   ReisTokenTripIdRoute: ReisTokenTripIdRoute,
 }
 export const routeTree = rootRouteImport

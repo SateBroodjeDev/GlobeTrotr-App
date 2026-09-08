@@ -465,26 +465,6 @@ export const loadWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    // Haal het adres uit Auth zelf. Niet iedere geldige access-token bevat
-    // een bruikbare e-mailclaim, waardoor bestaande accounts anders nooit
-    // aan een vooraf toegevoegd reisgenootrecord worden gekoppeld.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = supabaseAdmin as any;
-    const { data: authenticatedUser, error: authUserError } = await admin.auth.admin.getUserById(userId);
-    if (authUserError || !authenticatedUser.user) throw authUserError ?? new Error("Account niet gevonden.");
-    const verifiedEmail = authenticatedUser.user.email?.trim().toLowerCase() ?? "";
-    if (verifiedEmail) {
-      // Een eigenaar kan vooraf een bestaand account als reisgenoot toevoegen.
-      // Alleen het geverifieerde e-mailadres uit het access token mag die
-      // openstaande relationele lidregel aan het eigen account koppelen.
-      const { error: claimError } = await (supabaseAdmin as unknown as UntypedSupabase)
-        .from("trip_members")
-        .update({ user_id: userId, status: "active", accepted_at: new Date().toISOString() })
-        .is("user_id", null)
-        .eq("email", verifiedEmail)
-        .in("status", ["invited", "active"]);
-      if (claimError) throw claimError;
-    }
     const { data, error } = await supabase
       .from("workspaces")
       .select("data, public_token, share_enabled, share_financials")
