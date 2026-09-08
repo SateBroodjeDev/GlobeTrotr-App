@@ -41,6 +41,46 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-08-actual-fuel-costs",
+    version: "Beta 0.9",
+    publishedAt: "2026-09-08T14:29:00+02:00",
+    title: "Slimmere vervoers- en brandstofkosten",
+    titleEn: "Smarter transport and fuel costs",
+    summary:
+      "Tankuitgaven en de brandstofprognose van een autorit werken nu als één duidelijke berekening.",
+    summaryEn:
+      "Fuel expenses and a drive's fuel estimate now work together as one clear calculation.",
+    changes: [
+      {
+        kind: "new",
+        title: "Kies hoe je reist",
+        titleEn: "Choose how you travel",
+        description:
+          "Leg per rit vast of je met auto, motor, camper, OV, trein, bus, veerboot, taxi, fiets of te voet reist. Alleen eigen brandstofvoertuigen tonen een literprognose.",
+        descriptionEn:
+          "Record whether you travel by car, motorcycle, camper, public transport, train, bus, ferry, taxi, bicycle or on foot. Only personal fuel vehicles show a fuel estimate.",
+      },
+      {
+        kind: "secure",
+        title: "Boekingen bewust openbaar delen",
+        titleEn: "Share bookings intentionally",
+        description:
+          "Kies per reisonderdeel of een veilige samenvatting op de openbare reispagina verschijnt. Boekingsnummers, prijzen, notities en live vluchtgegevens blijven privé.",
+        descriptionEn:
+          "Choose per travel item whether a safe summary appears on the public trip page. Booking references, prices, notes and live flight data remain private.",
+      },
+      {
+        kind: "improved",
+        title: "Werkelijke brandstofkosten zonder dubbeltelling",
+        titleEn: "Actual fuel costs without double counting",
+        description:
+          "Koppel één of meer tankuitgaven aan een autorit. GlobeTrotr vervangt dan automatisch de brandstofprognose van die rit.",
+        descriptionEn:
+          "Link one or more fuel expenses to a drive. GlobeTrotr then automatically replaces that drive's fuel estimate.",
+      },
+    ],
+  },
+  {
     id: "2026-09-08-beta-experience-privacy-controls",
     version: "Beta 0.8",
     publishedAt: "2026-09-08T01:15:00+02:00",
@@ -85,6 +125,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Met een vertrekcode kan GlobeTrotr binnen het beschikbare datumvenster ook het luchthavenrooster controleren wanneer live vluchtstatus nog niets vindt.",
         descriptionEn:
           "With a departure code, GlobeTrotr can also check the airport schedule within the available date window when live flight status returns no result.",
+      },
+      {
+        kind: "fixed",
+        title: "Reisleden en paklijst zeker opgeslagen",
+        titleEn: "Reliable traveller and packing list saves",
+        description:
+          "Wijzigingen aan reisleden en de paklijst wachten nu op bevestiging en herstellen automatisch wanneer opslaan mislukt.",
+        descriptionEn:
+          "Traveller and packing list changes now wait for confirmation and automatically recover when saving fails.",
       },
       {
         kind: "improved",

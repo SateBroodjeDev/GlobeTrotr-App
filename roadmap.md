@@ -23,6 +23,10 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Kostenverdeling gebruikt vaste eigenaar- en `trip_member`-sleutels; dubbele namen en hernoemde reisleden blijven afzonderlijk en correct gekoppeld. Oude naamwaarden worden compatibel omgezet.
 - [ ] Praktijktest na publicatie: maak twee reisleden met dezelfde naam, boek voor ieder een uitgave en wijzig daarna één naam; controleer na herladen dat beide saldi bij de juiste persoon blijven.
 - [x] Herstelmigratie `20260908000000_update_linked_member_roles.sql` en regressietest `supabase/tests/trip_member_role_updates.sql` uitgevoerd; een Agency-eigenaar kan de rol van een bestaand gekoppeld lid wijzigen met behoud van `user_id`, actieve status en acceptatietijd.
+- [x] Werkelijke brandstofuitgaven kunnen expliciet aan een autorit worden gekoppeld; één of meer tankuitgaven vervangen de prognose van die rit en verwijderen of opnieuw koppelen herstelt de juiste berekening.
+- [x] Bij vervoer kiest de gebruiker auto, motor, camper, OV, trein, bus, veerboot, taxi/deelrit, fiets, lopen of anders; alleen eigen brandstofvoertuigen tonen de literprognose.
+- [x] Boekingen kunnen per onderdeel bewust openbaar worden gedeeld met alleen type, titel, datum, tijd en plaatsnamen; de publieke pagina toont deze als compacte kaarten.
+- [ ] Migratie `20260908013000_public_trip_bookings.sql` en SQL-test `supabase/tests/public_trip_bookings.sql` uitvoeren en daarna één gedeelde en één private boeking via een incognitovenster controleren.
 
 - [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
 - [x] Publieke pagina `/changelog` toegevoegd met gebruikersgerichte releases, categorie-iconen, datum en tijd; link staat in de footer.
@@ -120,7 +124,7 @@ OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en
 - [x] Kosten bij een reisonderdeel direct ook als gekoppelde uitgave opslaan
 - [x] Gekoppelde kosten automatisch opruimen wanneer het reisonderdeel wordt verwijderd
 - [x] Uitgaven wijzigen, inclusief verdeling, betaler, valuta en notitie; verrekening berekent direct opnieuw
-- [x] Brandstofprognose per autorit, zichtbaar los van werkelijke uitgaven om dubbeltelling te voorkomen
+- [x] Vervoerssoort per rit en brandstofprognose alleen voor auto, motor en camper; gekoppelde werkelijke brandstofuitgaven vervangen de prognose zodat beide nooit dubbel meetellen
 
 ## Fase 5 — Delen (klaar)
 
@@ -147,7 +151,7 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 - [x] Een interactieve routekaart met genummerde markers, routevolgorde en focus op een geselecteerde bestemming
 - [x] Bestemmingen presenteren als compacte route met aankomstdatum en aantal nachten wanneer ingevuld
 - [x] Handmatige dagplanning tonen als overzichtelijke dagkaarten en tijdlijn
-- [ ] Expliciet deelbare boekingsinformatie aan de publieke dagplanning toevoegen; bepaal eerst per veld wat openbaar mag zijn
+- [x] Expliciet deelbare boekingsinformatie toegevoegd: alleen type, titel, datum, tijd en plaatsnamen; boekingsreferentie, prijs, betaler, notities, live vluchtvelden en coördinaten blijven buiten de publieke API
 - [ ] Weer per bestemming tonen wanneer dit binnen het gekozen plan en de gedeelde gegevens beschikbaar is
 - [x] Budget alleen tonen wanneer **Budget delen** aanstaat; de publieke serverroute stuurt geen uitgaven, betalers, bonnetjes of boekingsdetails mee
 - [x] Een compacte GlobeTrotr-call-to-action tonen; ingelogde gebruikers gaan naar **Mijn reizen**, bezoekers kunnen een account maken
@@ -412,9 +416,10 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 - [x] Activiteiten, boekingen en uitgaven zijn bewerkbaar; gekoppelde kosten synchroniseren direct met budget en verrekening.
 - [x] Huurauto's en doorlopende accommodaties worden slim, zonder dubbele volledige boekingen, per dag weergegeven.
 - [x] Brandstofprognose per autorit, met liters en kosten op basis van afstand, verbruik en brandstofprijs.
-- [ ] Voeg serverbevestiging + herstel van de vorige staat toe aan snelle wijzigingen van boekingen, uitgaven, stops, leden en planning (nu nog debounced/optimistisch).
+- [x] Vervoerssoort opslaan en tonen; lopen, fietsen, OV, trein, bus, veerboot en taxi/deelrit leveren geen onterechte eigen brandstofprognose op.
+- [x] Directe wijzigingen van boekingen, uitgaven, stops, leden, planning en paklijst wachten op serverbevestiging; bij een fout wordt de vorige staat hersteld en verschijnt een blijvende foutmelding.
 - [x] Koppel kostenverdeling aan vaste eigenaar- en `trip_member`-sleutels in plaats van namen; dubbele namen, naamswijzigingen en oude naamwaarden zijn met regressietests afgedekt.
-- [ ] Voeg werkelijke tankbonnen toe en laat een gebruiker expliciet kiezen of een brandstofprognose wordt vervangen, zodat prognose en realisatie nooit dubbel meetellen.
+- [x] Werkelijke tankuitgaven aan een autorit koppelen en expliciet de brandstofprognose van die rit laten vervangen; meerdere uitgaven per rit, bewerken en verwijderen zijn met regressietests afgedekt.
 
 ## P0 — Fundament voor samenwerking
 

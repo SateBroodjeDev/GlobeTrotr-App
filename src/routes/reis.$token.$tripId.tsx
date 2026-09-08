@@ -3,11 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   ArrowRight,
+  BedDouble,
   CalendarDays,
+  Car,
+  Clock3,
   LockKeyhole,
   MapPin,
+  Plane,
   Route as RouteIcon,
   Sparkles,
+  Ticket,
+  TrainFront,
   Wallet,
 } from "lucide-react";
 import { getPublicTrip } from "@/lib/public.functions";
@@ -301,6 +307,83 @@ function PublicTrip() {
           </div>
         )}
       </section>
+
+      {(trip.travelItems ?? []).length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+              {text("Bewust gedeeld", "Shared intentionally")}
+            </p>
+            <h2 className="mt-1 font-display text-2xl font-semibold">
+              {text("Reisonderdelen", "Travel bookings")}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {text(
+                "De eigenaar heeft deze samenvattingen openbaar gemaakt. Privéboekingsgegevens worden niet getoond.",
+                "The owner made these summaries public. Private booking details are not shown.",
+              )}
+            </p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {(trip.travelItems ?? []).map((item, index) => {
+              const ItemIcon =
+                item.type === "flight"
+                  ? Plane
+                  : item.type === "lodging"
+                    ? BedDouble
+                    : item.type === "car_rental"
+                      ? Car
+                      : item.type === "transport"
+                        ? TrainFront
+                        : Ticket;
+              const typeLabel =
+                item.type === "flight"
+                  ? text("Vlucht", "Flight")
+                  : item.type === "lodging"
+                    ? text("Overnachting", "Accommodation")
+                    : item.type === "car_rental"
+                      ? text("Huurauto", "Rental car")
+                      : item.type === "transport"
+                        ? text("Vervoer", "Transport")
+                        : text("Activiteit", "Activity");
+              const route = item.departure?.name
+                ? [item.departure.name, item.arrival?.name].filter(Boolean).join(" → ")
+                : item.location?.name;
+              return (
+                <Card key={`${item.date}-${item.title}-${index}`} className="surface">
+                  <CardContent className="p-5">
+                    <div className="flex items-start gap-3">
+                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                        <ItemIcon className="size-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <Badge variant="secondary">{typeLabel}</Badge>
+                        <h3 className="mt-2 break-anywhere font-medium">{item.title}</h3>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {formatDate(item.date, locale)}
+                          {item.endDate ? ` – ${formatDate(item.endDate, locale)}` : ""}
+                        </p>
+                        {(item.startTime || item.endTime) && (
+                          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Clock3 className="size-3.5" />
+                            {[item.startTime, item.endTime].filter(Boolean).join(" – ")}
+                          </p>
+                        )}
+                        {route && (
+                          <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+                            <MapPin className="mt-0.5 size-3.5 shrink-0" />
+                            <span className="break-anywhere">{route}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {typeof trip.budget === "number" && (
         <Card className="surface overflow-hidden border-primary/20 bg-primary/5">

@@ -23,6 +23,18 @@ export type ItineraryItem = {
 };
 
 export type TravelItemType = "flight" | "lodging" | "transport" | "car_rental" | "activity";
+export type TransportMode =
+  | "car"
+  | "motorcycle"
+  | "camper"
+  | "public_transport"
+  | "train"
+  | "bus"
+  | "ferry"
+  | "taxi"
+  | "bicycle"
+  | "walking"
+  | "other";
 
 export type TravelLocation = {
   name: string;
@@ -63,6 +75,11 @@ export type TravelItem = {
     consumptionPer100Km?: number;
     fuelPricePerLiter?: number;
     fuelCurrency?: string;
+    transportMode?: TransportMode;
+    /** Werkelijke brandstofuitgaven die de prognose voor deze rit vervangen. */
+    fuelActualExpenseIds?: string[];
+    /** Alleen de veilige samenvatting van dit onderdeel mag openbaar worden getoond. */
+    sharePublicly?: boolean;
     /** Optionele drielettercode voor een datumgebonden Schedule-fallback. */
     flightDepartureIata?: string;
     flightDepartureAirport?: string;

@@ -60,6 +60,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
+import {
+  fuelEstimateFor,
+  fuelTravelItemIdForExpense,
+  linkFuelExpense,
+  remainingFuelEstimate,
+} from "@/lib/fuel-costs";
 
 const TripMap = lazy(() => import("@/components/TripMap"));
 
@@ -112,7 +118,7 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 function TripDetail() {
   const { locale, text } = useLocale();
   const { tripId } = Route.useParams();
-  const { state, updateTrip, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
+  const { state, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
   const navigate = useNavigate();
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
@@ -179,19 +185,10 @@ function TripDetail() {
   const billable = trip.expenses
     .filter((e) => e.billable)
     .reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
-  const estimatedFuel = (trip.travelItems ?? [])
-    .filter((travelItem) => travelItem.type === "transport")
-    .reduce((sum, travelItem) => {
-      const details = travelItem.details;
-      const local =
-        (Number(details?.distanceKm ?? 0) *
-          Number(details?.consumptionPer100Km ?? 0) *
-          Number(details?.fuelPricePerLiter ?? 0)) /
-        100;
-      return (
-        sum + convert(local, details?.fuelCurrency ?? travelItem.currency ?? base, base, rates)
-      );
-    }, 0);
+  const fuelTravelItems = (trip.travelItems ?? []).filter(
+    (travelItem) => travelItem.type === "transport" && fuelEstimateFor(travelItem) > 0,
+  );
+  const estimatedFuel = remainingFuelEstimate(trip.travelItems ?? [], trip.expenses, base, rates);
 
   const [draft, setDraft] = useState<Omit<Expense, "id">>({
     date: new Date().toISOString().slice(0, 10),
@@ -203,6 +200,7 @@ function TripDetail() {
     billable: false,
   });
   const [editingExpenseId, setEditingExpenseId] = useState<string>();
+  const [fuelTravelItemId, setFuelTravelItemId] = useState<string>();
   const [expenseSaving, setExpenseSaving] = useState(false);
   const [uploadingReceiptId, setUploadingReceiptId] = useState<string>();
   const [sharePin, setSharePin] = useState("");
@@ -325,6 +323,7 @@ function TripDetail() {
     }
     setExpenseSaving(true);
     try {
+      const expenseId = editingExpenseId ?? uid();
       await saveTripNow(trip.id, (t) => ({
         ...t,
         expenses: editingExpenseId
@@ -333,23 +332,31 @@ function TripDetail() {
                 ? { ...draft, billable: canMarkBillable && draft.billable, id: editingExpenseId }
                 : expense,
             )
-          : [...t.expenses, { ...draft, billable: canMarkBillable && draft.billable, id: uid() }],
-        travelItems: editingExpenseId
-          ? (t.travelItems ?? []).map((travelItem) =>
-              travelItem.expenseId === editingExpenseId
-                ? {
-                    ...travelItem,
-                    title: draft.title.trim(),
-                    date: draft.date,
-                    amount: draft.amount,
-                    currency: draft.currency,
-                  }
-                : travelItem,
-            )
-          : t.travelItems,
+          : [
+              ...t.expenses,
+              { ...draft, billable: canMarkBillable && draft.billable, id: expenseId },
+            ],
+        travelItems: linkFuelExpense(
+          editingExpenseId
+            ? (t.travelItems ?? []).map((travelItem) =>
+                travelItem.expenseId === editingExpenseId
+                  ? {
+                      ...travelItem,
+                      title: draft.title.trim(),
+                      date: draft.date,
+                      amount: draft.amount,
+                      currency: draft.currency,
+                    }
+                  : travelItem,
+              )
+            : (t.travelItems ?? []),
+          expenseId,
+          fuelTravelItemId,
+        ),
       }));
       setDraft({ ...draft, title: "", amount: 0, notes: undefined, splitWith: undefined });
       setEditingExpenseId(undefined);
+      setFuelTravelItemId(undefined);
       toast.success(
         editingExpenseId
           ? text("Uitgave bijgewerkt", "Expense updated")
@@ -557,10 +564,13 @@ function TripDetail() {
       await saveTripNow(trip.id, (current) => ({
         ...current,
         expenses: current.expenses.filter((expense) => expense.id !== expenseId),
-        travelItems: (current.travelItems ?? []).map((travelItem) =>
-          travelItem.expenseId === expenseId
-            ? { ...travelItem, expenseId: undefined, amount: undefined }
-            : travelItem,
+        travelItems: linkFuelExpense(
+          (current.travelItems ?? []).map((travelItem) =>
+            travelItem.expenseId === expenseId
+              ? { ...travelItem, expenseId: undefined, amount: undefined }
+              : travelItem,
+          ),
+          expenseId,
         ),
       }));
       toast.success(text("Uitgave verwijderd.", "Expense deleted."));
@@ -1001,7 +1011,7 @@ function TripDetail() {
             ownerName={ownerName}
             ownerEmail={user?.email ?? "Eigenaar van deze reis"}
             onChange={(members) =>
-              updateTrip(trip.id, (current) => ({
+              saveTripNow(trip.id, (current) => ({
                 ...current,
                 expenses: current.expenses.map((expense) =>
                   normalizeExpenseParticipants(expense, financialParticipants),
@@ -1074,7 +1084,7 @@ function TripDetail() {
           <Packing
             items={trip.packing ?? []}
             editable={editable}
-            onChange={(next) => updateTrip(trip.id, (t) => ({ ...t, packing: next }))}
+            onChange={(next) => saveTripNow(trip.id, (t) => ({ ...t, packing: next }))}
           />
         </TabsContent>
 
@@ -1358,6 +1368,45 @@ function TripDetail() {
                   </label>
                 )}
               </div>
+              {fuelTravelItems.length > 0 && (
+                <div className="grid gap-2 rounded-xl border border-border bg-muted/25 p-3 md:grid-cols-[minmax(0,1fr)_minmax(15rem,1fr)] md:items-center">
+                  <div>
+                    <p className="text-sm font-medium">
+                      {text("Werkelijke brandstofkosten", "Actual fuel costs")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {text(
+                        "Koppel een tankuitgave aan een rit om de prognose voor die rit te vervangen.",
+                        "Link a fuel expense to a drive to replace that drive's estimate.",
+                      )}
+                    </p>
+                  </div>
+                  <select
+                    aria-label={text("Brandstofprognose vervangen", "Replace fuel estimate")}
+                    className="min-h-10 min-w-0 rounded-lg border border-input bg-card px-3 text-sm"
+                    value={fuelTravelItemId ?? ""}
+                    disabled={!moneyEditable}
+                    onChange={(event) => {
+                      const selectedId = event.target.value || undefined;
+                      setFuelTravelItemId(selectedId);
+                      if (selectedId) setDraft({ ...draft, category: "transport" });
+                    }}
+                  >
+                    <option value="">
+                      {text("Geen prognose vervangen", "Do not replace an estimate")}
+                    </option>
+                    {fuelTravelItems.map((travelItem) => (
+                      <option key={travelItem.id} value={travelItem.id}>
+                        {travelItem.title} ·{" "}
+                        {formatMoney(
+                          fuelEstimateFor(travelItem),
+                          travelItem.details?.fuelCurrency ?? travelItem.currency ?? base,
+                        )}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="rounded-xl border border-border bg-muted/25 p-3">
                 <p className="mb-2 text-xs font-medium text-muted-foreground">
                   {text("Verdelen tussen", "Split between")}
@@ -1408,6 +1457,7 @@ function TripDetail() {
                     variant="outline"
                     onClick={() => {
                       setEditingExpenseId(undefined);
+                      setFuelTravelItemId(undefined);
                       setDraft({
                         date: new Date().toISOString().slice(0, 10),
                         title: "",
@@ -1468,6 +1518,11 @@ function TripDetail() {
                             {text("declarabel", "billable")}
                           </Badge>
                         )}
+                        {fuelTravelItemIdForExpense(trip.travelItems ?? [], e.id) && (
+                          <Badge variant="outline" className="ml-2">
+                            {text("werkelijke brandstof", "actual fuel")}
+                          </Badge>
+                        )}
                         {canManageReceipts && e.receiptPath && (
                           <button
                             type="button"
@@ -1520,6 +1575,9 @@ function TripDetail() {
                               className="p-1 text-muted-foreground hover:text-foreground"
                               onClick={() => {
                                 setEditingExpenseId(e.id);
+                                setFuelTravelItemId(
+                                  fuelTravelItemIdForExpense(trip.travelItems ?? [], e.id),
+                                );
                                 setDraft(normalizeExpenseParticipants(e, financialParticipants));
                               }}
                             >

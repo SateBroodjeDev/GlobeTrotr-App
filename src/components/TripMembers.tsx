@@ -40,7 +40,7 @@ export function TripMembers({
   members: TripMember[];
   plan: PlanId;
   editable: boolean;
-  onChange: (members: TripMember[]) => void;
+  onChange: (members: TripMember[]) => Promise<void>;
   ownerName?: string;
   ownerEmail?: string;
 }) {
@@ -50,38 +50,75 @@ export function TripMembers({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<TripMemberRole>(roles[0]!.id);
+  const [saving, setSaving] = useState(false);
 
-  function addMember() {
+  async function saveMembers(next: TripMember[], successMessage: string) {
+    setSaving(true);
+    try {
+      await onChange(next);
+      toast.success(successMessage);
+      return true;
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("Reisgenoten konden niet worden opgeslagen.", "Travellers could not be saved."),
+      );
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function addMember() {
     if (!name.trim() || !email.trim() || !/^\S+@\S+\.\S+$/.test(email)) {
-      toast.error(text("Vul een naam en geldig e-mailadres in.", "Enter a name and valid email address."));
+      toast.error(
+        text("Vul een naam en geldig e-mailadres in.", "Enter a name and valid email address."),
+      );
       return;
     }
     if (members.some((member) => member.email.toLowerCase() === email.trim().toLowerCase())) {
-      toast.error(text("Dit e-mailadres is al toegevoegd aan deze reis.", "This email address has already been added to this trip."));
+      toast.error(
+        text(
+          "Dit e-mailadres is al toegevoegd aan deze reis.",
+          "This email address has already been added to this trip.",
+        ),
+      );
       return;
     }
     if (members.length >= maxMembers) {
-      toast.error(text("Free bevat maximaal twee reisgenoten. Upgrade naar Pro voor onbeperkt.", "Free supports up to two travellers. Upgrade to Pro for unlimited travellers."));
+      toast.error(
+        text(
+          "Free bevat maximaal twee reisgenoten. Upgrade naar Pro voor onbeperkt.",
+          "Free supports up to two travellers. Upgrade to Pro for unlimited travellers.",
+        ),
+      );
       return;
     }
-    onChange([
-      ...members,
-      {
-        id: uid(),
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        role,
-        status: "invited",
-        invitedAt: new Date().toISOString(),
-      },
-    ]);
+    const saved = await saveMembers(
+      [
+        ...members,
+        {
+          id: uid(),
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          role,
+          status: "invited",
+          invitedAt: new Date().toISOString(),
+        },
+      ],
+      text("Reisgenoot toegevoegd als uitgenodigd.", "Traveller added as invited."),
+    );
+    if (!saved) return;
     setName("");
     setEmail("");
-    toast.success(text("Reisgenoot toegevoegd als uitgenodigd.", "Traveller added as invited."));
   }
 
   function updateMember(id: string, patch: Partial<Pick<TripMember, "role" | "status">>) {
-    onChange(members.map((member) => (member.id === id ? { ...member, ...patch } : member)));
+    void saveMembers(
+      members.map((member) => (member.id === id ? { ...member, ...patch } : member)),
+      text("Reisgenoot bijgewerkt.", "Traveller updated."),
+    );
   }
 
   return (
@@ -93,19 +130,22 @@ export function TripMembers({
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          {text("Voeg reisgenoten toe met een rol voor alleen deze reis. Een bestaand account met dit e-mailadres krijgt toegang zodra het opnieuw inlogt. Uitnodigingsmails volgen zodra app-e-mail is geactiveerd. Deze lijst wordt ook gebruikt voor kostenverdeling en de betaler bij boekingen.", "Add travellers with a role for this trip. An existing account with this email address gains access when it signs in again. Invitation emails will follow once app email is enabled. This list is also used for expense splitting and booking payers.")}
+          {text(
+            "Voeg reisgenoten toe met een rol voor alleen deze reis. Een bestaand account met dit e-mailadres krijgt toegang zodra het opnieuw inlogt. Uitnodigingsmails volgen zodra app-e-mail is geactiveerd. Deze lijst wordt ook gebruikt voor kostenverdeling en de betaler bij boekingen.",
+            "Add travellers with a role for this trip. An existing account with this email address gains access when it signs in again. Invitation emails will follow once app email is enabled. This list is also used for expense splitting and booking payers.",
+          )}
         </p>
         <div className="grid gap-2 md:grid-cols-4">
           <Input
             value={name}
-            disabled={!editable}
+            disabled={!editable || saving}
             placeholder={text("Naam", "Name")}
             onChange={(event) => setName(event.target.value)}
           />
           <Input
             type="email"
             value={email}
-            disabled={!editable}
+            disabled={!editable || saving}
             placeholder="E-mail"
             onChange={(event) => setEmail(event.target.value)}
           />
@@ -113,7 +153,7 @@ export function TripMembers({
             aria-label={text("Rol reisgenoot", "Traveller role")}
             className="rounded-lg border border-input bg-card px-3 text-sm"
             value={role}
-            disabled={!editable}
+            disabled={!editable || saving}
             onChange={(event) => setRole(event.target.value as TripMemberRole)}
           >
             {roles.map((item) => (
@@ -122,7 +162,7 @@ export function TripMembers({
               </option>
             ))}
           </select>
-          <Button disabled={!editable} onClick={addMember}>
+          <Button disabled={!editable || saving} onClick={() => void addMember()}>
             <Plus className="size-4" /> {text("Toevoegen", "Add")}
           </Button>
         </div>
@@ -133,12 +173,16 @@ export function TripMembers({
               key={member.id}
               {...member}
               roles={roles}
-              editable={editable}
+              editable={editable && !saving}
               onChangeRole={(nextRole) => updateMember(member.id, { role: nextRole })}
               onChangeStatus={(status) => updateMember(member.id, { status })}
               onRemove={
                 editable
-                  ? () => onChange(members.filter((item) => item.id !== member.id))
+                  ? () =>
+                      void saveMembers(
+                        members.filter((item) => item.id !== member.id),
+                        text("Reisgenoot verwijderd.", "Traveller removed."),
+                      )
                   : undefined
               }
             />
@@ -146,7 +190,10 @@ export function TripMembers({
         </div>
         {plan === "free" && (
           <p className="text-xs text-muted-foreground">
-            {text("Free: maximaal twee reisgenoten per reis. Pro biedt onbeperkte reisgenoten.", "Free: up to two travellers per trip. Pro offers unlimited travellers.")}
+            {text(
+              "Free: maximaal twee reisgenoten per reis. Pro biedt onbeperkte reisgenoten.",
+              "Free: up to two travellers per trip. Pro offers unlimited travellers.",
+            )}
           </p>
         )}
       </CardContent>
@@ -208,10 +255,14 @@ function MemberRow({
             variant="ghost"
             size="icon"
             aria-label={
-              status === "active" ? text(`${name} weer als uitgenodigd markeren`, `Mark ${name} as invited again`) : text(`${name} activeren`, `Activate ${name}`)
+              status === "active"
+                ? text(`${name} weer als uitgenodigd markeren`, `Mark ${name} as invited again`)
+                : text(`${name} activeren`, `Activate ${name}`)
             }
             title={
-              status === "active" ? text("Zet terug op uitgenodigd", "Set back to invited") : text("Handmatig als actief markeren", "Mark as active manually")
+              status === "active"
+                ? text("Zet terug op uitgenodigd", "Set back to invited")
+                : text("Handmatig als actief markeren", "Mark as active manually")
             }
             onClick={() => onChangeStatus(status === "active" ? "invited" : "active")}
           >
@@ -234,7 +285,18 @@ function MemberRow({
   );
 }
 
-function roleLabel(role: TripMemberRole, fallback: string, text: (nl: string, en: string) => string) {
-  const english: Record<TripMemberRole, string> = { owner: "Owner", traveler: "Traveller", viewer: "Viewer", advisor: "Travel advisor", finance: "Finance", client: "Client / traveller" };
+function roleLabel(
+  role: TripMemberRole,
+  fallback: string,
+  text: (nl: string, en: string) => string,
+) {
+  const english: Record<TripMemberRole, string> = {
+    owner: "Owner",
+    traveler: "Traveller",
+    viewer: "Viewer",
+    advisor: "Travel advisor",
+    finance: "Finance",
+    client: "Client / traveller",
+  };
   return text(fallback, english[role]);
 }

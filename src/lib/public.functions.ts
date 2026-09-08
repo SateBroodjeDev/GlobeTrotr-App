@@ -9,6 +9,19 @@ export type PublicStop = {
   nights?: number;
 };
 export type PublicDay = { day: string; title: string; notes?: string | undefined };
+export type PublicTravelLocation = { name: string; country: string };
+export type PublicTravelItem = {
+  type: string;
+  title: string;
+  date: string;
+  endDate?: string;
+  startTime?: string;
+  endTime?: string;
+  transportMode?: string;
+  departure?: PublicTravelLocation;
+  arrival?: PublicTravelLocation;
+  location?: PublicTravelLocation;
+};
 
 export type PublicTripCard = {
   token: string;
@@ -24,6 +37,7 @@ export type PublicTripCard = {
 
 export type PublicTripDetail = PublicTripCard & {
   itinerary: PublicDay[];
+  travelItems: PublicTravelItem[];
   budget?: number;
   currency?: string;
 };
@@ -56,11 +70,69 @@ type RelationalStop = Omit<PublicStop, "arrive"> & {
   position?: number;
 };
 type RelationalDay = PublicDay & { trip_uuid: string; position: number };
+type RelationalTravelItem = {
+  item_type: string;
+  title: string;
+  start_date: string;
+  end_date: string | null;
+  departure: unknown;
+  arrival: unknown;
+  location: unknown;
+  details: unknown;
+};
 type WorkspaceBrand = { user_id: string; public_token: string; branding: unknown; data: unknown };
 type PublicProfile = { id: string; display_name: string | null };
 type UntypedSupabase = { from: (relation: string) => any };
 
 type AnyTrip = Record<string, unknown>;
+
+function publicLocation(value: unknown): PublicTravelLocation | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const location = value as Record<string, unknown>;
+  const name = String(location["name"] ?? "").trim();
+  if (!name) return undefined;
+  return { name, country: String(location["country"] ?? "") };
+}
+
+function publicTravelItem(item: AnyTrip): PublicTravelItem | undefined {
+  const details =
+    item["details"] && typeof item["details"] === "object"
+      ? (item["details"] as Record<string, unknown>)
+      : {};
+  if (details["sharePublicly"] !== true) return undefined;
+  return {
+    type: String(item["type"] ?? "activity"),
+    title: String(item["title"] ?? ""),
+    date: String(item["date"] ?? ""),
+    ...(item["endDate"] ? { endDate: String(item["endDate"]) } : {}),
+    ...(details["startTime"] ? { startTime: String(details["startTime"]) } : {}),
+    ...(details["endTime"] ? { endTime: String(details["endTime"]) } : {}),
+    ...(details["transportMode"] ? { transportMode: String(details["transportMode"]) } : {}),
+    ...(publicLocation(item["departure"]) ? { departure: publicLocation(item["departure"]) } : {}),
+    ...(publicLocation(item["arrival"]) ? { arrival: publicLocation(item["arrival"]) } : {}),
+    ...(publicLocation(item["location"]) ? { location: publicLocation(item["location"]) } : {}),
+  };
+}
+
+function relationalPublicTravelItem(item: RelationalTravelItem): PublicTravelItem | undefined {
+  const details =
+    item.details && typeof item.details === "object"
+      ? (item.details as Record<string, unknown>)
+      : {};
+  if (details["sharePublicly"] !== true) return undefined;
+  return {
+    type: item.item_type,
+    title: item.title,
+    date: item.start_date,
+    ...(item.end_date ? { endDate: item.end_date } : {}),
+    ...(details["startTime"] ? { startTime: String(details["startTime"]) } : {}),
+    ...(details["endTime"] ? { endTime: String(details["endTime"]) } : {}),
+    ...(details["transportMode"] ? { transportMode: String(details["transportMode"]) } : {}),
+    ...(publicLocation(item.departure) ? { departure: publicLocation(item.departure) } : {}),
+    ...(publicLocation(item.arrival) ? { arrival: publicLocation(item.arrival) } : {}),
+    ...(publicLocation(item.location) ? { location: publicLocation(item.location) } : {}),
+  };
+}
 
 async function createPublicDatabaseClient() {
   const url = process.env["SUPABASE_URL"];
@@ -294,7 +366,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       ) {
         return { status: "pin_required" } as PublicTripResult;
       }
-      const [{ data: stops }, { data: itinerary }] = await Promise.all([
+      const [{ data: stops }, { data: itinerary }, { data: travelItems }] = await Promise.all([
         db
           .from("trip_stops")
           .select("trip_uuid, name, country, lat, lon, arrive_date, nights, position")
@@ -306,12 +378,20 @@ export const getPublicTrip = createServerFn({ method: "GET" })
           .eq("trip_uuid", normalizedTrip.trip_uuid)
           .order("day")
           .order("position"),
+        db
+          .from("trip_travel_items")
+          .select("item_type, title, start_date, end_date, departure, arrival, location, details")
+          .eq("trip_uuid", normalizedTrip.trip_uuid)
+          .order("start_date"),
       ]);
       const detail: PublicTripDetail = {
         ...relationalCard(workspace, normalizedTrip, (stops ?? []) as RelationalStop[], authorName),
         itinerary: ((itinerary ?? []) as RelationalDay[]).map(
           ({ trip_uuid: _tripUuid, position: _position, ...item }) => item,
         ),
+        travelItems: ((travelItems ?? []) as RelationalTravelItem[])
+          .map(relationalPublicTravelItem)
+          .filter((item): item is PublicTravelItem => Boolean(item)),
       };
       if (normalizedTrip.share_financials) {
         detail.budget = Number(normalizedTrip.budget ?? 0);
@@ -336,6 +416,9 @@ export const getPublicTrip = createServerFn({ method: "GET" })
           notes: d["notes"] ? String(d["notes"]) : undefined,
         }),
       ),
+      travelItems: (Array.isArray(trip["travelItems"]) ? (trip["travelItems"] as AnyTrip[]) : [])
+        .map(publicTravelItem)
+        .filter((item): item is PublicTravelItem => Boolean(item)),
     };
     if (trip["shareFinancials"] === true) {
       detail.budget = Number(trip["budget"] ?? 0);

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   BedDouble,
   Car,
+  Globe2,
   Loader2,
   MapPin,
   Pencil,
@@ -15,7 +16,7 @@ import {
 import { lookupFlight, type FlightLookup } from "@/lib/flight.functions";
 import { CURRENCIES, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
-import type { TravelItem, TravelItemType, Trip } from "@/lib/types";
+import type { TransportMode, TravelItem, TravelItemType, Trip } from "@/lib/types";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import { toast } from "sonner";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 import { resolveParticipantId, type FinancialParticipant } from "@/lib/settle";
+import { transportModeUsesOwnFuel } from "@/lib/fuel-costs";
 
 const TYPES: { id: TravelItemType; label: string; icon: typeof Plane }[] = [
   { id: "flight", label: "Vlucht", icon: Plane },
@@ -39,6 +41,19 @@ const TYPES: { id: TravelItemType; label: string; icon: typeof Plane }[] = [
   { id: "car_rental", label: "Huurauto", icon: Car },
   { id: "transport", label: "Reis / vervoer", icon: TrainFront },
   { id: "activity", label: "Activiteit", icon: Ticket },
+];
+const TRANSPORT_MODES: { id: TransportMode; nl: string; en: string }[] = [
+  { id: "car", nl: "Auto", en: "Car" },
+  { id: "motorcycle", nl: "Motor", en: "Motorcycle" },
+  { id: "camper", nl: "Camper", en: "Camper" },
+  { id: "public_transport", nl: "Openbaar vervoer", en: "Public transport" },
+  { id: "train", nl: "Trein", en: "Train" },
+  { id: "bus", nl: "Bus", en: "Bus" },
+  { id: "ferry", nl: "Veerboot", en: "Ferry" },
+  { id: "taxi", nl: "Taxi / deelrit", en: "Taxi / rideshare" },
+  { id: "bicycle", nl: "Fiets", en: "Bicycle" },
+  { id: "walking", nl: "Lopen", en: "Walking" },
+  { id: "other", nl: "Anders", en: "Other" },
 ];
 type Draft = Omit<TravelItem, "id" | "departure" | "arrival" | "location" | "amount"> & {
   amount: string;
@@ -135,6 +150,12 @@ export function TripBookings({
   );
   const [editingId, setEditingId] = useState<string | undefined>(initialItem?.id);
   const typeIsMoving = moving(draft.type);
+  const hasLegacyFuelDetails =
+    !draft.details?.transportMode &&
+    (Number(draft.details?.consumptionPer100Km ?? 0) > 0 ||
+      Number(draft.details?.fuelPricePerLiter ?? 0) > 0);
+  const transportUsesFuel =
+    transportModeUsesOwnFuel(draft.details?.transportMode) || hasLegacyFuelDetails;
   const Icon = TYPES.find((type) => type.id === draft.type)?.icon ?? Ticket;
   const fuelEstimate = useMemo(() => {
     const d = draft.details;
@@ -144,8 +165,10 @@ export function TripBookings({
   useEffect(() => {
     if (!payers.some((payer) => payer.id === paidBy)) setPaidBy(payers[0]?.id ?? "Ik");
   }, [paidBy, payers]);
-  const detail = (key: keyof NonNullable<TravelItem["details"]>, value: string | number) =>
-    setDraft((current) => ({ ...current, details: { ...current.details, [key]: value } }));
+  const detail = (
+    key: keyof NonNullable<TravelItem["details"]>,
+    value: string | number | boolean,
+  ) => setDraft((current) => ({ ...current, details: { ...current.details, [key]: value } }));
   const reset = (date = trip.start) => {
     setDraft(emptyDraft(date));
     setDeparture(undefined);
@@ -228,6 +251,10 @@ export function TripBookings({
     const title = draft.title.trim();
     if (!title || !draft.date) {
       toast.error(text("Vul minstens een naam en datum in.", "Enter at least a name and date."));
+      return;
+    }
+    if (draft.type === "transport" && !draft.details?.transportMode && !editingId) {
+      toast.error(text("Kies eerst een vervoerssoort.", "Choose a mode of transport first."));
       return;
     }
     if (draft.type !== "flight" && draft.endDate && draft.endDate < draft.date) {
@@ -586,52 +613,91 @@ export function TripBookings({
           )}
           {draft.type === "transport" && (
             <div className="space-y-3 rounded-xl border border-border bg-muted/25 p-3">
-              <div className="grid items-end gap-3 md:grid-cols-4">
-                <Field label={text("Afstand (km)", "Distance (km)")}>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={draft.details?.distanceKm ?? ""}
-                    disabled={!editable}
-                    onChange={(e) => detail("distanceKm", Number(e.target.value))}
-                  />
-                </Field>
-                <Field label={text("Verbruik (L/100 km)", "Consumption (L/100 km)")}>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value={draft.details?.consumptionPer100Km ?? ""}
-                    disabled={!editable}
-                    onChange={(e) => detail("consumptionPer100Km", Number(e.target.value))}
-                  />
-                </Field>
-                <Field label={text("Brandstofprijs / L", "Fuel price / L")}>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={draft.details?.fuelPricePerLiter ?? ""}
-                    disabled={!editable}
-                    onChange={(e) => detail("fuelPricePerLiter", Number(e.target.value))}
-                  />
-                </Field>
-                <Field label={text("Brandstofvaluta", "Fuel currency")}>
-                  <select
-                    className="form-control"
-                    value={draft.details?.fuelCurrency ?? draft.currency ?? "EUR"}
-                    disabled={!editable}
-                    onChange={(e) => detail("fuelCurrency", e.target.value)}
-                  >
-                    {CURRENCIES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.code}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-              {fuelEstimate.cost > 0 && (
+              <Field label={text("Vervoerssoort", "Mode of transport")}>
+                <select
+                  className="form-control"
+                  value={draft.details?.transportMode ?? ""}
+                  disabled={!editable}
+                  onChange={(event) => {
+                    const transportMode = (event.target.value || undefined) as
+                      TransportMode | undefined;
+                    setDraft((current) => {
+                      const details = { ...current.details, transportMode };
+                      if (!transportModeUsesOwnFuel(transportMode)) {
+                        delete details.distanceKm;
+                        delete details.consumptionPer100Km;
+                        delete details.fuelPricePerLiter;
+                        delete details.fuelCurrency;
+                      }
+                      return { ...current, details };
+                    });
+                  }}
+                >
+                  <option value="">{text("Kies vervoerssoort", "Choose transport mode")}</option>
+                  {TRANSPORT_MODES.map((mode) => (
+                    <option key={mode.id} value={mode.id}>
+                      {text(mode.nl, mode.en)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {transportUsesFuel ? (
+                <div className="grid items-end gap-3 md:grid-cols-4">
+                  <Field label={text("Afstand (km)", "Distance (km)")}>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={draft.details?.distanceKm ?? ""}
+                      disabled={!editable}
+                      onChange={(e) => detail("distanceKm", Number(e.target.value))}
+                    />
+                  </Field>
+                  <Field label={text("Verbruik (L/100 km)", "Consumption (L/100 km)")}>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={draft.details?.consumptionPer100Km ?? ""}
+                      disabled={!editable}
+                      onChange={(e) => detail("consumptionPer100Km", Number(e.target.value))}
+                    />
+                  </Field>
+                  <Field label={text("Brandstofprijs / L", "Fuel price / L")}>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={draft.details?.fuelPricePerLiter ?? ""}
+                      disabled={!editable}
+                      onChange={(e) => detail("fuelPricePerLiter", Number(e.target.value))}
+                    />
+                  </Field>
+                  <Field label={text("Brandstofvaluta", "Fuel currency")}>
+                    <select
+                      className="form-control"
+                      value={draft.details?.fuelCurrency ?? draft.currency ?? "EUR"}
+                      disabled={!editable}
+                      onChange={(e) => detail("fuelCurrency", e.target.value)}
+                    >
+                      {CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              ) : (
+                draft.details?.transportMode && (
+                  <p className="text-xs text-muted-foreground">
+                    {text(
+                      "Voor deze vervoerssoort wordt geen eigen brandstofprognose berekend.",
+                      "No personal fuel estimate is calculated for this mode of transport.",
+                    )}
+                  </p>
+                )
+              )}
+              {transportUsesFuel && fuelEstimate.cost > 0 && (
                 <p className="text-sm text-muted-foreground">
                   {text("Schatting", "Estimate")}: {fuelEstimate.liters.toFixed(1)}{" "}
                   {text("liter", "litres")} ·{" "}
@@ -758,6 +824,27 @@ export function TripBookings({
               onChange={(e) => setDraft((current) => ({ ...current, notes: e.target.value }))}
             />
           </Field>
+          <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/25 p-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={draft.details?.sharePublicly ?? false}
+              disabled={!editable}
+              onChange={(event) => detail("sharePublicly", event.target.checked)}
+            />
+            <span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <Globe2 className="size-4 text-primary" />
+                {text("Delen op de openbare reispagina", "Share on the public trip page")}
+              </span>
+              <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                {text(
+                  "Alleen type, titel, datum, tijd en openbare locaties worden gedeeld. Boekingsnummer, prijs, betaler, notities en live vluchtgegevens blijven privé.",
+                  "Only the type, title, date, time and public locations are shared. Booking reference, price, payer, notes and live flight data remain private.",
+                )}
+              </span>
+            </span>
+          </label>
           <Button
             className="mt-2"
             disabled={!editable || saving || loadingFlight}
@@ -821,6 +908,9 @@ export function TripBookings({
             )}
             {(trip.travelItems ?? []).map((item) => {
               const itemType = TYPES.find((type) => type.id === item.type);
+              const transportMode = TRANSPORT_MODES.find(
+                (mode) => mode.id === item.details?.transportMode,
+              );
               const ItemIcon = itemType?.icon ?? Ticket;
               return (
                 <div
@@ -833,6 +923,11 @@ export function TripBookings({
                       <Badge variant="secondary">
                         {itemType ? travelTypeLabel(itemType.id, itemType.label, text) : ""}
                       </Badge>
+                      {item.details?.sharePublicly && (
+                        <Badge variant="outline" className="gap-1">
+                          <Globe2 className="size-3" /> {text("Openbaar", "Public")}
+                        </Badge>
+                      )}
                     </p>
                     <p className="mt-1 text-muted-foreground">
                       {item.date}
@@ -845,6 +940,12 @@ export function TripBookings({
                     {item.flightStatus && (
                       <p className="mt-1 text-xs text-muted-foreground">
                         {text("Vluchtstatus", "Flight status")}: {item.flightStatus}
+                      </p>
+                    )}
+                    {item.type === "transport" && transportMode && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {text("Vervoerssoort", "Mode of transport")}:{" "}
+                        {text(transportMode.nl, transportMode.en)}
                       </p>
                     )}
                     {item.type === "flight" &&

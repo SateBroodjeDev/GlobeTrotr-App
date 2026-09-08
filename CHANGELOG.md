@@ -4,6 +4,51 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 14:29 CEST — Boekingen bewust openbaar delen
+
+### Publieke reis
+
+- Elk reisonderdeel heeft een afzonderlijke keuze **Delen op de openbare reispagina**; bestaande en nieuwe boekingen zijn standaard niet gedeeld.
+- De openbare reispagina toont gedeelde onderdelen als compacte kaarten met type, titel, datum, tijd en plaatsnamen.
+- Nieuwe migratie `20260908013000_public_trip_bookings.sql` breidt de publieke detail-RPC uit met een vaste allowlist.
+- Boekingsreferentie, prijs, valuta, betaler, notities, aanbieder, vluchtnummer, vluchtstatus, terminal, gate, bagageband en exacte locatiecoördinaten worden niet vrijgegeven.
+- SQL-regressietest `supabase/tests/public_trip_bookings.sql` controleert zowel expliciete toestemming als het ontbreken van private boekingsvelden.
+
+### Controles
+
+- Alle negentien geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+- De nieuwe migratie en SQL-regressietest moeten nog in de gekoppelde Supabase-omgeving worden uitgevoerd.
+
+## 2026-09-08 14:25 CEST — Vervoerssoort en werkelijke brandstofkosten
+
+### Uitgaven
+
+- Een uitgave kan vanuit het uitgavenformulier expliciet als werkelijke brandstofkosten aan een autorit worden gekoppeld.
+- Nieuwe vervoersboekingen vragen om auto, motor, camper, openbaar vervoer, trein, bus, veerboot, taxi/deelrit, fiets, lopen of anders en tonen deze keuze in het boekingsoverzicht.
+- Afstand, literverbruik en brandstofprijs verschijnen alleen voor auto, motor en camper. Andere vervoerssoorten veroorzaken ook bij achtergebleven waarden geen brandstofprognose.
+- Zodra minstens één bestaande tankuitgave aan een rit gekoppeld is, vervangt die realisatie de berekende brandstofprognose van de rit.
+- Meerdere tankuitgaven kunnen bij dezelfde rit horen. Bewerken, opnieuw koppelen en verwijderen werkt de verwijzingen atomair bij via de bestaande versiegestuurde reisopslag.
+- Gekoppelde uitgaven zijn herkenbaar in het uitgavenoverzicht; bonnetjes blijven optioneel beschikbaar binnen het bestaande Agency-recht.
+- De koppeling wordt in het bestaande JSONB-detailveld van het reisonderdeel opgeslagen en vereist geen nieuwe migratie.
+
+### Controles
+
+- Vier regressietests controleren vervoerssoorten zonder eigen brandstof, een actieve prognose, vervanging door een werkelijke uitgave en meerdere veilig gekoppelde tankuitgaven.
+- Alle negentien geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+
+## 2026-09-08 09:56 CEST — Bevestigde opslag voor reisleden en paklijst
+
+### Betrouwbaarheid
+
+- Reisleden toevoegen, verwijderen, activeren en van rol veranderen wacht nu zichtbaar op serverbevestiging.
+- Paklijstitems, afvinkstatussen en sjablonen gebruiken dezelfde bevestigde opslagroute.
+- Tijdens opslag zijn de betreffende acties tijdelijk geblokkeerd; bij een serverfout herstelt de reis naar de vorige bevestigde toestand en blijft invoer waar mogelijk staan.
+- Hiermee gebruiken alle directe wijzigingen van stops, planning, boekingen, uitgaven, reisleden en paklijst dezelfde versiegestuurde opslagroute.
+
+### Controles
+
+- Alle vijftien geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+
 ## 2026-09-08 09:51 CEST — Nabije vluchtplanning via SkyLink
 
 ### Vluchten
