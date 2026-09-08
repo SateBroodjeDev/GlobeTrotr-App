@@ -17,6 +17,7 @@ import { Route as BetaVoorwaardenRouteImport } from './routes/beta-voorwaarden'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as MogelijkhedenRouteImport } from './routes/mogelijkheden'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
@@ -64,6 +65,11 @@ const MogelijkhedenRoute = MogelijkhedenRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/changelog': typeof ChangelogRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
   '/privacy': typeof PrivacyRoute
+  '/roadmap': typeof RoadmapRoute
   '/account': typeof AuthenticatedAccountRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/changelog': typeof ChangelogRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
   '/privacy': typeof PrivacyRoute
+  '/roadmap': typeof RoadmapRoute
   '/account': typeof AuthenticatedAccountRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/changelog': typeof ChangelogRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
   '/privacy': typeof PrivacyRoute
+  '/roadmap': typeof RoadmapRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/mogelijkheden'
     | '/privacy'
+    | '/roadmap'
     | '/account'
     | '/analytics'
     | '/billing'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/mogelijkheden'
     | '/privacy'
+    | '/roadmap'
     | '/account'
     | '/analytics'
     | '/billing'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/changelog'
     | '/mogelijkheden'
     | '/privacy'
+    | '/roadmap'
     | '/_authenticated/account'
     | '/_authenticated/analytics'
     | '/_authenticated/billing'
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   ChangelogRoute: typeof ChangelogRoute
   MogelijkhedenRoute: typeof MogelijkhedenRoute
   PrivacyRoute: typeof PrivacyRoute
+  RoadmapRoute: typeof RoadmapRoute
   ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
 }
 
@@ -296,6 +309,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account': {
@@ -398,6 +418,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangelogRoute: ChangelogRoute,
   MogelijkhedenRoute: MogelijkhedenRoute,
   PrivacyRoute: PrivacyRoute,
+  RoadmapRoute: RoadmapRoute,
   ReisTokenTripIdRoute: ReisTokenTripIdRoute,
 }
 export const routeTree = rootRouteImport

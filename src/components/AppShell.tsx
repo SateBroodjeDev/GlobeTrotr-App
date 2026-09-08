@@ -276,6 +276,9 @@ function AppShellContent({ children }: { children: ReactNode }) {
           <Link to="/mogelijkheden" className="font-medium text-foreground transition-colors hover:text-primary">
             {text("Mogelijkheden", "Features")}
           </Link>
+          <Link to="/roadmap" className="font-medium text-foreground transition-colors hover:text-primary">
+            {text("Roadmap", "Roadmap")}
+          </Link>
           <Link
             to="/changelog"
             className="inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"

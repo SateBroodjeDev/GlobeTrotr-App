@@ -15,12 +15,20 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Feedbackknop verkleind tot een toegankelijk icoon zonder overlopende tekst.
 - [x] Feedback en bekende problemen kunnen worden gearchiveerd, hersteld en definitief verwijderd; statussen en ernst worden in NL/EN weergegeven.
 - [ ] Veilige automatische vertaling van bekende problemen server-side toevoegen nadat een vertaalprovider, verwerkersafspraken, bewaarbeleid en secret zijn gekozen.
-- [ ] Migratie `20260908017000_archive_feedback_and_issues.sql` uitvoeren.
+- [x] Migratie `20260908017000_archive_feedback_and_issues.sql` uitgevoerd.
 - [x] Gedeelde categorieën voor feedback en bekende problemen gebouwd en vertaald weergegeven in beheer en op de openbare probleemlijst.
-- [ ] Migratie `20260908018000_feedback_issue_categories.sql` uitvoeren.
-- [ ] Migratie `20260908016000_beta_feedback_and_known_issues.sql` en test `supabase/tests/beta_feedback_and_known_issues.sql` uitvoeren.
-- [ ] Corporate Admin-claim `app_metadata.corporate_admin=true` uitsluitend aan het GlobeTrotr-beheerdersaccount toekennen en opnieuw inloggen.
-- [ ] Server-secrets `GITHUB_ISSUES_TOKEN` (fine-grained, alleen Issues write voor de doelrepository) en `GITHUB_ISSUES_REPOSITORY` (`owner/repository`) instellen en één synchronisatie testen.
+- [x] Migratie `20260908018000_feedback_issue_categories.sql` uitgevoerd.
+- [x] Migratie `20260908016000_beta_feedback_and_known_issues.sql` en test `supabase/tests/beta_feedback_and_known_issues.sql` uitgevoerd.
+- [x] Corporate Admin-claim `app_metadata.corporate_admin=true` uitsluitend aan het GlobeTrotr-beheerdersaccount toegekend en opnieuw ingelogd.
+- [x] Server-secrets `GITHUB_ISSUES_TOKEN` en `GITHUB_ISSUES_REPOSITORY` ingesteld; aanmaken en wijzigen synchroniseren correct met GitHub Issues.
+- [x] Corporate Admin kan de drie actuele beta-beperkingen eenmalig importeren en direct naar GitHub synchroniseren: automatische e-mails, OAuth-login en automatische feedbackvertaling.
+- [x] Veilige publieke roadmap op `/roadmap` toegevoegd en vanuit de footer bereikbaar; interne techniek, secrets en beheerwerk blijven uitsluitend in dit bestand.
+
+### Actuele bekende beta-beperkingen
+
+- Automatische app-e-mails en reisuitnodigingen zijn nog niet actief.
+- Inloggen met Apple, Google en Microsoft volgt na de beta-infrastructuur.
+- Feedback en bekende problemen moeten nog handmatig naar NL/EN worden vertaald.
 
 - [x] Privacy- en browseropslagverklaring uitgebreid met gegevensdoelen, AVG-grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten, openbare gegevens en een concrete opslaginventaris.
 - [x] Privacykeuze op iedere eerste sessie toegevoegd: optionele taalopslag staat standaard uit, weigeren en opslaan zijn gelijkwaardig en de keuze is later via footer en privacypagina aanpasbaar.
@@ -632,7 +640,8 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 
 ### Bedrijfsoverzicht en sales
 
-- [ ] Startdashboard met echte KPI's: registraties, actieve gebruikers, conversie Free → Pro/Agency, proefgebruik, opzeggingen en actieve/openbare reizen
+- [x] Eerste startdashboard met echte database-KPI's: totaal en nieuwe/actieve workspaces, planverdeling, actieve/openbare reizen en open feedback/problemen
+- [ ] Registraties, conversie Free → Pro/Agency, proefgebruik en opzeggingen betrouwbaar meten zodra betaal- en abonnementsevents worden opgeslagen
 - [ ] Salesdashboard met MRR/ARR, nieuwe omzet, planverdeling, upgrades, downgrades, churn, mislukte betalingen en Agency-pipeline zodra Stripe is aangesloten
 - [ ] Perioden, landen, valuta en plannen kunnen filteren en vergelijken; definities van iedere KPI zichtbaar maken
 - [ ] Klant- en organisatieoverzicht met zoekfunctie, accountstatus, plan, gebruik, laatste activiteit en interne support-/salesnotities
@@ -642,7 +651,8 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 ### Problemen, feedback en operatie
 
 - [x] Eerste Corporate Admin-basis voor feedback en bekende problemen gebouwd
-- [ ] Feedback-inbox uitbreiden met zoeken, filters, labels, eigenaar, prioriteit, interne notities, duplicaten koppelen en bulkstatus
+- [x] Zoeken, categoriefilter en gezamenlijk archieffilter voor feedback en bekende problemen toegevoegd
+- [ ] Feedback-inbox verder uitbreiden met labels, eigenaar, prioriteit, interne notities, duplicaten koppelen en bulkstatus
 - [ ] Bekende problemen vanuit Corporate Admin publiceren, wijzigen, vertalen en oplossen; openbare statuspagina en GitHub Issues blijven gesynchroniseerd
 - [ ] Storings- en foutoverzicht met aantallen, getroffen routes/versies en trend, zonder onnodige persoonsgegevens in foutmeldingen
 - [ ] Operationele status van Supabase, Storage, vluchtprovider, kaarten, weer, valuta, e-mail en betalingen tonen op basis van veilige healthchecks

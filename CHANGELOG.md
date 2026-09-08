@@ -19,6 +19,9 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Statussen en ernstlabels worden in de gekozen accounttaal getoond.
 - Migratie `20260908017000_archive_feedback_and_issues.sql` voegt de archiveerstatus toe.
 - Feedback en bekende problemen gebruiken dezelfde vertaalde categorieën: fout, verbetering, idee, gebruiksgemak, vertaling, beveiliging en overig.
+- Corporate Admin toont echte platform-KPI's voor workspaces, plannen, reizen en open werk, plus zoeken en filteren in feedback en bekende problemen.
+- Corporate Admin kan de actuele beta-beperkingen zonder dubbelingen importeren en als bekende problemen naar GitHub synchroniseren.
+- Een nieuwe publieke roadmap toont in NL/EN waar GlobeTrotr nu, hierna en later aan werkt en is via de footer bereikbaar.
 
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 

@@ -51,6 +51,8 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     changes: [
       { kind: "new", title: "Feedbackknop op iedere pagina", titleEn: "Feedback button on every page", description: "Ingelogde testers kunnen via de vaste zijknop feedback insturen en daarbij een duidelijke categorie kiezen.", descriptionEn: "Signed-in testers can submit feedback through the fixed side button and select a clear category." },
       { kind: "new", title: "Openbare lijst met bekende problemen", titleEn: "Public known-issues list", description: "Bekijk per categorie welke problemen worden onderzocht, gepland of gemonitord.", descriptionEn: "See by category which problems are being investigated, planned or monitored." },
+      { kind: "improved", title: "Sneller beheer van beta-feedback", titleEn: "Faster beta feedback management", description: "Het beheer gebruikt zoeken, categoriefilters en een duidelijk overzicht van open werk.", descriptionEn: "Administration now offers search, category filters and a clear overview of open work." },
+      { kind: "new", title: "Openbare roadmap", titleEn: "Public roadmap", description: "Bekijk waar GlobeTrotr nu aan werkt en welke verbeteringen hierna volgen.", descriptionEn: "See what GlobeTrotr is working on now and which improvements come next." },
       { kind: "improved", title: "Privacykeuzes op de juiste plek", titleEn: "Privacy choices in the right place", description: "Ingelogde gebruikers beheren browseropslag in Accountinstellingen; gasten gebruiken de footer.", descriptionEn: "Signed-in users manage browser storage in Account settings; guests use the footer." },
     ],
   },
