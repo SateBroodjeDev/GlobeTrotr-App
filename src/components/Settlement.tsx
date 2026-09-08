@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ArrowRight, Plus, Users, X } from "lucide-react";
-import { balances, settle, travelersOf } from "@/lib/settle";
+import { balances, participantsOf, settle, type FinancialParticipant } from "@/lib/settle";
 import { formatMoney, type Rates } from "@/lib/services";
 import type { Trip } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ export function Settlement({
   trip,
   base,
   rates,
-  fallback,
+  owner,
   editable,
   onTravelers,
   manageTravelersInSettings = false,
@@ -21,7 +21,7 @@ export function Settlement({
   trip: Trip;
   base: string;
   rates: Rates;
-  fallback: string[];
+  owner: FinancialParticipant;
   editable: boolean;
   onTravelers?: (people: string[]) => void;
   /** Reisgenoten worden in de instellingen beheerd, niet in de geldtool. */
@@ -29,8 +29,12 @@ export function Settlement({
 }) {
   const { text } = useLocale();
   const [name, setName] = useState("");
-  const people = useMemo(() => travelersOf(trip, fallback), [trip, fallback]);
-  const list = useMemo(() => balances(trip, people, base, rates), [trip, people, base, rates]);
+  const participants = useMemo(() => participantsOf(trip, owner), [trip, owner]);
+  const people = participants.map((participant) => participant.name);
+  const list = useMemo(
+    () => balances(trip, participants, base, rates),
+    [trip, participants, base, rates],
+  );
   const transfers = useMemo(() => settle(list), [list]);
 
   return (
@@ -96,7 +100,7 @@ export function Settlement({
 
         <div className="space-y-2 sm:hidden">
           {list.map((balance) => (
-            <div key={balance.name} className="rounded-xl border border-border p-3">
+            <div key={balance.id} className="rounded-xl border border-border p-3">
               <p className="break-words font-medium">{balance.name}</p>
               <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <div className="min-w-0">
@@ -138,7 +142,7 @@ export function Settlement({
             </thead>
             <tbody>
               {list.map((b) => (
-                <tr key={b.name} className="border-t border-border">
+                <tr key={b.id} className="border-t border-border">
                   <td className="p-3">{b.name}</td>
                   <td className="p-3 text-right">{formatMoney(b.paid, base)}</td>
                   <td className="p-3 text-right">{formatMoney(b.owes, base)}</td>

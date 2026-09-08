@@ -63,6 +63,8 @@ export type TravelItem = {
     consumptionPer100Km?: number;
     fuelPricePerLiter?: number;
     fuelCurrency?: string;
+    /** Optionele drielettercode voor een datumgebonden Schedule-fallback. */
+    flightDepartureIata?: string;
     flightDepartureAirport?: string;
     flightArrivalAirport?: string;
     flightDepartureScheduled?: string;
@@ -194,6 +196,8 @@ export type PackingItem = {
 
 export type Trip = {
   id: string;
+  /** Database-eigenaar; gebruikt als vaste deelnemerssleutel voor kosten. */
+  ownerId?: string;
   /** Rol van het huidige account binnen deze reis; ontbreekt bij oude lokale data en betekent eigenaar. */
   accessRole?: TripMemberRole;
   /** Database version, kept as text to preserve BIGINT precision. */

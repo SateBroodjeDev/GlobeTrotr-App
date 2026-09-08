@@ -27,8 +27,14 @@ export const PUBLIC_BETA_STATUS = {
   descriptionEn:
     "GlobeTrotr is open to its first group of international testers, centred on planning, expenses and public trip sharing.",
   unavailable: [
-    { nl: "Inloggen met Apple, Google of Microsoft", en: "Sign in with Apple, Google or Microsoft" },
-    { nl: "Automatische app-e-mails en reisuitnodigingen per e-mail", en: "Automated app emails and trip invitations by email" },
+    {
+      nl: "Inloggen met Apple, Google of Microsoft",
+      en: "Sign in with Apple, Google or Microsoft",
+    },
+    {
+      nl: "Automatische app-e-mails en reisuitnodigingen per e-mail",
+      en: "Automated app emails and trip invitations by email",
+    },
   ],
 } as const;
 
@@ -51,8 +57,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         titleEn: "Homepage opens reliably again",
         description:
           "Een conflict met het kaarticoon dat een leeg scherm kon veroorzaken is opgelost.",
-        descriptionEn:
-          "A map icon conflict that could cause a blank screen has been resolved.",
+        descriptionEn: "A map icon conflict that could cause a blank screen has been resolved.",
       },
       {
         kind: "secure",
@@ -62,6 +67,24 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Homepage en gedeelde reizen ontvangen alleen de route- en planningsvelden die bewust openbaar zijn gemaakt.",
         descriptionEn:
           "The homepage and shared trips receive only route and itinerary fields that were intentionally made public.",
+      },
+      {
+        kind: "fixed",
+        title: "Kosten blijven bij de juiste reisgenoot",
+        titleEn: "Expenses stay linked to the right traveller",
+        description:
+          "Reisgenoten met dezelfde naam blijven apart in de verrekening en een naamswijziging verbreekt bestaande uitgaven niet.",
+        descriptionEn:
+          "Travellers with the same name remain separate in settlements, and renaming someone no longer disconnects existing expenses.",
+      },
+      {
+        kind: "improved",
+        title: "Vluchten rond vertrek beter gevonden",
+        titleEn: "Better flight matching near departure",
+        description:
+          "Met een vertrekcode kan GlobeTrotr binnen het beschikbare datumvenster ook het luchthavenrooster controleren wanneer live vluchtstatus nog niets vindt.",
+        descriptionEn:
+          "With a departure code, GlobeTrotr can also check the airport schedule within the available date window when live flight status returns no result.",
       },
       {
         kind: "improved",
@@ -176,17 +199,14 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         titleEn: "Verified on mobile",
         description:
           "De belangrijkste schermen en formulieren zijn op een echte telefoon gecontroleerd.",
-        descriptionEn:
-          "The main screens and forms have been verified on a real phone.",
+        descriptionEn: "The main screens and forms have been verified on a real phone.",
       },
       {
         kind: "fixed",
         title: "Betrouwbare reisopslag",
         titleEn: "Reliable trip saving",
-        description:
-          "Wijzigingen aan reizen en uitgaven blijven na herladen correct bewaard.",
-        descriptionEn:
-          "Changes to trips and expenses remain correctly saved after reloading.",
+        description: "Wijzigingen aan reizen en uitgaven blijven na herladen correct bewaard.",
+        descriptionEn: "Changes to trips and expenses remain correctly saved after reloading.",
       },
     ],
   },
@@ -382,8 +402,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     titleEn: "More insight into your account",
     summary:
       "Je ziet nu direct welk plan actief is en hoeveel reizen binnen je account worden gebruikt.",
-    summaryEn:
-      "You can now see your active plan and trip usage directly in your account.",
+    summaryEn: "You can now see your active plan and trip usage directly in your account.",
     changes: [
       {
         kind: "new",
@@ -409,8 +428,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         titleEn: "The right action on shared trips",
         description:
           "Ben je al ingelogd, dan ga je vanuit een openbare reis direct naar je eigen reizen.",
-        descriptionEn:
-          "When signed in, a public trip now takes you directly to your own trips.",
+        descriptionEn: "When signed in, a public trip now takes you directly to your own trips.",
       },
     ],
   },

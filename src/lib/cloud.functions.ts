@@ -36,7 +36,7 @@ function normalizeTripForPersistence(trip: Trip): Trip {
   if (!Number.isFinite(trip.budget) || trip.budget < 0) {
     throw new Error("Het budget moet een bedrag van nul of hoger zijn.");
   }
-  const { accessRole: _accessRole, ...persistentTrip } = trip;
+  const { accessRole: _accessRole, ownerId: _ownerId, ...persistentTrip } = trip;
   return { ...persistentTrip, name, description };
 }
 
@@ -379,6 +379,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
     const maySeeMoney = ["owner", "traveler", "advisor", "finance"].includes(accessRole);
     return {
       id,
+      ownerId: String(row.workspace_user_id),
       accessRole,
       ...(row["revision"] == null ? {} : { revision: String(row["revision"]) }),
       name: String(row.name ?? "Reis"),

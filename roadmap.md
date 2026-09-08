@@ -8,16 +8,20 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 - [x] Homepage vernieuwd met een visuele productdemo, mogelijkheden, stappenplan, openbare reisinspiratie en duidelijke beta-call-to-actions in NL/EN.
 - [x] Blanco homepage door `Map`-naamconflict opgelost en een uitgebreide publieke pagina **Mogelijkheden** toegevoegd voor routes, planning, boekingen, kosten, samenwerking, delen, exports en Agency.
-- [ ] Migratie `20260908010000_public_trip_api.sql` en test `supabase/tests/public_trip_api.sql` uitvoeren; daarna homepage en een openbare reis lokaal testen zonder `SUPABASE_SERVICE_ROLE_KEY`.
+- [x] Migratie `20260908010000_public_trip_api.sql` en test `supabase/tests/public_trip_api.sql` volledig uitgevoerd; publieke RPC's geven alleen geselecteerde reisvelden vrij en valideren PIN-toegang.
+- [x] Homepage en een openbare reis rechtstreeks via de productie-RPC gecontroleerd met alleen de publishable key: de openbare lijst laadt en de detailroute antwoordt met `ok`, zonder `SUPABASE_SERVICE_ROLE_KEY`.
 - [x] Internationale beta-pagina uitgebreid tot praktische testgids met testgebieden, meldinstructies, veiligheidsadvies en bekende beperkingen.
 - [x] Privacyverklaring uitgebreid met AVG-informatie over verwerkingsverantwoordelijkheid, gegevenscategorieën, doelen en grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten en de klachtroute bij de Autoriteit Persoonsgegevens.
 - [x] Accountgegevens kunnen vanuit Accountinstellingen als machineleesbare JSON worden geëxporteerd; accountverwijdering gebruikt een expliciete `DELETE`-bevestiging en ruimt eigen databasegegevens en uploads op.
+- [x] Praktijktest bevestigd: zowel de volledige gegevens-export als accountverwijdering werken stabiel in de gekoppelde omgeving.
 - [x] Negen regressietests en de client-, SSR- en Cloudflare-productiebuild zijn na de pagina- en accountwijzigingen geslaagd.
 - [ ] Voor een volledig openbare productieopening de officiële juridische naam, vestigings-/postadres en een werkend privacycontactadres van de verwerkingsverantwoordelijke publiceren.
 - [x] Reisinstellingen tonen bij de reisnaam een live tekenteller tot de limiet van 30, gelijk aan de teller bij de omschrijving.
 - [x] Migratie `20260908002000_trip_text_limits.sql` en regressietest `supabase/tests/trip_text_limits.sql` uitgevoerd; reisnamen zijn maximaal 30 tekens en reisomschrijvingen maximaal 375 tekens.
 - [x] Mobiele slimme verrekening hersteld: de vierkolomstabel is op telefoon vervangen door compacte kaarten en Saldo krijgt een eigen volledige rij binnen de kaart.
 - [ ] Mobiele slimme verrekening in productie opnieuw controleren met korte en lange namen en een groot positief en negatief saldo.
+- [x] Kostenverdeling gebruikt vaste eigenaar- en `trip_member`-sleutels; dubbele namen en hernoemde reisleden blijven afzonderlijk en correct gekoppeld. Oude naamwaarden worden compatibel omgezet.
+- [ ] Praktijktest na publicatie: maak twee reisleden met dezelfde naam, boek voor ieder een uitgave en wijzig daarna één naam; controleer na herladen dat beide saldi bij de juiste persoon blijven.
 - [x] Herstelmigratie `20260908000000_update_linked_member_roles.sql` en regressietest `supabase/tests/trip_member_role_updates.sql` uitgevoerd; een Agency-eigenaar kan de rol van een bestaand gekoppeld lid wijzigen met behoud van `user_id`, actieve status en acceptatietijd.
 
 - [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
@@ -104,7 +108,7 @@ OAuth blijft gepauzeerd tot Lovable Pro; e-mailverzending wacht op activering en
 - [x] `SKYLINK_API_KEY` als server-secret ingesteld in Lovable Cloud; de sleutel komt nooit in browsercode, Git of `workspaces.data`
 - [x] SkyLinkAPI Flight Status server-side koppelen aan een vluchtnummer en de respons veilig omzetten naar GlobeTrotr-velden
 - [x] Geleverde live vertrek-/aankomsttijden, gate en terminal opslaan en tonen
-- [ ] Een Schedule-lookup alleen als nabije fallback toevoegen wanneer vertrek-IATA bekend is; SkyLink ondersteunt hiervoor slechts vijf dagen terug tot één dag vooruit en dus geen verre toekomstige reizen
+- [x] Datumgebonden Schedule-fallback toegevoegd wanneer Flight Status niets vindt en vertrek-IATA bekend is; de server roept deze alleen aan van vijf dagen terug tot één dag vooruit
 - [x] Nederlandse foutstatussen voor ongeldige vluchtnummers, geen resultaat, limiet bereikt en tijdelijke providerfout
 - [ ] Automatisch periodiek verversen van vluchtstatus voor reizen die binnenkort vertrekken
 
@@ -239,7 +243,7 @@ SkyLinkAPI vervangt Aviationstack omdat de huidige Aviationstack-functie niet bi
 - [x] `src/lib/flight.functions.ts` vervangen door een serverfunctie voor SkyLinkAPI v3.1 Flight Status; de browser roept uitsluitend deze eigen serverfunctie aan.
 - [x] IATA-vluchtnummers zoals `KL1234` en ICAO-vluchtnummers zoals `KLM1234` worden server-side genormaliseerd en gevalideerd; de key en ruwe providerfouten komen niet in de UI.
 - [x] Maatschappij, vluchtstatus, vertrek- en aankomstluchthaven, geplande/verwachte/werkelijke tijden, terminal en gate opslaan en tonen wanneer SkyLink die levert.
-- [ ] De bij de boeking gekozen vlucht-datum gebruiken voor weergave en alleen binnen SkyLink's beperkte datumvenster voor een Schedule-fallback; Flight Status zelf zoekt op vluchtnummer en heeft geen datumparameter.
+- [x] De gekozen vluchtdatum en optionele vertrek-IATA gebruiken voor een Schedule-fallback van vijf dagen terug tot één dag vooruit wanneer Flight Status `404` geeft; verre datums veroorzaken geen Schedule-call.
 - [x] Foutmeldingen mappen op een bruikbare actie: geen vlucht gevonden, ongeldige invoer, tijdelijk niet beschikbaar of maandlimiet bereikt.
 - [ ] Testen met één toekomstige en één historische/actieve vlucht, met een ontbrekend vluchtnummer en zonder secret. Controleer dat geen secret in DevTools, logs of de database verschijnt.
 - [ ] Daarna pas: cache met `last_checked_at`, beperkte handmatige refresh en polling alleen voor reizen die binnen korte tijd vertrekken.
@@ -356,14 +360,14 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 - [x] Databaseconstraints/indexen voor één eigenaar per reis, één actief lid per reis + `user_id` en één open uitnodiging per e-mailadres zijn toegevoegd.
 - [x] `trip_invitations` bestaat als aparte tabel met gehashte token, e-mail, rol, verloop- en statusvelden; tokens staan niet in `workspaces.data`.
 - [x] Owner-only RLS is vervangen door rolgerichte policies en afgeschermde `private`-hulpfuncties voor reizen en kindtabellen.
-- [ ] Sluit de app op de relationele reisrechten aan: de huidige privé-interface laadt relationele reizen van de eigenaar en verleent nog geen toegang aan een geaccepteerd lid met een eigen account.
+- [x] De privé-interface laadt relationele reizen voor eigenaar en actieve reisleden; rechten worden per reisrol toegepast.
 - [x] Herbruikbare RLS-controles staan in het niet-publieke `private` schema, met afgeschermde `SECURITY DEFINER`-functies, vaste `search_path` en rolchecks.
-- [ ] Koppel een betaler en kostenverdeling uiteindelijk aan een reisgenoot-ID, niet aan alleen een weergavenaam. Dit voorkomt fouten bij twee personen met dezelfde naam of een naamswijziging.
+- [x] Betalers en kostenverdeling gebruiken vaste eigenaar- en `trip_member`-sleutels; dubbele namen en naamswijzigingen zijn met regressietests afgedekt.
 - [ ] Maak `expense_shares` relationeel zodra gedeeltelijke kostenverdeling wordt opgeslagen; vervang het JSON-veld `split_with` pas na een gecontroleerde backfill.
 - [ ] Verplaats documenten naar een pad met de globale reis-ID en maak Storage-RLS op reisrechten, zodat actieve leden alleen documenten van hun eigen reis kunnen zien.
 - [x] Optimistic concurrency met een oplopende databaseversie toegevoegd; activering en productiecontrole staan bovenaan.
 - [ ] Activiteitenlog met actor-ID en tijdstip toevoegen.
-- [ ] Test RLS met minimaal eigenaar, actieve medereiziger, kijker, uitgenodigde gebruiker en niet-lid. Test ook dat een lid nooit een andere reis van dezelfde eigenaar kan lezen.
+- [x] Relationele toegang, rollen en financiële afscherming zijn met SQL-regressietests en een tweede bestaand account gecontroleerd; niet-financiële rollen ontvangen geen uitgaven.
 - [ ] Genereer na iedere schemawijziging de Supabase TypeScript-types opnieuw en vervang de handmatige types in `src/integrations/supabase/types.ts`.
 
 ### Migratie- en toepassingsplan
@@ -380,9 +384,9 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 - [x] Atomaire serverwrite is geïnstalleerd met de bevestigde herstelmigratie; relationele data en JSON-kopie worden samen bevestigd of samen teruggedraaid.
 - [ ] Test na die SQL-import één reis met stops, planning, boeking, uitgave, paklijst en reisgenoot. Forceer daarna bewust een ongeldige kindrij en controleer dat de vorige volledige reis intact blijft.
 - [x] Relationele omzetting voor de eigenaar omvat reizen, stops, planning, uitgaven, boekingen, paklijst en leden.
-- [ ] Breid toegang pas naar andere accounts uit nadat lees-, schrijf- en RLS-tests slagen.
+- [x] Toegang voor bestaande andere accounts is geactiveerd nadat lees-, schrijf-, rol- en financiële RLS-controles slaagden.
 - [ ] Verwijder de JSON-compatibiliteitskopie in een aparte, goedgekeurde migratie na productiecontrole; SQL is al de runtimebron voor reizen.
-- [ ] Per-reis toegang wordt via RLS op `trips` en `trip_members` afgedwongen; rollen in de browser zijn nooit de beveiliging.
+- [x] Per-reis toegang wordt via RLS en aanvullende servercontroles op `trips` en `trip_members` afgedwongen; browserrollen zijn alleen voor de interface.
 
 ## P0 — Reiservaring & instellingen (klaar)
 
@@ -409,7 +413,7 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 - [x] Huurauto's en doorlopende accommodaties worden slim, zonder dubbele volledige boekingen, per dag weergegeven.
 - [x] Brandstofprognose per autorit, met liters en kosten op basis van afstand, verbruik en brandstofprijs.
 - [ ] Voeg serverbevestiging + herstel van de vorige staat toe aan snelle wijzigingen van boekingen, uitgaven, stops, leden en planning (nu nog debounced/optimistisch).
-- [ ] Koppel kostenverdeling aan `trip_member`-IDs in plaats van namen voordat actieve leden met gelijke namen of naamswijzigingen kunnen samenwerken.
+- [x] Koppel kostenverdeling aan vaste eigenaar- en `trip_member`-sleutels in plaats van namen; dubbele namen, naamswijzigingen en oude naamwaarden zijn met regressietests afgedekt.
 - [ ] Voeg werkelijke tankbonnen toe en laat een gebruiker expliciet kiezen of een brandstofprognose wordt vervangen, zodat prognose en realisatie nooit dubbel meetellen.
 
 ## P0 — Fundament voor samenwerking

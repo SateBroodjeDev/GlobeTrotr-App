@@ -1,4 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
+import {
+  findScheduledFlight,
+  formatScheduleDate,
+  isScheduleDateSupported,
+  type ScheduleResponse,
+} from "./flight-schedule";
 
 export type FlightLookup = {
   flightNumber: string;
@@ -26,7 +32,9 @@ export type FlightLookup = {
 
 /** Looks up one flight while keeping the provider key on the server. */
 export const lookupFlight = createServerFn({ method: "GET" })
-  .inputValidator((input: { flightNumber: string; flightDate?: string }) => input)
+  .inputValidator(
+    (input: { flightNumber: string; flightDate?: string; departureIata?: string }) => input,
+  )
   .handler(async ({ data }): Promise<FlightLookup> => {
     const flightNumber = data.flightNumber.trim().toUpperCase().replace(/\s+/g, "");
     if (!/^[A-Z]{2,3}\d{1,7}$/.test(flightNumber)) {
@@ -63,8 +71,15 @@ export const lookupFlight = createServerFn({ method: "GET" })
         throw new Error("De SkyLinkAPI-sleutel is ongeldig of niet geactiveerd.");
       }
       if (response.status === 404) {
+        const scheduled = await lookupScheduledFlight({
+          apiKey,
+          flightNumber,
+          flightDate: data.flightDate,
+          departureIata: data.departureIata,
+        });
+        if (scheduled) return scheduled;
         throw new Error(
-          "Geen actuele vlucht gevonden. Controleer het vluchtnummer; voor toekomstige vluchten is de dienstregeling mogelijk nog niet beschikbaar.",
+          "Geen actuele of geplande vlucht gevonden. Controleer het vluchtnummer, de datum en de vertrekluchthaven.",
         );
       }
       if (response.status === 422) {
@@ -112,6 +127,67 @@ type SkyLinkFlightResponse = {
     baggage?: string;
   };
 };
+
+async function lookupScheduledFlight({
+  apiKey,
+  flightNumber,
+  flightDate,
+  departureIata,
+}: {
+  apiKey: string;
+  flightNumber: string;
+  flightDate?: string;
+  departureIata?: string;
+}): Promise<FlightLookup | undefined> {
+  const iata = departureIata?.trim().toUpperCase();
+  if (!iata || !/^[A-Z]{3}$/.test(iata) || !flightDate) return undefined;
+  if (!isScheduleDateSupported(flightDate)) return undefined;
+  const date = formatScheduleDate(flightDate);
+  if (!date) return undefined;
+
+  const parameters = new URLSearchParams({ iata, date });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://data.skylinkapi.com/v3/schedules/departures?${parameters.toString()}`,
+      { headers: { "x-api-key": apiKey }, signal: controller.signal },
+    );
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error("SkyLinkAPI reageert te langzaam. Probeer het opnieuw.");
+    }
+    throw new Error("Live vluchtdata is tijdelijk niet bereikbaar. Probeer het opnieuw.");
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (response.status === 401) {
+    throw new Error("De SkyLinkAPI-sleutel is ongeldig of niet geactiveerd.");
+  }
+  if (response.status === 429) {
+    throw new Error("De limiet voor live vluchtdata is bereikt. Probeer het later opnieuw.");
+  }
+  if (!response.ok) return undefined;
+
+  const payload = (await response.json().catch(() => null)) as ScheduleResponse | null;
+  const flight = payload ? findScheduledFlight(payload, flightNumber) : undefined;
+  if (!flight) return undefined;
+  return {
+    flightNumber: value(flight.Flight) ?? flightNumber,
+    airline: value(flight.Airline),
+    status: value(flight.Status),
+    departure: {
+      airport: iata,
+      scheduled: value(flight.Time),
+    },
+    arrival: {
+      airport: value(flight.IATA),
+      airportFull: value(flight.Destination),
+    },
+  };
+}
 
 const value = (field?: string) => field?.trim() || undefined;
 

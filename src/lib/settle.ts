@@ -1,68 +1,121 @@
-import { convert, type Rates } from "./services";
-import type { Expense, Trip } from "./types";
+import { convert, type Rates } from "./services.ts";
+import type { Expense, Trip } from "./types.ts";
 
-export type Balance = { name: string; paid: number; owes: number; net: number };
+export type FinancialParticipant = { id: string; name: string };
+export type Balance = { id: string; name: string; paid: number; owes: number; net: number };
 export type Transfer = { from: string; to: string; amount: number };
 
-export function travelersOf(trip: Trip, fallback: string[]): string[] {
-  // `trip.travelers` is legacy JSON without identity or permission data and
-  // may contain the old sample names. The profile owner plus trip_members is
-  // the only authoritative participant list for money and settlement.
-  const list = [...fallback, ...(trip.members ?? []).map((member) => member.name)];
-  return Array.from(new Set(list.filter(Boolean)));
+export const ownerParticipantId = (ownerId?: string) => `owner:${ownerId || "legacy"}`;
+export const memberParticipantId = (memberId: string) => `member:${memberId}`;
+
+export function participantsOf(trip: Trip, owner: FinancialParticipant): FinancialParticipant[] {
+  const participants = [
+    owner,
+    ...(trip.members ?? []).map((member) => ({
+      id: memberParticipantId(member.id),
+      name: member.name,
+    })),
+  ];
+  return Array.from(
+    new Map(participants.filter((item) => item.name).map((item) => [item.id, item])).values(),
+  );
 }
 
-export function balances(trip: Trip, people: string[], base: string, rates: Rates): Balance[] {
+/** Resolve both stable participant keys and legacy name-based expense values. */
+export function resolveParticipantId(value: string, participants: FinancialParticipant[]): string {
+  if (participants.some((participant) => participant.id === value)) return value;
+  return participants.find((participant) => participant.name === value)?.id ?? value;
+}
+
+export function participantName(value: string, participants: FinancialParticipant[]): string {
+  const id = resolveParticipantId(value, participants);
+  return participants.find((participant) => participant.id === id)?.name ?? value;
+}
+
+export function normalizeExpenseParticipants(
+  expense: Expense,
+  participants: FinancialParticipant[],
+): Expense {
+  return {
+    ...expense,
+    paidBy: resolveParticipantId(expense.paidBy, participants),
+    ...(expense.splitWith?.length
+      ? {
+          splitWith: Array.from(
+            new Set(expense.splitWith.map((value) => resolveParticipantId(value, participants))),
+          ),
+        }
+      : {}),
+  };
+}
+
+export function balances(
+  trip: Trip,
+  participants: FinancialParticipant[],
+  base: string,
+  rates: Rates,
+): Balance[] {
+  const ids = participants.map((participant) => participant.id);
   const paid = new Map<string, number>();
   const owes = new Map<string, number>();
-  people.forEach((p) => {
-    paid.set(p, 0);
-    owes.set(p, 0);
+  ids.forEach((id) => {
+    paid.set(id, 0);
+    owes.set(id, 0);
   });
 
-  const shareOf = (e: Expense) => {
-    const involved = e.splitWith?.length ? e.splitWith.filter((p) => people.includes(p)) : people;
-    return involved.length ? involved : people;
+  const shareOf = (expense: Expense) => {
+    const involved = expense.splitWith?.length
+      ? expense.splitWith
+          .map((value) => resolveParticipantId(value, participants))
+          .filter((id) => ids.includes(id))
+      : ids;
+    return involved.length ? Array.from(new Set(involved)) : ids;
   };
 
-  for (const e of trip.expenses) {
-    const amount = convert(e.amount, e.currency, base, rates);
-    if (people.includes(e.paidBy)) paid.set(e.paidBy, (paid.get(e.paidBy) ?? 0) + amount);
-    const involved = shareOf(e);
+  for (const expense of trip.expenses) {
+    const amount = convert(expense.amount, expense.currency, base, rates);
+    const payerId = resolveParticipantId(expense.paidBy, participants);
+    if (ids.includes(payerId)) paid.set(payerId, (paid.get(payerId) ?? 0) + amount);
+    const involved = shareOf(expense);
     const each = amount / involved.length;
-    involved.forEach((p) => owes.set(p, (owes.get(p) ?? 0) + each));
+    involved.forEach((id) => owes.set(id, (owes.get(id) ?? 0) + each));
   }
 
-  return people.map((name) => {
-    const p = paid.get(name) ?? 0;
-    const o = owes.get(name) ?? 0;
-    return { name, paid: p, owes: o, net: p - o };
+  return participants.map((participant) => {
+    const paidAmount = paid.get(participant.id) ?? 0;
+    const owedAmount = owes.get(participant.id) ?? 0;
+    return {
+      ...participant,
+      paid: paidAmount,
+      owes: owedAmount,
+      net: paidAmount - owedAmount,
+    };
   });
 }
 
 /** Minimaal aantal overboekingen om iedereen gelijk te zetten. */
 export function settle(list: Balance[]): Transfer[] {
   const debtors = list
-    .filter((b) => b.net < -0.01)
-    .map((b) => ({ name: b.name, amount: -b.net }))
+    .filter((balance) => balance.net < -0.01)
+    .map((balance) => ({ name: balance.name, amount: -balance.net }))
     .sort((a, b) => b.amount - a.amount);
   const creditors = list
-    .filter((b) => b.net > 0.01)
-    .map((b) => ({ name: b.name, amount: b.net }))
+    .filter((balance) => balance.net > 0.01)
+    .map((balance) => ({ name: balance.name, amount: balance.net }))
     .sort((a, b) => b.amount - a.amount);
 
   const out: Transfer[] = [];
   let i = 0;
   let j = 0;
   while (i < debtors.length && j < creditors.length) {
-    const d = debtors[i]!;
-    const c = creditors[j]!;
-    const amount = Math.min(d.amount, c.amount);
-    if (amount > 0.01) out.push({ from: d.name, to: c.name, amount });
-    d.amount -= amount;
-    c.amount -= amount;
-    if (d.amount <= 0.01) i++;
-    if (c.amount <= 0.01) j++;
+    const debtor = debtors[i]!;
+    const creditor = creditors[j]!;
+    const amount = Math.min(debtor.amount, creditor.amount);
+    if (amount > 0.01) out.push({ from: debtor.name, to: creditor.name, amount });
+    debtor.amount -= amount;
+    creditor.amount -= amount;
+    if (debtor.amount <= 0.01) i++;
+    if (creditor.amount <= 0.01) j++;
   }
   return out;
 }

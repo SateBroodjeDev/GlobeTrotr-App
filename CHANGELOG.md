@@ -4,6 +4,33 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 09:51 CEST — Nabije vluchtplanning via SkyLink
+
+### Vluchten
+
+- Het vluchtformulier accepteert nu een optionele vertrek-IATA, bijvoorbeeld `AMS`.
+- Wanneer Flight Status geen vlucht vindt, zoekt de server dezelfde vlucht in het vertrekrooster voor de gekozen datum.
+- De Schedule-fallback wordt uitsluitend gebruikt binnen SkyLinks ondersteunde venster van vijf dagen terug tot één dag vooruit; verre reisdatums veroorzaken geen extra provider-call.
+- De API-sleutel blijft uitsluitend in de serveromgeving en de browser ontvangt alleen de gemapte vluchtvelden.
+
+### Controles
+
+- Drie nieuwe regressietests controleren het datumvenster, het vereiste `DD-MM-YYYY`-formaat en vluchtnummers met of zonder spatie.
+
+## 2026-09-08 09:46 CEST — Vaste deelnemers voor kostenverdeling
+
+### Oplossing
+
+- Betalers en deelnemers aan een uitgave worden intern opgeslagen met een vaste eigenaars- of `trip_member`-sleutel; zichtbare namen blijven alleen labels.
+- Twee reisleden met dezelfde naam blijven hierdoor afzonderlijke personen in de slimme verrekening.
+- Een gewijzigde naam verbreekt de koppeling met bestaande uitgaven niet meer.
+- Bestaande uitgaven met oude naamwaarden blijven leesbaar en worden bij bewerken of vóór een ledenwijziging naar vaste sleutels omgezet.
+
+### Controles
+
+- Drie regressietests controleren dubbele namen, een naamswijziging en omzetting van oude naamwaarden.
+- Alle twaalf geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+
 ## 2026-09-08 01:15 CEST — Beta-ervaring, privacy en accountcontrole
 
 ### Publieke ervaring
@@ -13,6 +40,8 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Nieuwe migratie `20260908010000_public_trip_api.sql` vervangt directe openbare workspace-reads door beperkte RPC's voor de openbare reisindex en detailpagina. Publieke pagina's werken daardoor lokaal met de publishable key en vereisen geen server-secret.
 - De oude anon-policy op `workspaces` wordt verwijderd, zodat een gedeelde workspace nooit het volledige compatibiliteits-JSON aan een anonieme databaseclient vrijgeeft.
 - SQL-regressietest `supabase/tests/public_trip_api.sql` controleert de openbare lijst, PIN-validatie en het ontbreken van private workspace- en financiële velden.
+- Migratie en SQL-regressietest zijn op 8 september 2026 volledig uitgevoerd.
+- De openbare lijst- en detail-RPC zijn daarna rechtstreeks tegen de gekoppelde Supabase-omgeving gecontroleerd met alleen de publishable key; de detailroute antwoordde met `ok` zonder service-role secret.
 - Nieuwe publieke pagina `/mogelijkheden` toont per reisfase routes, planning, boekingen, kosten, samenwerking, delen, mobiele hulpmiddelen, exports en Agency-gebruik; de pagina is gekoppeld vanuit homepage en footer.
 - De internationale beta-pagina is uitgebreid met concrete testgebieden, een testronde in drie stappen, foutmeldinstructies, veiligheidsadvies en bekende beperkingen.
 - Publieke release **Beta 0.8** beschrijft deze wijzigingen in Nederlands en Engels.
@@ -22,6 +51,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - De privacyverklaring beschrijft gegevenscategorieën, doelen en AVG-grondslagen, ontvangers en doorgiften, bewaarinformatie, rechten, beveiliging, cookies en de klachtroute bij de Autoriteit Persoonsgegevens.
 - Accountinstellingen biedt een server-side, machineleesbare JSON-export van het account, profiel, eigen reizen, planning, uitgaven, samenwerkingen, meldingen en documentmetadata.
 - Accountverwijdering vereist de expliciete invoer `DELETE`, verwijdert eerst eigen avatar- en bonuploads en verwijdert daarna het Auth-account; gekoppelde databasegegevens volgen de bestaande cascade-relaties.
+- De gegevens-export en volledige accountverwijdering zijn op 8 september 2026 praktisch getest en als stabiel bevestigd.
 - Voor een volledig openbare productieopening moeten de officiële juridische identiteit, het adres en een werkend privacycontactadres nog worden ingevuld.
 
 ### Controles

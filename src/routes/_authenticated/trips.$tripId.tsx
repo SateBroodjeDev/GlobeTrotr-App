@@ -31,7 +31,13 @@ import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
 import { downloadCsv, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
-import { travelersOf } from "@/lib/settle";
+import {
+  normalizeExpenseParticipants,
+  ownerParticipantId,
+  participantName,
+  participantsOf,
+  resolveParticipantId,
+} from "@/lib/settle";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { CurrencyConverter, FuelCalculator } from "@/components/TripTools";
@@ -127,11 +133,16 @@ function TripDetail() {
       return data?.display_name as string | null | undefined;
     },
   });
-  const ownerName =
+  const currentAccountName =
     profileQuery.data?.trim() ||
     String(user?.user_metadata.full_name ?? user?.email?.split("@")[0] ?? "Jij");
-  const financialTravelers = travelersOf(trip, [ownerName]);
   const accessRole = trip.accessRole ?? "owner";
+  const ownerName = accessRole === "owner" ? currentAccountName : text("Eigenaar", "Owner");
+  const ownerParticipant = {
+    id: ownerParticipantId(trip.ownerId ?? (accessRole === "owner" ? user?.id : undefined)),
+    name: ownerName,
+  };
+  const financialParticipants = participantsOf(trip, ownerParticipant);
   const editable = canPlanTrip(accessRole);
   const moneyEditable = canManageTripMoney(accessRole);
   const tripOwner = ownsTrip(accessRole);
@@ -188,7 +199,7 @@ function TripDetail() {
     category: "food",
     amount: 0,
     currency: "EUR",
-    paidBy: ownerName,
+    paidBy: ownerParticipant.id,
     billable: false,
   });
   const [editingExpenseId, setEditingExpenseId] = useState<string>();
@@ -992,6 +1003,9 @@ function TripDetail() {
             onChange={(members) =>
               updateTrip(trip.id, (current) => ({
                 ...current,
+                expenses: current.expenses.map((expense) =>
+                  normalizeExpenseParticipants(expense, financialParticipants),
+                ),
                 members,
                 travelers: [ownerName, ...members.map((member) => member.name)],
               }))
@@ -1187,7 +1201,7 @@ function TripDetail() {
             key={editingBooking.id}
             trip={trip}
             editable={editable}
-            payers={financialTravelers}
+            payers={financialParticipants}
             onSave={saveTravelItem}
             onRemove={removeTravelItem}
             initialItem={editingBooking}
@@ -1206,7 +1220,7 @@ function TripDetail() {
             <TripBookings
               trip={trip}
               editable={editable}
-              payers={financialTravelers}
+              payers={financialParticipants}
               onSave={saveTravelItem}
               onRemove={removeTravelItem}
             />
@@ -1306,9 +1320,9 @@ function TripDetail() {
                   disabled={!moneyEditable}
                   onChange={(e) => setDraft({ ...draft, paidBy: e.target.value })}
                 >
-                  {financialTravelers.map((payer) => (
-                    <option key={payer} value={payer}>
-                      {text("Betaald door", "Paid by")}: {payer}
+                  {financialParticipants.map((payer) => (
+                    <option key={payer.id} value={payer.id}>
+                      {text("Betaald door", "Paid by")}: {payer.name}
                     </option>
                   ))}
                 </select>
@@ -1349,10 +1363,15 @@ function TripDetail() {
                   {text("Verdelen tussen", "Split between")}
                 </p>
                 <div className="flex flex-wrap gap-x-4 gap-y-2">
-                  {financialTravelers.map((traveler) => {
-                    const selected = !draft.splitWith?.length || draft.splitWith.includes(traveler);
+                  {financialParticipants.map((traveler) => {
+                    const selected =
+                      !draft.splitWith?.length ||
+                      draft.splitWith.some(
+                        (value) =>
+                          resolveParticipantId(value, financialParticipants) === traveler.id,
+                      );
                     return (
-                      <label key={traveler} className="flex items-center gap-2 text-sm">
+                      <label key={traveler.id} className="flex items-center gap-2 text-sm">
                         <input
                           type="checkbox"
                           checked={selected}
@@ -1360,14 +1379,18 @@ function TripDetail() {
                           onChange={(event) => {
                             const current = draft.splitWith?.length
                               ? draft.splitWith
-                              : [...financialTravelers];
+                              : financialParticipants.map((participant) => participant.id);
                             const splitWith = event.target.checked
-                              ? Array.from(new Set([...current, traveler]))
-                              : current.filter((person) => person !== traveler);
+                              ? Array.from(new Set([...current, traveler.id]))
+                              : current.filter(
+                                  (person) =>
+                                    resolveParticipantId(person, financialParticipants) !==
+                                    traveler.id,
+                                );
                             setDraft({ ...draft, splitWith });
                           }}
                         />
-                        {traveler}
+                        {traveler.name}
                       </label>
                     );
                   })}
@@ -1391,7 +1414,7 @@ function TripDetail() {
                         category: "food",
                         amount: 0,
                         currency: base,
-                        paidBy: ownerName,
+                        paidBy: ownerParticipant.id,
                         billable: false,
                       });
                     }}
@@ -1463,7 +1486,7 @@ function TripDetail() {
                           text,
                         )}
                       </td>
-                      <td className="p-3">{e.paidBy}</td>
+                      <td className="p-3">{participantName(e.paidBy, financialParticipants)}</td>
                       <td className="p-3 text-right">
                         {e.amount.toFixed(2)} {e.currency}
                       </td>
@@ -1497,7 +1520,7 @@ function TripDetail() {
                               className="p-1 text-muted-foreground hover:text-foreground"
                               onClick={() => {
                                 setEditingExpenseId(e.id);
-                                setDraft({ ...e });
+                                setDraft(normalizeExpenseParticipants(e, financialParticipants));
                               }}
                             >
                               <Pencil className="size-4" />
@@ -1530,7 +1553,7 @@ function TripDetail() {
             base={base}
             rates={rates}
             editable={moneyEditable}
-            fallback={[ownerName]}
+            owner={ownerParticipant}
             manageTravelersInSettings
           />
         </TabsContent>
