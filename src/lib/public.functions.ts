@@ -38,6 +38,7 @@ export type PublicTripCard = {
 export type PublicTripDetail = PublicTripCard & {
   itinerary: PublicDay[];
   travelItems: PublicTravelItem[];
+  weatherEnabled: boolean;
   budget?: number;
   currency?: string;
 };
@@ -80,7 +81,13 @@ type RelationalTravelItem = {
   location: unknown;
   details: unknown;
 };
-type WorkspaceBrand = { user_id: string; public_token: string; branding: unknown; data: unknown };
+type WorkspaceBrand = {
+  user_id: string;
+  public_token: string;
+  branding: unknown;
+  data: unknown;
+  plan?: string;
+};
 type PublicProfile = { id: string; display_name: string | null };
 type UntypedSupabase = { from: (relation: string) => any };
 
@@ -248,7 +255,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
         .order("position"),
       db
         .from("workspaces")
-        .select("user_id, public_token, branding, data")
+        .select("user_id, public_token, branding, data, plan")
         .in("user_id", workspaceIds),
       db.from("profiles").select("id, display_name").in("id", workspaceIds),
     ]);
@@ -321,7 +328,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     const db = supabaseAdmin as unknown as UntypedSupabase;
     const { data, error } = await supabaseAdmin
       .from("workspaces")
-      .select("user_id, data, public_token, branding")
+      .select("user_id, data, public_token, branding, plan")
       .eq("public_token", input.token)
       .maybeSingle();
     if (error || !data) return { status: "not_found" } as PublicTripResult;
@@ -392,6 +399,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
         travelItems: ((travelItems ?? []) as RelationalTravelItem[])
           .map(relationalPublicTravelItem)
           .filter((item): item is PublicTravelItem => Boolean(item)),
+        weatherEnabled: workspace.plan === "pro" || workspace.plan === "agency",
       };
       if (normalizedTrip.share_financials) {
         detail.budget = Number(normalizedTrip.budget ?? 0);
@@ -419,6 +427,9 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       travelItems: (Array.isArray(trip["travelItems"]) ? (trip["travelItems"] as AnyTrip[]) : [])
         .map(publicTravelItem)
         .filter((item): item is PublicTravelItem => Boolean(item)),
+      weatherEnabled:
+        (row.data as AnyTrip | null)?.["plan"] === "pro" ||
+        (row.data as AnyTrip | null)?.["plan"] === "agency",
     };
     if (trip["shareFinancials"] === true) {
       detail.budget = Number(trip["budget"] ?? 0);

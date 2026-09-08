@@ -4,6 +4,21 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 14:34 CEST — Weer op de openbare reispagina
+
+### Publieke reis
+
+- Openbare Pro- en Agency-reizen tonen de actuele verwachting voor de eerste of door de bezoeker geselecteerde bestemming.
+- De vijfdaagse verwachting gebruikt op telefoon twee kolommen en vanaf grotere schermen vijf kolommen.
+- De publieke RPC geeft alleen `weatherEnabled` terug; de abonnementsnaam zelf blijft buiten de publieke response.
+- Omdat de boekingsmigratie al was uitgevoerd, staat deze uitbreiding afzonderlijk in `20260908014000_public_trip_weather.sql` met regressietest `supabase/tests/public_trip_weather.sql`.
+
+### Controles
+
+- De test dekt een openbare Pro-reis, een openbare Free-reis en controleert dat het plan niet wordt vrijgegeven.
+- Alle negentien geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+- De nieuwe weermigratie en SQL-test moeten nog in de gekoppelde Supabase-omgeving worden uitgevoerd.
+
 ## 2026-09-08 14:29 CEST — Boekingen bewust openbaar delen
 
 ### Publieke reis
@@ -17,7 +32,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 ### Controles
 
 - Alle negentien geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
-- De nieuwe migratie en SQL-regressietest moeten nog in de gekoppelde Supabase-omgeving worden uitgevoerd.
+- De migratie en SQL-regressietest zijn op 8 september 2026 zonder fouten uitgevoerd.
 
 ## 2026-09-08 14:25 CEST — Vervoerssoort en werkelijke brandstofkosten
 

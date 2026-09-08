@@ -26,7 +26,10 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Werkelijke brandstofuitgaven kunnen expliciet aan een autorit worden gekoppeld; één of meer tankuitgaven vervangen de prognose van die rit en verwijderen of opnieuw koppelen herstelt de juiste berekening.
 - [x] Bij vervoer kiest de gebruiker auto, motor, camper, OV, trein, bus, veerboot, taxi/deelrit, fiets, lopen of anders; alleen eigen brandstofvoertuigen tonen de literprognose.
 - [x] Boekingen kunnen per onderdeel bewust openbaar worden gedeeld met alleen type, titel, datum, tijd en plaatsnamen; de publieke pagina toont deze als compacte kaarten.
-- [ ] Migratie `20260908013000_public_trip_bookings.sql` en SQL-test `supabase/tests/public_trip_bookings.sql` uitvoeren en daarna één gedeelde en één private boeking via een incognitovenster controleren.
+- [x] Migratie `20260908013000_public_trip_bookings.sql` en SQL-test `supabase/tests/public_trip_bookings.sql` zonder fouten uitgevoerd.
+- [ ] Eén gedeelde en één private boeking na publicatie via een incognitovenster controleren.
+- [x] Publiek weer gebouwd voor Pro- en Agency-reizen; de gekozen bestemming bepaalt de verwachting en de vijfdaagse weergave past op smalle schermen.
+- [ ] Migratie `20260908014000_public_trip_weather.sql` en SQL-test `supabase/tests/public_trip_weather.sql` uitvoeren.
 
 - [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
 - [x] Publieke pagina `/changelog` toegevoegd met gebruikersgerichte releases, categorie-iconen, datum en tijd; link staat in de footer.
@@ -152,7 +155,7 @@ De publieke viewingpage werkt technisch, maar is nu vooral een kale verzameling 
 - [x] Bestemmingen presenteren als compacte route met aankomstdatum en aantal nachten wanneer ingevuld
 - [x] Handmatige dagplanning tonen als overzichtelijke dagkaarten en tijdlijn
 - [x] Expliciet deelbare boekingsinformatie toegevoegd: alleen type, titel, datum, tijd en plaatsnamen; boekingsreferentie, prijs, betaler, notities, live vluchtvelden en coördinaten blijven buiten de publieke API
-- [ ] Weer per bestemming tonen wanneer dit binnen het gekozen plan en de gedeelde gegevens beschikbaar is
+- [x] Weer per geselecteerde bestemming tonen voor openbare Pro- en Agency-reizen; de publieke API deelt alleen een beschikbaarheidsvlag en geen plannaam
 - [x] Budget alleen tonen wanneer **Budget delen** aanstaat; de publieke serverroute stuurt geen uitgaven, betalers, bonnetjes of boekingsdetails mee
 - [x] Een compacte GlobeTrotr-call-to-action tonen; ingelogde gebruikers gaan naar **Mijn reizen**, bezoekers kunnen een account maken
 - [ ] Mobiele vormgeving in productie controleren op smalle schermen, lange reisnamen en veel stops

@@ -43,7 +43,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   {
     id: "2026-09-08-actual-fuel-costs",
     version: "Beta 0.9",
-    publishedAt: "2026-09-08T14:29:00+02:00",
+    publishedAt: "2026-09-08T14:34:00+02:00",
     title: "Slimmere vervoers- en brandstofkosten",
     titleEn: "Smarter transport and fuel costs",
     summary:
@@ -68,6 +68,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Kies per reisonderdeel of een veilige samenvatting op de openbare reispagina verschijnt. Boekingsnummers, prijzen, notities en live vluchtgegevens blijven privé.",
         descriptionEn:
           "Choose per travel item whether a safe summary appears on the public trip page. Booking references, prices, notes and live flight data remain private.",
+      },
+      {
+        kind: "improved",
+        title: "Weer bij de openbare route",
+        titleEn: "Weather along the public route",
+        description:
+          "Openbare Pro- en Agency-reizen tonen het weer voor de bestemming die een bezoeker op de route selecteert.",
+        descriptionEn:
+          "Public Pro and Agency trips show the weather for the destination a visitor selects along the route.",
       },
       {
         kind: "improved",

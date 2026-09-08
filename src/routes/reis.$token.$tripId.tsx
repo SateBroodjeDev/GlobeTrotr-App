@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { TEMPLATES, type Stop } from "@/lib/types";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
+import { WeatherWidget } from "@/components/WeatherWidget";
 
 export const Route = createFileRoute("/reis/$token/$tripId")({
   head: () => ({
@@ -149,6 +150,7 @@ function PublicTrip() {
   })();
   const dateRange = formatDateRange(trip.start, trip.end, locale);
   const visibleStops = showAllStops ? stops : stops.slice(0, 4);
+  const weatherStop = stops.find((stop) => stop.id === activeStopId) ?? stops[0];
   const countryCount = new Set(stops.map((stop) => stop.country).filter(Boolean)).size;
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -260,6 +262,8 @@ function PublicTrip() {
           </CardContent>
         </Card>
       </section>
+
+      {trip.weatherEnabled && weatherStop && <WeatherWidget stop={weatherStop} enabled />}
 
       <section className="space-y-4">
         <div>
