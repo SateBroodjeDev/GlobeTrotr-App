@@ -22,6 +22,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Corporate Admin toont echte platform-KPI's voor workspaces, plannen, reizen en open werk, plus zoeken en filteren in feedback en bekende problemen.
 - Corporate Admin kan de actuele beta-beperkingen zonder dubbelingen importeren en als bekende problemen naar GitHub synchroniseren.
 - Een nieuwe publieke roadmap toont in NL/EN waar GlobeTrotr nu, hierna en later aan werkt en is via de footer bereikbaar.
+- Corporate Admin vereist nu naast de beveiligde Auth-claim ook een actieve relationele beheerderstoewijzing; dashboardinzage en beheeracties worden in een afgeschermde auditlog vastgelegd.
 
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 

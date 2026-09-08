@@ -12,8 +12,17 @@ async function adminDb(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const db = supabaseAdmin as any;
   const { data, error } = await db.auth.admin.getUserById(userId);
-  if (error || data.user?.app_metadata?.corporate_admin !== true) throw new Error("FORBIDDEN");
+  const { data: assigned } = await db.from("platform_admins").select("role").eq("user_id", userId).eq("active", true).maybeSingle();
+  if (error || data.user?.app_metadata?.corporate_admin !== true || !assigned) {
+    await audit(db, userId, "admin.access", "platform", null, "failure", { reason: "authorization_denied" });
+    throw new Error("FORBIDDEN");
+  }
   return db;
+}
+
+async function audit(db: any, actorUserId: string, action: string, targetType: string, targetId: string | null, result: "success"|"failure", details: Record<string, unknown> = {}) {
+  const { error } = await db.from("platform_admin_audit_log").insert({ actor_user_id: actorUserId, action, target_type: targetType, target_id: targetId, result, details });
+  if (error) console.error("[Corporate Admin] Auditlog kon niet worden geschreven.", error);
 }
 
 async function syncGithub(issue: any) {
@@ -56,24 +65,28 @@ const BETA_KNOWN_ISSUES = [
 
 export const getCorporateAdminData = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const db = await adminDb(context.userId);
-  const [feedback, issues, workspaces, trips] = await Promise.all([
+  const [feedback, issues, workspaces, trips, auditLog] = await Promise.all([
     db.from("beta_feedback").select("*").order("created_at", { ascending: false }),
     db.from("known_issues").select("*").order("created_at", { ascending: false }),
     db.from("workspaces").select("plan, created_at, updated_at"),
     db.from("trips").select("archived, is_public"),
+    db.from("platform_admin_audit_log").select("id, actor_user_id, action, target_type, target_id, result, details, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
   if (feedback.error) throw feedback.error;
   if (issues.error) throw issues.error;
   if (workspaces.error) throw workspaces.error;
   if (trips.error) throw trips.error;
+  if (auditLog.error) throw auditLog.error;
   const workspaceRows = workspaces.data ?? [];
   const tripRows = trips.data ?? [];
   const feedbackRows = feedback.data ?? [];
   const issueRows = issues.data ?? [];
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  await audit(db, context.userId, "admin.dashboard.view", "platform", null, "success");
   return {
     feedback: feedbackRows,
     issues: issueRows,
+    auditLog: auditLog.data ?? [],
     metrics: {
       workspaces: workspaceRows.length,
       newWorkspaces30d: workspaceRows.filter((row: any) => Date.parse(row.created_at) >= thirtyDaysAgo).length,
@@ -106,6 +119,7 @@ export const saveKnownIssue = createServerFn({ method: "POST" }).middleware([req
       github = { synced: false, reason: "network_error" };
     }
     if (github.synced && saved.github_issue_number !== github.number) await db.from("known_issues").update({ github_issue_number: github.number }).eq("id", saved.id);
+    await audit(db, context.userId, data.id ? "known_issue.update" : "known_issue.create", "known_issue", saved.id, "success", { github_synced: github.synced, category: saved.category });
     return { issue: saved, github };
   });
 
@@ -115,6 +129,7 @@ export const updateFeedbackStatus = createServerFn({ method: "POST" }).middlewar
     const db = await adminDb(context.userId);
     const { error } = await db.from("beta_feedback").update({ status: data.status, updated_at: new Date().toISOString() }).eq("id", data.id);
     if (error) throw error;
+    await audit(db, context.userId, "feedback.status.update", "feedback", data.id, "success", { status: data.status });
     return { ok: true };
   });
 
@@ -132,6 +147,7 @@ export const importBetaKnownIssues = createServerFn({ method: "POST" }).middlewa
     if (github.synced) await db.from("known_issues").update({ github_issue_number: github.number }).eq("id", saved.id);
     imported += 1;
   }
+  await audit(db, context.userId, "known_issue.beta_import", "known_issue", null, "success", { imported, skipped: BETA_KNOWN_ISSUES.length - imported });
   return { imported, skipped: BETA_KNOWN_ISSUES.length - imported };
 });
 
@@ -155,5 +171,6 @@ export const manageAdminRecord = createServerFn({ method: "POST" }).middleware([
       if (error) throw error;
       if (data.kind === "issue" && row.github_issue_number) await syncGithub({ ...row, status: data.action === "archive" ? "resolved" : row.status });
     }
+    await audit(db, context.userId, `${data.kind}.${data.action}`, data.kind, data.id, "success");
     return { ok: true };
   });

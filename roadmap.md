@@ -23,6 +23,8 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Server-secrets `GITHUB_ISSUES_TOKEN` en `GITHUB_ISSUES_REPOSITORY` ingesteld; aanmaken en wijzigen synchroniseren correct met GitHub Issues.
 - [x] Corporate Admin kan de drie actuele beta-beperkingen eenmalig importeren en direct naar GitHub synchroniseren: automatische e-mails, OAuth-login en automatische feedbackvertaling.
 - [x] Veilige publieke roadmap op `/roadmap` toegevoegd en vanuit de footer bereikbaar; interne techniek, secrets en beheerwerk blijven uitsluitend in dit bestand.
+- [x] Corporate Admin versterkt met een relationele `platform_admins`-allowlist naast de bestaande Auth-claim en een server-side auditlog voor inzage en beheeracties.
+- [ ] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitvoeren.
 
 ### Actuele bekende beta-beperkingen
 
@@ -632,9 +634,9 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 
 ### Toegang en veiligheid
 
-- [ ] De huidige `app_metadata.corporate_admin`-basis vervangen of versterken met een relationele `platform_admins`-tabel en expliciet toegewezen gebruikers-UUID; nooit toegang geven op basis van e-mail, abonnement of browserstate
-- [ ] Eigen serverfuncties en autorisatiegrens voor alle Corporate Admin-routes; UI-verbergen geldt niet als beveiliging
-- [ ] Verplichte auditlog voor iedere inzage in gevoelige gegevens en iedere wijziging, met actor, reden, tijdstip, doel en resultaat
+- [x] De huidige `app_metadata.corporate_admin`-basis versterkt met een relationele `platform_admins`-tabel en expliciet toegewezen gebruikers-UUID; toegang wordt nooit op basis van e-mail, abonnement of browserstate gegeven
+- [x] Eigen serverfuncties controleren voor alle Corporate Admin-acties zowel de Auth-claim als de actieve relationele beheerderstoewijzing; UI-verbergen is alleen aanvullend
+- [x] Append-only auditlog voor dashboardinzage en wijzigingen toegevoegd met actor, actie, tijdstip, doel, resultaat en beperkte context
 - [ ] Extra sessiebeveiliging voorbereiden: MFA, korte beheersessie, herauthenticatie voor risicovolle acties en waarschuwing bij nieuw apparaat
 - [ ] Beheeracties beperken tot expliciete functies; geen algemene database-editor of willekeurige service-role-query vanuit de browser
 
