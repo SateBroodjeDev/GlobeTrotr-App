@@ -17,6 +17,7 @@ import { AuthProvider } from "@/lib/auth";
 import { WorkspaceProvider } from "@/lib/workspace";
 import { LocaleProvider } from "@/lib/locale";
 import { PrivacyChoices } from "@/components/PrivacyChoices";
+import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
 import "leaflet/dist/leaflet.css";
 
 function NotFoundComponent() {
@@ -136,6 +137,7 @@ function RootComponent() {
               <Outlet />
             </AppShell>
             <PrivacyChoices />
+            <BetaFeedbackButton />
           </WorkspaceProvider>
         </LocaleProvider>
         <Toaster richColors position="top-center" />

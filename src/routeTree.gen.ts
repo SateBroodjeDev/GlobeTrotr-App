@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BekendeProblemenRouteImport } from './routes/bekende-problemen'
 import { Route as BetaVoorwaardenRouteImport } from './routes/beta-voorwaarden'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as MogelijkhedenRouteImport } from './routes/mogelijkheden'
@@ -20,6 +21,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedBrandingRouteImport } from './routes/_authenticated/branding'
+import { Route as AuthenticatedCorporateAdminRouteImport } from './routes/_authenticated/corporate-admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
@@ -37,6 +39,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BekendeProblemenRoute = BekendeProblemenRouteImport.update({
+  id: '/bekende-problemen',
+  path: '/bekende-problemen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BetaVoorwaardenRoute = BetaVoorwaardenRouteImport.update({
@@ -79,6 +86,12 @@ const AuthenticatedBrandingRoute = AuthenticatedBrandingRouteImport.update({
   path: '/branding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCorporateAdminRoute =
+  AuthenticatedCorporateAdminRouteImport.update({
+    id: '/corporate-admin',
+    path: '/corporate-admin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -104,6 +117,7 @@ const ReisTokenTripIdRoute = ReisTokenTripIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/bekende-problemen': typeof BekendeProblemenRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
@@ -112,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/branding': typeof AuthenticatedBrandingRoute
+  '/corporate-admin': typeof AuthenticatedCorporateAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -120,6 +135,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/bekende-problemen': typeof BekendeProblemenRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
@@ -128,6 +144,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/branding': typeof AuthenticatedBrandingRoute
+  '/corporate-admin': typeof AuthenticatedCorporateAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -138,6 +155,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/bekende-problemen': typeof BekendeProblemenRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
@@ -146,6 +164,7 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/branding': typeof AuthenticatedBrandingRoute
+  '/_authenticated/corporate-admin': typeof AuthenticatedCorporateAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -156,6 +175,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/bekende-problemen'
     | '/beta-voorwaarden'
     | '/changelog'
     | '/mogelijkheden'
@@ -164,6 +184,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/billing'
     | '/branding'
+    | '/corporate-admin'
     | '/dashboard'
     | '/team'
     | '/trips/$tripId'
@@ -172,6 +193,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/bekende-problemen'
     | '/beta-voorwaarden'
     | '/changelog'
     | '/mogelijkheden'
@@ -180,6 +202,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/billing'
     | '/branding'
+    | '/corporate-admin'
     | '/dashboard'
     | '/team'
     | '/trips/$tripId'
@@ -189,6 +212,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/bekende-problemen'
     | '/beta-voorwaarden'
     | '/changelog'
     | '/mogelijkheden'
@@ -197,6 +221,7 @@ export interface FileRouteTypes {
     | '/_authenticated/analytics'
     | '/_authenticated/billing'
     | '/_authenticated/branding'
+    | '/_authenticated/corporate-admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/team'
     | '/_authenticated/trips/$tripId'
@@ -207,6 +232,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BekendeProblemenRoute: typeof BekendeProblemenRoute
   BetaVoorwaardenRoute: typeof BetaVoorwaardenRoute
   ChangelogRoute: typeof ChangelogRoute
   MogelijkhedenRoute: typeof MogelijkhedenRoute
@@ -235,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bekende-problemen': {
+      id: '/bekende-problemen'
+      path: '/bekende-problemen'
+      fullPath: '/bekende-problemen'
+      preLoaderRoute: typeof BekendeProblemenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/beta-voorwaarden': {
@@ -293,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBrandingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/corporate-admin': {
+      id: '/_authenticated/corporate-admin'
+      path: '/corporate-admin'
+      fullPath: '/corporate-admin'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -329,6 +369,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedBrandingRoute: typeof AuthenticatedBrandingRoute
+  AuthenticatedCorporateAdminRoute: typeof AuthenticatedCorporateAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
@@ -339,6 +380,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedBrandingRoute: AuthenticatedBrandingRoute,
+  AuthenticatedCorporateAdminRoute: AuthenticatedCorporateAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
@@ -351,6 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  BekendeProblemenRoute: BekendeProblemenRoute,
   BetaVoorwaardenRoute: BetaVoorwaardenRoute,
   ChangelogRoute: ChangelogRoute,
   MogelijkhedenRoute: MogelijkhedenRoute,

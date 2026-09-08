@@ -3,24 +3,26 @@ import { Cookie, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useLocale } from "@/lib/locale";
+import { useAuth } from "@/lib/auth";
 import { readPrivacyChoice, savePrivacyChoice } from "@/lib/privacy-consent";
 
 export function PrivacyChoices() {
   const { text } = useLocale();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState(false);
 
   useEffect(() => {
     const saved = readPrivacyChoice();
     setPreferences(saved?.preferences ?? false);
-    setOpen(!saved);
+    setOpen(!saved && !user);
     const reopen = () => {
       setPreferences(readPrivacyChoice()?.preferences ?? false);
       setOpen(true);
     };
     window.addEventListener("globetrotr:open-privacy-choices", reopen);
     return () => window.removeEventListener("globetrotr:open-privacy-choices", reopen);
-  }, []);
+  }, [user]);
 
   if (!open) return null;
   const apply = (allowPreferences: boolean) => {

@@ -41,6 +41,20 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-08-beta-feedback",
+    version: "Beta 0.12",
+    publishedAt: "2026-09-08T16:10:00+02:00",
+    title: "Feedback direct vanuit GlobeTrotr",
+    titleEn: "Feedback directly from GlobeTrotr",
+    summary: "Betatesters kunnen sneller problemen melden en de voortgang volgen via een openbare lijst.",
+    summaryEn: "Beta testers can report problems faster and follow progress through a public list.",
+    changes: [
+      { kind: "new", title: "Feedbackknop op iedere pagina", titleEn: "Feedback button on every page", description: "Ingelogde testers kunnen via de vaste zijknop een probleem of idee insturen.", descriptionEn: "Signed-in testers can submit a problem or idea through the fixed side button." },
+      { kind: "new", title: "Openbare lijst met bekende problemen", titleEn: "Public known-issues list", description: "Bekijk welke problemen worden onderzocht, gepland of gemonitord.", descriptionEn: "See which problems are being investigated, planned or monitored." },
+      { kind: "improved", title: "Privacykeuzes op de juiste plek", titleEn: "Privacy choices in the right place", description: "Ingelogde gebruikers beheren browseropslag in Accountinstellingen; gasten gebruiken de footer.", descriptionEn: "Signed-in users manage browser storage in Account settings; guests use the footer." },
+    ],
+  },
+  {
     id: "2026-09-08-privacy-controls",
     version: "Beta 0.11",
     publishedAt: "2026-09-08T15:20:00+02:00",

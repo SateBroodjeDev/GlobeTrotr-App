@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocale } from "@/lib/locale";
 import { deleteAccount, exportAccountData } from "@/lib/account.functions";
+import { openPrivacyChoices } from "@/lib/privacy-consent";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -337,6 +338,7 @@ function AccountPage() {
     setDeleting(true);
     try {
       await deleteAccount({ data: { confirmation: deleteConfirmation } });
+      localStorage.removeItem(`globetrotr.workspace.v1.${user.id}`);
       localStorage.removeItem(`atlasledger.workspace.v1.${user.id}`);
       await supabase.auth.signOut({ scope: "local" });
       window.location.assign("/");
@@ -635,6 +637,10 @@ function AccountPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5 text-sm">
+          <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="font-medium">{text("Browseropslag beheren", "Manage browser storage")}</p><p className="mt-1 text-xs text-muted-foreground">{text("Bekijk noodzakelijke opslag en bepaal of je taalkeuze op dit apparaat wordt onthouden.", "Review necessary storage and choose whether your language is remembered on this device.")}</p></div>
+            <Button type="button" variant="outline" className="shrink-0" onClick={openPrivacyChoices}>{text("Privacykeuzes", "Privacy choices")}</Button>
+          </div>
           <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium">{text("Download je gegevens", "Download your data")}</p>

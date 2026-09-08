@@ -4,6 +4,16 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 16:10 CEST — Betafeedback en bekende problemen
+
+- Ingelogde betatesters hebben op iedere pagina een vaste zijknop voor feedback; pagina en beperkte browserinformatie worden voor foutonderzoek meegestuurd.
+- Corporate Admin beheert ontvangen feedback en openbare bekende problemen via een uitsluitend met `app_metadata.corporate_admin=true` toegankelijke pagina.
+- Bekende problemen hebben NL/EN-tekst, status, ernst en publieke zichtbaarheid en verschijnen op `/bekende-problemen`.
+- Opslaan en wijzigen synchroniseert met een GitHub Issue zodra de server-secrets `GITHUB_ISSUES_TOKEN` en `GITHUB_ISSUES_REPOSITORY` zijn ingesteld.
+- De oude `atlasledger.workspace.v1`-cache wordt verliesvrij naar `globetrotr.workspace.v1` gemigreerd en daarna verwijderd.
+- Privacykeuzes staan voor ingelogde gebruikers bij Accountinstellingen; gasten houden de footeroptie. Juridische naam, postadres en privacycontact zijn gepubliceerd.
+- Migratie `20260908016000_beta_feedback_and_known_issues.sql` en regressietest `supabase/tests/beta_feedback_and_known_issues.sql` zijn toegevoegd.
+
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 
 ### Privacy en juridisch

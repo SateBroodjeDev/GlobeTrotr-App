@@ -17,7 +17,7 @@ const STORAGE_KEY = "globetrotr.locale";
 
 function initialLocale(): AppLocale {
   if (typeof window === "undefined") return "nl-NL";
-  const stored = window.localStorage.getItem(STORAGE_KEY);
+  const stored = readPrivacyChoice()?.preferences ? window.localStorage.getItem(STORAGE_KEY) : null;
   if (stored === "nl-NL" || stored === "en-GB") return stored;
   return window.navigator.language.toLowerCase().startsWith("nl") ? "nl-NL" : "en-GB";
 }

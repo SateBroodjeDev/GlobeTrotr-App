@@ -6,6 +6,16 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Actuele stand — 8 september 2026
 
+- [x] Juridische contactgegevens gepubliceerd: GlobeTrotr, postadres (geen bezoekadres) Gedempte Oude Gracht 95, 2011 GT Haarlem en privacy@globetrotr.nl.
+- [x] Privacykeuzes voor ingelogde gebruikers naar Accountinstellingen verplaatst; alleen gasten zien de keuze in de footer.
+- [x] Oude AtlasLedger-cachenaam vervangen door `globetrotr.workspace.v1` met verliesvrije eenmalige migratie en opruiming.
+- [x] Vaste feedbackknop voor ingelogde betatesters gebouwd met veilige invoerlimieten en waarschuwing voor gevoelige gegevens.
+- [x] Corporate Admin-pagina en publieke pagina Bekende problemen gebouwd; NL/EN, status, ernst, zichtbaarheid en feedbackstatus zijn beheerbaar.
+- [x] GitHub Issues-synchronisatie gebouwd voor nieuwe en gewijzigde bekende problemen.
+- [ ] Migratie `20260908016000_beta_feedback_and_known_issues.sql` en test `supabase/tests/beta_feedback_and_known_issues.sql` uitvoeren.
+- [ ] Corporate Admin-claim `app_metadata.corporate_admin=true` uitsluitend aan het GlobeTrotr-beheerdersaccount toekennen en opnieuw inloggen.
+- [ ] Server-secrets `GITHUB_ISSUES_TOKEN` (fine-grained, alleen Issues write voor de doelrepository) en `GITHUB_ISSUES_REPOSITORY` (`owner/repository`) instellen en één synchronisatie testen.
+
 - [x] Privacy- en browseropslagverklaring uitgebreid met gegevensdoelen, AVG-grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten, openbare gegevens en een concrete opslaginventaris.
 - [x] Privacykeuze op iedere eerste sessie toegevoegd: optionele taalopslag staat standaard uit, weigeren en opslaan zijn gelijkwaardig en de keuze is later via footer en privacypagina aanpasbaar.
 - [x] Externe Google Fonts- en unpkg-verzoeken bij iedere paginalaad verwijderd; Leaflet-CSS wordt lokaal gebundeld.

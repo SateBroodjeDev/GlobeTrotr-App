@@ -13,6 +13,7 @@ import {
   Sun,
   UserRound,
   Users,
+  Shield,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
@@ -82,7 +83,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   });
   const preference = user ? asTheme(profileQuery.data?.theme) : guestTheme;
   const navItems = user
-    ? [...CORE_NAV, ...(state.plan === "agency" ? AGENCY_NAV : [])]
+    ? [...CORE_NAV, ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
     : PUBLIC_NAV;
   const displayName =
     profileQuery.data?.display_name ||
@@ -284,11 +285,14 @@ function AppShellContent({ children }: { children: ReactNode }) {
           <Link to="/privacy" className="font-medium text-foreground transition-colors hover:text-primary">
             {text("Privacy", "Privacy")}
           </Link>
-          <button type="button" onClick={openPrivacyChoices} className="font-medium text-foreground transition-colors hover:text-primary">
+          {!user && <button type="button" onClick={openPrivacyChoices} className="font-medium text-foreground transition-colors hover:text-primary">
             {text("Privacykeuzes", "Privacy choices")}
-          </button>
+          </button>}
           <Link to="/beta-voorwaarden" className="font-medium text-foreground transition-colors hover:text-primary">
             {text("Beta-voorwaarden", "Beta terms")}
+          </Link>
+          <Link to="/bekende-problemen" className="font-medium text-foreground transition-colors hover:text-primary">
+            {text("Bekende problemen", "Known issues")}
           </Link>
           <span>{text("Kaartdata", "Map data")} © OpenStreetMap</span>
           <span>{text("Weer via", "Weather by")} Open-Meteo</span>

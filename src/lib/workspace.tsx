@@ -23,7 +23,8 @@ import {
 import { useAuth } from "./auth";
 import { TEMPLATES, type PlanId, type Trip, type TripTemplate, type WorkspaceState } from "./types";
 
-const STORAGE_KEY = "atlasledger.workspace.v1";
+const STORAGE_KEY = "globetrotr.workspace.v1";
+const LEGACY_STORAGE_KEY = "atlasledger.workspace.v1";
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -75,6 +76,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   stateRef.current = state;
 
   const cacheKey = user ? `${STORAGE_KEY}.${user.id}` : null;
+  const legacyCacheKey = user ? `${LEGACY_STORAGE_KEY}.${user.id}` : null;
 
   // Per-account cache for instant paint; guests never see another account's data
   useEffect(() => {
@@ -83,13 +85,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      const raw = localStorage.getItem(cacheKey);
+      const raw = localStorage.getItem(cacheKey) ?? (legacyCacheKey ? localStorage.getItem(legacyCacheKey) : null);
       if (raw) setState(JSON.parse(raw) as WorkspaceState);
+      if (!localStorage.getItem(cacheKey) && raw) localStorage.setItem(cacheKey, raw);
+      if (legacyCacheKey) localStorage.removeItem(legacyCacheKey);
     } catch {
       /* ignore */
     }
     hydrated.current = true;
-  }, [cacheKey]);
+  }, [cacheKey, legacyCacheKey]);
 
   useEffect(() => {
     if (!cacheKey) return;
