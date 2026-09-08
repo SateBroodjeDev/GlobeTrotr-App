@@ -62,6 +62,25 @@ type UntypedSupabase = { from: (relation: string) => any };
 
 type AnyTrip = Record<string, unknown>;
 
+async function createPublicDatabaseClient() {
+  const url = process.env["SUPABASE_URL"];
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
+  if (!url || !key) throw new Error("Publieke databaseconfiguratie ontbreekt.");
+  const { createClient } = await import("@supabase/supabase-js");
+  const publicFetch: typeof fetch = (input, init) => {
+    const headers = new Headers(init?.headers);
+    if (key.startsWith("sb_publishable_") && headers.get("Authorization") === `Bearer ${key}`) {
+      headers.delete("Authorization");
+    }
+    headers.set("apikey", key);
+    return fetch(input, { ...init, headers });
+  };
+  return createClient(url, key, {
+    global: { fetch: publicFetch },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 function tripsOf(row: Row, includePinProtected = true): AnyTrip[] {
   const data = row.data as { trips?: AnyTrip[] } | null;
   if (!data || !Array.isArray(data.trips)) return [];
@@ -123,6 +142,15 @@ function card(row: Row, t: AnyTrip, authorName: string): PublicTripCard {
 }
 
 export const listPublicTrips = createServerFn({ method: "GET" }).handler(async () => {
+  const publicDb = await createPublicDatabaseClient();
+  const { data: publicCards, error: publicError } = await publicDb.rpc(
+    "list_public_trip_cards" as never,
+  );
+  if (!publicError && Array.isArray(publicCards)) return publicCards as PublicTripCard[];
+  // Tijdens de uitrol kan de veilige RPC nog ontbreken. Geef lokaal een lege
+  // lijst terug in plaats van een wit scherm; lees nooit het volledige
+  // workspace-JSON met de publishable key.
+  if (!process.env["SUPABASE_SERVICE_ROLE_KEY"]) return [] as PublicTripCard[];
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const db = supabaseAdmin as unknown as UntypedSupabase;
   const { data: normalizedTrips, error: normalizedError } = await db
@@ -205,6 +233,18 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
 export const getPublicTrip = createServerFn({ method: "GET" })
   .inputValidator((input: { token: string; tripId: string; pin?: string }) => input)
   .handler(async ({ data: input }) => {
+    const publicDb = await createPublicDatabaseClient();
+    const submittedPinHash = input.pin ? await hashPin(input.pin) : null;
+    const { data: publicResult, error: publicError } = await publicDb.rpc(
+      "get_public_trip" as never,
+      { p_token: input.token, p_trip_id: input.tripId, p_pin_hash: submittedPinHash } as never,
+    );
+    if (!publicError && publicResult && typeof publicResult === "object") {
+      return publicResult as unknown as PublicTripResult;
+    }
+    if (!process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
+      return { status: "not_found" } as PublicTripResult;
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
     const { data, error } = await supabaseAdmin

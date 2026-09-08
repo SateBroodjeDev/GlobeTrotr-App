@@ -55,6 +55,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "A map icon conflict that could cause a blank screen has been resolved.",
       },
       {
+        kind: "secure",
+        title: "Veilige openbare reisgegevens",
+        titleEn: "Safe public trip data",
+        description:
+          "Homepage en gedeelde reizen ontvangen alleen de route- en planningsvelden die bewust openbaar zijn gemaakt.",
+        descriptionEn:
+          "The homepage and shared trips receive only route and itinerary fields that were intentionally made public.",
+      },
+      {
         kind: "improved",
         title: "Een homepage die het product laat zien",
         titleEn: "A homepage that shows the product",
