@@ -4,7 +4,22 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
-## 2026-09-09 12:15 CEST — Uitnodigingen zichtbaar aangesloten
+## 2026-09-09 01:48 CEST — Agency-instellingen aangescherpt in de roadmap
+
+- De interne roadmap plant één afzonderlijk Agency Workspace Admin-dashboard voor alle workspacebrede instellingen.
+- Verplichte instellingen krijgen client-, server- en databasevalidatie en kunnen niet als lege of uitsluitend uit spaties bestaande waarde worden opgeslagen.
+- Ontbrekende verplichte waarden worden volgens vaste standaardwaarden hersteld, met een zichtbare uitleg en zonder geldige instellingen te overschrijven.
+- De systeemnaam/Agency-naam krijgt een maximale lengte, tekenteller, vertaalde foutmelding en databaseconstraint.
+
+## 2026-09-09 01:40 CEST — Publieke voortgang en bekende beperkingen
+
+- De onjuiste toekomstige tijden in de publieke changelog zijn vervangen door lokale CEST-tijden die aansluiten op de werkelijke volgorde.
+- De brede beheerrelease is gesplitst in afzonderlijke releases voor navigatie en roadmap, platformstatus en audit, accountbeheer, thema en reisgenootherkenning, en de nieuwe uitnodigingsflow.
+- De publieke roadmap vermeldt uitnodigingslinks en accountmeldingen als huidig resultaat; automatische e-mail en intrekken/vernieuwen staan als volgende stappen.
+- Migratie `20260908021000_seed_current_beta_limitations.sql` voegt de drie concrete, actuele beta-beperkingen zonder titelduplicaten toe aan Bekende problemen.
+- Corporate Admin kan alle nog niet gekoppelde bekende problemen gecontroleerd naar GitHub synchroniseren en legt het resultaat vast in de auditlog.
+
+## 2026-09-09 01:30 CEST — Uitnodigingen zichtbaar aangesloten
 
 - Reisbeheerders krijgen na het toevoegen van een reisgenoot een eenmalig getoonde, zeven dagen geldige uitnodigingslink die ze veilig kunnen kopiëren.
 - De nieuwe route `/uitnodiging/$token` toont uitsluitend veilige uitnodigingsinformatie en laat het geverifieerde uitgenodigde account accepteren of weigeren.
@@ -14,7 +29,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Gebruikersteksten bij Reisgenoten beschrijven nu de expliciete acceptatie in NL en EN; de uitnodigingslink blijft ook op smalle schermen bruikbaar en meldt een mislukte clipboardactie.
 - De publieke changelog bevat hiervoor een zelfstandige Beta 0.14-release.
 
-## 2026-09-09 11:15 CEST — Uitnodigingsflow uitgewerkt
+## 2026-09-09 01:00 CEST — Uitnodigingsflow uitgewerkt
 
 - De roadmap beschrijft één beveiligde uitnodigingsbron met drie kanalen: e-mail, persistente accountmelding en deelbare link.
 - Alle kanalen gaan naar dezelfde acceptatiestroom; toegang ontstaat pas na een expliciete server-side geverifieerde acceptatie.
@@ -25,7 +40,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Nieuwe serverfuncties maken een zeven dagen geldige uitnodiging, geven uitsluitend veilige uitnodigingsdetails terug en verwerken een antwoord via een linktoken of melding-ID.
 - SQL-regressietest `supabase/tests/trip_invitation_responses.sql` controleert verkeerde accounts, actieve toegang na acceptatie, geen toegang na weigeren en herhaalde acceptatie.
 
-## 2026-09-09 10:30 CEST — Corporate Admin en gebruikersinzage
+## 2026-09-08 23:30 CEST — Corporate Admin en gebruikersinzage
 
 - De publieke changelog heeft een afzonderlijke Beta 0.13-release voor platformbeheer; Beta 0.12 blijft gericht op feedback en bekende problemen.
 - Corporate Admin gebruikt afzonderlijke routes voor overzicht, gebruikers, platformstatus, problemen, feedback en auditlog.

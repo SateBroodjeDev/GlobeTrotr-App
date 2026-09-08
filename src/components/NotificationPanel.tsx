@@ -61,25 +61,72 @@ export function NotificationPanel({ userId }: { userId: string }) {
         .eq("user_id", userId)
         .select("id")
         .single();
-      if (error || !data) throw error ?? new Error(text("Melding kon niet worden verwijderd.", "Notification could not be dismissed."));
+      if (error || !data)
+        throw (
+          error ??
+          new Error(
+            text("Melding kon niet worden verwijderd.", "Notification could not be dismissed."),
+          )
+        );
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
-    onError: () => toast.error(text("Melding kon niet worden weggeklikt. Probeer het opnieuw.", "The notification could not be dismissed. Please try again.")),
+    onError: () =>
+      toast.error(
+        text(
+          "Melding kon niet worden weggeklikt. Probeer het opnieuw.",
+          "The notification could not be dismissed. Please try again.",
+        ),
+      ),
   });
   const respondInvitation = useMutation({
-    mutationFn: async ({ notificationId, invitationId, response }: { notificationId: string; invitationId: string; response: "accept" | "decline" }) => {
+    mutationFn: async ({
+      notificationId,
+      invitationId,
+      response,
+    }: {
+      notificationId: string;
+      invitationId: string;
+      response: "accept" | "decline";
+    }) => {
       const result = await respondToTripInvitation({ data: { invitationId, response } });
-      if (result.status !== "accepted" && result.status !== "declined") throw new Error(result.status);
-      const { error } = await supabase.from("notifications").update({ dismissed_at: new Date().toISOString() }).eq("id", notificationId).eq("user_id", userId);
+      if (result.status !== "accepted" && result.status !== "declined")
+        throw new Error(result.status);
+      const { error } = await supabase
+        .from("notifications")
+        .update({ dismissed_at: new Date().toISOString() })
+        .eq("id", notificationId)
+        .eq("user_id", userId);
       if (error) throw error;
       return result;
     },
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey });
-      toast.success(result.status === "accepted" ? text("Uitnodiging geaccepteerd.", "Invitation accepted.") : text("Uitnodiging geweigerd.", "Invitation declined."));
+      toast.success(
+        result.status === "accepted"
+          ? text("Uitnodiging geaccepteerd.", "Invitation accepted.")
+          : text("Uitnodiging geweigerd.", "Invitation declined."),
+      );
       if (result.status === "accepted") window.location.assign("/dashboard");
     },
-    onError: () => toast.error(text("De uitnodiging kon niet worden verwerkt. Open de uitnodigingslink of probeer het opnieuw.", "The invitation could not be processed. Open the invitation link or try again.")),
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "";
+      toast.error(
+        message.includes("rpc-unavailable")
+          ? text(
+              "De uitnodigingsfunctie is nog niet beschikbaar in de database-API. Probeer het over een minuut opnieuw.",
+              "The invitation function is not available in the database API yet. Try again in a minute.",
+            )
+          : message.includes("membership-conflict")
+            ? text(
+                "Dit account heeft al een conflicterende deelname. Open de uitnodigingslink voor meer informatie.",
+                "This account already has a conflicting membership. Open the invitation link for more information.",
+              )
+            : text(
+                "De uitnodiging kon niet worden verwerkt. Foutreferentie: invitation-response.",
+                "The invitation could not be processed. Error reference: invitation-response.",
+              ),
+      );
+    },
   });
   const count = notifications.data?.count ?? 0;
   return (
@@ -108,9 +155,15 @@ export function NotificationPanel({ userId }: { userId: string }) {
         aria-label={text("Meldingenpaneel", "Notifications panel")}
       >
         <div className="border-b p-4">
-          <h2 className="font-semibold">{text("Meldingen", "Notifications")}{count > 0 ? ` (${count})` : ""}</h2>
+          <h2 className="font-semibold">
+            {text("Meldingen", "Notifications")}
+            {count > 0 ? ` (${count})` : ""}
+          </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            {text("Meldingen blijven staan totdat je ze met het kruisje wegklikt.", "Notifications remain here until you dismiss them.")}
+            {text(
+              "Meldingen blijven staan totdat je ze met het kruisje wegklikt.",
+              "Notifications remain here until you dismiss them.",
+            )}
           </p>
         </div>
         <div
@@ -124,18 +177,28 @@ export function NotificationPanel({ userId }: { userId: string }) {
           )}
           {notifications.isError && (
             <div role="alert" className="space-y-2 p-3 text-sm">
-              <p>{text("Meldingen zijn tijdelijk niet beschikbaar.", "Notifications are temporarily unavailable.")}</p>
+              <p>
+                {text(
+                  "Meldingen zijn tijdelijk niet beschikbaar.",
+                  "Notifications are temporarily unavailable.",
+                )}
+              </p>
               <Button size="sm" variant="outline" onClick={() => void notifications.refetch()}>
                 {text("Opnieuw proberen", "Try again")}
               </Button>
             </div>
           )}
           {notifications.isSuccess && count === 0 && (
-            <p className="p-3 text-sm text-muted-foreground">{text("Je hebt geen openstaande meldingen.", "You have no open notifications.")}</p>
+            <p className="p-3 text-sm text-muted-foreground">
+              {text("Je hebt geen openstaande meldingen.", "You have no open notifications.")}
+            </p>
           )}
           {notifications.data?.items.map((notification) => {
             const style = styles[notification.kind];
-            const invitationId = notification.kind === "invitation" && notification.event_key.startsWith("invitation:") ? notification.event_key.slice("invitation:".length) : "";
+            const invitationId =
+              notification.kind === "invitation" && notification.event_key.startsWith("invitation:")
+                ? notification.event_key.slice("invitation:".length)
+                : "";
             return (
               <article key={notification.id} className={`rounded-xl border p-3 ${style.color}`}>
                 <div className="flex items-start gap-2">
@@ -143,7 +206,16 @@ export function NotificationPanel({ userId }: { userId: string }) {
                     {style.emoji}
                   </span>
                   <div className="min-w-0 flex-1 break-words">
-                    <p className="text-xs font-medium">{text(style.label, notification.kind === "account" ? "Account" : notification.kind === "trip_change" ? "Trip change" : "Invitation")}</p>
+                    <p className="text-xs font-medium">
+                      {text(
+                        style.label,
+                        notification.kind === "account"
+                          ? "Account"
+                          : notification.kind === "trip_change"
+                            ? "Trip change"
+                            : "Invitation",
+                      )}
+                    </p>
                     <h3 className="mt-1 text-sm font-semibold">{notification.title}</h3>
                     <p className="mt-1 whitespace-pre-wrap text-sm">{notification.body}</p>
                     <time
@@ -178,8 +250,35 @@ export function NotificationPanel({ userId }: { userId: string }) {
                     )}
                     {invitationId && (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Button size="sm" disabled={respondInvitation.isPending} onClick={() => respondInvitation.mutate({ notificationId: notification.id, invitationId, response: "accept" })}><Check className="size-4" />{text("Accepteren", "Accept")}</Button>
-                        <Button size="sm" variant="outline" disabled={respondInvitation.isPending} onClick={() => respondInvitation.mutate({ notificationId: notification.id, invitationId, response: "decline" })}><X className="size-4" />{text("Weigeren", "Decline")}</Button>
+                        <Button
+                          size="sm"
+                          disabled={respondInvitation.isPending}
+                          onClick={() =>
+                            respondInvitation.mutate({
+                              notificationId: notification.id,
+                              invitationId,
+                              response: "accept",
+                            })
+                          }
+                        >
+                          <Check className="size-4" />
+                          {text("Accepteren", "Accept")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={respondInvitation.isPending}
+                          onClick={() =>
+                            respondInvitation.mutate({
+                              notificationId: notification.id,
+                              invitationId,
+                              response: "decline",
+                            })
+                          }
+                        >
+                          <X className="size-4" />
+                          {text("Weigeren", "Decline")}
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -203,7 +302,10 @@ export function NotificationPanel({ userId }: { userId: string }) {
           })}
           {count > 50 && (
             <p className="p-2 text-xs text-muted-foreground">
-              {text("De nieuwste 50 meldingen worden getoond. Klik meldingen weg om oudere te zien.", "The latest 50 notifications are shown. Dismiss notifications to see older ones.")}
+              {text(
+                "De nieuwste 50 meldingen worden getoond. Klik meldingen weg om oudere te zien.",
+                "The latest 50 notifications are shown. Dismiss notifications to see older ones.",
+              )}
             </p>
           )}
         </div>

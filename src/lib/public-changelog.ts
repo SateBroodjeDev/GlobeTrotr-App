@@ -42,40 +42,207 @@ export const PUBLIC_BETA_STATUS = {
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
     id: "2026-09-09-secure-trip-invitations",
-    version: "Beta 0.14",
-    publishedAt: "2026-09-09T12:15:00+02:00",
+    version: "Beta 0.17",
+    publishedAt: "2026-09-09T01:40:00+02:00",
     title: "Zelf kiezen bij een reisuitnodiging",
     titleEn: "Choose how to respond to a trip invitation",
-    summary: "Reisuitnodigingen werken nu via één beveiligde route met een duidelijke keuze om deel te nemen of te weigeren.",
+    summary:
+      "Reisuitnodigingen werken nu via één beveiligde route met een duidelijke keuze om deel te nemen of te weigeren.",
     summaryEn: "Trip invitations now use one secure flow with a clear choice to join or decline.",
     changes: [
-      { kind: "new", title: "Beveiligde uitnodigingslink", titleEn: "Secure invitation link", description: "Een reisbeheerder kan na het toevoegen van een reisgenoot direct een zeven dagen geldige link kopiëren en delen.", descriptionEn: "After adding a traveller, a trip manager can immediately copy and share a link that remains valid for seven days." },
-      { kind: "new", title: "Accepteren of weigeren", titleEn: "Accept or decline", description: "De genodigde ziet de reis en aangeboden rol en beslist zelf of die wil deelnemen.", descriptionEn: "The invitee sees the trip and offered role and decides whether to join." },
-      { kind: "new", title: "Antwoorden vanuit meldingen", titleEn: "Respond from notifications", description: "Bestaande accounts kunnen een reisuitnodiging rechtstreeks vanuit hun meldingen accepteren of weigeren.", descriptionEn: "Existing accounts can accept or decline a trip invitation directly from their notifications." },
-      { kind: "secure", title: "Toegang pas na acceptatie", titleEn: "Access only after acceptance", description: "Alleen het account met het bevestigde uitgenodigde e-mailadres kan deelnemen; toevoegen alleen verleent geen toegang.", descriptionEn: "Only the account with the confirmed invited email address can join; being added alone does not grant access." },
-      { kind: "improved", title: "Registreren vanuit een uitnodiging", titleEn: "Register from an invitation", description: "Nieuwe gebruikers keren na accountbevestiging terug naar dezelfde uitnodiging om hun keuze af te ronden.", descriptionEn: "New users return to the same invitation after confirming their account to complete their choice." },
+      {
+        kind: "new",
+        title: "Beveiligde uitnodigingslink",
+        titleEn: "Secure invitation link",
+        description:
+          "Een reisbeheerder kan na het toevoegen van een reisgenoot direct een zeven dagen geldige link kopiëren en delen.",
+        descriptionEn:
+          "After adding a traveller, a trip manager can immediately copy and share a link that remains valid for seven days.",
+      },
+      {
+        kind: "new",
+        title: "Accepteren of weigeren",
+        titleEn: "Accept or decline",
+        description:
+          "De genodigde ziet de reis en aangeboden rol en beslist zelf of die wil deelnemen.",
+        descriptionEn: "The invitee sees the trip and offered role and decides whether to join.",
+      },
+      {
+        kind: "new",
+        title: "Antwoorden vanuit meldingen",
+        titleEn: "Respond from notifications",
+        description:
+          "Bestaande accounts kunnen een reisuitnodiging rechtstreeks vanuit hun meldingen accepteren of weigeren.",
+        descriptionEn:
+          "Existing accounts can accept or decline a trip invitation directly from their notifications.",
+      },
+      {
+        kind: "secure",
+        title: "Toegang pas na acceptatie",
+        titleEn: "Access only after acceptance",
+        description:
+          "Alleen het account met het bevestigde uitgenodigde e-mailadres kan deelnemen; toevoegen alleen verleent geen toegang.",
+        descriptionEn:
+          "Only the account with the confirmed invited email address can join; being added alone does not grant access.",
+      },
+      {
+        kind: "improved",
+        title: "Registreren vanuit een uitnodiging",
+        titleEn: "Register from an invitation",
+        description:
+          "Nieuwe gebruikers keren na accountbevestiging terug naar dezelfde uitnodiging om hun keuze af te ronden.",
+        descriptionEn:
+          "New users return to the same invitation after confirming their account to complete their choice.",
+      },
+    ],
+  },
+  {
+    id: "2026-09-09-theme-and-member-recognition",
+    version: "Beta 0.16",
+    publishedAt: "2026-09-09T00:15:00+02:00",
+    title: "Rustiger vernieuwen en betere herkenning",
+    titleEn: "Smoother refreshes and better recognition",
+    summary:
+      "De gekozen weergave blijft rustig staan en bestaande reisgenoten ontvangen betrouwbaar de juiste uitnodiging.",
+    summaryEn:
+      "Your chosen appearance stays stable and existing travellers reliably receive the right invitation.",
+    changes: [
+      {
+        kind: "fixed",
+        title: "Donkere modus zonder witte flits",
+        titleEn: "Dark mode without a white flash",
+        description:
+          "De gekozen weergave wordt bij vernieuwen toegepast voordat de pagina zichtbaar wordt.",
+        descriptionEn:
+          "The selected appearance is applied on refresh before the page becomes visible.",
+      },
+      {
+        kind: "fixed",
+        title: "Bestaande reisgenoten correct herkend",
+        titleEn: "Existing travellers recognised correctly",
+        description:
+          "Een bestaand account ontvangt bij een exact overeenkomend reisgenootadres betrouwbaar een uitnodiging en kiest daarna zelf of het deelneemt.",
+        descriptionEn:
+          "An existing account reliably receives an invitation when its email exactly matches the traveller address and then chooses whether to join.",
+      },
     ],
   },
   {
     id: "2026-09-09-platform-administration",
-    version: "Beta 0.13",
-    publishedAt: "2026-09-09T10:30:00+02:00",
-    title: "Overzichtelijker en veiliger platformbeheer",
-    titleEn: "Clearer and safer platform administration",
-    summary: "GlobeTrotr heeft het interne platformbeheer verdeeld over duidelijke pagina's en uitgebreid met veilige controles en gebruikersinzage.",
-    summaryEn: "GlobeTrotr has divided internal platform administration into clear pages and added secure checks and user insights.",
+    version: "Beta 0.15",
+    publishedAt: "2026-09-08T23:30:00+02:00",
+    title: "Veiliger accountbeheer",
+    titleEn: "Safer account administration",
+    summary:
+      "Geautoriseerd platformbeheer heeft meer inzicht in accounts en kan noodzakelijke correcties gecontroleerd uitvoeren.",
+    summaryEn:
+      "Authorised platform administration has better account insights and can make necessary corrections in a controlled way.",
     changes: [
-      { kind: "secure", title: "Extra beveiliging voor platformbeheer", titleEn: "Additional platform administration security", description: "Beheertoegang wordt extra gecontroleerd en belangrijke beheeracties worden vastgelegd.", descriptionEn: "Administration access receives an additional check and important admin actions are recorded." },
-      { kind: "improved", title: "Beter accountbeheer", titleEn: "Better account administration", description: "Geautoriseerd beheer kan accountinstellingen gecontroleerd corrigeren en gebruikersdetails met reis- en workspaceactiviteit bekijken.", descriptionEn: "Authorised administration can correct account settings in a controlled way and review user details with trip and workspace activity." },
-      { kind: "secure", title: "Veilige accountblokkering", titleEn: "Secure account blocking", description: "Een account kan gecontroleerd worden geblokkeerd en hersteld met een verplichte reden en extra bevestiging.", descriptionEn: "An account can be blocked and restored in a controlled way with a required reason and extra confirmation." },
-      { kind: "improved", title: "Duidelijke melding bij accountblokkering", titleEn: "Clear account blocking message", description: "Geblokkeerde gebruikers krijgen een Nederlandse of Engelse uitleg met het juiste contactadres.", descriptionEn: "Blocked users receive a Dutch or English explanation with the correct contact address." },
-      { kind: "fixed", title: "Bestaande reisgenoten correct herkend", titleEn: "Existing travellers recognised correctly", description: "Een bestaand account ontvangt bij een exact overeenkomend reisgenootadres betrouwbaar een uitnodiging en kiest daarna zelf of het deelneemt.", descriptionEn: "An existing account reliably receives an invitation when its email exactly matches the traveller address and then chooses whether to join." },
-      { kind: "fixed", title: "Donkere modus zonder witte flits", titleEn: "Dark mode without a white flash", description: "De gekozen weergave wordt bij vernieuwen toegepast voordat de pagina zichtbaar wordt.", descriptionEn: "The selected appearance is applied on refresh before the page becomes visible." },
-      { kind: "secure", title: "Bewaakte platformstatus", titleEn: "Monitored platform status", description: "Beheer kan belangrijke technische diensten veilig controleren zonder vluchtquotum te verbruiken.", descriptionEn: "Administration can safely check important technical services without consuming flight quota." },
-      { kind: "improved", title: "Eigen beheerpagina's", titleEn: "Dedicated administration pages", description: "Gebruikers, status, feedback, problemen en auditinformatie hebben ieder een compacte beheerpagina.", descriptionEn: "Users, status, feedback, issues and audit information each have a compact administration page." },
-      { kind: "improved", title: "Aparte beheeromgeving", titleEn: "Separate administration environment", description: "Platformbeheer heeft een eigen rustige navigatie, los van reizen en Agency-onderdelen.", descriptionEn: "Platform administration has its own focused navigation, separate from trips and Agency sections." },
-      { kind: "new", title: "Openbare roadmap", titleEn: "Public roadmap", description: "Bekijk waar GlobeTrotr nu aan werkt en welke verbeteringen hierna volgen.", descriptionEn: "See what GlobeTrotr is working on now and which improvements come next." },
-      { kind: "improved", title: "Compactere navigatie", titleEn: "More compact navigation", description: "De footer groepeert belangrijke pagina's en herkenbare iconen maken informatie sneller vindbaar.", descriptionEn: "The footer groups important pages and recognisable icons make information easier to find." },
+      {
+        kind: "improved",
+        title: "Beter accountbeheer",
+        titleEn: "Better account administration",
+        description:
+          "Geautoriseerd beheer kan accountinstellingen gecontroleerd corrigeren en gebruikersdetails met reis- en workspaceactiviteit bekijken.",
+        descriptionEn:
+          "Authorised administration can correct account settings in a controlled way and review user details with trip and workspace activity.",
+      },
+      {
+        kind: "secure",
+        title: "Veilige accountblokkering",
+        titleEn: "Secure account blocking",
+        description:
+          "Een account kan gecontroleerd worden geblokkeerd en hersteld met een verplichte reden en extra bevestiging.",
+        descriptionEn:
+          "An account can be blocked and restored in a controlled way with a required reason and extra confirmation.",
+      },
+      {
+        kind: "improved",
+        title: "Duidelijke melding bij accountblokkering",
+        titleEn: "Clear account blocking message",
+        description:
+          "Geblokkeerde gebruikers krijgen een Nederlandse of Engelse uitleg met het juiste contactadres.",
+        descriptionEn:
+          "Blocked users receive a Dutch or English explanation with the correct contact address.",
+      },
+    ],
+  },
+  {
+    id: "2026-09-08-platform-health-and-audit",
+    version: "Beta 0.14",
+    publishedAt: "2026-09-08T23:00:00+02:00",
+    title: "Bewaakte platformstatus",
+    titleEn: "Monitored platform status",
+    summary:
+      "Technische diensten en belangrijke beheeracties kunnen vanuit een afgeschermde omgeving worden gecontroleerd.",
+    summaryEn:
+      "Technical services and important administration actions can be checked from a restricted environment.",
+    changes: [
+      {
+        kind: "secure",
+        title: "Extra beveiliging voor platformbeheer",
+        titleEn: "Additional platform administration security",
+        description:
+          "Beheertoegang wordt extra gecontroleerd en belangrijke beheeracties worden vastgelegd.",
+        descriptionEn:
+          "Administration access receives an additional check and important admin actions are recorded.",
+      },
+      {
+        kind: "secure",
+        title: "Bewaakte platformstatus",
+        titleEn: "Monitored platform status",
+        description:
+          "Beheer kan belangrijke technische diensten veilig controleren zonder vluchtquotum te verbruiken.",
+        descriptionEn:
+          "Administration can safely check important technical services without consuming flight quota.",
+      },
+    ],
+  },
+  {
+    id: "2026-09-08-administration-navigation",
+    version: "Beta 0.13",
+    publishedAt: "2026-09-08T22:30:00+02:00",
+    title: "Duidelijke beheeromgeving en roadmap",
+    titleEn: "Clear administration environment and roadmap",
+    summary:
+      "Platformbeheer heeft eigen pagina's en bezoekers kunnen de productrichting via een openbare roadmap volgen.",
+    summaryEn:
+      "Platform administration has dedicated pages and visitors can follow product direction through a public roadmap.",
+    changes: [
+      {
+        kind: "improved",
+        title: "Eigen beheerpagina's",
+        titleEn: "Dedicated administration pages",
+        description:
+          "Gebruikers, status, feedback, problemen en auditinformatie hebben ieder een compacte beheerpagina.",
+        descriptionEn:
+          "Users, status, feedback, issues and audit information each have a compact administration page.",
+      },
+      {
+        kind: "improved",
+        title: "Aparte beheeromgeving",
+        titleEn: "Separate administration environment",
+        description:
+          "Platformbeheer heeft een eigen rustige navigatie, los van reizen en Agency-onderdelen.",
+        descriptionEn:
+          "Platform administration has its own focused navigation, separate from trips and Agency sections.",
+      },
+      {
+        kind: "new",
+        title: "Openbare roadmap",
+        titleEn: "Public roadmap",
+        description: "Bekijk waar GlobeTrotr nu aan werkt en welke verbeteringen hierna volgen.",
+        descriptionEn: "See what GlobeTrotr is working on now and which improvements come next.",
+      },
+      {
+        kind: "improved",
+        title: "Compactere navigatie",
+        titleEn: "More compact navigation",
+        description:
+          "De footer groepeert belangrijke pagina's en herkenbare iconen maken informatie sneller vindbaar.",
+        descriptionEn:
+          "The footer groups important pages and recognisable icons make information easier to find.",
+      },
     ],
   },
   {
@@ -84,13 +251,46 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-08T16:10:00+02:00",
     title: "Feedback direct vanuit GlobeTrotr",
     titleEn: "Feedback directly from GlobeTrotr",
-    summary: "Betatesters kunnen sneller problemen melden en de voortgang volgen via een openbare lijst.",
+    summary:
+      "Betatesters kunnen sneller problemen melden en de voortgang volgen via een openbare lijst.",
     summaryEn: "Beta testers can report problems faster and follow progress through a public list.",
     changes: [
-      { kind: "new", title: "Feedbackknop op iedere pagina", titleEn: "Feedback button on every page", description: "Ingelogde testers kunnen via de vaste zijknop feedback insturen en daarbij een duidelijke categorie kiezen.", descriptionEn: "Signed-in testers can submit feedback through the fixed side button and select a clear category." },
-      { kind: "new", title: "Openbare lijst met bekende problemen", titleEn: "Public known-issues list", description: "Bekijk per categorie welke problemen worden onderzocht, gepland of gemonitord.", descriptionEn: "See by category which problems are being investigated, planned or monitored." },
-      { kind: "improved", title: "Sneller beheer van beta-feedback", titleEn: "Faster beta feedback management", description: "Het beheer gebruikt zoeken, categoriefilters en een duidelijk overzicht van open werk.", descriptionEn: "Administration now offers search, category filters and a clear overview of open work." },
-      { kind: "improved", title: "Privacykeuzes op de juiste plek", titleEn: "Privacy choices in the right place", description: "Ingelogde gebruikers beheren browseropslag in Accountinstellingen; gasten gebruiken de footer.", descriptionEn: "Signed-in users manage browser storage in Account settings; guests use the footer." },
+      {
+        kind: "new",
+        title: "Feedbackknop op iedere pagina",
+        titleEn: "Feedback button on every page",
+        description:
+          "Ingelogde testers kunnen via de vaste zijknop feedback insturen en daarbij een duidelijke categorie kiezen.",
+        descriptionEn:
+          "Signed-in testers can submit feedback through the fixed side button and select a clear category.",
+      },
+      {
+        kind: "new",
+        title: "Openbare lijst met bekende problemen",
+        titleEn: "Public known-issues list",
+        description:
+          "Bekijk per categorie welke problemen worden onderzocht, gepland of gemonitord.",
+        descriptionEn:
+          "See by category which problems are being investigated, planned or monitored.",
+      },
+      {
+        kind: "improved",
+        title: "Sneller beheer van beta-feedback",
+        titleEn: "Faster beta feedback management",
+        description:
+          "Het beheer gebruikt zoeken, categoriefilters en een duidelijk overzicht van open werk.",
+        descriptionEn:
+          "Administration now offers search, category filters and a clear overview of open work.",
+      },
+      {
+        kind: "improved",
+        title: "Privacykeuzes op de juiste plek",
+        titleEn: "Privacy choices in the right place",
+        description:
+          "Ingelogde gebruikers beheren browseropslag in Accountinstellingen; gasten gebruiken de footer.",
+        descriptionEn:
+          "Signed-in users manage browser storage in Account settings; guests use the footer.",
+      },
     ],
   },
   {
@@ -99,29 +299,37 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-08T15:20:00+02:00",
     title: "Duidelijke privacykeuzes",
     titleEn: "Clear privacy choices",
-    summary: "Je ziet precies welke browseropslag GlobeTrotr gebruikt en houdt zelf controle over optionele voorkeuren.",
-    summaryEn: "You can see exactly which browser storage GlobeTrotr uses and control optional preferences.",
+    summary:
+      "Je ziet precies welke browseropslag GlobeTrotr gebruikt en houdt zelf controle over optionele voorkeuren.",
+    summaryEn:
+      "You can see exactly which browser storage GlobeTrotr uses and control optional preferences.",
     changes: [
       {
         kind: "new",
         title: "Privacykeuze bij eerste bezoek",
         titleEn: "Privacy choice on first visit",
-        description: "Noodzakelijke opslag wordt helder uitgelegd en optionele taalopslag staat standaard uit. Je kunt je keuze later via de footer wijzigen.",
-        descriptionEn: "Necessary storage is clearly explained and optional language storage is off by default. You can change your choice later through the footer.",
+        description:
+          "Noodzakelijke opslag wordt helder uitgelegd en optionele taalopslag staat standaard uit. Je kunt je keuze later via de footer wijzigen.",
+        descriptionEn:
+          "Necessary storage is clearly explained and optional language storage is off by default. You can change your choice later through the footer.",
       },
       {
         kind: "improved",
         title: "Volledige privacy- en opslaguitleg",
         titleEn: "Complete privacy and storage information",
-        description: "De privacyverklaring vermeldt gegevensdoelen, grondslagen, ontvangers, bewaartermijnen, rechten en alle gebruikte browseropslag.",
-        descriptionEn: "The privacy notice lists data purposes, legal bases, recipients, retention, rights and all browser storage used.",
+        description:
+          "De privacyverklaring vermeldt gegevensdoelen, grondslagen, ontvangers, bewaartermijnen, rechten en alle gebruikte browseropslag.",
+        descriptionEn:
+          "The privacy notice lists data purposes, legal bases, recipients, retention, rights and all browser storage used.",
       },
       {
         kind: "improved",
         title: "Duidelijke beta-voorwaarden",
         titleEn: "Clear beta terms",
-        description: "Deelname, veilig gebruik, reiscontroles, gebruikersinhoud en consumentenrechten zijn nu helder uitgewerkt.",
-        descriptionEn: "Participation, safe use, travel checks, user content and consumer rights are now clearly explained.",
+        description:
+          "Deelname, veilig gebruik, reiscontroles, gebruikersinhoud en consumentenrechten zijn nu helder uitgewerkt.",
+        descriptionEn:
+          "Participation, safe use, travel checks, user content and consumer rights are now clearly explained.",
       },
     ],
   },

@@ -45,9 +45,11 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ### Actuele bekende beta-beperkingen
 
-- Automatische app-e-mails en reisuitnodigingen zijn nog niet actief.
+- Automatische app-e-mails, waaronder uitnodigingsmails, zijn nog niet actief; uitnodigingslinks en accountmeldingen werken wel.
 - Inloggen met Apple, Google en Microsoft volgt na de beta-infrastructuur.
+- Openstaande reisuitnodigingen kunnen nog niet door de reisbeheerder worden ingetrokken of met een nieuwe vervaldatum worden vernieuwd.
 - Feedback en bekende problemen moeten nog handmatig naar NL/EN worden vertaald.
+- [ ] Migratie `20260908021000_seed_current_beta_limitations.sql` uitvoeren; daarna de drie nieuwe regels vanuit Corporate Admin naar GitHub synchroniseren.
 
 - [x] Privacy- en browseropslagverklaring uitgebreid met gegevensdoelen, AVG-grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten, openbare gegevens en een concrete opslaginventaris.
 - [x] Privacykeuze op iedere eerste sessie toegevoegd: optionele taalopslag staat standaard uit, weigeren en opslaan zijn gelijkwaardig en de keuze is later via footer en privacypagina aanpasbaar.
@@ -644,7 +646,13 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 Dit wordt een duidelijk, verzorgd en zelfstandig **Agency Workspace Admin**-dashboard binnen het reisplatform. Het is nadrukkelijk iets anders dan reisinstellingen en per-reisrollen: een Agency-eigenaar beheert hier de organisatie, het abonnement, het team, klanten, branding en de werkvoorraad van één workspace.
 
 - [ ] Alleen Agency-eigenaren krijgen toegang tot een **Agency Admin**-dashboard; geen route alleen op basis van een verborgen navigatieknop beveiligen
-- [ ] Eigen overzichtelijke instellingenroute en navigatie maken, los van Accountinstellingen en de instellingen van een afzonderlijke reis
+- [ ] Alle Agency-instellingen onderbrengen in één afzonderlijk Agency Workspace Admin-dashboard, met een eigen overzichtelijke route en navigatie los van Accountinstellingen, Corporate Admin en de instellingen van een afzonderlijke reis
+- [ ] Agency-instellingen per logisch onderdeel tonen: algemeen, branding, team en rollen, reizen en toegang, abonnement en facturatie, meldingen en beveiliging
+- [ ] Verplichte Agency-instellingen mogen niet leeg worden opgeslagen; validatie vindt zowel in de interface als server-side plaats
+- [ ] Lege of uitsluitend uit spaties bestaande verplichte Agency-waarden bij laden of opslaan veilig herstellen naar vastgelegde GlobeTrotr-standaardwaarden
+- [ ] Bij iedere automatische herstelactie duidelijk aangeven welke waarde is teruggezet en waarom, zonder geldige bestaande Agency-instellingen te overschrijven
+- [ ] Een maximale lengte voor de zichtbare systeemnaam/Agency-naam vastleggen en afdwingen in formulier, serverfunctie en databaseconstraint; lange bestaande waarden vóór activering gecontroleerd inkorten
+- [ ] Tekentellers en vertaalde validatiemeldingen tonen bij begrensde Agency-velden, inclusief de systeemnaam
 - [ ] Dashboard visueel uitwerken met duidelijke secties, statuskaarten, snelle acties, lege statussen en een goede mobiele weergave
 - [ ] Workspaceprofiel beheren: organisatienaam, bedrijfsgegevens, contactgegevens, standaardvaluta, tijdzone en standaardtaal
 - [ ] Agency-abonnement, gebruikslimieten en facturatie-instellingen op één herkenbare plaats tonen
