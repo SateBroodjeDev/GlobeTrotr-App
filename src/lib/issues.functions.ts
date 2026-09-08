@@ -16,11 +16,11 @@ async function adminDb(userId: string) {
 }
 
 async function syncGithub(issue: any) {
-  const token = process.env["GITHUB_ISSUES_TOKEN"];
-  const repository = process.env["GITHUB_ISSUES_REPOSITORY"];
+  const token = process.env["GITHUB_ISSUES_TOKEN"]?.trim();
+  const repository = process.env["GITHUB_ISSUES_REPOSITORY"]?.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "");
   if (!token || !repository) return { synced: false, reason: "not_configured" };
   const [owner, repo] = repository.split("/");
-  if (!owner || !repo) throw new Error("GITHUB_ISSUES_REPOSITORY_INVALID");
+  if (!owner || !repo) return { synced: false, reason: "repository_invalid" };
   const body = `## Nederlands\n\n${issue.description_nl}\n\n## English\n\n${issue.description_en}\n\n**Status:** ${issue.status}  \n**Severity:** ${issue.severity}  \n**Public:** ${issue.public ? "yes" : "no"}\n\n_Automatically synchronized from GlobeTrotr Corporate Admin._`;
   const existing = Number(issue.github_issue_number);
   const response = await fetch(existing
@@ -28,9 +28,12 @@ async function syncGithub(issue: any) {
     : `https://api.github.com/repos/${owner}/${repo}/issues`, {
       method: existing ? "PATCH" : "POST",
       headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2026-03-10", "Content-Type": "application/json" },
-      body: JSON.stringify({ title: issue.title_en, body, labels: ["known-issue", issue.severity], state: issue.status === "resolved" ? "closed" : "open" }),
+      body: JSON.stringify({ title: issue.title_en, body, state: issue.status === "resolved" ? "closed" : "open" }),
     });
-  if (!response.ok) throw new Error(`GITHUB_SYNC_FAILED_${response.status}`);
+  if (!response.ok) {
+    console.error(`[GitHub Issues] Synchronisatie mislukt met HTTP ${response.status}.`);
+    return { synced: false, reason: `http_${response.status}` };
+  }
   const result = await response.json() as { number: number };
   return { synced: true, number: result.number };
 }
@@ -53,7 +56,13 @@ export const saveKnownIssue = createServerFn({ method: "POST" }).middleware([req
     const query = data.id ? db.from("known_issues").update(row).eq("id", data.id) : db.from("known_issues").insert(row);
     const { data: saved, error } = await query.select("*").single();
     if (error) throw error;
-    const github = await syncGithub(saved);
+    let github: Awaited<ReturnType<typeof syncGithub>>;
+    try {
+      github = await syncGithub(saved);
+    } catch (error) {
+      console.error("[GitHub Issues] Synchronisatieverzoek kon niet worden uitgevoerd.", error);
+      github = { synced: false, reason: "network_error" };
+    }
     if (github.synced && saved.github_issue_number !== github.number) await db.from("known_issues").update({ github_issue_number: github.number }).eq("id", saved.id);
     return { issue: saved, github };
   });

@@ -24,8 +24,27 @@ function CorporateAdminPage() {
   const [saving,setSaving]=useState(false);
   async function save(){
     setSaving(true);
-    try { const result=await saveKnownIssue({data:form}); toast.success(result.github.synced?text("Opgeslagen en met GitHub gesynchroniseerd.","Saved and synced with GitHub."):text("Opgeslagen. GitHub-koppeling is nog niet geconfigureerd.","Saved. GitHub integration is not configured yet.")); setForm(emptyForm); await query.refetch(); }
-    catch { toast.error(text("Bekend probleem kon niet worden opgeslagen.","Known issue could not be saved.")); }
+    try {
+      const result=await saveKnownIssue({data:form});
+      if (result.github.synced) toast.success(text("Opgeslagen en met GitHub gesynchroniseerd.","Saved and synced with GitHub."));
+      else {
+        const reason = result.github.reason;
+        const messages: Record<string,[string,string]> = {
+          not_configured:["Opgeslagen, maar de GitHub-secrets zijn niet beschikbaar in deze publicatie.","Saved, but the GitHub secrets are unavailable in this deployment."],
+          repository_invalid:["Opgeslagen, maar de repository moet als eigenaar/repository zijn ingesteld.","Saved, but the repository must use owner/repository format."],
+          http_401:["Opgeslagen, maar GitHub weigert het token. Maak of kopieer het token opnieuw.","Saved, but GitHub rejected the token. Recreate or recopy the token."],
+          http_403:["Opgeslagen, maar het GitHub-token heeft geen toegang met Issues: write.","Saved, but the GitHub token lacks access with Issues: write."],
+          http_404:["Opgeslagen, maar GitHub kan de repository niet vinden voor dit token.","Saved, but GitHub cannot find the repository for this token."],
+          http_410:["Opgeslagen, maar GitHub Issues staat uit voor deze repository.","Saved, but GitHub Issues is disabled for this repository."],
+          http_422:["Opgeslagen, maar GitHub heeft de issue-inhoud afgewezen.","Saved, but GitHub rejected the issue content."],
+          network_error:["Opgeslagen, maar de GitHub-verbinding is mislukt.","Saved, but the GitHub connection failed."],
+        };
+        const message=messages[reason]??["Opgeslagen, maar GitHub-synchronisatie is mislukt.","Saved, but GitHub synchronization failed."];
+        toast.warning(text(message[0],message[1]));
+      }
+      setForm(emptyForm); await query.refetch();
+    }
+    catch (error) { console.error(error); toast.error(text("Opslaan in GlobeTrotr is mislukt. Controleer de invoer en database.","Saving in GlobeTrotr failed. Check the input and database.")); }
     finally {setSaving(false);}
   }
   return <div className="space-y-6"><div><h1 className="font-display text-3xl font-semibold">Corporate Admin</h1><p className="mt-2 text-sm text-muted-foreground">{text("Beheer feedback en de openbare lijst met bekende problemen.","Manage feedback and the public known-issues list.")}</p></div>
