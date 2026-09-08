@@ -4,6 +4,17 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 10:30 CEST — Corporate Admin en gebruikersinzage
+
+- De publieke changelog heeft een afzonderlijke Beta 0.13-release voor platformbeheer; Beta 0.12 blijft gericht op feedback en bekende problemen.
+- Corporate Admin gebruikt afzonderlijke routes voor overzicht, gebruikers, platformstatus, problemen, feedback en auditlog.
+- Gebruikers hebben een losse detailpagina, zodat de hoofdlijst compact blijft.
+- Het detail toont noodzakelijke account- en workspacegegevens, aantallen actieve, openbare en gearchiveerde reizen, actieve deelnames en maximaal tien recent bijgewerkte reizen.
+- Iedere gebruikersdetailinzage wordt server-side als `user.detail.view` in de afgeschermde auditlog vastgelegd.
+- Corporate Admin kan een account tijdelijk blokkeren en herstellen na een duidelijke waarschuwing en met een verplichte interne reden; de server weigert blokkering van het eigen beheerdersaccount.
+- Geslaagde en mislukte accountblokkeringen en herstelacties worden als `user.block` of `user.restore` geaudit.
+- De al uitgevoerde migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` zijn in de roadmap als afgerond gemarkeerd.
+
 ## 2026-09-08 16:10 CEST — Betafeedback en bekende problemen
 
 - Ingelogde betatesters hebben op iedere pagina een vaste zijknop voor feedback; pagina en beperkte browserinformatie worden voor foutonderzoek meegestuurd.
@@ -21,13 +32,6 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Feedback en bekende problemen gebruiken dezelfde vertaalde categorieën: fout, verbetering, idee, gebruiksgemak, vertaling, beveiliging en overig.
 - Corporate Admin toont echte platform-KPI's voor workspaces, plannen, reizen en open werk, plus zoeken en filteren in feedback en bekende problemen.
 - De actuele beta-beperkingen zijn eenmalig zonder dubbelingen geïmporteerd en naar GitHub gesynchroniseerd; de tijdelijke importknop is daarna opgeruimd.
-- Een nieuwe publieke roadmap toont in NL/EN waar GlobeTrotr nu, hierna en later aan werkt en is via de footer bereikbaar.
-- Corporate Admin vereist nu naast de beveiligde Auth-claim ook een actieve relationele beheerderstoewijzing; dashboardinzage en beheeracties worden in een afgeschermde auditlog vastgelegd.
-- Corporate Admin heeft nu doorzoekbaar gebruikersbeheer voor profielnaam, accounttaal en abonnement; iedere wijziging vereist een interne reden en verschijnt in de auditlog.
-- De footer groepeert productpagina's en juridische informatie in twee compacte menu's en toont databronnen op één regel.
-- Mogelijkheden, Roadmap en Bekende problemen hebben iconen; Corporate Admin heeft een vaste sectienavigatie en korte gebruikers- en activiteitenlijsten die op verzoek uitklappen.
-- Corporate Admin bevat een handmatige platformcontrole voor database, Storage, weer, valuta, GitHub en SkyLink-configuratie, inclusief responstijd en auditregistratie.
-- De Open-Meteo-healthcheck gebruikt de actuele API-parameter; een succesvol uitgevoerde controle met een verstoorde provider staat in de auditlog niet langer onterecht als mislukte beheeractie.
 
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 

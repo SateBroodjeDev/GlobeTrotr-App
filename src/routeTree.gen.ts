@@ -25,8 +25,15 @@ import { Route as AuthenticatedBrandingRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCorporateAdminRouteImport } from './routes/_authenticated/corporate-admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as AuthenticatedCorporateAdminIndexRouteImport } from './routes/_authenticated/corporate-admin.index'
+import { Route as AuthenticatedCorporateAdminAuditRouteImport } from './routes/_authenticated/corporate-admin.audit'
+import { Route as AuthenticatedCorporateAdminFeedbackRouteImport } from './routes/_authenticated/corporate-admin.feedback'
+import { Route as AuthenticatedCorporateAdminIssuesRouteImport } from './routes/_authenticated/corporate-admin.issues'
+import { Route as AuthenticatedCorporateAdminStatusRouteImport } from './routes/_authenticated/corporate-admin.status'
+import { Route as AuthenticatedCorporateAdminUsersRouteImport } from './routes/_authenticated/corporate-admin.users'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
 import { Route as ReisTokenTripIdRouteImport } from './routes/reis.$token.$tripId'
+import { Route as AuthenticatedCorporateAdminUserUserIdRouteImport } from './routes/_authenticated/corporate-admin.user.$userId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -108,6 +115,42 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCorporateAdminIndexRoute =
+  AuthenticatedCorporateAdminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminAuditRoute =
+  AuthenticatedCorporateAdminAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminFeedbackRoute =
+  AuthenticatedCorporateAdminFeedbackRouteImport.update({
+    id: '/feedback',
+    path: '/feedback',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminIssuesRoute =
+  AuthenticatedCorporateAdminIssuesRouteImport.update({
+    id: '/issues',
+    path: '/issues',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminStatusRoute =
+  AuthenticatedCorporateAdminStatusRouteImport.update({
+    id: '/status',
+    path: '/status',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminUsersRoute =
+  AuthenticatedCorporateAdminUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 const AuthenticatedTripsTripIdRoute =
   AuthenticatedTripsTripIdRouteImport.update({
     id: '/trips/$tripId',
@@ -119,6 +162,12 @@ const ReisTokenTripIdRoute = ReisTokenTripIdRouteImport.update({
   path: '/reis/$token/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCorporateAdminUserUserIdRoute =
+  AuthenticatedCorporateAdminUserUserIdRouteImport.update({
+    id: '/user/$userId',
+    path: '/user/$userId',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -133,11 +182,18 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/branding': typeof AuthenticatedBrandingRoute
-  '/corporate-admin': typeof AuthenticatedCorporateAdminRoute
+  '/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
+  '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
+  '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -152,11 +208,17 @@ export interface FileRoutesByTo {
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/branding': typeof AuthenticatedBrandingRoute
-  '/corporate-admin': typeof AuthenticatedCorporateAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
+  '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/corporate-admin': typeof AuthenticatedCorporateAdminIndexRoute
+  '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -173,11 +235,18 @@ export interface FileRoutesById {
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/branding': typeof AuthenticatedBrandingRoute
-  '/_authenticated/corporate-admin': typeof AuthenticatedCorporateAdminRoute
+  '/_authenticated/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/_authenticated/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
+  '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/_authenticated/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/_authenticated/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/_authenticated/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
+  '/_authenticated/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -197,8 +266,15 @@ export interface FileRouteTypes {
     | '/corporate-admin'
     | '/dashboard'
     | '/team'
+    | '/corporate-admin/audit'
+    | '/corporate-admin/feedback'
+    | '/corporate-admin/issues'
+    | '/corporate-admin/status'
+    | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/corporate-admin/'
+    | '/corporate-admin/user/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -213,11 +289,17 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/billing'
     | '/branding'
-    | '/corporate-admin'
     | '/dashboard'
     | '/team'
+    | '/corporate-admin/audit'
+    | '/corporate-admin/feedback'
+    | '/corporate-admin/issues'
+    | '/corporate-admin/status'
+    | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/corporate-admin'
+    | '/corporate-admin/user/$userId'
   id:
     | '__root__'
     | '/'
@@ -236,8 +318,15 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/team'
+    | '/_authenticated/corporate-admin/audit'
+    | '/_authenticated/corporate-admin/feedback'
+    | '/_authenticated/corporate-admin/issues'
+    | '/_authenticated/corporate-admin/status'
+    | '/_authenticated/corporate-admin/users'
     | '/_authenticated/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/_authenticated/corporate-admin/'
+    | '/_authenticated/corporate-admin/user/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -367,6 +456,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/corporate-admin/': {
+      id: '/_authenticated/corporate-admin/'
+      path: '/'
+      fullPath: '/corporate-admin/'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/audit': {
+      id: '/_authenticated/corporate-admin/audit'
+      path: '/audit'
+      fullPath: '/corporate-admin/audit'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/feedback': {
+      id: '/_authenticated/corporate-admin/feedback'
+      path: '/feedback'
+      fullPath: '/corporate-admin/feedback'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminFeedbackRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/issues': {
+      id: '/_authenticated/corporate-admin/issues'
+      path: '/issues'
+      fullPath: '/corporate-admin/issues'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminIssuesRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/status': {
+      id: '/_authenticated/corporate-admin/status'
+      path: '/status'
+      fullPath: '/corporate-admin/status'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminStatusRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/users': {
+      id: '/_authenticated/corporate-admin/users'
+      path: '/users'
+      fullPath: '/corporate-admin/users'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
     '/_authenticated/trips/$tripId': {
       id: '/_authenticated/trips/$tripId'
       path: '/trips/$tripId'
@@ -381,15 +512,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReisTokenTripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/corporate-admin/user/$userId': {
+      id: '/_authenticated/corporate-admin/user/$userId'
+      path: '/user/$userId'
+      fullPath: '/corporate-admin/user/$userId'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminUserUserIdRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
   }
 }
+
+interface AuthenticatedCorporateAdminRouteChildren {
+  AuthenticatedCorporateAdminAuditRoute: typeof AuthenticatedCorporateAdminAuditRoute
+  AuthenticatedCorporateAdminFeedbackRoute: typeof AuthenticatedCorporateAdminFeedbackRoute
+  AuthenticatedCorporateAdminIssuesRoute: typeof AuthenticatedCorporateAdminIssuesRoute
+  AuthenticatedCorporateAdminStatusRoute: typeof AuthenticatedCorporateAdminStatusRoute
+  AuthenticatedCorporateAdminUsersRoute: typeof AuthenticatedCorporateAdminUsersRoute
+  AuthenticatedCorporateAdminIndexRoute: typeof AuthenticatedCorporateAdminIndexRoute
+  AuthenticatedCorporateAdminUserUserIdRoute: typeof AuthenticatedCorporateAdminUserUserIdRoute
+}
+
+const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRouteChildren =
+  {
+    AuthenticatedCorporateAdminAuditRoute:
+      AuthenticatedCorporateAdminAuditRoute,
+    AuthenticatedCorporateAdminFeedbackRoute:
+      AuthenticatedCorporateAdminFeedbackRoute,
+    AuthenticatedCorporateAdminIssuesRoute:
+      AuthenticatedCorporateAdminIssuesRoute,
+    AuthenticatedCorporateAdminStatusRoute:
+      AuthenticatedCorporateAdminStatusRoute,
+    AuthenticatedCorporateAdminUsersRoute:
+      AuthenticatedCorporateAdminUsersRoute,
+    AuthenticatedCorporateAdminIndexRoute:
+      AuthenticatedCorporateAdminIndexRoute,
+    AuthenticatedCorporateAdminUserUserIdRoute:
+      AuthenticatedCorporateAdminUserUserIdRoute,
+  }
+
+const AuthenticatedCorporateAdminRouteWithChildren =
+  AuthenticatedCorporateAdminRoute._addFileChildren(
+    AuthenticatedCorporateAdminRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedBrandingRoute: typeof AuthenticatedBrandingRoute
-  AuthenticatedCorporateAdminRoute: typeof AuthenticatedCorporateAdminRoute
+  AuthenticatedCorporateAdminRoute: typeof AuthenticatedCorporateAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
@@ -400,7 +571,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedBrandingRoute: AuthenticatedBrandingRoute,
-  AuthenticatedCorporateAdminRoute: AuthenticatedCorporateAdminRoute,
+  AuthenticatedCorporateAdminRoute:
+    AuthenticatedCorporateAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,

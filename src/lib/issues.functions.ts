@@ -109,6 +109,88 @@ export const getCorporateAdminData = createServerFn({ method: "GET" }).middlewar
   };
 });
 
+export const getPlatformUserDetail = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string }) => input)
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    if (!/^[0-9a-f-]{36}$/i.test(data.userId)) throw new Error("INVALID_INPUT");
+
+    const [authUser, profile, workspace, ownedTrips, memberships] = await Promise.all([
+      db.auth.admin.getUserById(data.userId),
+      db.from("profiles").select("display_name, email, locale, created_at, updated_at").eq("id", data.userId).maybeSingle(),
+      db.from("workspaces").select("plan, share_enabled, created_at, updated_at").eq("user_id", data.userId).maybeSingle(),
+      db.from("trips").select("trip_uuid, name, start_date, end_date, archived, is_public, created_at, updated_at").eq("workspace_user_id", data.userId).order("updated_at", { ascending: false }),
+      db.from("trip_members").select("trip_uuid", { count: "exact", head: true }).eq("user_id", data.userId).eq("status", "active"),
+    ]);
+    if (authUser.error || !authUser.data.user) throw authUser.error ?? new Error("USER_NOT_FOUND");
+    if (profile.error) throw profile.error;
+    if (workspace.error) throw workspace.error;
+    if (ownedTrips.error) throw ownedTrips.error;
+    if (memberships.error) throw memberships.error;
+
+    const trips = ownedTrips.data ?? [];
+    await audit(db, context.userId, "user.detail.view", "user", data.userId, "success");
+    return {
+      user: {
+        id: authUser.data.user.id,
+        email: authUser.data.user.email ?? profile.data?.email ?? "",
+        displayName: profile.data?.display_name ?? "",
+        locale: profile.data?.locale ?? "nl-NL",
+        emailConfirmed: Boolean(authUser.data.user.email_confirmed_at),
+        blockedUntil: authUser.data.user.banned_until ?? null,
+        createdAt: authUser.data.user.created_at,
+        lastSignInAt: authUser.data.user.last_sign_in_at ?? null,
+      },
+      workspace: workspace.data ? {
+        plan: workspace.data.plan ?? "free",
+        publicSharingEnabled: Boolean(workspace.data.share_enabled),
+        createdAt: workspace.data.created_at,
+        updatedAt: workspace.data.updated_at,
+      } : null,
+      tripCounts: {
+        total: trips.length,
+        active: trips.filter((trip: any) => !trip.archived).length,
+        public: trips.filter((trip: any) => !trip.archived && trip.is_public).length,
+        archived: trips.filter((trip: any) => trip.archived).length,
+        shared: memberships.count ?? 0,
+      },
+      recentTrips: trips.slice(0, 10).map((trip: any) => ({
+        id: trip.trip_uuid,
+        name: trip.name,
+        start: trip.start_date,
+        end: trip.end_date,
+        archived: trip.archived,
+        public: trip.is_public,
+        createdAt: trip.created_at,
+        updatedAt: trip.updated_at,
+      })),
+    };
+  });
+
+export const setPlatformUserBlocked = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string; blocked: boolean; reason: string }) => input)
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    const reason = data.reason.trim();
+    if (!/^[0-9a-f-]{36}$/i.test(data.userId) || reason.length < 10 || reason.length > 500) throw new Error("INVALID_INPUT");
+    if (data.userId === context.userId) throw new Error("CANNOT_BLOCK_SELF");
+
+    const { data: target, error: readError } = await db.auth.admin.getUserById(data.userId);
+    if (readError || !target.user) throw readError ?? new Error("USER_NOT_FOUND");
+    const wasBlocked = Boolean(target.user.banned_until && Date.parse(target.user.banned_until) > Date.now());
+    if (wasBlocked === data.blocked) return { ok: true, blocked: wasBlocked };
+
+    const { error } = await db.auth.admin.updateUserById(data.userId, { ban_duration: data.blocked ? "876000h" : "none" });
+    if (error) {
+      await audit(db, context.userId, data.blocked ? "user.block" : "user.restore", "user", data.userId, "failure", { reason, error: error.name ?? "auth_update_failed" });
+      throw error;
+    }
+    await audit(db, context.userId, data.blocked ? "user.block" : "user.restore", "user", data.userId, "success", { reason });
+    return { ok: true, blocked: data.blocked };
+  });
+
 export const updatePlatformUser = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((input: { userId: string; displayName: string; locale: "nl-NL"|"en-GB"; plan: "free"|"pro"|"agency"; reason: string }) => input)
   .handler(async ({ data, context }) => {

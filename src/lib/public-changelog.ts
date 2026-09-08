@@ -41,6 +41,24 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-platform-administration",
+    version: "Beta 0.13",
+    publishedAt: "2026-09-09T10:30:00+02:00",
+    title: "Overzichtelijker en veiliger platformbeheer",
+    titleEn: "Clearer and safer platform administration",
+    summary: "GlobeTrotr heeft het interne platformbeheer verdeeld over duidelijke pagina's en uitgebreid met veilige controles en gebruikersinzage.",
+    summaryEn: "GlobeTrotr has divided internal platform administration into clear pages and added secure checks and user insights.",
+    changes: [
+      { kind: "secure", title: "Extra beveiliging voor platformbeheer", titleEn: "Additional platform administration security", description: "Beheertoegang wordt extra gecontroleerd en belangrijke beheeracties worden vastgelegd.", descriptionEn: "Administration access receives an additional check and important admin actions are recorded." },
+      { kind: "improved", title: "Beter accountbeheer", titleEn: "Better account administration", description: "Geautoriseerd beheer kan accountinstellingen gecontroleerd corrigeren en gebruikersdetails met reis- en workspaceactiviteit bekijken.", descriptionEn: "Authorised administration can correct account settings in a controlled way and review user details with trip and workspace activity." },
+      { kind: "secure", title: "Veilige accountblokkering", titleEn: "Secure account blocking", description: "Een account kan gecontroleerd worden geblokkeerd en hersteld met een verplichte reden en extra bevestiging.", descriptionEn: "An account can be blocked and restored in a controlled way with a required reason and extra confirmation." },
+      { kind: "secure", title: "Bewaakte platformstatus", titleEn: "Monitored platform status", description: "Beheer kan belangrijke technische diensten veilig controleren zonder vluchtquotum te verbruiken.", descriptionEn: "Administration can safely check important technical services without consuming flight quota." },
+      { kind: "improved", title: "Eigen beheerpagina's", titleEn: "Dedicated administration pages", description: "Gebruikers, status, feedback, problemen en auditinformatie hebben ieder een compacte beheerpagina.", descriptionEn: "Users, status, feedback, issues and audit information each have a compact administration page." },
+      { kind: "new", title: "Openbare roadmap", titleEn: "Public roadmap", description: "Bekijk waar GlobeTrotr nu aan werkt en welke verbeteringen hierna volgen.", descriptionEn: "See what GlobeTrotr is working on now and which improvements come next." },
+      { kind: "improved", title: "Compactere navigatie", titleEn: "More compact navigation", description: "De footer groepeert belangrijke pagina's en herkenbare iconen maken informatie sneller vindbaar.", descriptionEn: "The footer groups important pages and recognisable icons make information easier to find." },
+    ],
+  },
+  {
     id: "2026-09-08-beta-feedback",
     version: "Beta 0.12",
     publishedAt: "2026-09-08T16:10:00+02:00",
@@ -52,12 +70,6 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
       { kind: "new", title: "Feedbackknop op iedere pagina", titleEn: "Feedback button on every page", description: "Ingelogde testers kunnen via de vaste zijknop feedback insturen en daarbij een duidelijke categorie kiezen.", descriptionEn: "Signed-in testers can submit feedback through the fixed side button and select a clear category." },
       { kind: "new", title: "Openbare lijst met bekende problemen", titleEn: "Public known-issues list", description: "Bekijk per categorie welke problemen worden onderzocht, gepland of gemonitord.", descriptionEn: "See by category which problems are being investigated, planned or monitored." },
       { kind: "improved", title: "Sneller beheer van beta-feedback", titleEn: "Faster beta feedback management", description: "Het beheer gebruikt zoeken, categoriefilters en een duidelijk overzicht van open werk.", descriptionEn: "Administration now offers search, category filters and a clear overview of open work." },
-      { kind: "new", title: "Openbare roadmap", titleEn: "Public roadmap", description: "Bekijk waar GlobeTrotr nu aan werkt en welke verbeteringen hierna volgen.", descriptionEn: "See what GlobeTrotr is working on now and which improvements come next." },
-      { kind: "secure", title: "Extra beveiliging voor platformbeheer", titleEn: "Additional platform administration security", description: "Beheertoegang wordt extra gecontroleerd en belangrijke beheeracties worden vastgelegd.", descriptionEn: "Administration access receives an additional check and important admin actions are recorded." },
-      { kind: "improved", title: "Beter accountbeheer", titleEn: "Better account administration", description: "Geautoriseerd beheer kan accountinstellingen gecontroleerd corrigeren met een vastgelegde reden.", descriptionEn: "Authorised administration can correct account settings in a controlled way with a recorded reason." },
-      { kind: "improved", title: "Compactere footer", titleEn: "More compact footer", description: "Productpagina's, updates en juridische informatie staan nu in twee overzichtelijke menu's.", descriptionEn: "Product pages, updates and legal information are now grouped into two clear menus." },
-      { kind: "improved", title: "Duidelijkere navigatie", titleEn: "Clearer navigation", description: "Belangrijke informatiepagina's hebben herkenbare iconen en lange beheerlijsten blijven compact.", descriptionEn: "Important information pages now have recognisable icons and long administration lists remain compact." },
-      { kind: "secure", title: "Bewaakte platformstatus", titleEn: "Monitored platform status", description: "Beheer kan belangrijke technische diensten veilig controleren zonder vluchtquotum te verbruiken.", descriptionEn: "Administration can safely check important technical services without consuming flight quota." },
       { kind: "improved", title: "Privacykeuzes op de juiste plek", titleEn: "Privacy choices in the right place", description: "Ingelogde gebruikers beheren browseropslag in Accountinstellingen; gasten gebruiken de footer.", descriptionEn: "Signed-in users manage browser storage in Account settings; guests use the footer." },
     ],
   },

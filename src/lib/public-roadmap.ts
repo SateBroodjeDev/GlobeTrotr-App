@@ -3,7 +3,7 @@ export const PUBLIC_ROADMAP = [
     status: "now",
     title: ["Internationale beta verbeteren", "Improve the international beta"],
     description: ["Feedback verwerken, bekende problemen oplossen en de ervaring op telefoon verder aanscherpen.", "Process feedback, resolve known issues and further refine the mobile experience."],
-    items: [["Betere feedback- en probleemopvolging", "Better feedback and issue follow-up"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"], ["Reisplanning en openbare reispagina's verfijnen", "Refine trip planning and public trip pages"]],
+    items: [["Betere feedback- en probleemopvolging", "Better feedback and issue follow-up"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"], ["Reisplanning en openbare reispagina's verfijnen", "Refine trip planning and public trip pages"], ["Veiliger en duidelijker accountbeheer", "Safer and clearer account administration"]],
   },
   {
     status: "next",

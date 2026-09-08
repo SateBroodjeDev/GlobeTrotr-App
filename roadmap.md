@@ -4,7 +4,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 > **Legenda:** `[x]` is gebouwd of expliciet als uitgevoerd bevestigd. `[ ]` is open: bouw, configuratie of controle. Gebouwd betekent niet automatisch in productie getest. Nieuwe werkzaamheden staan vanaf “Gepland” op prioriteit: **P0** eerst, daarna **P1** en **P2**.
 
-## Actuele stand — 8 september 2026
+## Actuele stand — 9 september 2026
 
 - [x] Juridische contactgegevens gepubliceerd: GlobeTrotr, postadres (geen bezoekadres) Gedempte Oude Gracht 95, 2011 GT Haarlem en privacy@globetrotr.nl.
 - [x] Privacykeuzes voor ingelogde gebruikers naar Accountinstellingen verplaatst; alleen gasten zien de keuze in de footer.
@@ -25,10 +25,13 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Veilige publieke roadmap op `/roadmap` toegevoegd en vanuit de footer bereikbaar; interne techniek, secrets en beheerwerk blijven uitsluitend in dit bestand.
 - [x] Publieke footer vereenvoudigd tot de menu's **Ontdek** en **Privacy & voorwaarden**; databronnen staan compact op één regel.
 - [x] Footerlinks voor Mogelijkheden, Roadmap en Bekende problemen hebben herkenbare iconen; Corporate Admin heeft vaste onderdeelnavigatie en begrensde, uitklapbare gebruikers- en auditlijsten.
+- [x] Corporate Admin opgesplitst in echte pagina's voor Overzicht, Gebruikers, Status, Problemen, Feedback en Auditlog.
 - [x] Handmatige platformstatus in Corporate Admin controleert database, Storage, Open-Meteo, Frankfurter/ECB en GitHub; SkyLink wordt zonder quotumverbruik op serverconfiguratie gecontroleerd en de controle komt in de auditlog.
 - [x] Corporate Admin versterkt met een relationele `platform_admins`-allowlist naast de bestaande Auth-claim en een server-side auditlog voor inzage en beheeracties.
 - [x] Afgeschermd gebruikersoverzicht toegevoegd met zoeken, bevestigingsstatus, laatste login, taal en abonnement; profielnaam, taal en plan zijn met verplichte reden en auditregistratie wijzigbaar.
-- [ ] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitvoeren.
+- [x] Los gebruikersdetail toegevoegd met aantallen actieve, openbare en gearchiveerde reizen, workspace-aanmaak, laatste activiteit en auditregistratie van iedere inzage.
+- [x] Accounts kunnen vanuit het gebruikersdetail tijdelijk worden geblokkeerd en hersteld; een verplichte reden, herbevestiging, eigen-accountbescherming en auditregistratie beveiligen de actie.
+- [x] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitgevoerd.
 
 ### Actuele bekende beta-beperkingen
 
@@ -668,6 +671,12 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 ### Platform- en gebruikersbeheer
 
 - [x] Gebruikersoverzicht met noodzakelijke profiel- en accountgegevens; wijzigingen vereisen een expliciete actie en reden en worden in de auditlog vastgelegd
+- [x] Gebruikersdetail openen zonder de hoofdlijst lang te maken.
+- [x] Aantal actieve, openbare en gearchiveerde reizen per gebruiker tonen.
+- [x] Workspace-aanmaak en laatste activiteit in het gebruikersdetail tonen.
+- [x] Account tijdelijk blokkeren en herstellen met verplichte reden.
+- [x] Duidelijke waarschuwing en herbevestiging bij blokkeren en herstellen; het eigen beheerdersaccount kan niet worden geblokkeerd.
+- [x] Alle inzage in gebruikersdetails en alle huidige profiel-, taal- en planwijzigingen in de auditlog vastleggen.
 - [ ] Moderatie voor openbare reizen: verbergen en herstellen met reden, zonder standaard toegang tot privéreisinhoud
 - [ ] Beheerbare featureflags, beta-uitrolpercentages, onderhoudsmelding en noodstop per externe integratie
 - [ ] Handmatige plan-correctie alleen met reden en auditlog; Stripe-webhooks blijven leidend voor betaalstatus
