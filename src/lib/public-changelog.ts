@@ -41,6 +41,45 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-08-security-hardening",
+    version: "Beta 0.10",
+    publishedAt: "2026-09-08T14:42:00+02:00",
+    title: "Veiligere exports en eerlijk API-gebruik",
+    titleEn: "Safer exports and fair API usage",
+    summary:
+      "Exports, vluchtcontroles en gegevens van reisgenoten hebben extra bescherming gekregen.",
+    summaryEn: "Exports, flight checks and traveller data now have additional safeguards.",
+    changes: [
+      {
+        kind: "secure",
+        title: "Veilige CSV-bestanden",
+        titleEn: "Safe CSV files",
+        description:
+          "Tekst uit reisuitgaven kan bij openen in een spreadsheet niet meer als formule worden uitgevoerd.",
+        descriptionEn:
+          "Text from trip expenses can no longer execute as a formula when opened in a spreadsheet.",
+      },
+      {
+        kind: "secure",
+        title: "Beschermde vluchtcontroles",
+        titleEn: "Protected flight checks",
+        description:
+          "Alleen ingelogde gebruikers kunnen live vluchtinformatie opvragen, met een redelijke limiet per account.",
+        descriptionEn:
+          "Only signed-in users can request live flight information, with a reasonable per-account limit.",
+      },
+      {
+        kind: "secure",
+        title: "Meer privacy voor reisgenoten",
+        titleEn: "More privacy for travellers",
+        description:
+          "Samenwerkende reisgenoten kunnen niet rechtstreeks de e-mailadressen van alle andere leden uitlezen.",
+        descriptionEn:
+          "Trip collaborators can no longer directly read every other member's email address.",
+      },
+    ],
+  },
+  {
     id: "2026-09-08-actual-fuel-costs",
     version: "Beta 0.9",
     publishedAt: "2026-09-08T14:34:00+02:00",

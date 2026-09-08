@@ -4,6 +4,24 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 14:42 CEST — Securityscan: exports, API-quota en ledenprivacy
+
+### Beveiliging
+
+- CSV-cellen met `=`, `+`, `-`, `@` of gevaarlijke voorlooptekens krijgen een tekstprefix voordat een spreadsheet ze opent; bestaande quote-escaping blijft actief.
+- De SkyLink-serverfunctie vereist nu een geverifieerde Supabase-sessie en reserveert atomair maximaal twintig controles per account per uur.
+- Rechtstreekse `SELECT`-toegang tot `trip_members.email` is voor `authenticated` ingetrokken. Veilige ledenvelden blijven onder de bestaande reis-RLS leesbaar; de afgeschermde serverroute levert e-mail alleen aan de eigenaar.
+- Directe uitvoerrechten op interne `SECURITY DEFINER`-triggerfuncties zijn ingetrokken en hun vaste `search_path` is aangescherpt.
+- `authenticated` kan de publieke reis-RPC's niet meer rechtstreeks uitvoeren. De twee bewust openbare functies blijven voor `anon` beschikbaar omdat de homepage en gedeelde reislinks deze nodig hebben; hun responses bestaan uit een vaste allowlist en PIN-validatie.
+- Migratie `20260908015000_security_hardening.sql` bevat de rechtenwijzigingen en de persistente vluchtquotateller.
+
+### Controles
+
+- `security_hardening.sql` controleert het uurquotum, afgeschermde e-mailkolom en de toegestane `SECURITY DEFINER`-rechten.
+- Twee nieuwe regressietests controleren CSV-formule-injectie en correcte quote-escaping.
+- Alle 21 geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+- De beveiligingsmigratie en SQL-test moeten nog worden uitgevoerd; draai daarna de Lovable-securityscan opnieuw.
+
 ## 2026-09-08 14:34 CEST — Weer op de openbare reispagina
 
 ### Publieke reis
@@ -17,7 +35,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 
 - De test dekt een openbare Pro-reis, een openbare Free-reis en controleert dat het plan niet wordt vrijgegeven.
 - Alle negentien geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
-- De nieuwe weermigratie en SQL-test moeten nog in de gekoppelde Supabase-omgeving worden uitgevoerd.
+- De weermigratie en SQL-regressietest zijn op 8 september 2026 zonder fouten uitgevoerd.
 
 ## 2026-09-08 14:29 CEST — Boekingen bewust openbaar delen
 

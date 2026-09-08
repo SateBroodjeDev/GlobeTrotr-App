@@ -29,7 +29,12 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Migratie `20260908013000_public_trip_bookings.sql` en SQL-test `supabase/tests/public_trip_bookings.sql` zonder fouten uitgevoerd.
 - [ ] Eén gedeelde en één private boeking na publicatie via een incognitovenster controleren.
 - [x] Publiek weer gebouwd voor Pro- en Agency-reizen; de gekozen bestemming bepaalt de verwachting en de vijfdaagse weergave past op smalle schermen.
-- [ ] Migratie `20260908014000_public_trip_weather.sql` en SQL-test `supabase/tests/public_trip_weather.sql` uitvoeren.
+- [x] Migratie `20260908014000_public_trip_weather.sql` en SQL-test `supabase/tests/public_trip_weather.sql` zonder fouten uitgevoerd.
+- [x] CSV-export neutraliseert spreadsheetformules uit gebruikersinvoer en heeft regressietests voor formuleprefixen en aanhalingstekens.
+- [x] Vluchtopvraging vereist een geverifieerde sessie en gebruikt een atomaire limiet van 20 controles per account per uur.
+- [x] Directe databaselezers van `trip_members` krijgen alleen veilige samenwerkingsvelden; e-mailadressen blijven beschikbaar voor de eigenaar via de afgeschermde serverroute.
+- [x] Onnodige uitvoerrechten op `SECURITY DEFINER`-triggerfuncties en publieke reis-RPC's ingetrokken; alleen de twee bewust anonieme, veldbeperkte publieke reisfuncties blijven voor bezoekers beschikbaar.
+- [ ] Migratie `20260908015000_security_hardening.sql` en SQL-test `supabase/tests/security_hardening.sql` uitvoeren en daarna de Lovable-securityscan opnieuw draaien.
 
 - [x] Technisch changelog in `CHANGELOG.md` toegevoegd voor GitHub, met datum, tijd, databasewijzigingen en controles.
 - [x] Publieke pagina `/changelog` toegevoegd met gebruikersgerichte releases, categorie-iconen, datum en tijd; link staat in de footer.

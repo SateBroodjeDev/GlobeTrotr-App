@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   findScheduledFlight,
   formatScheduleDate,
@@ -32,10 +33,24 @@ export type FlightLookup = {
 
 /** Looks up one flight while keeping the provider key on the server. */
 export const lookupFlight = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator(
     (input: { flightNumber: string; flightDate?: string; departureIata?: string }) => input,
   )
-  .handler(async ({ data }): Promise<FlightLookup> => {
+  .handler(async ({ data, context }): Promise<FlightLookup> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: allowed, error: quotaError } = await supabaseAdmin.rpc(
+      "consume_flight_lookup_quota" as never,
+      { p_user_id: context.userId, p_limit: 20 } as never,
+    );
+    if (quotaError) {
+      throw new Error(
+        "De beveiligingsupdate voor vluchtinformatie ontbreekt. Voer de nieuwste migratie uit.",
+      );
+    }
+    if (!allowed) {
+      throw new Error("Je hebt de limiet van 20 vluchtcontroles per uur bereikt.");
+    }
     const flightNumber = data.flightNumber.trim().toUpperCase().replace(/\s+/g, "");
     if (!/^[A-Z]{2,3}\d{1,7}$/.test(flightNumber)) {
       throw new Error("Vul een geldig vluchtnummer in, bijvoorbeeld KL1234.");

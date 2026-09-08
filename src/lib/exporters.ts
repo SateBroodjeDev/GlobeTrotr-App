@@ -1,14 +1,32 @@
-import { CATEGORIES, type Trip } from "./types";
-import { convert, formatMoney, type Rates } from "./services";
-import type { AppLocale } from "./locale";
-import { localizeCountry } from "./localized-values";
+import { CATEGORIES, type Trip } from "./types.ts";
+import { convert, formatMoney, type Rates } from "./services.ts";
+import type { AppLocale } from "./locale.tsx";
+import { localizeCountry } from "./localized-values.ts";
 
 export function downloadCsv(trip: Trip, base: string, rates: Rates, locale: AppLocale) {
   const en = locale === "en-GB";
   const rows = [
     en
-      ? ["Date", "Description", "Category", "Amount", "Currency", `Amount (${base})`, "Paid by", "Billable"]
-      : ["Datum", "Omschrijving", "Categorie", "Bedrag", "Valuta", `Bedrag (${base})`, "Betaald door", "Declarabel"],
+      ? [
+          "Date",
+          "Description",
+          "Category",
+          "Amount",
+          "Currency",
+          `Amount (${base})`,
+          "Paid by",
+          "Billable",
+        ]
+      : [
+          "Datum",
+          "Omschrijving",
+          "Categorie",
+          "Bedrag",
+          "Valuta",
+          `Bedrag (${base})`,
+          "Betaald door",
+          "Declarabel",
+        ],
     ...trip.expenses.map((e) => [
       e.date,
       e.title,
@@ -17,12 +35,10 @@ export function downloadCsv(trip: Trip, base: string, rates: Rates, locale: AppL
       e.currency,
       convert(e.amount, e.currency, base, rates).toFixed(2),
       e.paidBy,
-      e.billable ? (en ? "yes" : "ja") : (en ? "no" : "nee"),
+      e.billable ? (en ? "yes" : "ja") : en ? "no" : "nee",
     ]),
   ];
-  const csv = rows
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";"))
-    .join("\n");
+  const csv = rows.map((r) => r.map(csvCell).join(";")).join("\n");
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -33,7 +49,10 @@ export function downloadCsv(trip: Trip, base: string, rates: Rates, locale: AppL
 }
 
 function slug(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
 export function openPdf(
@@ -69,18 +88,23 @@ export function openPdf(
 <h1>${escapeHtml(trip.name)}</h1>
 <div class="muted">${trip.start} ${en ? "to" : "t/m"} ${trip.end} · ${trip.stops.length} ${en ? "destinations" : "bestemmingen"}</div>
 <h3>${en ? "Itinerary" : "Reisschema"}</h3><ul class="sched">${trip.itinerary
-    .map((i) => `<li><b>${i.day}</b> — ${escapeHtml(i.title)}${i.notes ? ` <span class="muted">(${escapeHtml(i.notes)})</span>` : ""}</li>`)
+    .map(
+      (i) =>
+        `<li><b>${i.day}</b> — ${escapeHtml(i.title)}${i.notes ? ` <span class="muted">(${escapeHtml(i.notes)})</span>` : ""}</li>`,
+    )
     .join("")}</ul>
 <h3>${en ? "Expenses & claim" : "Uitgaven & declaratie"}</h3>
 <table><thead><tr><th>${en ? "Date" : "Datum"}</th><th>${en ? "Description" : "Omschrijving"}</th><th>${en ? "Category" : "Categorie"}</th><th>${en ? "Original" : "Origineel"}</th><th>${base}</th><th>${en ? "Billable" : "Declarabel"}</th></tr></thead>
 <tbody>${trip.expenses
     .map(
-      (e) => `<tr><td>${e.date}</td><td>${escapeHtml(e.title)}</td><td>${
-        exportCategory(e.category, locale)
-      }</td><td>${e.amount.toFixed(2)} ${e.currency}</td><td>${formatMoney(
-        convert(e.amount, e.currency, base, rates),
-        base,
-      )}</td><td>${e.billable ? (en ? "yes" : "ja") : "—"}</td></tr>`,
+      (e) =>
+        `<tr><td>${e.date}</td><td>${escapeHtml(e.title)}</td><td>${exportCategory(
+          e.category,
+          locale,
+        )}</td><td>${e.amount.toFixed(2)} ${e.currency}</td><td>${formatMoney(
+          convert(e.amount, e.currency, base, rates),
+          base,
+        )}</td><td>${e.billable ? (en ? "yes" : "ja") : "—"}</td></tr>`,
     )
     .join("")}</tbody>
 <tfoot><tr><td colspan="4">${en ? "Total" : "Totaal"}</td><td>${formatMoney(total, base)}</td><td>${formatMoney(billable, base)}</td></tr></tfoot>
@@ -97,8 +121,9 @@ export function openPdf(
 }
 
 function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
   );
 }
 
@@ -158,25 +183,25 @@ export function openGuide(
 
 <h2>${en ? "Day by day" : "Dag voor dag"}</h2>
 ${days
-    .map(
-      (d) =>
-        `<div class="day"><b>${d}</b><ul>${trip.itinerary
-          .filter((i) => i.day === d)
-          .map(
-            (i) =>
-              `<li>${escapeHtml(i.title)}${i.notes ? ` <span class="muted">— ${escapeHtml(i.notes)}</span>` : ""}</li>`,
-          )
-          .join("")}</ul></div>`,
-    )
-    .join("")}
+  .map(
+    (d) =>
+      `<div class="day"><b>${d}</b><ul>${trip.itinerary
+        .filter((i) => i.day === d)
+        .map(
+          (i) =>
+            `<li>${escapeHtml(i.title)}${i.notes ? ` <span class="muted">— ${escapeHtml(i.notes)}</span>` : ""}</li>`,
+        )
+        .join("")}</ul></div>`,
+  )
+  .join("")}
 
 ${
-    trip.packing?.length
-      ? `<h2>${en ? "Packing list" : "Paklijst"}</h2><ul>${trip.packing
-          .map((p) => `<li>${p.done ? "☑" : "☐"} ${escapeHtml(p.label)}</li>`)
-          .join("")}</ul>`
-      : ""
-  }
+  trip.packing?.length
+    ? `<h2>${en ? "Packing list" : "Paklijst"}</h2><ul>${trip.packing
+        .map((p) => `<li>${p.done ? "☑" : "☐"} ${escapeHtml(p.label)}</li>`)
+        .join("")}</ul>`
+    : ""
+}
 
 <h2>Budget</h2>
 <p class="muted">${en ? "Spent" : "Uitgegeven"} ${formatMoney(total, base)} ${en ? "of" : "van"} ${formatMoney(trip.budget, base)} · ${en ? "remaining" : "restant"} ${formatMoney(
@@ -193,12 +218,23 @@ ${
   return true;
 }
 
+/** Voorkom dat spreadsheetprogramma's gebruikersinvoer als formule uitvoeren. */
+export function csvCell(value: unknown) {
+  const raw = String(value);
+  const safe = /^\s*[=+\-@]/.test(raw) || /^[\t\r]/.test(raw) ? `'${raw}` : raw;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
 function exportCategory(id: string, locale: AppLocale) {
   const fallback = CATEGORIES.find((category) => category.id === id)?.label ?? id;
   if (locale === "nl-NL") return fallback;
   const labels: Record<string, string> = {
-    transport: "Transport", lodging: "Accommodation", food: "Food and drink",
-    activities: "Activities", shopping: "Shopping", other: "Other",
+    transport: "Transport",
+    lodging: "Accommodation",
+    food: "Food and drink",
+    activities: "Activities",
+    shopping: "Shopping",
+    other: "Other",
   };
   return labels[id] ?? fallback;
 }
