@@ -14,6 +14,11 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Privacykeuzes staan voor ingelogde gebruikers bij Accountinstellingen; gasten houden de footeroptie. Juridische naam, postadres en privacycontact zijn gepubliceerd.
 - Migratie `20260908016000_beta_feedback_and_known_issues.sql` en regressietest `supabase/tests/beta_feedback_and_known_issues.sql` zijn toegevoegd.
 - GitHub-verzoeken sturen de verplichte herkenbare `User-Agent` mee en gebruiken voor nieuwe Issues uitsluitend velden uit het create-issue-schema.
+- De feedbackknop toont alleen nog een icoon, zodat hij ook op smalle schermen past.
+- Feedback en bekende problemen kunnen worden gearchiveerd, hersteld en na bevestiging definitief verwijderd; gekoppelde GitHub Issues worden bij archiveren of verwijderen gesloten.
+- Statussen en ernstlabels worden in de gekozen accounttaal getoond.
+- Migratie `20260908017000_archive_feedback_and_issues.sql` voegt de archiveerstatus toe.
+- Feedback en bekende problemen gebruiken dezelfde vertaalde categorieën: fout, verbetering, idee, gebruiksgemak, vertaling, beveiliging en overig.
 
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 

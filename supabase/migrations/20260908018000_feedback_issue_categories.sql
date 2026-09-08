@@ -1,0 +1,10 @@
+BEGIN;
+ALTER TABLE public.beta_feedback ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'other';
+ALTER TABLE public.known_issues ADD COLUMN IF NOT EXISTS category TEXT NOT NULL DEFAULT 'other';
+ALTER TABLE public.beta_feedback DROP CONSTRAINT IF EXISTS beta_feedback_category_check;
+ALTER TABLE public.beta_feedback ADD CONSTRAINT beta_feedback_category_check CHECK (category IN ('bug','improvement','idea','usability','translation','security','other'));
+ALTER TABLE public.known_issues DROP CONSTRAINT IF EXISTS known_issues_category_check;
+ALTER TABLE public.known_issues ADD CONSTRAINT known_issues_category_check CHECK (category IN ('bug','improvement','idea','usability','translation','security','other'));
+CREATE INDEX IF NOT EXISTS beta_feedback_category_idx ON public.beta_feedback(category);
+CREATE INDEX IF NOT EXISTS known_issues_category_idx ON public.known_issues(category);
+COMMIT;

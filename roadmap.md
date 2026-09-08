@@ -12,6 +12,12 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Vaste feedbackknop voor ingelogde betatesters gebouwd met veilige invoerlimieten en waarschuwing voor gevoelige gegevens.
 - [x] Corporate Admin-pagina en publieke pagina Bekende problemen gebouwd; NL/EN, status, ernst, zichtbaarheid en feedbackstatus zijn beheerbaar.
 - [x] GitHub Issues-synchronisatie gebouwd voor nieuwe en gewijzigde bekende problemen.
+- [x] Feedbackknop verkleind tot een toegankelijk icoon zonder overlopende tekst.
+- [x] Feedback en bekende problemen kunnen worden gearchiveerd, hersteld en definitief verwijderd; statussen en ernst worden in NL/EN weergegeven.
+- [ ] Veilige automatische vertaling van bekende problemen server-side toevoegen nadat een vertaalprovider, verwerkersafspraken, bewaarbeleid en secret zijn gekozen.
+- [ ] Migratie `20260908017000_archive_feedback_and_issues.sql` uitvoeren.
+- [x] Gedeelde categorieën voor feedback en bekende problemen gebouwd en vertaald weergegeven in beheer en op de openbare probleemlijst.
+- [ ] Migratie `20260908018000_feedback_issue_categories.sql` uitvoeren.
 - [ ] Migratie `20260908016000_beta_feedback_and_known_issues.sql` en test `supabase/tests/beta_feedback_and_known_issues.sql` uitvoeren.
 - [ ] Corporate Admin-claim `app_metadata.corporate_admin=true` uitsluitend aan het GlobeTrotr-beheerdersaccount toekennen en opnieuw inloggen.
 - [ ] Server-secrets `GITHUB_ISSUES_TOKEN` (fine-grained, alleen Issues write voor de doelrepository) en `GITHUB_ISSUES_REPOSITORY` (`owner/repository`) instellen en één synchronisatie testen.

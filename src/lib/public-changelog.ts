@@ -49,8 +49,8 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     summary: "Betatesters kunnen sneller problemen melden en de voortgang volgen via een openbare lijst.",
     summaryEn: "Beta testers can report problems faster and follow progress through a public list.",
     changes: [
-      { kind: "new", title: "Feedbackknop op iedere pagina", titleEn: "Feedback button on every page", description: "Ingelogde testers kunnen via de vaste zijknop een probleem of idee insturen.", descriptionEn: "Signed-in testers can submit a problem or idea through the fixed side button." },
-      { kind: "new", title: "Openbare lijst met bekende problemen", titleEn: "Public known-issues list", description: "Bekijk welke problemen worden onderzocht, gepland of gemonitord.", descriptionEn: "See which problems are being investigated, planned or monitored." },
+      { kind: "new", title: "Feedbackknop op iedere pagina", titleEn: "Feedback button on every page", description: "Ingelogde testers kunnen via de vaste zijknop feedback insturen en daarbij een duidelijke categorie kiezen.", descriptionEn: "Signed-in testers can submit feedback through the fixed side button and select a clear category." },
+      { kind: "new", title: "Openbare lijst met bekende problemen", titleEn: "Public known-issues list", description: "Bekijk per categorie welke problemen worden onderzocht, gepland of gemonitord.", descriptionEn: "See by category which problems are being investigated, planned or monitored." },
       { kind: "improved", title: "Privacykeuzes op de juiste plek", titleEn: "Privacy choices in the right place", description: "Ingelogde gebruikers beheren browseropslag in Accountinstellingen; gasten gebruiken de footer.", descriptionEn: "Signed-in users manage browser storage in Account settings; guests use the footer." },
     ],
   },
