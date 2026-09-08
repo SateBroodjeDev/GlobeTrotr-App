@@ -271,6 +271,9 @@ function AppShellContent({ children }: { children: ReactNode }) {
           aria-label={text("Voetnavigatie", "Footer navigation")}
           className="flex flex-wrap items-center gap-x-4 gap-y-2"
         >
+          <Link to="/mogelijkheden" className="font-medium text-foreground transition-colors hover:text-primary">
+            {text("Mogelijkheden", "Features")}
+          </Link>
           <Link
             to="/changelog"
             className="inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"

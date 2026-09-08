@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BetaVoorwaardenRouteImport } from './routes/beta-voorwaarden'
 import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as MogelijkhedenRouteImport } from './routes/mogelijkheden'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
@@ -46,6 +47,11 @@ const BetaVoorwaardenRoute = BetaVoorwaardenRouteImport.update({
 const ChangelogRoute = ChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MogelijkhedenRoute = MogelijkhedenRouteImport.update({
+  id: '/mogelijkheden',
+  path: '/mogelijkheden',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/mogelijkheden': typeof MogelijkhedenRoute
   '/privacy': typeof PrivacyRoute
   '/account': typeof AuthenticatedAccountRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/mogelijkheden': typeof MogelijkhedenRoute
   '/privacy': typeof PrivacyRoute
   '/account': typeof AuthenticatedAccountRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/mogelijkheden': typeof MogelijkhedenRoute
   '/privacy': typeof PrivacyRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/mogelijkheden'
     | '/privacy'
     | '/account'
     | '/analytics'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/mogelijkheden'
     | '/privacy'
     | '/account'
     | '/analytics'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/mogelijkheden'
     | '/privacy'
     | '/_authenticated/account'
     | '/_authenticated/analytics'
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BetaVoorwaardenRoute: typeof BetaVoorwaardenRoute
   ChangelogRoute: typeof ChangelogRoute
+  MogelijkhedenRoute: typeof MogelijkhedenRoute
   PrivacyRoute: typeof PrivacyRoute
   ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
 }
@@ -236,6 +249,13 @@ declare module '@tanstack/react-router' {
       path: '/changelog'
       fullPath: '/changelog'
       preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mogelijkheden': {
+      id: '/mogelijkheden'
+      path: '/mogelijkheden'
+      fullPath: '/mogelijkheden'
+      preLoaderRoute: typeof MogelijkhedenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BetaVoorwaardenRoute: BetaVoorwaardenRoute,
   ChangelogRoute: ChangelogRoute,
+  MogelijkhedenRoute: MogelijkhedenRoute,
   PrivacyRoute: PrivacyRoute,
   ReisTokenTripIdRoute: ReisTokenTripIdRoute,
 }

@@ -46,6 +46,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
       "The beta now presents GlobeTrotr more clearly and gives you direct control over your account data.",
     changes: [
       {
+        kind: "fixed",
+        title: "Homepage opent weer betrouwbaar",
+        titleEn: "Homepage opens reliably again",
+        description:
+          "Een conflict met het kaarticoon dat een leeg scherm kon veroorzaken is opgelost.",
+        descriptionEn:
+          "A map icon conflict that could cause a blank screen has been resolved.",
+      },
+      {
         kind: "improved",
         title: "Een homepage die het product laat zien",
         titleEn: "A homepage that shows the product",
@@ -53,6 +62,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Een visuele reisdemo, duidelijke mogelijkheden, een kort stappenplan en openbare reisinspiratie maken de eerste kennismaking completer.",
         descriptionEn:
           "A visual trip demo, clear capabilities, a short walkthrough and public travel inspiration make the first visit more complete.",
+      },
+      {
+        kind: "new",
+        title: "Alle mogelijkheden bij elkaar",
+        titleEn: "All features in one place",
+        description:
+          "Een nieuwe productpagina laat per reisfase zien hoe routes, planning, boekingen, kosten, samenwerking en delen werken.",
+        descriptionEn:
+          "A new product page shows how routes, planning, bookings, expenses, collaboration and sharing work at every trip stage.",
       },
       {
         kind: "new",

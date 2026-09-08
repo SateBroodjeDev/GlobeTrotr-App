@@ -9,6 +9,8 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 ### Publieke ervaring
 
 - De homepage toont nu een visuele productdemo, belangrijkste mogelijkheden, een stappenplan, openbare reisinspiratie en duidelijke acties voor bezoekers en ingelogde gebruikers.
+- Runtimefout `Constructor Map requires 'new'` op de homepage opgelost door het kaarticoon expliciet als `MapPinned` te gebruiken in plaats van de globale JavaScript-`Map` constructor.
+- Nieuwe publieke pagina `/mogelijkheden` toont per reisfase routes, planning, boekingen, kosten, samenwerking, delen, mobiele hulpmiddelen, exports en Agency-gebruik; de pagina is gekoppeld vanuit homepage en footer.
 - De internationale beta-pagina is uitgebreid met concrete testgebieden, een testronde in drie stappen, foutmeldinstructies, veiligheidsadvies en bekende beperkingen.
 - Publieke release **Beta 0.8** beschrijft deze wijzigingen in Nederlands en Engels.
 
