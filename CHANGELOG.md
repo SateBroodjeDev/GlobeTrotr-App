@@ -4,6 +4,26 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 01:15 CEST — Beta-ervaring, privacy en accountcontrole
+
+### Publieke ervaring
+
+- De homepage toont nu een visuele productdemo, belangrijkste mogelijkheden, een stappenplan, openbare reisinspiratie en duidelijke acties voor bezoekers en ingelogde gebruikers.
+- De internationale beta-pagina is uitgebreid met concrete testgebieden, een testronde in drie stappen, foutmeldinstructies, veiligheidsadvies en bekende beperkingen.
+- Publieke release **Beta 0.8** beschrijft deze wijzigingen in Nederlands en Engels.
+
+### Privacy en accounts
+
+- De privacyverklaring beschrijft gegevenscategorieën, doelen en AVG-grondslagen, ontvangers en doorgiften, bewaarinformatie, rechten, beveiliging, cookies en de klachtroute bij de Autoriteit Persoonsgegevens.
+- Accountinstellingen biedt een server-side, machineleesbare JSON-export van het account, profiel, eigen reizen, planning, uitgaven, samenwerkingen, meldingen en documentmetadata.
+- Accountverwijdering vereist de expliciete invoer `DELETE`, verwijdert eerst eigen avatar- en bonuploads en verwijdert daarna het Auth-account; gekoppelde databasegegevens volgen de bestaande cascade-relaties.
+- Voor een volledig openbare productieopening moeten de officiële juridische identiteit, het adres en een werkend privacycontactadres nog worden ingevuld.
+
+### Controles
+
+- Negen geautomatiseerde regressietests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+- Beveiligingsvelden voor openbare deeltoegang worden uit de account-export gefilterd.
+
 ## 2026-09-08 00:23 CEST — Grenzen voor reisteksten
 
 ### Gebruikerservaring

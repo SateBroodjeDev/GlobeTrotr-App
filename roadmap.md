@@ -6,6 +6,12 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Actuele stand — 8 september 2026
 
+- [x] Homepage vernieuwd met een visuele productdemo, mogelijkheden, stappenplan, openbare reisinspiratie en duidelijke beta-call-to-actions in NL/EN.
+- [x] Internationale beta-pagina uitgebreid tot praktische testgids met testgebieden, meldinstructies, veiligheidsadvies en bekende beperkingen.
+- [x] Privacyverklaring uitgebreid met AVG-informatie over verwerkingsverantwoordelijkheid, gegevenscategorieën, doelen en grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten en de klachtroute bij de Autoriteit Persoonsgegevens.
+- [x] Accountgegevens kunnen vanuit Accountinstellingen als machineleesbare JSON worden geëxporteerd; accountverwijdering gebruikt een expliciete `DELETE`-bevestiging en ruimt eigen databasegegevens en uploads op.
+- [x] Negen regressietests en de client-, SSR- en Cloudflare-productiebuild zijn na de pagina- en accountwijzigingen geslaagd.
+- [ ] Voor een volledig openbare productieopening de officiële juridische naam, vestigings-/postadres en een werkend privacycontactadres van de verwerkingsverantwoordelijke publiceren.
 - [x] Reisinstellingen tonen bij de reisnaam een live tekenteller tot de limiet van 30, gelijk aan de teller bij de omschrijving.
 - [x] Migratie `20260908002000_trip_text_limits.sql` en regressietest `supabase/tests/trip_text_limits.sql` uitgevoerd; reisnamen zijn maximaal 30 tekens en reisomschrijvingen maximaal 375 tekens.
 - [x] Mobiele slimme verrekening hersteld: de vierkolomstabel is op telefoon vervangen door compacte kaarten en Saldo krijgt een eigen volledige rij binnen de kaart.
@@ -279,7 +285,7 @@ Een aparte pagina **Accountinstellingen** voor de persoon achter het account. Di
 - [ ] Apple en Microsoft alleen als beschikbaar tonen zodra hun Lovable/Supabase-provider daadwerkelijk een secret heeft; geen providersecret in Git, browsercode, SQL of `workspaces.data` zetten.
 - [ ] Handmatige productiecontrole: eerste Apple-, Google- en Microsoft-login, een al bestaand e-mailaccount en koppelen/ontkoppelen testen zonder duplicaat-workspace
 - [ ] Actieve sessies en uitloggen op andere apparaten, als de gekozen Auth-configuratie dit ondersteunt
-- [ ] Account verwijderen met expliciete bevestiging, gegevens-export en duidelijke bewaartermijn
+- [x] Account verwijderen met expliciete bevestiging, machineleesbare gegevens-export en duidelijke bewaarinformatie
 
 ### Abonnement & meldingen
 

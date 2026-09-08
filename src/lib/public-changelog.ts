@@ -35,6 +35,55 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-08-beta-experience-privacy-controls",
+    version: "Beta 0.8",
+    publishedAt: "2026-09-08T01:15:00+02:00",
+    title: "Een mooiere start en meer controle",
+    titleEn: "A better start and more control",
+    summary:
+      "De beta legt nu beter uit wat GlobeTrotr kan en geeft je rechtstreeks controle over je accountgegevens.",
+    summaryEn:
+      "The beta now presents GlobeTrotr more clearly and gives you direct control over your account data.",
+    changes: [
+      {
+        kind: "improved",
+        title: "Een homepage die het product laat zien",
+        titleEn: "A homepage that shows the product",
+        description:
+          "Een visuele reisdemo, duidelijke mogelijkheden, een kort stappenplan en openbare reisinspiratie maken de eerste kennismaking completer.",
+        descriptionEn:
+          "A visual trip demo, clear capabilities, a short walkthrough and public travel inspiration make the first visit more complete.",
+      },
+      {
+        kind: "new",
+        title: "Zelf gegevens exporteren",
+        titleEn: "Export your own data",
+        description:
+          "Accountinstellingen levert een machineleesbare kopie van account-, profiel-, reis- en samenwerkingsgegevens.",
+        descriptionEn:
+          "Account settings provides a machine-readable copy of account, profile, trip and collaboration data.",
+      },
+      {
+        kind: "secure",
+        title: "Account zelf verwijderen",
+        titleEn: "Delete your own account",
+        description:
+          "Een extra bevestiging verwijdert het account, eigen reizen en bijbehorende uploads definitief uit de actieve dienst.",
+        descriptionEn:
+          "An additional confirmation permanently removes the account, owned trips and related uploads from the active service.",
+      },
+      {
+        kind: "improved",
+        title: "Uitgebreide beta- en privacy-informatie",
+        titleEn: "Expanded beta and privacy information",
+        description:
+          "Testers krijgen een praktische testgids en een uitgebreidere AVG-privacyverklaring met doelen, rechten en bewaarinformatie.",
+        descriptionEn:
+          "Testers get a practical testing guide and a more complete GDPR privacy notice covering purposes, rights and retention.",
+      },
+    ],
+  },
+  {
     id: "2026-09-07-trip-collaboration",
     version: "Beta 0.7",
     publishedAt: "2026-09-07T23:51:00+02:00",

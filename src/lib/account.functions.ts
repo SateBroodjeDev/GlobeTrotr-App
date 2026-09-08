@@ -22,7 +22,7 @@ const EXPORT_TABLES = [
   "notifications",
 ] as const;
 
-async function selectAccountRows(db: AdminClient, table: string, userId: string) {
+async function selectAccountRows(db: AdminClient, table: string, userId: string, email?: string) {
   if (table === "profiles") return db.from(table).select("*").eq("id", userId);
   if (table === "workspaces" || table === "notifications") {
     return db.from(table).select("*").eq("user_id", userId);
@@ -32,11 +32,26 @@ async function selectAccountRows(db: AdminClient, table: string, userId: string)
       return db.from(table).select("*").or(`workspace_user_id.eq.${userId},user_id.eq.${userId}`);
     }
     if (table === "trip_invitations") {
-      return db.from(table).select("*").eq("invited_by", userId);
+      const authored = await db.from(table).select("*").eq("invited_by", userId);
+      if (authored.error || !email) return authored;
+      const received = await db.from(table).select("*").ilike("email", email);
+      if (received.error) return received;
+      const rows = [...(authored.data ?? []), ...(received.data ?? [])];
+      return { data: [...new Map(rows.map((row: any) => [row.id, row])).values()], error: null };
     }
     return db.from(table).select("*").eq("workspace_user_id", userId);
   }
   throw new Error("Onbekende exporttabel.");
+}
+
+function redactCredentials(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactCredentials);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .filter(([key]) => !["share_pin_hash", "sharePinHash", "public_token"].includes(key))
+      .map(([key, nested]) => [key, redactCredentials(nested)]),
+  );
 }
 
 async function removeUserFiles(db: AdminClient, bucket: string, userId: string) {
@@ -74,7 +89,7 @@ export const exportAccountData = createServerFn({ method: "GET" })
 
     const entries = await Promise.all(
       EXPORT_TABLES.map(async (table) => {
-        const { data, error } = await selectAccountRows(db, table, context.userId);
+        const { data, error } = await selectAccountRows(db, table, context.userId, authData.user?.email);
         if (error) throw error;
         return [table, data ?? []] as const;
       }),
@@ -99,7 +114,7 @@ export const exportAccountData = createServerFn({ method: "GET" })
             })),
           }
         : null,
-      data: Object.fromEntries(entries),
+      data: redactCredentials(Object.fromEntries(entries)),
       files: {
         note: "Uploaded files are not embedded. Their metadata and storage paths are included in the exported records.",
       },
@@ -113,8 +128,19 @@ export const deleteAccount = createServerFn({ method: "POST" })
     if (data.confirmation !== "DELETE") throw new Error("ACCOUNT_DELETE_CONFIRMATION_INVALID");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as AdminClient;
+    const { data: authData, error: userError } = await db.auth.admin.getUserById(context.userId);
+    if (userError) throw userError;
     await removeUserFiles(db, "avatars", context.userId);
     await removeUserFiles(db, "receipts", context.userId);
+    const { error: membershipError } = await db.from("trip_members").delete().eq("user_id", context.userId);
+    if (membershipError) throw membershipError;
+    if (authData.user?.email) {
+      const { error: invitationError } = await db
+        .from("trip_invitations")
+        .delete()
+        .ilike("email", authData.user.email);
+      if (invitationError) throw invitationError;
+    }
     const { error } = await db.auth.admin.deleteUser(context.userId);
     if (error) throw error;
     return { deleted: true };

@@ -1,42 +1,46 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Beaker, Bug, CheckCircle2, CircleAlert, ArrowRight, Globe2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Beaker, Bug, CheckCircle2, CircleAlert, ClipboardCheck, Mail, Rocket, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth";
 import { useLocale } from "@/lib/locale";
 import { PUBLIC_BETA_STATUS } from "@/lib/public-changelog";
-import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute("/beta-voorwaarden")({
-  head: () => ({ meta: [{ title: "Beta testen — GlobeTrotr" }, { name: "description", content: "Help GlobeTrotr verbeteren: testscenario's, bekende beperkingen en beta-voorwaarden." }] }),
-  component: BetaTermsPage,
-});
+export const Route = createFileRoute("/beta-voorwaarden")({ head: () => ({ meta: [{ title: "Internationale beta — GlobeTrotr" }, { name: "description", content: "Alles over testen en deelnemen aan de GlobeTrotr-beta." }] }), component: BetaPage });
 
-function BetaTermsPage() {
-  const { text } = useLocale();
+function BetaPage() {
   const { user } = useAuth();
-  const scenarios = [
-    [text("Maak jouw eerste reis", "Create your first trip"), text("Geef de reis een naam en omschrijving, kies datums en voeg drie bestemmingen toe. Herlaad de pagina en controleer of alles bewaard is.", "Give your trip a name and description, choose dates and add three destinations. Reload and check that everything was saved.")],
-    [text("Plan een complete dag", "Plan a complete day"), text("Voeg een vlucht, verblijf en activiteit toe. Probeer de dagfilters en bekijk de route op je telefoon.", "Add a flight, stay and activity. Try the daily filters and view the route on your phone.")],
-    [text("Verdeel een groepsrekening", "Split a group expense"), text("Voer uitgaven in met verschillende betalers en valuta. Wijzig een bedrag en controleer de slimme verrekening.", "Enter expenses with different payers and currencies. Edit an amount and check the settlement.")],
-    [text("Werk samen en deel bewust", "Collaborate and share deliberately"), text("Voeg een tweede bestaand account toe als reisgenoot. Test de rollen en bekijk je openbare link uitgelogd, ook met PIN en financiële informatie uit.", "Add a second existing account as a traveller. Test the roles and open your public link while signed out, including with a PIN and financial information disabled.")],
-    [text("Neem je gegevens mee", "Take your data with you"), text("Probeer de reisgids, uitgavenexport en account-export. Test accountverwijdering uitsluitend met een apart testaccount en controleer daarna dat inloggen en oude deellinks niet meer werken.", "Try the travel guide, expense export and account export. Test account deletion only with a separate test account, then check that sign-in and old sharing links no longer work.")],
-    [text("Wissel van taal en scherm", "Switch language and screen"), text("Doorloop dezelfde acties in Nederlands en Engels, op telefoon en desktop. Let op teksten die afbreken, knoppen en foutmeldingen.", "Repeat the actions in Dutch and English, on mobile and desktop. Look for clipped text, buttons and error messages.")],
+  const { text } = useLocale();
+  const journey = [
+    [ClipboardCheck, text("1. Maak een echte testreis", "1. Create a real test trip"), text("Voeg bestemmingen, datums, planning en een paar uitgaven toe.", "Add destinations, dates, itinerary items and a few expenses.")],
+    [ShieldCheck, text("2. Test samenwerken en delen", "2. Test collaboration and sharing"), text("Probeer een reisrol, openbare link en PIN zonder gevoelige echte gegevens.", "Try a trip role, public link and PIN without sensitive real data.")],
+    [Bug, text("3. Meld wat schuurt", "3. Report friction"), text("Noem pagina, apparaat, taal, handeling en wat je verwachtte. Een schermafbeelding helpt.", "Include page, device, language, action and expected result. A screenshot helps.")],
+  ] as const;
+  const testAreas = [
+    text("Reis maken en instellingen bewaren", "Create a trip and save settings"),
+    text("Route, kaart en dagplanning", "Route, map and daily itinerary"),
+    text("Vluchten, verblijf, vervoer en activiteiten", "Flights, accommodation, transport and activities"),
+    text("Uitgaven, valuta en slimme verrekening", "Expenses, currencies and smart settlement"),
+    text("Paklijst, exports en openbare reispagina", "Packing list, exports and public trip page"),
+    text("Mobiele weergave en Nederlands/Engels", "Mobile layout and Dutch/English"),
   ];
-  return (
-    <div className="mx-auto max-w-5xl space-y-10">
-      <header className="aurora rounded-3xl px-6 py-10 sm:px-10 sm:py-14">
-        <Badge variant="secondary" className="mb-4 gap-2"><Beaker className="size-3.5"/>{text("Internationale beta", "International beta")}</Badge>
-        <h1 className="max-w-2xl font-display text-3xl font-semibold sm:text-5xl">{text("Bouw mee aan meer reisplezier.", "Help make every journey better.")}</h1>
-        <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">{text("Jouw echte reisplannen helpen ons ontdekken wat prettig werkt en wat beter kan. Begin klein, probeer iets nieuws en vertel ons waar je vastloopt.", "Your real travel plans help us discover what works well and what needs improving. Start small, try something new and tell us where you get stuck.")}</p>
-        <div className="mt-6 flex flex-wrap gap-3"><Button asChild><Link to={user ? "/dashboard" : "/auth"}>{text("Start met testen", "Start testing")}<ArrowRight className="size-4"/></Link></Button><Button asChild variant="outline"><Link to="/changelog">{text("Wat is er nieuw?", "What's new?")}</Link></Button></div>
-      </header>
-      <section><div className="mb-5 flex items-center gap-2"><CheckCircle2 className="size-5 text-primary"/><h2 className="font-display text-2xl font-semibold">{text("Jouw testroute", "Your testing journey")}</h2></div><div className="grid gap-4 sm:grid-cols-2">{scenarios.map(([title,body],index)=><Card key={title} className="surface"><CardContent className="p-5"><span className="text-xs font-semibold text-primary">0{index+1}</span><h3 className="mt-2 font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></CardContent></Card>)}</div></section>
-      <section className="grid gap-5 md:grid-cols-2">
-        <Card className="surface"><CardContent className="p-6"><CircleAlert className="size-6 text-amber-500"/><h2 className="mt-3 text-lg font-semibold">{text("Goed om te weten", "Good to know")}</h2><p className="mt-2 text-sm text-muted-foreground">{text("Deze onderdelen horen nog niet bij de beta:", "These features are not yet part of the beta:")}</p><ul className="mt-3 list-disc space-y-2 pl-5 text-sm">{PUBLIC_BETA_STATUS.unavailable.map(item=><li key={item.nl}>{text(item.nl,item.en)}</li>)}</ul><p className="mt-4 text-sm text-muted-foreground">{text("Betalingen en automatische facturatie zijn nog niet gekoppeld. Een vluchtlookup hangt af van beschikbare informatie bij de aanbieder.", "Payments and automatic billing are not connected yet. Flight lookup depends on information available from the provider.")}</p></CardContent></Card>
-        <Card className="surface"><CardContent className="p-6"><Bug className="size-6 text-primary"/><h2 className="mt-3 text-lg font-semibold">{text("Een goede melding helpt enorm", "A useful report makes a difference")}</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text("Meld fouten via het kanaal waarmee je bent uitgenodigd. Vermeld de pagina, de stappen, wat je verwachtte en wat er gebeurde. Voeg taal, browser, telefoon/desktop en tijdstip toe. Maak persoonsgegevens onleesbaar in screenshots.", "Report issues through your invitation channel. Include the page, steps, what you expected and what happened. Add your language, browser, mobile/desktop and time. Hide personal data in screenshots.")}</p><p className="mt-4 text-sm text-muted-foreground">{text("Deel nooit je wachtwoord, toegangscodes of volledige betaalgegevens. Privacyvragen kunnen naar privacy@globetrotr.nl.", "Never share your password, access codes or full payment details. Privacy questions can go to privacy@globetrotr.nl.")}</p></CardContent></Card>
-      </section>
-      <section className="rounded-3xl border border-border p-6 sm:p-8"><Globe2 className="size-6 text-primary"/><h2 className="mt-3 font-display text-2xl font-semibold">{text("Afspraken voor de beta", "Beta participation terms")}</h2><div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground"><p>{text("Geldig vanaf 8 september 2026. GlobeTrotr is een testversie: functies kunnen veranderen en fouten of onderbrekingen zijn mogelijk. Bewaar zelf een kopie van belangrijke reisgegevens.", "Effective 8 September 2026. GlobeTrotr is a test version: features may change and errors or interruptions may occur. Keep your own copy of important trip data.")}</p><p>{text("Gebruik GlobeTrotr rechtmatig en respecteer de privacy van reisgenoten. Plaats geen identiteitsdocumenten, medische gegevens of betaalkaartgegevens in notities of uploads.", "Use GlobeTrotr lawfully and respect your companions' privacy. Do not put identity documents, medical information or payment card details in notes or uploads.")}</p><p>{text("GlobeTrotr is een planner en verkoopt geen reizen. Controleer vertrektijden, reserveringen, prijzen en reisvereisten bij de officiële aanbieder. Je wettelijke consumenten- en privacyrechten blijven van toepassing.", "GlobeTrotr is a planner and does not sell travel. Verify departure times, reservations, prices and travel requirements with the official provider. Your statutory consumer and privacy rights remain applicable.")}</p><p>{text("Je kunt op elk moment stoppen met testen en via Accountinstellingen je gegevens exporteren of je account verwijderen.", "You can stop testing at any time and export your data or delete your account in Account settings.")} <Link to="/privacy" className="text-primary underline">{text("Lees hoe we je gegevens gebruiken.", "Read how we use your data.")}</Link></p></div></section>
-    </div>
-  );
+  return <div className="mx-auto max-w-5xl space-y-10">
+    <header className="aurora overflow-hidden rounded-3xl px-6 py-12 sm:px-10 sm:py-16">
+      <Badge variant="secondary" className="mb-4 gap-1.5"><Beaker className="size-3.5" /> {text("Internationale beta", "International beta")}</Badge>
+      <h1 className="max-w-3xl font-display text-3xl font-semibold sm:text-5xl">{text("Help de reisplanner te bouwen die je zelf wilt meenemen", "Help build the trip planner you want to take with you")}</h1>
+      <p className="mt-4 max-w-2xl text-sm leading-relaxed opacity-90 sm:text-base">{text("Test echte reissituaties, ontdek wat goed werkt en vertel ons waar je vastloopt. Je feedback bepaalt wat als volgende wordt verbeterd.", "Test real travel situations, discover what works well and tell us where you get stuck. Your feedback shapes what improves next.")}</p>
+      <div className="mt-7 flex flex-wrap gap-3"><Button asChild size="lg"><Link to={user ? "/dashboard" : "/auth"}><Rocket className="size-4" /> {user ? text("Start met testen", "Start testing") : text("Beta-account maken", "Create beta account")}</Link></Button><Button asChild size="lg" variant="outline"><Link to="/changelog">{text("Bekijk updates", "View updates")}</Link></Button></div>
+    </header>
+
+    <section><h2 className="font-display text-2xl font-semibold">{text("Een goede testronde in drie stappen", "A useful test round in three steps")}</h2><div className="mt-4 grid gap-4 md:grid-cols-3">{journey.map(([Icon,title,body])=><Card key={title} className="surface"><CardContent className="p-5"><span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5" /></span><h3 className="mt-4 font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></CardContent></Card>)}</div></section>
+
+    <section className="grid gap-5 lg:grid-cols-[1.25fr_.75fr]">
+      <Card className="surface"><CardContent className="p-6 sm:p-8"><h2 className="font-display text-xl font-semibold">{text("Wat kun je testen?", "What can you test?")}</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{testAreas.map(item=><div key={item} className="flex gap-2 rounded-xl bg-muted/40 p-3 text-sm"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" />{item}</div>)}</div></CardContent></Card>
+      <Card className="surface border-amber-500/25"><CardContent className="p-6"><CircleAlert className="size-6 text-amber-600" /><h2 className="mt-4 font-display text-xl font-semibold">{text("Bewust nog niet beschikbaar", "Intentionally unavailable")}</h2><ul className="mt-4 space-y-3 text-sm text-muted-foreground">{PUBLIC_BETA_STATUS.unavailable.map(item=><li key={item.nl} className="flex gap-2"><span aria-hidden>•</span>{text(item.nl,item.en)}</li>)}</ul></CardContent></Card>
+    </section>
+
+    <Card className="surface"><CardContent className="grid gap-6 p-6 sm:p-8 md:grid-cols-2"><div><h2 className="font-display text-xl font-semibold">{text("Test veilig en zorgvuldig", "Test safely and responsibly")}</h2><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{text("GlobeTrotr is een testversie en kan veranderen of tijdelijk onderbroken zijn. Gebruik geen paspoortnummers, betaalkaartgegevens of medische informatie. Controleer tijden, prijzen, visa, verzekeringen en reserveringen altijd bij de officiële aanbieder; GlobeTrotr verkoopt geen reizen.", "GlobeTrotr is a test version and may change or be temporarily interrupted. Do not enter passport numbers, payment card details or medical information. Always verify times, prices, visas, insurance and reservations with the official provider; GlobeTrotr does not sell travel.")}</p></div><div><h2 className="font-display text-xl font-semibold">{text("Een bruikbare foutmelding", "A useful bug report")}</h2><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{text("Stuur je melding via het kanaal waarmee je bent uitgenodigd. Beschrijf de laatste stappen, vermeld browser en apparaat en voeg alleen een schermafbeelding toe waarop geen privégegevens staan.", "Send your report through the channel used for your invitation. Describe the last steps, include browser and device, and only attach a screenshot that contains no private data.")}</p><p className="mt-4 flex items-center gap-2 text-sm font-medium"><Mail className="size-4 text-primary" /> {text("We bevestigen bekende problemen in de changelog.", "Known issues are acknowledged in the changelog.")}</p></div></CardContent></Card>
+    <p className="text-xs leading-relaxed text-muted-foreground">{text("Door deel te nemen accepteer je dat dit een beta is. Je behoudt je AVG-rechten en kunt je gegevens exporteren of je account verwijderen. Geldig vanaf 8 september 2026.", "By participating, you accept that this is a beta. You retain your GDPR rights and can export your data or delete your account. Effective 8 September 2026.")}</p>
+  </div>;
 }
