@@ -150,13 +150,12 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" }).middle
   const checks = await Promise.all([
     timedCheck("database", async () => !(await db.from("workspaces").select("user_id", { head: true, count: "exact" })).error),
     timedCheck("storage", async () => !(await db.storage.listBuckets()).error),
-    timedCheck("weather", () => reachable("https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current_weather=true")),
+    timedCheck("weather", () => reachable("https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current=temperature_2m", { Accept: "application/json", "User-Agent": "GlobeTrotr-Healthcheck" })),
     timedCheck("rates", () => reachable("https://api.frankfurter.app/latest?from=EUR&to=USD")),
     timedCheck("github", () => reachable(`https://api.github.com/repos/${githubRepository}`, { Accept: "application/vnd.github+json", Authorization: `Bearer ${githubToken}`, "User-Agent": "GlobeTrotr-Corporate-Admin" }), Boolean(githubToken && githubRepository)),
     timedCheck("flights", async () => true, Boolean(process.env["SKYLINK_API_KEY"]?.trim())),
   ]);
-  const result = checks.some(check => check.status === "degraded") ? "failure" : "success";
-  await audit(db, context.userId, "platform.health_check", "platform", null, result, { statuses: Object.fromEntries(checks.map(check => [check.name, check.status])) });
+  await audit(db, context.userId, "platform.health_check", "platform", null, "success", { overall_status: checks.some(check => check.status === "degraded") ? "degraded" : "operational", statuses: Object.fromEntries(checks.map(check => [check.name, check.status])) });
   return { checkedAt: new Date().toISOString(), checks };
 });
 

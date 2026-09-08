@@ -27,6 +27,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - De footer groepeert productpagina's en juridische informatie in twee compacte menu's en toont databronnen op één regel.
 - Mogelijkheden, Roadmap en Bekende problemen hebben iconen; Corporate Admin heeft een vaste sectienavigatie en korte gebruikers- en activiteitenlijsten die op verzoek uitklappen.
 - Corporate Admin bevat een handmatige platformcontrole voor database, Storage, weer, valuta, GitHub en SkyLink-configuratie, inclusief responstijd en auditregistratie.
+- De Open-Meteo-healthcheck gebruikt de actuele API-parameter; een succesvol uitgevoerde controle met een verstoorde provider staat in de auditlog niet langer onterecht als mislukte beheeractie.
 
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 
