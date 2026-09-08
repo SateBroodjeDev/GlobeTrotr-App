@@ -13,6 +13,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - De oude `atlasledger.workspace.v1`-cache wordt verliesvrij naar `globetrotr.workspace.v1` gemigreerd en daarna verwijderd.
 - Privacykeuzes staan voor ingelogde gebruikers bij Accountinstellingen; gasten houden de footeroptie. Juridische naam, postadres en privacycontact zijn gepubliceerd.
 - Migratie `20260908016000_beta_feedback_and_known_issues.sql` en regressietest `supabase/tests/beta_feedback_and_known_issues.sql` zijn toegevoegd.
+- GitHub-verzoeken sturen de verplichte herkenbare `User-Agent` mee en gebruiken voor nieuwe Issues uitsluitend velden uit het create-issue-schema.
 
 ## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
 

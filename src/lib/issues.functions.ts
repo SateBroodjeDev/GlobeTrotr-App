@@ -23,12 +23,21 @@ async function syncGithub(issue: any) {
   if (!owner || !repo) return { synced: false, reason: "repository_invalid" };
   const body = `## Nederlands\n\n${issue.description_nl}\n\n## English\n\n${issue.description_en}\n\n**Status:** ${issue.status}  \n**Severity:** ${issue.severity}  \n**Public:** ${issue.public ? "yes" : "no"}\n\n_Automatically synchronized from GlobeTrotr Corporate Admin._`;
   const existing = Number(issue.github_issue_number);
+  const payload = existing
+    ? { title: issue.title_en, body, state: issue.status === "resolved" ? "closed" : "open" }
+    : { title: issue.title_en, body };
   const response = await fetch(existing
     ? `https://api.github.com/repos/${owner}/${repo}/issues/${existing}`
     : `https://api.github.com/repos/${owner}/${repo}/issues`, {
       method: existing ? "PATCH" : "POST",
-      headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2026-03-10", "Content-Type": "application/json" },
-      body: JSON.stringify({ title: issue.title_en, body, state: issue.status === "resolved" ? "closed" : "open" }),
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2026-03-10",
+        "Content-Type": "application/json",
+        "User-Agent": "GlobeTrotr-Corporate-Admin",
+      },
+      body: JSON.stringify(payload),
     });
   if (!response.ok) {
     console.error(`[GitHub Issues] Synchronisatie mislukt met HTTP ${response.status}.`);
