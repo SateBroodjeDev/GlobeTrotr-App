@@ -597,9 +597,14 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 
 ## P1 — Agency-administratie
 
-Dit is het operationele dashboard voor een Agency-workspace. Het is nadrukkelijk iets anders dan per-reisrollen: het beheert het eigen team, klanten en werkvoorraad binnen één Agency-account.
+Dit wordt een duidelijk, verzorgd en zelfstandig **Agency Workspace Admin**-dashboard binnen het reisplatform. Het is nadrukkelijk iets anders dan reisinstellingen en per-reisrollen: een Agency-eigenaar beheert hier de organisatie, het abonnement, het team, klanten, branding en de werkvoorraad van één workspace.
 
 - [ ] Alleen Agency-eigenaren krijgen toegang tot een **Agency Admin**-dashboard; geen route alleen op basis van een verborgen navigatieknop beveiligen
+- [ ] Eigen overzichtelijke instellingenroute en navigatie maken, los van Accountinstellingen en de instellingen van een afzonderlijke reis
+- [ ] Dashboard visueel uitwerken met duidelijke secties, statuskaarten, snelle acties, lege statussen en een goede mobiele weergave
+- [ ] Workspaceprofiel beheren: organisatienaam, bedrijfsgegevens, contactgegevens, standaardvaluta, tijdzone en standaardtaal
+- [ ] Agency-abonnement, gebruikslimieten en facturatie-instellingen op één herkenbare plaats tonen
+- [ ] Branding beheren met live voorbeeld van logo, accentkleur, afzendernaam, domein en klantweergave
 - [ ] Relationele `workspace_members`- en `workspace_invitations`-tabellen toevoegen, met UUID, status, verloopdatum en RLS per workspace
 - [ ] Teamleden beheren met rollen: eigenaar, reisadviseur en financiën; klanten blijven uitsluitend per reis gekoppeld
 - [ ] Eigen teamoverzicht met actieve leden, open uitnodigingen, limieten en laatst actieve wijzigingen
@@ -607,17 +612,52 @@ Dit is het operationele dashboard voor een Agency-workspace. Het is nadrukkelijk
 - [ ] Agency-statistieken alleen uit echte data: actieve klantreizen, uitgaven, declarabel, omzet/openstaand zodra Stripe bestaat en documentgebruik zodra Storage-meting bestaat
 - [ ] Auditlog voor team-, rol-, factuur- en klantwijzigingen met actor, tijdstip en context
 
-## P2 — Platformbeheer (Domenic)
+## P1 — GlobeTrotr Corporate Admin
 
-Een compacte app-side beheeromgeving als aanvulling op Lovable, uitsluitend voor de GlobeTrotr-platformbeheerder. Dit is geen kopie van Lovable en toont nooit secrets, wachtwoorden, OAuth-tokens of ruwe betaalkaartgegevens.
+Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit dashboard staat functioneel en visueel los van het reisplatform en van Agency Workspace Admin: hier wordt het bedrijf GlobeTrotr bestuurd, niet een reis of klantworkspace. Het gebruikt bij voorkeur een eigen beheershell, navigatie, routes en compacte operationele vormgeving. Secrets, wachtwoorden, OAuth-tokens en ruwe betaalkaartgegevens worden nooit getoond.
 
-- [ ] Afzonderlijke `platform_admins`-tabel met een expliciete, server-side gecontroleerde gebruikers-UUID voor Domenic; geen toegang op basis van e-mail, plan of client-state
-- [ ] Aparte serverfuncties en RLS voor een **Platformbeheer**-route; elke beheeractie krijgt auditlogging
-- [ ] Overzicht: geregistreerde gebruikers, bevestigde accounts, planverdeling, actieve/openbare reizen, Storage-gebruik en fout-/activiteitscijfers uit echte aggregaties
-- [ ] Gebruikersoverzicht met minimale noodzakelijke profielgegevens, zoek/filter, accountstatus en ondersteuningsnotities; gevoelige gegevens alleen na expliciete actie en met auditlog
-- [ ] Moderatie voor openbare reizen: verbergen/herstellen met reden en auditlog, zonder privéreisdata te tonen
-- [ ] Beheerbare productinstellingen zoals featureflags, onderhoudsmelding en handmatige plan-correctie; betaling blijft uitsluitend via Stripe-webhooks leidend
-- [ ] Privacytools: export- en verwijderverzoeken volgen, bewaartermijnen en misbruikmeldingen behandelen
+### Toegang en veiligheid
+
+- [ ] De huidige `app_metadata.corporate_admin`-basis vervangen of versterken met een relationele `platform_admins`-tabel en expliciet toegewezen gebruikers-UUID; nooit toegang geven op basis van e-mail, abonnement of browserstate
+- [ ] Eigen serverfuncties en autorisatiegrens voor alle Corporate Admin-routes; UI-verbergen geldt niet als beveiliging
+- [ ] Verplichte auditlog voor iedere inzage in gevoelige gegevens en iedere wijziging, met actor, reden, tijdstip, doel en resultaat
+- [ ] Extra sessiebeveiliging voorbereiden: MFA, korte beheersessie, herauthenticatie voor risicovolle acties en waarschuwing bij nieuw apparaat
+- [ ] Beheeracties beperken tot expliciete functies; geen algemene database-editor of willekeurige service-role-query vanuit de browser
+
+### Bedrijfsoverzicht en sales
+
+- [ ] Startdashboard met echte KPI's: registraties, actieve gebruikers, conversie Free → Pro/Agency, proefgebruik, opzeggingen en actieve/openbare reizen
+- [ ] Salesdashboard met MRR/ARR, nieuwe omzet, planverdeling, upgrades, downgrades, churn, mislukte betalingen en Agency-pipeline zodra Stripe is aangesloten
+- [ ] Perioden, landen, valuta en plannen kunnen filteren en vergelijken; definities van iedere KPI zichtbaar maken
+- [ ] Klant- en organisatieoverzicht met zoekfunctie, accountstatus, plan, gebruik, laatste activiteit en interne support-/salesnotities
+- [ ] Saleskansen en contactmomenten bijhouden zonder een volledig CRM na te bouwen; latere CRM-export via een afgeschermde integratie
+- [ ] CSV-export van geaggregeerde bedrijfs- en salesgegevens met formule-injectiebescherming en auditlog
+
+### Problemen, feedback en operatie
+
+- [x] Eerste Corporate Admin-basis voor feedback en bekende problemen gebouwd
+- [ ] Feedback-inbox uitbreiden met zoeken, filters, labels, eigenaar, prioriteit, interne notities, duplicaten koppelen en bulkstatus
+- [ ] Bekende problemen vanuit Corporate Admin publiceren, wijzigen, vertalen en oplossen; openbare statuspagina en GitHub Issues blijven gesynchroniseerd
+- [ ] Storings- en foutoverzicht met aantallen, getroffen routes/versies en trend, zonder onnodige persoonsgegevens in foutmeldingen
+- [ ] Operationele status van Supabase, Storage, vluchtprovider, kaarten, weer, valuta, e-mail en betalingen tonen op basis van veilige healthchecks
+- [ ] Interne taken en incidenten koppelen aan feedback, bekende problemen, GitHub Issues en releases
+
+### Platform- en gebruikersbeheer
+
+- [ ] Gebruikersoverzicht met alleen noodzakelijke profielgegevens; gevoelige details pas na expliciete actie, redenregistratie en auditlog
+- [ ] Moderatie voor openbare reizen: verbergen en herstellen met reden, zonder standaard toegang tot privéreisinhoud
+- [ ] Beheerbare featureflags, beta-uitrolpercentages, onderhoudsmelding en noodstop per externe integratie
+- [ ] Handmatige plan-correctie alleen met reden en auditlog; Stripe-webhooks blijven leidend voor betaalstatus
+- [ ] Changelog, bekende problemen, beta-status en publieke servicemelding vanuit Corporate Admin beheren met concept, preview en publicatiemoment
+- [ ] Privacytools: inzage-, export-, correctie- en verwijderverzoeken volgen, wettelijke termijnen bewaken en afhandeling registreren
+- [ ] Bewaarbeleid, misbruikmeldingen, geblokkeerde accounts en beveiligingsincidenten beheren met beperkte rollen en vierogenprincipe voor definitieve acties
+
+### Architectuur en fasering
+
+- [ ] Corporate Admin een eigen layout geven zonder reisnavigatie, reiscontext of Agency-branding; hergebruik alleen generieke UI-componenten en authenticatie
+- [ ] Gescheiden querylaag met minimale aggregatie-RPC's bouwen zodat het dashboard geen volledige productie-tabellen naar de browser haalt
+- [ ] Beginnen met feedback, bekende problemen, servicestatus en basis-KPI's; sales volgt samen met Stripe, financiële rapportage en facturatie
+- [ ] Voor elke module autorisatietests, RLS-tests, auditlogtests en een productie-checklist toevoegen
 
 ## P2 — Agency-automatisering & schaalbaarheid
 
