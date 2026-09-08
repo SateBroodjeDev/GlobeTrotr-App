@@ -23,6 +23,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Server-secrets `GITHUB_ISSUES_TOKEN` en `GITHUB_ISSUES_REPOSITORY` ingesteld; aanmaken en wijzigen synchroniseren correct met GitHub Issues.
 - [x] De drie actuele beta-beperkingen zijn eenmalig geïmporteerd en naar GitHub gesynchroniseerd; de tijdelijke importactie is daarna uit Corporate Admin verwijderd.
 - [x] Veilige publieke roadmap op `/roadmap` toegevoegd en vanuit de footer bereikbaar; interne techniek, secrets en beheerwerk blijven uitsluitend in dit bestand.
+- [x] Het afgeronde Corporate Admin-dashboard als publieke roadmapmijlpaal vermeld, zonder beheerdata of interne beveiligingsdetails openbaar te maken.
 - [x] Publieke footer vereenvoudigd tot de menu's **Ontdek** en **Privacy & voorwaarden**; databronnen staan compact op één regel.
 - [x] Footerlinks voor Mogelijkheden, Roadmap en Bekende problemen hebben herkenbare iconen; Corporate Admin heeft vaste onderdeelnavigatie en begrensde, uitklapbare gebruikers- en auditlijsten.
 - [x] Corporate Admin opgesplitst in echte pagina's voor Overzicht, Gebruikers, Status, Problemen, Feedback en Auditlog.
@@ -31,6 +32,8 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Afgeschermd gebruikersoverzicht toegevoegd met zoeken, bevestigingsstatus, laatste login, taal en abonnement; profielnaam, taal en plan zijn met verplichte reden en auditregistratie wijzigbaar.
 - [x] Los gebruikersdetail toegevoegd met aantallen actieve, openbare en gearchiveerde reizen, workspace-aanmaak, laatste activiteit en auditregistratie van iedere inzage.
 - [x] Accounts kunnen vanuit het gebruikersdetail tijdelijk worden geblokkeerd en hersteld; een verplichte reden, herbevestiging, eigen-accountbescherming en auditregistratie beveiligen de actie.
+- [x] Geblokkeerde accounts krijgen bij inloggen een vertaalde uitleg en kunnen via info@globetrotr.nl contact opnemen.
+- [x] Corporate Admin heeft een eigen operationele shell zonder reis-, Agency- of footernavigatie, met alleen een expliciete terugweg naar het reisplatform.
 - [x] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitgevoerd.
 
 ### Actuele bekende beta-beperkingen
@@ -686,7 +689,7 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 
 ### Architectuur en fasering
 
-- [ ] Corporate Admin een eigen layout geven zonder reisnavigatie, reiscontext of Agency-branding; hergebruik alleen generieke UI-componenten en authenticatie
+- [x] Corporate Admin een eigen visuele layout geven zonder reisnavigatie of Agency-branding; generieke UI-componenten, authenticatie en de bestaande providers blijven gedeeld
 - [ ] Gescheiden querylaag met minimale aggregatie-RPC's bouwen zodat het dashboard geen volledige productie-tabellen naar de browser haalt
 - [ ] Beginnen met feedback, bekende problemen, servicestatus en basis-KPI's; sales volgt samen met Stripe, financiële rapportage en facturatie
 - [ ] Voor elke module autorisatietests, RLS-tests, auditlogtests en een productie-checklist toevoegen

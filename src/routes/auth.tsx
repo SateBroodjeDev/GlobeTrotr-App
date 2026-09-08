@@ -72,8 +72,14 @@ function AuthPage() {
         toast.success(text("Welkom terug!", "Welcome back!"));
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : "";
       toast.error(
-        err instanceof Error ? err.message : text("Er ging iets mis", "Something went wrong"),
+        /user is banned/i.test(message)
+          ? text(
+              "Dit account is tijdelijk geblokkeerd. Neem contact op via info@globetrotr.nl als je denkt dat dit niet klopt.",
+              "This account is temporarily blocked. Contact info@globetrotr.nl if you believe this is incorrect.",
+            )
+          : message || text("Er ging iets mis", "Something went wrong"),
       );
     } finally {
       setBusy(false);

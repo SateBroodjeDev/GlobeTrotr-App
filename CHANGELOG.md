@@ -13,6 +13,9 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Iedere gebruikersdetailinzage wordt server-side als `user.detail.view` in de afgeschermde auditlog vastgelegd.
 - Corporate Admin kan een account tijdelijk blokkeren en herstellen na een duidelijke waarschuwing en met een verplichte interne reden; de server weigert blokkering van het eigen beheerdersaccount.
 - Geslaagde en mislukte accountblokkeringen en herstelacties worden als `user.block` of `user.restore` geaudit.
+- De technische Auth-melding `User is banned` is vervangen door een vertaalde gebruikersmelding die voor hulp naar `info@globetrotr.nl` verwijst.
+- Corporate Admin wordt in een eigen operationele shell weergegeven zonder reis- en Agency-navigatie, publieke footer of beta-feedbackknop; een expliciete knop leidt terug naar het reisplatform.
+- De publieke roadmap vermeldt het Corporate Admin-dashboard als afgeronde stap binnen de internationale beta, met uitsluitend publieksveilige producttekst.
 - De al uitgevoerde migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` zijn in de roadmap als afgerond gemarkeerd.
 
 ## 2026-09-08 16:10 CEST — Betafeedback en bekende problemen

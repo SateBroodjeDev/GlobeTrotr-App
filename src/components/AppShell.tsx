@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3,
@@ -8,6 +8,7 @@ import {
   CreditCard,
   Compass,
   Languages,
+  LayoutDashboard,
   LogIn,
   LogOut,
   Map,
@@ -67,6 +68,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { locale, setLocale, text } = useLocale();
   const navigate = useNavigate();
+  const corporateAdmin = useRouterState({ select: (routerState) => routerState.location.pathname.startsWith("/corporate-admin") });
   const queryClient = useQueryClient();
   const [guestTheme, setGuestTheme] = useState<"light" | "dark">("light");
   const [dark, setDark] = useState(false);
@@ -142,6 +144,24 @@ function AppShellContent({ children }: { children: ReactNode }) {
     }
     const { error } = await supabase.from("profiles").upsert({ id: user.id, theme: next });
     if (!error) await queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] });
+  }
+  if (corporateAdmin) {
+    return <div className="min-h-screen bg-muted/20">
+      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+        <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 py-3 lg:px-6">
+          <Link to="/corporate-admin" className="flex min-w-0 items-center gap-3">
+            <img src={logoIcon.url} alt="GlobeTrotr" className="size-9 rounded-xl" />
+            <span className="min-w-0"><strong className="block truncate font-display">GlobeTrotr</strong><span className="block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Corporate operations</span></span>
+          </Link>
+          <div className="ml-auto flex items-center gap-1">
+            <Button asChild variant="ghost" size="sm"><Link to="/dashboard"><LayoutDashboard className="size-4" />{text("Reisplatform", "Travel platform")}</Link></Button>
+            <Button type="button" variant="ghost" size="icon" aria-label={dark ? text("Lichte modus", "Light mode") : text("Donkere modus", "Dark mode")} onClick={() => void toggleTheme()}>{dark ? <Sun className="size-4" /> : <Moon className="size-4" />}</Button>
+            <DropdownMenu><DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="rounded-full" aria-label={text("Beheerdersmenu", "Administrator menu")}><Avatar className="size-8"><AvatarImage src={avatarUrl} /><AvatarFallback>{initials}</AvatarFallback></Avatar></Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-56"><DropdownMenuLabel>{displayName}<span className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">{user?.email}</span></DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem asChild><Link to="/account"><UserRound className="size-4" />{text("Accountinstellingen", "Account settings")}</Link></DropdownMenuItem><DropdownMenuItem onSelect={() => void signOut()}><LogOut className="size-4" />{text("Uitloggen", "Sign out")}</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto max-w-[1500px] px-4 py-6 lg:px-6 lg:py-8">{children}</main>
+    </div>;
   }
   return (
     <div className="min-h-screen bg-background">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { MessageSquarePlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,12 +15,13 @@ import { ISSUE_CATEGORIES, issueCategoryLabel, type IssueCategory } from "@/lib/
 export function BetaFeedbackButton() {
   const { user } = useAuth();
   const { text } = useLocale();
+  const corporateAdmin = useRouterState({ select: (state) => state.location.pathname.startsWith("/corporate-admin") });
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<IssueCategory>("bug");
   const [sending, setSending] = useState(false);
-  if (!user) return null;
+  if (!user || corporateAdmin) return null;
 
   async function submit() {
     if (title.trim().length < 3 || description.trim().length < 10) {
