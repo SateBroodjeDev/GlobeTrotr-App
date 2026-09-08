@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
-import { Archive, Building2, Download, History, MessageSquareWarning, RotateCcw, Route as RouteIcon, Trash2, Users, type LucideIcon } from "lucide-react";
+import { Archive, Building2, Download, History, MessageSquareWarning, Pencil, RotateCcw, Route as RouteIcon, Trash2, Users, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { getCorporateAdminData, importBetaKnownIssues, manageAdminRecord, saveKnownIssue, updateFeedbackStatus } from "@/lib/issues.functions";
+import { getCorporateAdminData, importBetaKnownIssues, manageAdminRecord, saveKnownIssue, updateFeedbackStatus, updatePlatformUser } from "@/lib/issues.functions";
 import { useLocale } from "@/lib/locale";
 import { ISSUE_CATEGORIES, issueCategoryLabel } from "@/lib/issue-categories";
 
@@ -28,6 +28,9 @@ function CorporateAdminPage() {
   const [showArchived,setShowArchived]=useState(false);
   const [search,setSearch]=useState("");
   const [categoryFilter,setCategoryFilter]=useState("all");
+  const [userSearch,setUserSearch]=useState("");
+  const [editingUser,setEditingUser]=useState<any>(null);
+  const [userReason,setUserReason]=useState("");
   const statusLabel=(value:string)=>({new:text("Nieuw","New"),reviewing:text("In beoordeling","Reviewing"),planned:text("Gepland","Planned"),resolved:text("Opgelost","Resolved"),closed:text("Gesloten","Closed"),investigating:text("In onderzoek","Investigating"),monitoring:text("Wordt gemonitord","Monitoring")}[value]??value);
   const severityLabel=(value:string)=>({low:text("Laag","Low"),medium:text("Gemiddeld","Medium"),high:text("Hoog","High"),critical:text("Kritiek","Critical")}[value]??value);
 
@@ -50,6 +53,11 @@ function CorporateAdminPage() {
     try { const result=await importBetaKnownIssues(); await query.refetch(); toast.success(result.imported?text(`${result.imported} bekende beperkingen geïmporteerd.`,`${result.imported} known limitations imported.`):text("Alle bekende beperkingen waren al aanwezig.","All known limitations were already present.")); }
     catch { toast.error(text("Importeren is mislukt.","Import failed.")); }
   }
+  async function saveUser() {
+    if(!editingUser)return;
+    try { await updatePlatformUser({data:{userId:editingUser.id,displayName:editingUser.displayName,locale:editingUser.locale,plan:editingUser.plan,reason:userReason}}); setEditingUser(null); setUserReason(""); await query.refetch(); toast.success(text("Gebruiker bijgewerkt.","User updated.")); }
+    catch { toast.error(text("Gebruiker kon niet worden bijgewerkt. Vul ook een reden van minimaal 10 tekens in.","The user could not be updated. Also provide a reason of at least 10 characters.")); }
+  }
 
   const matches=(item:any)=>{
     const term=search.trim().toLocaleLowerCase();
@@ -67,6 +75,7 @@ function CorporateAdminPage() {
     </section>
     <Card><CardHeader><CardTitle>{text("Planverdeling","Plan distribution")}</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-3">{(["free","pro","agency"] as const).map(plan=><div key={plan} className="rounded-xl border bg-muted/20 p-4"><div className="text-sm font-medium capitalize">{plan}</div><div className="mt-1 text-2xl font-semibold tabular-nums">{metrics?.plans[plan]??"—"}</div></div>)}</CardContent></Card>
     <Card><CardHeader><CardTitle className="flex items-center gap-2"><History className="size-5 text-primary"/>{text("Recente beheeractiviteit","Recent admin activity")}</CardTitle></CardHeader><CardContent className="space-y-2">{query.data?.auditLog.length?query.data.auditLog.slice(0,8).map((entry:any)=><div key={entry.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-3 py-2 text-xs"><Badge variant={entry.result==="success"?"secondary":"destructive"}>{entry.result==="success"?text("Geslaagd","Success"):text("Mislukt","Failed")}</Badge><strong>{entry.action}</strong>{entry.target_id&&<span className="font-mono text-muted-foreground">{String(entry.target_id).slice(0,12)}</span>}<time className="ml-auto text-muted-foreground">{new Intl.DateTimeFormat(undefined,{dateStyle:"short",timeStyle:"short"}).format(new Date(entry.created_at))}</time></div>):<p className="text-sm text-muted-foreground">{text("Nog geen beheeractiviteit vastgelegd.","No admin activity recorded yet.")}</p>}</CardContent></Card>
+    <Card><CardHeader><CardTitle className="flex items-center gap-2"><Users className="size-5 text-primary"/>{text("Gebruikersbeheer","User management")}</CardTitle></CardHeader><CardContent className="space-y-4"><Input value={userSearch} onChange={e=>setUserSearch(e.target.value)} placeholder={text("Zoek op naam of e-mailadres…","Search by name or email…")}/><div className="space-y-2">{query.data?.users.filter((user:any)=>`${user.displayName} ${user.email}`.toLocaleLowerCase().includes(userSearch.trim().toLocaleLowerCase())).map((user:any)=><div key={user.id} className="rounded-xl border p-4">{editingUser?.id===user.id?<div className="grid gap-3 sm:grid-cols-2"><Field label={text("Profielnaam","Profile name")}><Input maxLength={100} value={editingUser.displayName} onChange={e=>setEditingUser({...editingUser,displayName:e.target.value})}/></Field><Field label={text("Abonnement","Plan")}><select className="h-10 w-full rounded-md border bg-background px-3" value={editingUser.plan} onChange={e=>setEditingUser({...editingUser,plan:e.target.value})}>{["free","pro","agency"].map(plan=><option key={plan} value={plan}>{plan[0]?.toUpperCase()+plan.slice(1)}</option>)}</select></Field><Field label={text("Accounttaal","Account language")}><select className="h-10 w-full rounded-md border bg-background px-3" value={editingUser.locale} onChange={e=>setEditingUser({...editingUser,locale:e.target.value})}><option value="nl-NL">Nederlands</option><option value="en-GB">English</option></select></Field><Field label={text("Reden voor wijziging","Reason for change")}><Input minLength={10} maxLength={500} value={userReason} onChange={e=>setUserReason(e.target.value)} placeholder={text("Verplicht, minimaal 10 tekens","Required, at least 10 characters")}/></Field><div className="flex gap-2 sm:col-span-2"><Button disabled={!editingUser.displayName.trim()||userReason.trim().length<10} onClick={()=>void saveUser()}>{text("Wijzigingen opslaan","Save changes")}</Button><Button variant="outline" onClick={()=>{setEditingUser(null);setUserReason("");}}>{text("Annuleren","Cancel")}</Button></div></div>:<div className="flex flex-wrap items-center gap-2"><div className="min-w-0 flex-1"><strong className="block truncate">{user.displayName||text("Naamloos account","Unnamed account")}</strong><span className="block truncate text-xs text-muted-foreground">{user.email}</span></div><Badge variant="outline" className="capitalize">{user.plan}</Badge><Badge variant={user.emailConfirmed?"secondary":"outline"}>{user.emailConfirmed?text("Bevestigd","Confirmed"):text("Onbevestigd","Unconfirmed")}</Badge><span className="text-xs text-muted-foreground">{text("Laatste login","Last sign-in")}: {user.lastSignInAt?new Intl.DateTimeFormat(undefined,{dateStyle:"short",timeStyle:"short"}).format(new Date(user.lastSignInAt)):"—"}</span><Button size="sm" variant="outline" onClick={()=>{setEditingUser({...user});setUserReason("");}}><Pencil className="size-4"/>{text("Bewerken","Edit")}</Button></div>}</div>)}</div></CardContent></Card>
     <Card><CardHeader className="flex-row items-center justify-between gap-3"><CardTitle>{form.id?text("Bekend probleem bewerken","Edit known issue"):text("Bekend probleem publiceren","Publish known issue")}</CardTitle>{!form.id&&<Button variant="outline" size="sm" onClick={()=>void importIssues()}><Download className="size-4"/>{text("Beta-beperkingen importeren","Import beta limitations")}</Button>}</CardHeader><CardContent className="grid gap-4 sm:grid-cols-2">
       <Field label="Titel NL"><Input value={form.titleNl} maxLength={160} onChange={e=>setForm({...form,titleNl:e.target.value})}/></Field>
       <Field label="Title EN"><Input value={form.titleEn} maxLength={160} onChange={e=>setForm({...form,titleEn:e.target.value})}/></Field>

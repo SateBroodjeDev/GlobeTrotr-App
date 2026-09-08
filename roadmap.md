@@ -23,7 +23,9 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Server-secrets `GITHUB_ISSUES_TOKEN` en `GITHUB_ISSUES_REPOSITORY` ingesteld; aanmaken en wijzigen synchroniseren correct met GitHub Issues.
 - [x] Corporate Admin kan de drie actuele beta-beperkingen eenmalig importeren en direct naar GitHub synchroniseren: automatische e-mails, OAuth-login en automatische feedbackvertaling.
 - [x] Veilige publieke roadmap op `/roadmap` toegevoegd en vanuit de footer bereikbaar; interne techniek, secrets en beheerwerk blijven uitsluitend in dit bestand.
+- [x] Publieke footer vereenvoudigd tot de menu's **Ontdek** en **Privacy & voorwaarden**; databronnen staan compact op één regel.
 - [x] Corporate Admin versterkt met een relationele `platform_admins`-allowlist naast de bestaande Auth-claim en een server-side auditlog voor inzage en beheeracties.
+- [x] Afgeschermd gebruikersoverzicht toegevoegd met zoeken, bevestigingsstatus, laatste login, taal en abonnement; profielnaam, taal en plan zijn met verplichte reden en auditregistratie wijzigbaar.
 - [ ] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitvoeren.
 
 ### Actuele bekende beta-beperkingen
@@ -662,7 +664,7 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 
 ### Platform- en gebruikersbeheer
 
-- [ ] Gebruikersoverzicht met alleen noodzakelijke profielgegevens; gevoelige details pas na expliciete actie, redenregistratie en auditlog
+- [x] Gebruikersoverzicht met noodzakelijke profiel- en accountgegevens; wijzigingen vereisen een expliciete actie en reden en worden in de auditlog vastgelegd
 - [ ] Moderatie voor openbare reizen: verbergen en herstellen met reden, zonder standaard toegang tot privéreisinhoud
 - [ ] Beheerbare featureflags, beta-uitrolpercentages, onderhoudsmelding en noodstop per externe integratie
 - [ ] Handmatige plan-correctie alleen met reden en auditlog; Stripe-webhooks blijven leidend voor betaalstatus

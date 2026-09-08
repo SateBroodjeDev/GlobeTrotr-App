@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   BarChart3,
   BookOpenText,
+  ChevronDown,
   CreditCard,
   Languages,
   LogIn,
@@ -49,6 +50,10 @@ const asTheme = (value: unknown): ThemePreference =>
 
 export function AppShell({ children }: { children: ReactNode }) {
   return <AppShellContent>{children}</AppShellContent>;
+}
+
+function FooterMenu({label,children}:{label:string;children:ReactNode}) {
+  return <DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:text-primary">{label}<ChevronDown className="size-3.5"/></button></DropdownMenuTrigger><DropdownMenuContent align="end" side="top" className="min-w-48">{children}</DropdownMenuContent></DropdownMenu>;
 }
 
 // WorkspaceProvider staat in de root-layout, direct onder AuthProvider. Zo
@@ -273,33 +278,18 @@ function AppShellContent({ children }: { children: ReactNode }) {
           aria-label={text("Voetnavigatie", "Footer navigation")}
           className="flex flex-wrap items-center gap-x-4 gap-y-2"
         >
-          <Link to="/mogelijkheden" className="font-medium text-foreground transition-colors hover:text-primary">
-            {text("Mogelijkheden", "Features")}
-          </Link>
-          <Link to="/roadmap" className="font-medium text-foreground transition-colors hover:text-primary">
-            {text("Roadmap", "Roadmap")}
-          </Link>
-          <Link
-            to="/changelog"
-            className="inline-flex items-center gap-1.5 font-medium text-foreground transition-colors hover:text-primary"
-          >
-            <BookOpenText className="size-3.5" /> {text("Wat is er nieuw?", "What's new?")}
-          </Link>
-          <Link to="/privacy" className="font-medium text-foreground transition-colors hover:text-primary">
-            {text("Privacy", "Privacy")}
-          </Link>
-          {!user && <button type="button" onClick={openPrivacyChoices} className="font-medium text-foreground transition-colors hover:text-primary">
-            {text("Privacykeuzes", "Privacy choices")}
-          </button>}
-          <Link to="/beta-voorwaarden" className="font-medium text-foreground transition-colors hover:text-primary">
-            {text("Beta-voorwaarden", "Beta terms")}
-          </Link>
-          <Link to="/bekende-problemen" className="font-medium text-foreground transition-colors hover:text-primary">
-            {text("Bekende problemen", "Known issues")}
-          </Link>
-          <span>{text("Kaartdata", "Map data")} © OpenStreetMap</span>
-          <span>{text("Weer via", "Weather by")} Open-Meteo</span>
-          <span>{text("Koersen via", "Rates by")} Frankfurter/ECB</span>
+          <FooterMenu label={text("Ontdek", "Explore")}>
+            <DropdownMenuItem asChild><Link to="/mogelijkheden">{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/roadmap">Roadmap</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/changelog"><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/bekende-problemen">{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
+          </FooterMenu>
+          <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
+            <DropdownMenuItem asChild><Link to="/privacy">{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>
+            {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
+            <DropdownMenuItem asChild><Link to="/beta-voorwaarden">{text("Beta-voorwaarden", "Beta terms")}</Link></DropdownMenuItem>
+          </FooterMenu>
+          <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo · Frankfurter/ECB</span>
         </nav>
       </footer>
     </div>

@@ -65,28 +65,39 @@ const BETA_KNOWN_ISSUES = [
 
 export const getCorporateAdminData = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const db = await adminDb(context.userId);
-  const [feedback, issues, workspaces, trips, auditLog] = await Promise.all([
+  const [feedback, issues, workspaces, trips, auditLog, profiles, authUsers] = await Promise.all([
     db.from("beta_feedback").select("*").order("created_at", { ascending: false }),
     db.from("known_issues").select("*").order("created_at", { ascending: false }),
-    db.from("workspaces").select("plan, created_at, updated_at"),
+    db.from("workspaces").select("user_id, plan, created_at, updated_at"),
     db.from("trips").select("archived, is_public"),
     db.from("platform_admin_audit_log").select("id, actor_user_id, action, target_type, target_id, result, details, created_at").order("created_at", { ascending: false }).limit(30),
+    db.from("profiles").select("id, display_name, email, locale, created_at, updated_at"),
+    db.auth.admin.listUsers({ page: 1, perPage: 1000 }),
   ]);
   if (feedback.error) throw feedback.error;
   if (issues.error) throw issues.error;
   if (workspaces.error) throw workspaces.error;
   if (trips.error) throw trips.error;
   if (auditLog.error) throw auditLog.error;
+  if (profiles.error) throw profiles.error;
+  if (authUsers.error) throw authUsers.error;
   const workspaceRows = workspaces.data ?? [];
   const tripRows = trips.data ?? [];
   const feedbackRows = feedback.data ?? [];
   const issueRows = issues.data ?? [];
+  const profileById = new Map((profiles.data ?? []).map((profile: any) => [profile.id, profile]));
+  const workspaceById = new Map(workspaceRows.map((workspace: any) => [workspace.user_id, workspace]));
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
   await audit(db, context.userId, "admin.dashboard.view", "platform", null, "success");
   return {
     feedback: feedbackRows,
     issues: issueRows,
     auditLog: auditLog.data ?? [],
+    users: authUsers.data.users.map((user: any) => {
+      const profile: any = profileById.get(user.id);
+      const workspace: any = workspaceById.get(user.id);
+      return { id: user.id, email: user.email ?? profile?.email ?? "", displayName: profile?.display_name ?? "", locale: profile?.locale ?? "nl-NL", plan: workspace?.plan ?? "free", createdAt: user.created_at, lastSignInAt: user.last_sign_in_at ?? null, emailConfirmed: Boolean(user.email_confirmed_at), hasWorkspace: Boolean(workspace) };
+    }),
     metrics: {
       workspaces: workspaceRows.length,
       newWorkspaces30d: workspaceRows.filter((row: any) => Date.parse(row.created_at) >= thirtyDaysAgo).length,
@@ -103,6 +114,26 @@ export const getCorporateAdminData = createServerFn({ method: "GET" }).middlewar
     },
   };
 });
+
+export const updatePlatformUser = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string; displayName: string; locale: "nl-NL"|"en-GB"; plan: "free"|"pro"|"agency"; reason: string }) => input)
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    const displayName = data.displayName.trim();
+    const reason = data.reason.trim();
+    if (!/^[0-9a-f-]{36}$/i.test(data.userId) || displayName.length < 1 || displayName.length > 100 || reason.length < 10 || reason.length > 500) throw new Error("INVALID_INPUT");
+    if (!["nl-NL", "en-GB"].includes(data.locale) || !["free", "pro", "agency"].includes(data.plan)) throw new Error("INVALID_INPUT");
+    const { data: beforeWorkspace, error: workspaceReadError } = await db.from("workspaces").select("plan").eq("user_id", data.userId).maybeSingle();
+    if (workspaceReadError || !beforeWorkspace) throw workspaceReadError ?? new Error("WORKSPACE_NOT_FOUND");
+    const { data: beforeProfile, error: profileReadError } = await db.from("profiles").select("display_name, locale").eq("id", data.userId).maybeSingle();
+    if (profileReadError || !beforeProfile) throw profileReadError ?? new Error("PROFILE_NOT_FOUND");
+    const { error: profileError } = await db.from("profiles").update({ display_name: displayName, locale: data.locale }).eq("id", data.userId);
+    if (profileError) throw profileError;
+    const { error: workspaceError } = await db.from("workspaces").update({ plan: data.plan }).eq("user_id", data.userId);
+    if (workspaceError) throw workspaceError;
+    await audit(db, context.userId, "user.update", "user", data.userId, "success", { reason, changes: { display_name: [beforeProfile.display_name, displayName], locale: [beforeProfile.locale, data.locale], plan: [beforeWorkspace.plan, data.plan] } });
+    return { ok: true };
+  });
 
 export const saveKnownIssue = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((input: IssueInput) => input).handler(async ({ data, context }) => {
