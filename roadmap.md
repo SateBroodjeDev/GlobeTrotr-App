@@ -33,6 +33,8 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Los gebruikersdetail toegevoegd met aantallen actieve, openbare en gearchiveerde reizen, workspace-aanmaak, laatste activiteit en auditregistratie van iedere inzage.
 - [x] Accounts kunnen vanuit het gebruikersdetail tijdelijk worden geblokkeerd en hersteld; een verplichte reden, herbevestiging, eigen-accountbescherming en auditregistratie beveiligen de actie.
 - [x] Geblokkeerde accounts krijgen bij inloggen een vertaalde uitleg en kunnen via info@globetrotr.nl contact opnemen.
+- [x] Bestaande accounts worden na toevoegen als reisgenoot betrouwbaar gekoppeld via hun server-side geverifieerde en exact overeenkomende e-mailadres.
+- [x] Licht/donker/systeemthema wordt vóór de eerste browserpaint toegepast, zodat vernieuwen geen korte witte flits meer veroorzaakt.
 - [x] Corporate Admin heeft een eigen operationele shell zonder reis-, Agency- of footernavigatie, met alleen een expliciete terugweg naar het reisplatform.
 - [x] Migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` uitgevoerd.
 
@@ -474,8 +476,12 @@ Het databaseschema bevat rolgerichte RLS voor reisleden. De app leest en schrijf
 
 De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijktijdig plannen. Grote planners zoals Wanderlog en Roadtrippers behandelen samenwerken als kernfunctionaliteit, niet als Agency-extra. [Wanderlog](https://wanderlog.com/travel-maps) [Roadtrippers](https://roadtrippers.com/about/features/)
 
+- [ ] Eén veilige uitnodigingsbron per reis bouwen in `trip_invitations`; e-mail, accountmelding en deelbare link gebruiken dezelfde eenmalige token, rol, vervaldatum en acceptatiestatus.
+- [ ] Route 1 — e-mail: iemand zonder account ontvangt na activering van Lovable Cloud Emails een uitnodiging met reisnaam, afzender en een verlopen/eenmalige acceptatielink.
+- [ ] Route 2 — accountmelding: een bestaand account ontvangt een melding met **Accepteren** en **Weigeren**; GlobeTrotr maakt nooit stilzwijgend een actief lidmaatschap op basis van alleen een e-mailadres.
+- [ ] Route 3 — uitnodigingslink: een genodigde kan via dezelfde link inloggen of een account maken, keert daarna terug naar de uitnodiging en kiest zelf voor deelnemen of weigeren.
 - [ ] Reizigers per e-mail uitnodigen voor één specifieke reis, zonder toegang tot alle reizen van de eigenaar
-- [ ] Deelbare uitnodigingslink voor een specifieke reis die werkt voor bestaande én nieuwe accounts: na inloggen of registreren terugkeren naar dezelfde uitnodiging en na acceptatie toegang tot de reis krijgen, met server-side controle van het uitnodigingstoken.
+- [ ] Deelbare uitnodigingslink voor een specifieke reis die werkt voor bestaande én nieuwe accounts: na inloggen of registreren terugkeren naar dezelfde uitnodiging en pas na acceptatie toegang tot de reis krijgen, met server-side controle van het uitnodigingstoken.
 - [ ] Rollen per reis: eigenaar, bewerker, deelnemer en alleen-lezen
 - [ ] Uitnodiging accepteren/weigeren en lid weer verwijderen
 - [ ] Gedeelde, live wijzigingen met conflictveilige opslag en zichtbare “laatst gewijzigd door”-informatie
@@ -492,7 +498,7 @@ De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijkti
 
 ## P0 — E-mail, uitnodigingen & logische rollen
 
-De huidige knop “Uitnodigen” registreert een reisgenoot; echte bezorging en toegang voor diens account bestaan nog niet. Dit onderdeel maakt de volledige, veilige stroom af.
+De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij het laden te koppelen. Dit wordt vervangen door expliciete toestemming: iedere uitnodiging wordt eerst `pending`; alleen een server-side geverifieerde acceptatie maakt een actief `trip_members`-record. Weigeren, verlopen en intrekken geven nooit toegang.
 
 > **Uitgesteld:** begin pas met de e-mailimplementatie nadat Lovable Cloud Emails is geactiveerd en `globetrotr.nl` in Lovable is geverifieerd. Tot die tijd wordt de uitnodigingsstatus handmatig beheerd; die verleent geen toegang aan een ander account.
 
@@ -501,7 +507,11 @@ De huidige knop “Uitnodigen” registreert een reisgenoot; echte bezorging en 
 - [ ] Branded templates maken voor uitnodiging, herinnering, referral en betaalverzoek, met verplichte afmeldvoet waar nodig
 - [ ] Lovable’s server-side e-mailfunctie gebruiken; geen externe SMTP- of e-mailprovider toevoegen
 - [ ] Uitnodigingsmail met persoonlijke naam, reisnaam, afzender en verlopen/eenmalige acceptatielink
-- [ ] Uitnodiging accepteren via bestaand account of registratie; pas daarna toegang verlenen
+- [ ] Bestaand account herkennen zonder het bestaan van dat account aan de uitnodiger prijs te geven en een persistente uitnodigingsmelding klaarzetten
+- [ ] Uitnodigingsmelding uitbreiden met accepteren/weigeren en een veilige detailpagina met reisnaam, eigenaar, aangeboden rol en vervaldatum
+- [ ] Uitnodiging accepteren via bestaand account of registratie; na Auth terugkeren naar dezelfde link en pas daarna toegang verlenen
+- [ ] Deelbare link kunnen kopiëren vanuit Reisgenoten, ook zolang e-mailbezorging uitstaat
+- [ ] Statussen `pending`, `accepted`, `declined`, `expired` en `revoked` eenduidig tonen; accepteren en weigeren zijn idempotent en worden geaudit
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn
 - [ ] Rate limiting en auditlog voor e-mailverzending; geen mailadres uitlekken in foutmeldingen
 - [ ] De huidige één-workspace-per-account-opzet uitbreiden met veilige toegang per reis, zodat een genodigde niet alle reizen van de eigenaar ziet

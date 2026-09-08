@@ -107,7 +107,7 @@ export function TripMembers({
           invitedAt: new Date().toISOString(),
         },
       ],
-      text("Reisgenoot toegevoegd als uitgenodigd.", "Traveller added as invited."),
+      text("Reisgenoot toegevoegd. Een bestaand account wordt bij de volgende keer laden automatisch gekoppeld.", "Traveller added. An existing account is linked automatically the next time it loads."),
     );
     if (!saved) return;
     setName("");

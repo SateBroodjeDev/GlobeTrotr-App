@@ -211,6 +211,7 @@ function AccountPage() {
         theme,
       });
       if (error) throw error;
+      localStorage.setItem("globetrotr.theme", theme);
       await applyLocale(locale === "en-GB" ? "en-GB" : "nl-NL");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["profile", user.id] }),

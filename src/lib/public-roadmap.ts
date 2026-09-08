@@ -9,7 +9,7 @@ export const PUBLIC_ROADMAP = [
     status: "next",
     title: ["Samenwerking en communicatie", "Collaboration and communication"],
     description: ["Uitnodigingen en updates eenvoudiger bij alle reizigers krijgen.", "Make invitations and updates easier to reach every traveller."],
-    items: [["Automatische app-e-mails en reisuitnodigingen", "Automated app emails and trip invitations"], ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"], ["Meer meldingsvoorkeuren", "More notification preferences"]],
+    items: [["Reisuitnodigingen via e-mail, accountmelding of deelbare link", "Trip invitations by email, account notification or shareable link"], ["Uitnodigingen zelf accepteren of weigeren voordat toegang ontstaat", "Accept or decline invitations before access is granted"], ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"], ["Meer meldingsvoorkeuren", "More notification preferences"]],
   },
   {
     status: "later",

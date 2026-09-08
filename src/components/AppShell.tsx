@@ -48,8 +48,13 @@ const AGENCY_NAV = [
 ] as const;
 const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
 type ThemePreference = "system" | "light" | "dark";
+const THEME_STORAGE_KEY = "globetrotr.theme";
 const asTheme = (value: unknown): ThemePreference =>
   value === "light" || value === "dark" ? value : "system";
+const cachedTheme = (): ThemePreference => {
+  if (typeof window === "undefined") return "system";
+  return asTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
+};
 
 export function AppShell({ children }: { children: ReactNode }) {
   return <AppShellContent>{children}</AppShellContent>;
@@ -70,7 +75,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const corporateAdmin = useRouterState({ select: (routerState) => routerState.location.pathname.startsWith("/corporate-admin") });
   const queryClient = useQueryClient();
-  const [guestTheme, setGuestTheme] = useState<"light" | "dark">("light");
+  const [guestTheme, setGuestTheme] = useState<ThemePreference>(cachedTheme);
   const [dark, setDark] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const profileQuery = useQuery({
@@ -90,7 +95,9 @@ function AppShellContent({ children }: { children: ReactNode }) {
       } | null;
     },
   });
-  const preference = user ? asTheme(profileQuery.data?.theme) : guestTheme;
+  const preference = user
+    ? profileQuery.data === undefined ? cachedTheme() : asTheme(profileQuery.data?.theme)
+    : guestTheme;
   const navItems = user
     ? [...CORE_NAV, ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
     : PUBLIC_NAV;
@@ -124,6 +131,11 @@ function AppShellContent({ children }: { children: ReactNode }) {
       .then(({ data }) => setAvatarUrl(data?.signedUrl));
   }, [profileQuery.data?.avatar_path]);
   useEffect(() => {
+    if (user && profileQuery.data !== undefined) {
+      window.localStorage.setItem(THEME_STORAGE_KEY, asTheme(profileQuery.data?.theme));
+    }
+  }, [profileQuery.data, user]);
+  useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
       const isDark = preference === "dark" || (preference === "system" && media.matches);
@@ -138,6 +150,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   }, [preference]);
   async function toggleTheme() {
     const next = dark ? "light" : "dark";
+    window.localStorage.setItem(THEME_STORAGE_KEY, next);
     if (!user) {
       setGuestTheme(next);
       return;

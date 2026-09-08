@@ -4,6 +4,14 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 11:15 CEST — Uitnodigingsflow uitgewerkt
+
+- De roadmap beschrijft één beveiligde uitnodigingsbron met drie kanalen: e-mail, persistente accountmelding en deelbare link.
+- Alle kanalen gaan naar dezelfde acceptatiestroom; toegang ontstaat pas na een expliciete server-side geverifieerde acceptatie.
+- Bestaande accounts krijgen uiteindelijk accepteren/weigeren in hun meldingen; nieuwe gebruikers kunnen via de uitnodigingslink registreren en daarna naar dezelfde uitnodiging terugkeren.
+- E-mailbezorging blijft afhankelijk van Lovable Cloud Emails, maar de melding- en linkroutes kunnen eerder worden gebouwd.
+- De thema-initialisatie draait vóór de eerste browserpaint en gebruikt een kleine functionele voorkeurcache, waardoor vernieuwen in donkere modus geen witte flits meer geeft; de opslag staat in de privacy-inventaris.
+
 ## 2026-09-09 10:30 CEST — Corporate Admin en gebruikersinzage
 
 - De publieke changelog heeft een afzonderlijke Beta 0.13-release voor platformbeheer; Beta 0.12 blijft gericht op feedback en bekende problemen.
@@ -14,6 +22,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Corporate Admin kan een account tijdelijk blokkeren en herstellen na een duidelijke waarschuwing en met een verplichte interne reden; de server weigert blokkering van het eigen beheerdersaccount.
 - Geslaagde en mislukte accountblokkeringen en herstelacties worden als `user.block` of `user.restore` geaudit.
 - De technische Auth-melding `User is banned` is vervangen door een vertaalde gebruikersmelding die voor hulp naar `info@globetrotr.nl` verwijst.
+- De koppeling van een vooraf toegevoegd reisgenootadres gebruikt nu het server-side geverifieerde Auth-account in plaats van een mogelijk ontbrekende tokenclaim; de vergelijking blijft exact en genormaliseerd.
 - Corporate Admin wordt in een eigen operationele shell weergegeven zonder reis- en Agency-navigatie, publieke footer of beta-feedbackknop; een expliciete knop leidt terug naar het reisplatform.
 - De publieke roadmap vermeldt het Corporate Admin-dashboard als afgeronde stap binnen de internationale beta, met uitsluitend publieksveilige producttekst.
 - De al uitgevoerde migratie `20260908019000_platform_admins_and_audit.sql` en test `supabase/tests/platform_admin_security.sql` zijn in de roadmap als afgerond gemarkeerd.
