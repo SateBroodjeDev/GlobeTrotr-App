@@ -41,6 +41,38 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-08-privacy-controls",
+    version: "Beta 0.11",
+    publishedAt: "2026-09-08T15:20:00+02:00",
+    title: "Duidelijke privacykeuzes",
+    titleEn: "Clear privacy choices",
+    summary: "Je ziet precies welke browseropslag GlobeTrotr gebruikt en houdt zelf controle over optionele voorkeuren.",
+    summaryEn: "You can see exactly which browser storage GlobeTrotr uses and control optional preferences.",
+    changes: [
+      {
+        kind: "new",
+        title: "Privacykeuze bij eerste bezoek",
+        titleEn: "Privacy choice on first visit",
+        description: "Noodzakelijke opslag wordt helder uitgelegd en optionele taalopslag staat standaard uit. Je kunt je keuze later via de footer wijzigen.",
+        descriptionEn: "Necessary storage is clearly explained and optional language storage is off by default. You can change your choice later through the footer.",
+      },
+      {
+        kind: "improved",
+        title: "Volledige privacy- en opslaguitleg",
+        titleEn: "Complete privacy and storage information",
+        description: "De privacyverklaring vermeldt gegevensdoelen, grondslagen, ontvangers, bewaartermijnen, rechten en alle gebruikte browseropslag.",
+        descriptionEn: "The privacy notice lists data purposes, legal bases, recipients, retention, rights and all browser storage used.",
+      },
+      {
+        kind: "improved",
+        title: "Duidelijke beta-voorwaarden",
+        titleEn: "Clear beta terms",
+        description: "Deelname, veilig gebruik, reiscontroles, gebruikersinhoud en consumentenrechten zijn nu helder uitgewerkt.",
+        descriptionEn: "Participation, safe use, travel checks, user content and consumer rights are now clearly explained.",
+      },
+    ],
+  },
+  {
     id: "2026-09-08-security-hardening",
     version: "Beta 0.10",
     publishedAt: "2026-09-08T14:42:00+02:00",

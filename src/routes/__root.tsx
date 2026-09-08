@@ -16,6 +16,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import { WorkspaceProvider } from "@/lib/workspace";
 import { LocaleProvider } from "@/lib/locale";
+import { PrivacyChoices } from "@/components/PrivacyChoices";
+import "leaflet/dist/leaflet.css";
 
 function NotFoundComponent() {
   return (
@@ -98,13 +100,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap",
-      },
-      { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
@@ -140,6 +135,7 @@ function RootComponent() {
               {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
               <Outlet />
             </AppShell>
+            <PrivacyChoices />
           </WorkspaceProvider>
         </LocaleProvider>
         <Toaster richColors position="top-center" />

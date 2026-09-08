@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { readPrivacyChoice } from "@/lib/privacy-consent";
 
 export type AppLocale = "nl-NL" | "en-GB";
 
@@ -37,7 +38,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
         if (!active) return;
         const saved = data?.locale === "en-GB" ? "en-GB" : "nl-NL";
         setLocaleState(saved);
-        window.localStorage.setItem(STORAGE_KEY, saved);
+        if (readPrivacyChoice()?.preferences) window.localStorage.setItem(STORAGE_KEY, saved);
       });
     return () => {
       active = false;
@@ -46,7 +47,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale === "nl-NL" ? "nl" : "en";
-    window.localStorage.setItem(STORAGE_KEY, locale);
+    if (readPrivacyChoice()?.preferences) window.localStorage.setItem(STORAGE_KEY, locale);
   }, [locale]);
 
   async function setLocale(next: AppLocale) {

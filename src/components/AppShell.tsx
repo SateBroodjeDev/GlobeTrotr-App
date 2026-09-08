@@ -33,6 +33,7 @@ import logoIcon from "@/assets/logo-icon.asset.json";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { useLocale } from "@/lib/locale";
 import { localizeTagline } from "@/lib/localized-values";
+import { openPrivacyChoices } from "@/lib/privacy-consent";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
@@ -283,6 +284,9 @@ function AppShellContent({ children }: { children: ReactNode }) {
           <Link to="/privacy" className="font-medium text-foreground transition-colors hover:text-primary">
             {text("Privacy", "Privacy")}
           </Link>
+          <button type="button" onClick={openPrivacyChoices} className="font-medium text-foreground transition-colors hover:text-primary">
+            {text("Privacykeuzes", "Privacy choices")}
+          </button>
           <Link to="/beta-voorwaarden" className="font-medium text-foreground transition-colors hover:text-primary">
             {text("Beta-voorwaarden", "Beta terms")}
           </Link>

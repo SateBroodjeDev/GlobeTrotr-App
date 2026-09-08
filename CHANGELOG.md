@@ -4,6 +4,21 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-08 15:20 CEST — Privacykeuzes en beta-voorwaarden
+
+### Privacy en juridisch
+
+- De privacyverklaring beschrijft nu per gegevenscategorie het doel en de AVG-grondslag, ontvangers, internationale doorgifte, bewaartermijnen, openbare reizen, rechten en klachten.
+- Een volledige inventaris van cookies en browseropslag vermeldt naam, doel, categorie en bewaarmoment. GlobeTrotr gebruikt momenteel geen analyse-, advertentie-, marketing- of cross-site-trackingtechnologie.
+- Nieuwe privacykeuze verschijnt bij het eerste bezoek. Noodzakelijke opslag wordt uitgelegd; taalopslag is optioneel, standaard uit en kan even eenvoudig worden geweigerd, toegestaan of later via de footer ingetrokken.
+- Google Fonts en Leaflet-CSS worden niet meer automatisch vanaf externe hosts geladen. Leaflet-CSS zit nu in de eigen applicatiebundel.
+- De beta-voorwaarden regelen deelnameleeftijd, accountveiligheid, toegestaan gebruik, rechten op gebruikersinhoud, beta- en reisrisico's, beëindiging, aansprakelijkheid, consumentenrecht en toepasselijk recht in NL/EN.
+- De officiële juridische naam, het postadres en een werkend privacycontact blijven verplichte gegevens vóór een openbare productieopening.
+
+### Controles
+
+- Alle 21 geautomatiseerde tests en de client-, SSR- en Cloudflare-productiebuild zijn geslaagd.
+
 ## 2026-09-08 14:42 CEST — Securityscan: exports, API-quota en ledenprivacy
 
 ### Beveiliging

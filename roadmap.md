@@ -6,6 +6,11 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Actuele stand — 8 september 2026
 
+- [x] Privacy- en browseropslagverklaring uitgebreid met gegevensdoelen, AVG-grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten, openbare gegevens en een concrete opslaginventaris.
+- [x] Privacykeuze op iedere eerste sessie toegevoegd: optionele taalopslag staat standaard uit, weigeren en opslaan zijn gelijkwaardig en de keuze is later via footer en privacypagina aanpasbaar.
+- [x] Externe Google Fonts- en unpkg-verzoeken bij iedere paginalaad verwijderd; Leaflet-CSS wordt lokaal gebundeld.
+- [x] Beta-voorwaarden uitgebreid met deelname, toegestaan gebruik, gebruikersinhoud, beta- en reisrisico's, beëindiging, aansprakelijkheid, consumentenbescherming en toepasselijk recht in NL/EN.
+
 - [x] Homepage vernieuwd met een visuele productdemo, mogelijkheden, stappenplan, openbare reisinspiratie en duidelijke beta-call-to-actions in NL/EN.
 - [x] Blanco homepage door `Map`-naamconflict opgelost en een uitgebreide publieke pagina **Mogelijkheden** toegevoegd voor routes, planning, boekingen, kosten, samenwerking, delen, exports en Agency.
 - [x] Migratie `20260908010000_public_trip_api.sql` en test `supabase/tests/public_trip_api.sql` volledig uitgevoerd; publieke RPC's geven alleen geselecteerde reisvelden vrij en valideren PIN-toegang.
