@@ -280,10 +280,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           throw error;
         }
       }
-      setState((s) => ({
-        ...s,
+      const current = stateRef.current;
+      const next = {
+        ...current,
         trips: [
-          ...s.trips,
+          ...current.trips,
           {
             id,
             ...(revision ? { revision } : {}),
@@ -297,7 +298,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
             expenses: [],
           },
         ],
-      }));
+      };
+      // Directe vervolgstappen (zoals JSON-import) lezen stateRef voordat React
+      // opnieuw rendert. Houd de ref daarom synchroon met de nieuwe reis.
+      stateRef.current = next;
+      setState(next);
       pendingTripIds.current.add(id);
       setSaveRevision((revision) => revision + 1);
       return id;

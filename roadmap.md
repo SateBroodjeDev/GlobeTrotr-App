@@ -8,15 +8,16 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ### Praktijktest voor de stap van vandaag
 
-- [ ] Migraties `20260908024000`, `20260908025000` en `20260908026000` in volgorde uitvoeren.
+- [x] Migraties `20260908024000`, `20260908025000` en `20260908026000` in volgorde uitgevoerd; de praktijktest bevestigt de bijbehorende meldings- en ledenstromen.
 - [ ] SQL-tests `trip_member_removal_and_deduplication.sql` en `notification_lifecycle.sql` zonder fouten afronden.
 - [ ] Uitnodiging accepteren en weigeren; controleer één ledenrij, gesloten uitnodigingsmelding en terugkoppeling aan de uitnodiger.
-- [ ] Actief reisgenoot verwijderen; controleer dat de reis verdwijnt en het verwijderde account een melding ontvangt.
-- [ ] Een gedeelde reis minstens drie keer wijzigen; controleer dat per reis één actuele wijzigingsmelding zichtbaar blijft.
-- [ ] Feedbackstatus wijzigen en vanuit Corporate Admin een tweetalig status- of updatebericht publiceren.
+- [x] Actief reisgenoot verwijderen; de reis verdwijnt, er blijft geen dubbel lid staan en het verwijderde account ontvangt een melding.
+- [x] Een gedeelde reis minstens drie keer wijzigen; per reis blijft één actuele wijzigingsmelding zichtbaar.
+- [ ] Feedbackstatus wijzigen en vanuit Corporate Admin een tweetalig status- of updatebericht publiceren. Feedback is bevestigd; platformpublicatie wacht op migratie `20260908027000`.
 - [ ] Live weer en Corporate Admin-platformstatus opnieuw controleren.
 - [ ] JSON-back-up exporteren en importeren; controleer een nieuwe privé-reis zonder ledenkoppelingen, PIN of oude bonpaden.
-- [ ] Corporate Admin-auditlog controleren op naam, e-mailadres, actie, doel, resultaat en tijdstip.
+- [x] Corporate Admin-auditlog gecontroleerd op de uitvoerende gebruiker.
+- [ ] Migratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitvoeren en daarna weigeren, platformpublicatie, live weer en JSON-import opnieuw testen.
 
 - [x] Juridische contactgegevens gepubliceerd: GlobeTrotr, postadres (geen bezoekadres) Gedempte Oude Gracht 95, 2011 GT Haarlem en privacy@globetrotr.nl.
 - [x] Privacykeuzes voor ingelogde gebruikers naar Accountinstellingen verplaatst; alleen gasten zien de keuze in de footer.
@@ -534,12 +535,13 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 - [x] Atomaire database-respons voor `accepted` en `declined` gebouwd; verlopen, ingetrokken, verboden en ongeldige uitnodigingen worden zonder toegang afgewezen
 - [x] Herstelmigratie `20260908022000_resolve_existing_invitation_memberships.sql` uitgevoerd; een bestaand actief lid of eigenaar wordt zonder unieke-indexconflict hergebruikt
 - [x] Migratie `20260908023000_invalidate_declined_and_stale_invitations.sql` uitgevoerd: geweigerde links worden direct ongeldig, bijbehorende meldingen sluiten en oude open uitnodigingen voor reeds actieve leden worden afgehandeld
-- [ ] Migratie `20260908024000_remove_members_and_deduplicate.sql` uitvoeren en `supabase/tests/trip_member_removal_and_deduplication.sql` draaien; dit verwijdert bestaande dubbelen en maakt eigenaarverwijdering definitief
+- [x] Migratie `20260908024000_remove_members_and_deduplicate.sql` uitgevoerd; dit verwijdert bestaande dubbelen en maakt eigenaarverwijdering definitief
 - [x] Dashboardladen na acceptatie hersteld: de RLS-query bepaalt eerst toegankelijke reis-ID's en alleen de server vult daarvoor ledengegevens aan; e-mailadressen worden uitsluitend aan de reiseigenaar teruggegeven
 - [x] Accepteren via een uitnodigingslink sluit de bijbehorende persistente accountmelding server-side voordat het dashboard opnieuw wordt geladen
-- [ ] Migratie `20260908025000_notify_invitation_responses.sql` uitvoeren; de uitnodiger krijgt daarna bij accepteren en weigeren een vertaalde melding met een link naar de reisgenoten
+- [x] Migratie `20260908025000_notify_invitation_responses.sql` uitgevoerd; de uitnodiger krijgt bij accepteren en weigeren een vertaalde melding met een link naar de reisgenoten
 - [x] Handmatige statuswissels verwijderd: alleen de genodigde kan een uitnodiging accepteren of weigeren; de eigenaar kan wel de rol wijzigen of de deelname verwijderen
-- [ ] Migratie `20260908026000_notification_lifecycle.sql` uitvoeren en `supabase/tests/notification_lifecycle.sql` draaien: reiswijzigingen worden per reis samengevoegd, verwijderde leden en feedbackindieners krijgen bericht, en Corporate Admin kan status- en updateberichten naar alle bevestigde accounts publiceren
+- [x] Migratie `20260908026000_notification_lifecycle.sql` uitgevoerd: reiswijzigingen worden per reis samengevoegd en verwijderde leden en feedbackindieners krijgen bericht
+- [ ] Herstelmigratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitvoeren: geweigerde placeholders verdwijnen ook uit de ledenlijst en platformberichten worden in één databasebewerking gepubliceerd
 - [x] Corporate Admin-auditlog toont per actie de beheerder met herkenbare naam en e-mailadres naast actie, doel, resultaat en tijdstip
 - [x] JSON-workspaceback-ups kunnen vanuit het reisoverzicht als nieuwe privéreizen worden geïmporteerd; nieuwe UUID's voorkomen overschrijven en accountkoppelingen, publicatie, PIN en oude bonpaden worden niet overgenomen
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn

@@ -399,10 +399,13 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
           !(await db.from("workspaces").select("user_id", { head: true, count: "exact" })).error,
       ),
       timedCheck("storage", async () => !(await db.storage.listBuckets()).error),
-      timedCheck("weather", () =>
-        reachable(
+      timedCheck("weather", async () =>
+        (await reachable(
           "https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current=temperature_2m,weather_code",
           { Accept: "application/json" },
+        )) || reachable(
+          "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=52.37&lon=4.90",
+          { Accept: "application/json", "User-Agent": "GlobeTrotr/1.0 info@globetrotr.nl" },
         ),
       ),
       timedCheck("rates", () => reachable("https://api.frankfurter.app/latest?from=EUR&to=USD")),
@@ -558,25 +561,18 @@ export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
       values[1]!.length > 120 || values[2]!.length > 1000 || values[3]!.length > 1000) {
       throw new Error("INVALID_ANNOUNCEMENT");
     }
-    const { data: announcement, error } = await db
-      .from("platform_announcements")
-      .insert({
-        announcement_type: data.type,
-        severity: data.severity,
-        title_nl: values[0], title_en: values[1], body_nl: values[2], body_en: values[3],
-        created_by: context.userId,
-      })
-      .select("id")
-      .single();
+    const { data: announcementId, error } = await db.rpc("publish_platform_announcement", {
+      p_actor_id: context.userId,
+      p_announcement_type: data.type,
+      p_severity: data.severity,
+      p_title_nl: values[0],
+      p_title_en: values[1],
+      p_body_nl: values[2],
+      p_body_en: values[3],
+    });
     if (error) throw error;
-    const { error: publishError } = await db
-      .from("platform_announcements")
-      .update({ published_at: new Date().toISOString() })
-      .eq("id", announcement.id)
-      .is("published_at", null);
-    if (publishError) throw publishError;
     await audit(db, context.userId, "platform.announcement.publish", "platform_announcement",
-      announcement.id, "success", { type: data.type, severity: data.severity });
+      announcementId, "success", { type: data.type, severity: data.severity });
     return { published: true };
   });
 

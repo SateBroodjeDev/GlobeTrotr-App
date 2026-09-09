@@ -1,4 +1,4 @@
--- Uitvoeren na 20260908026000_notification_lifecycle.sql.
+-- Uitvoeren na 20260908027000_invitation_cleanup_and_platform_publish.sql.
 -- Controleert samengevoegde reis-, verwijder-, feedback- en platformmeldingen.
 -- Alle testdata wordt teruggedraaid.
 BEGIN;
@@ -8,6 +8,8 @@ INSERT INTO auth.users(id,email,email_confirmed_at)
 SELECT owner_id, owner_id::TEXT || '@example.invalid', now() FROM notification_lifecycle_ids
 UNION ALL SELECT member_id, member_id::TEXT || '@example.invalid', now() FROM notification_lifecycle_ids;
 INSERT INTO public.workspaces(user_id) SELECT owner_id FROM notification_lifecycle_ids;
+INSERT INTO public.platform_admins(user_id,role,active)
+SELECT owner_id,'owner',true FROM notification_lifecycle_ids;
 INSERT INTO public.trips(workspace_user_id,id,trip_uuid,name)
 SELECT owner_id,trip_id::TEXT,trip_id,'Meldingentest' FROM notification_lifecycle_ids;
 INSERT INTO public.trip_members(workspace_user_id,trip_id,trip_uuid,id,user_id,name,email,role,status)
@@ -26,10 +28,10 @@ SELECT member_id,'Testfeedback','Dit is feedback voor de meldingentest.' FROM no
 UPDATE public.beta_feedback SET status='reviewing'
 WHERE user_id=(SELECT member_id FROM notification_lifecycle_ids) AND title='Testfeedback';
 DELETE FROM public.trip_members WHERE id='member' AND trip_uuid=(SELECT trip_id FROM notification_lifecycle_ids);
-INSERT INTO public.platform_announcements(announcement_type,severity,title_nl,title_en,body_nl,body_en,created_by)
-SELECT 'update','info','Belangrijke update','Important update','Nederlandse tekst','English text',owner_id
-FROM notification_lifecycle_ids;
-UPDATE public.platform_announcements SET published_at=now() WHERE title_nl='Belangrijke update';
+SELECT public.publish_platform_announcement(
+  owner_id, 'update', 'info', 'Belangrijke update', 'Important update',
+  'Nederlandse tekst', 'English text'
+) FROM notification_lifecycle_ids;
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.notifications WHERE user_id=(SELECT member_id FROM notification_lifecycle_ids) AND kind='membership') THEN RAISE EXCEPTION 'Verwijdermelding ontbreekt'; END IF;
   IF NOT EXISTS (SELECT 1 FROM public.notifications WHERE user_id=(SELECT member_id FROM notification_lifecycle_ids) AND kind='feedback') THEN RAISE EXCEPTION 'Feedbackmelding ontbreekt'; END IF;

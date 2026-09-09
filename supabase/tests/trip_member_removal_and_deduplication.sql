@@ -1,4 +1,4 @@
--- Uitvoeren na 20260908025000_notify_invitation_responses.sql.
+-- Uitvoeren na 20260908027000_invitation_cleanup_and_platform_publish.sql.
 -- Controleert dubbele acceptatieregels en definitief verwijderen door de eigenaar.
 -- Alle testdata wordt teruggedraaid.
 BEGIN;
@@ -27,6 +27,10 @@ FROM member_cleanup_ids
 UNION ALL
 SELECT owner_id, trip_id::TEXT, trip_id, 'placeholder-twee', 'Testlid dubbel',
   member_id::TEXT || '@example.invalid', 'traveler', 'invited'
+FROM member_cleanup_ids
+UNION ALL
+SELECT owner_id, trip_id::TEXT, trip_id, 'placeholder-geweigerd', 'Weigerend lid',
+  declined_id::TEXT || '@example.invalid', 'viewer', 'invited'
 FROM member_cleanup_ids;
 
 INSERT INTO public.trip_invitations(
@@ -58,6 +62,13 @@ BEGIN
   SELECT public.decline_trip_invitation(repeat('e', 64), v_ids.declined_id) INTO v_result;
   IF v_result->>'status' <> 'declined' THEN
     RAISE EXCEPTION 'Weigeren leverde geen geldige respons op';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.trip_members
+    WHERE trip_uuid = v_ids.trip_id
+      AND lower(email) = lower(v_ids.declined_id::TEXT || '@example.invalid')
+  ) THEN
+    RAISE EXCEPTION 'Geweigerde reisgenoot bleef als uitgenodigd in de ledenlijst staan';
   END IF;
   IF (
     SELECT count(*) FROM public.notifications

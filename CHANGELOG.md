@@ -4,6 +4,14 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 12:48 CEST — Weigeren, platformberichten, weer en import hersteld
+
+- Een geweigerde uitnodiging verwijdert nu ook de niet-gekoppelde placeholder uit Reisgenoten; reeds achtergebleven geweigerde regels worden veilig opgeruimd zolang er geen nieuwe open uitnodiging bestaat.
+- Platformberichten worden via één afgeschermde databasefunctie aangemaakt en gepubliceerd, zodat de meldingentrigger niet meer afhankelijk is van twee losse API-bewerkingen.
+- Live weer en de platformstatus vallen terug op MET Norway wanneer Open-Meteo vanuit de serveromgeving niet bereikbaar is.
+- JSON-import houdt de zojuist aangemaakte reis direct in de interne workspace-state beschikbaar, zodat de inhoud aansluitend zonder render-race kan worden opgeslagen.
+- Migratie `20260908027000_invitation_cleanup_and_platform_publish.sql` en de bestaande SQL-regressietests zijn uitgebreid voor opruimen na weigering en de publicatie-RPC.
+
 ## 2026-09-09 12:32 CEST — Herkenbare auditlog en veilige reisimport
 
 - De Corporate Admin-auditlog toont nu per actie de naam en het e-mailadres van de uitvoerende beheerder, naast actie, doel, resultaat en tijdstip.

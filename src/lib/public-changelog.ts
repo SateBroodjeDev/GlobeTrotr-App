@@ -41,6 +41,55 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-reliability-recovery",
+    version: "Beta 0.22",
+    publishedAt: "2026-09-09T12:48:00+02:00",
+    title: "Betrouwbaarder samenwerken en herstellen",
+    titleEn: "More reliable collaboration and recovery",
+    summary:
+      "Weigeren, platformupdates, live weer en het terugzetten van reisback-ups zijn robuuster gemaakt.",
+    summaryEn:
+      "Declining invitations, platform updates, live weather and restoring trip backups are now more robust.",
+    changes: [
+      {
+        kind: "fixed",
+        title: "Geweigerde uitnodiging verdwijnt",
+        titleEn: "Declined invitation disappears",
+        description:
+          "Na weigeren blijft de persoon niet meer als uitgenodigd in de reisgenotenlijst staan.",
+        descriptionEn:
+          "After declining, the person no longer remains listed as invited among the trip members.",
+      },
+      {
+        kind: "improved",
+        title: "Weer met automatische terugval",
+        titleEn: "Weather with automatic fallback",
+        description:
+          "Als de primaire weerbron tijdelijk niet bereikbaar is, schakelt GlobeTrotr automatisch over op een tweede bron.",
+        descriptionEn:
+          "If the primary weather source is temporarily unavailable, GlobeTrotr automatically switches to a second source.",
+      },
+      {
+        kind: "fixed",
+        title: "Reisback-up direct importeren",
+        titleEn: "Import a trip backup directly",
+        description:
+          "Een nieuwe reis is tijdens de import meteen beschikbaar om de veilige back-upinhoud op te slaan.",
+        descriptionEn:
+          "A new trip is immediately available during import so its safe backup content can be saved.",
+      },
+      {
+        kind: "fixed",
+        title: "Platformupdates publiceren",
+        titleEn: "Publish platform updates",
+        description:
+          "Corporate Admin publiceert een update en de bijbehorende accountmeldingen voortaan als één betrouwbare handeling.",
+        descriptionEn:
+          "Corporate Admin now publishes an update and its account notifications as one reliable operation.",
+      },
+    ],
+  },
+  {
     id: "2026-09-09-trip-backup-import",
     version: "Beta 0.21",
     publishedAt: "2026-09-09T12:32:00+02:00",
