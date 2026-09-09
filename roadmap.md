@@ -6,6 +6,18 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 ## Actuele stand — 9 september 2026
 
+### Praktijktest voor de stap van vandaag
+
+- [ ] Migraties `20260908024000`, `20260908025000` en `20260908026000` in volgorde uitvoeren.
+- [ ] SQL-tests `trip_member_removal_and_deduplication.sql` en `notification_lifecycle.sql` zonder fouten afronden.
+- [ ] Uitnodiging accepteren en weigeren; controleer één ledenrij, gesloten uitnodigingsmelding en terugkoppeling aan de uitnodiger.
+- [ ] Actief reisgenoot verwijderen; controleer dat de reis verdwijnt en het verwijderde account een melding ontvangt.
+- [ ] Een gedeelde reis minstens drie keer wijzigen; controleer dat per reis één actuele wijzigingsmelding zichtbaar blijft.
+- [ ] Feedbackstatus wijzigen en vanuit Corporate Admin een tweetalig status- of updatebericht publiceren.
+- [ ] Live weer en Corporate Admin-platformstatus opnieuw controleren.
+- [ ] JSON-back-up exporteren en importeren; controleer een nieuwe privé-reis zonder ledenkoppelingen, PIN of oude bonpaden.
+- [ ] Corporate Admin-auditlog controleren op naam, e-mailadres, actie, doel, resultaat en tijdstip.
+
 - [x] Juridische contactgegevens gepubliceerd: GlobeTrotr, postadres (geen bezoekadres) Gedempte Oude Gracht 95, 2011 GT Haarlem en privacy@globetrotr.nl.
 - [x] Privacykeuzes voor ingelogde gebruikers naar Accountinstellingen verplaatst; alleen gasten zien de keuze in de footer.
 - [x] Oude AtlasLedger-cachenaam vervangen door `globetrotr.workspace.v1` met verliesvrije eenmalige migratie en opruiming.
