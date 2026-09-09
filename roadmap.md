@@ -520,6 +520,8 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 - [x] Deelbare link kunnen kopiëren vanuit Reisgenoten, ook zolang e-mailbezorging uitstaat
 - [x] Statussen `pending`, `accepted`, `declined`, `expired` en `revoked` in de uitnodigingsroute tonen; accepteren en weigeren zijn idempotent
 - [x] Atomaire database-respons voor `accepted` en `declined` gebouwd; verlopen, ingetrokken, verboden en ongeldige uitnodigingen worden zonder toegang afgewezen
+- [ ] Herstelmigratie `20260908022000_resolve_existing_invitation_memberships.sql` uitvoeren en de uitgebreide uitnodigingsregressietest opnieuw uitvoeren; een bestaand actief lid of eigenaar wordt daarna zonder unieke-indexconflict hergebruikt
+- [ ] Migratie `20260908023000_invalidate_declined_and_stale_invitations.sql` uitvoeren: geweigerde links direct ongeldig maken, bijbehorende meldingen sluiten en oude open uitnodigingen voor reeds actieve leden afhandelen; dit ruimt ook de verouderde uitnodigingsstaat van reis `352d3b68-866d-4295-8948-2164b629c2db` generiek op
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn
 - [ ] Rate limiting en auditlog voor e-mailverzending; geen mailadres uitlekken in foutmeldingen
 - [ ] De huidige één-workspace-per-account-opzet uitbreiden met veilige toegang per reis, zodat een genodigde niet alle reizen van de eigenaar ziet

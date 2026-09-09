@@ -4,6 +4,21 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 11:55 CEST — Geweigerde en verouderde uitnodigingen gesloten
+
+- Weigeren roteert voortaan de opgeslagen tokenhash, waardoor de oorspronkelijke uitnodigingslink onmiddellijk ongeldig wordt terwijl de rij als auditspoor behouden blijft.
+- Uitnodigingsmeldingen worden na weigeren direct gesloten en de triggers slaan geaccepteerde, geweigerde, ingetrokken en verlopen uitnodigingen over.
+- Oude open uitnodigingen voor een bevestigd account dat al actief aan dezelfde reis deelneemt worden door de migratie als afgehandeld gemarkeerd.
+- De opruiming is generiek en herstelt daardoor ook de gemelde oude uitnodigingsstaat rond reis `352d3b68-866d-4295-8948-2164b629c2db` zonder reisdata te verwijderen.
+- De SQL-regressietest controleert nu dat de oorspronkelijke link na weigeren niet opnieuw gebruikt kan worden.
+
+## 2026-09-09 01:54 CEST — Conflict bij uitnodigingsacceptatie hersteld
+
+- De productiemelding is herleid tot unieke-indexconflict `23505`: het account had al een actieve koppeling aan dezelfde reis.
+- Herstelmigratie `20260908022000_resolve_existing_invitation_memberships.sql` laat een bestaande actieve koppeling vóór iedere placeholder winnen en maakt acceptatie ook voor bestaande leden idempotent.
+- Een bestaande eigenaar behoudt altijd de eigenaarrol; de overbodige uitnodiging wordt afgesloten en de app meldt dat het account al deelneemt.
+- De SQL-regressietest controleert nu ook acceptatie door een account dat al als eigenaar actief is.
+
 ## 2026-09-09 01:48 CEST — Agency-instellingen aangescherpt in de roadmap
 
 - De interne roadmap plant één afzonderlijk Agency Workspace Admin-dashboard voor alle workspacebrede instellingen.

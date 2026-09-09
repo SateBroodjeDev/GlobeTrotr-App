@@ -30,8 +30,12 @@ function InvitationPage() {
     setResponding(true);
     try {
       const result = await respondToTripInvitation({ data: { token, response } });
-      if (result.status === "accepted") {
-        toast.success(text("Uitnodiging geaccepteerd.", "Invitation accepted."));
+      if (result.status === "accepted" || result.status === "already_member") {
+        toast.success(
+          result.status === "already_member"
+            ? text("Je neemt al deel aan deze reis.", "You already participate in this trip.")
+            : text("Uitnodiging geaccepteerd.", "Invitation accepted."),
+        );
         window.location.assign("/dashboard");
         return;
       }

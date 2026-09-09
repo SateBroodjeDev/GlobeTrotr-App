@@ -89,7 +89,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
       response: "accept" | "decline";
     }) => {
       const result = await respondToTripInvitation({ data: { invitationId, response } });
-      if (result.status !== "accepted" && result.status !== "declined")
+      if (!["accepted", "already_member", "declined"].includes(result.status))
         throw new Error(result.status);
       const { error } = await supabase
         .from("notifications")
@@ -102,11 +102,13 @@ export function NotificationPanel({ userId }: { userId: string }) {
     onSuccess: async (result) => {
       await queryClient.invalidateQueries({ queryKey });
       toast.success(
-        result.status === "accepted"
-          ? text("Uitnodiging geaccepteerd.", "Invitation accepted.")
-          : text("Uitnodiging geweigerd.", "Invitation declined."),
+        result.status === "declined"
+          ? text("Uitnodiging geweigerd.", "Invitation declined.")
+          : result.status === "already_member"
+            ? text("Je neemt al deel aan deze reis.", "You already participate in this trip.")
+            : text("Uitnodiging geaccepteerd.", "Invitation accepted."),
       );
-      if (result.status === "accepted") window.location.assign("/dashboard");
+      if (result.status !== "declined") window.location.assign("/dashboard");
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "";

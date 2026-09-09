@@ -18,6 +18,10 @@ INSERT INTO public.trip_invitations(trip_uuid, email, role, token_hash, invited_
 SELECT trip_id, accepted_id::TEXT || '@example.invalid', 'traveler', repeat('a', 64), owner_id, now() + interval '1 day' FROM invitation_test_ids
 UNION ALL SELECT trip_id, declined_id::TEXT || '@example.invalid', 'viewer', repeat('b', 64), owner_id, now() + interval '1 day' FROM invitation_test_ids;
 
+INSERT INTO public.trip_invitations(trip_uuid, email, role, token_hash, invited_by, expires_at)
+SELECT trip_id, owner_id::TEXT || '@example.invalid', 'traveler', repeat('c', 64), owner_id,
+  now() + interval '1 day' FROM invitation_test_ids;
+
 DO $$
 DECLARE v_ids RECORD; v_result JSONB;
 BEGIN
@@ -37,6 +41,16 @@ BEGIN
   IF v_result->>'status' <> 'declined' OR EXISTS (
     SELECT 1 FROM public.trip_members WHERE trip_uuid = v_ids.trip_id AND user_id = v_ids.declined_id
   ) THEN RAISE EXCEPTION 'Weigeren verleende toegang of kreeg verkeerde status'; END IF;
+  SELECT public.decline_trip_invitation(repeat('b', 64), v_ids.declined_id) INTO v_result;
+  IF v_result->>'status' <> 'invalid' THEN
+    RAISE EXCEPTION 'De oorspronkelijke link bleef geldig na weigeren';
+  END IF;
+
+  SELECT public.accept_trip_invitation(repeat('c', 64), v_ids.owner_id) INTO v_result;
+  IF v_result->>'status' <> 'already_member' OR NOT EXISTS (
+    SELECT 1 FROM public.trip_members WHERE trip_uuid = v_ids.trip_id
+      AND user_id = v_ids.owner_id AND role = 'owner' AND status = 'active'
+  ) THEN RAISE EXCEPTION 'Bestaand actief lidmaatschap werd niet veilig hergebruikt'; END IF;
 END;
 $$;
 

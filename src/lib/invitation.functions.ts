@@ -6,7 +6,7 @@ const INVITABLE_ROLES: TripMemberRole[] = ["traveler", "viewer", "advisor", "fin
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type InvitationResponseStatus =
-  "accepted" | "declined" | "expired" | "revoked" | "forbidden" | "invalid";
+  "accepted" | "already_member" | "declined" | "expired" | "revoked" | "forbidden" | "invalid";
 
 async function adminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
