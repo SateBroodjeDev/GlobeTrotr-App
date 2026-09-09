@@ -490,7 +490,7 @@ De huidige ledenlijst wordt een echte groepsreis: uitnodigen, rollen en gelijkti
 - [ ] Reizigers per e-mail uitnodigen voor één specifieke reis, zonder toegang tot alle reizen van de eigenaar
 - [x] Deelbare uitnodigingslink voor een specifieke reis die werkt voor bestaande én nieuwe accounts: na inloggen of registreren terugkeren naar dezelfde uitnodiging en pas na acceptatie toegang tot de reis krijgen, met server-side controle van het uitnodigingstoken.
 - [ ] Rollen per reis: eigenaar, bewerker, deelnemer en alleen-lezen
-- [ ] Uitnodiging accepteren/weigeren en lid weer verwijderen
+- [x] Uitnodiging accepteren/weigeren en lid weer verwijderen; eigenaarverwijdering trekt open uitnodigingen in en acceptatie ruimt dubbele placeholders op
 - [ ] Gedeelde, live wijzigingen met conflictveilige opslag en zichtbare “laatst gewijzigd door”-informatie
 - [ ] Activiteitenlog: wie wijzigde een stop, boeking, planning of uitgave?
 - [ ] Reacties en @mentions bij een reisonderdeel of dag in de planning
@@ -520,8 +520,9 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 - [x] Deelbare link kunnen kopiëren vanuit Reisgenoten, ook zolang e-mailbezorging uitstaat
 - [x] Statussen `pending`, `accepted`, `declined`, `expired` en `revoked` in de uitnodigingsroute tonen; accepteren en weigeren zijn idempotent
 - [x] Atomaire database-respons voor `accepted` en `declined` gebouwd; verlopen, ingetrokken, verboden en ongeldige uitnodigingen worden zonder toegang afgewezen
-- [ ] Herstelmigratie `20260908022000_resolve_existing_invitation_memberships.sql` uitvoeren en de uitgebreide uitnodigingsregressietest opnieuw uitvoeren; een bestaand actief lid of eigenaar wordt daarna zonder unieke-indexconflict hergebruikt
-- [ ] Migratie `20260908023000_invalidate_declined_and_stale_invitations.sql` uitvoeren: geweigerde links direct ongeldig maken, bijbehorende meldingen sluiten en oude open uitnodigingen voor reeds actieve leden afhandelen; dit ruimt ook de verouderde uitnodigingsstaat van reis `352d3b68-866d-4295-8948-2164b629c2db` generiek op
+- [x] Herstelmigratie `20260908022000_resolve_existing_invitation_memberships.sql` uitgevoerd; een bestaand actief lid of eigenaar wordt zonder unieke-indexconflict hergebruikt
+- [x] Migratie `20260908023000_invalidate_declined_and_stale_invitations.sql` uitgevoerd: geweigerde links worden direct ongeldig, bijbehorende meldingen sluiten en oude open uitnodigingen voor reeds actieve leden worden afgehandeld
+- [ ] Migratie `20260908024000_remove_members_and_deduplicate.sql` uitvoeren en `supabase/tests/trip_member_removal_and_deduplication.sql` draaien; dit verwijdert bestaande dubbelen en maakt eigenaarverwijdering definitief
 - [x] Dashboardladen na acceptatie hersteld: de RLS-query bepaalt eerst toegankelijke reis-ID's en alleen de server vult daarvoor ledengegevens aan; e-mailadressen worden uitsluitend aan de reiseigenaar teruggegeven
 - [x] Accepteren via een uitnodigingslink sluit de bijbehorende persistente accountmelding server-side voordat het dashboard opnieuw wordt geladen
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn

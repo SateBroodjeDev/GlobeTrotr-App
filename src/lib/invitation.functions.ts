@@ -162,3 +162,26 @@ export const respondToTripInvitation = createServerFn({ method: "POST" })
     }
     return result as { status: InvitationResponseStatus; tripId?: string };
   });
+
+export const removeTripMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { tripId: string; memberId: string }) => input)
+  .handler(async ({ data, context }) => {
+    if (!/^[0-9a-f-]{36}$/i.test(data.tripId) || !data.memberId.trim()) {
+      throw new Error("INVALID_INPUT");
+    }
+    const db = await adminClient();
+    const { data: removed, error } = await db.rpc("remove_trip_member", {
+      p_trip_uuid: data.tripId,
+      p_member_id: data.memberId,
+      p_owner_id: context.userId,
+    });
+    if (error) {
+      console.error("[Trip member] Removal failed.", { code: error.code });
+      throw new Error(
+        error.code === "PGRST202" ? "MEMBER_REMOVAL_UNAVAILABLE" : "MEMBER_REMOVAL_FAILED",
+      );
+    }
+    if (!removed) throw new Error("MEMBER_NOT_FOUND");
+    return { removed: true };
+  });

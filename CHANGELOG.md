@@ -4,6 +4,13 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 12:13 CEST — Reisgenoten definitief verwijderen en ontdubbelen
+
+- De verwijderknop gebruikt nu een eigenaar-geautoriseerde serveractie die alle ledenrijen met hetzelfde adres verwijdert, open uitnodigingen intrekt en bijbehorende meldingen sluit.
+- Acceptatie ruimt achtergebleven ongekoppelde placeholders met hetzelfde reisgenootadres op, zodat één persoon nog maar één keer in de ledenlijst verschijnt.
+- Migratie `20260908024000_remove_members_and_deduplicate.sql` herstelt ook bestaande dubbele leden en voegt de afgeschermde verwijder-RPC toe.
+- SQL-regressietest `supabase/tests/trip_member_removal_and_deduplication.sql` controleert ontdubbelen, definitief verwijderen en weigering van een niet-eigenaar.
+
 ## 2026-09-09 12:05 CEST — Gedeelde reis zichtbaar na acceptatie
 
 - De relationele workspace-loader vroeg na de privacyversterking nog alle kolommen van `trip_members` op; de ontbrekende e-mailgrant liet daardoor de hele laadactie terugvallen op de oude workspacekopie.

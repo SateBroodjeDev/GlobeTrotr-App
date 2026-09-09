@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/locale";
-import { createTripInvitation } from "@/lib/invitation.functions";
+import { createTripInvitation, removeTripMember } from "@/lib/invitation.functions";
 
 const PERSONAL_ROLES: { id: TripMemberRole; label: string; description: string }[] = [
   { id: "traveler", label: "Medereiziger", description: "Plant mee en voegt kosten toe." },
@@ -132,6 +132,29 @@ export function TripMembers({
     );
   }
 
+  async function removeMember(member: TripMember) {
+    setSaving(true);
+    try {
+      await removeTripMember({ data: { tripId, memberId: member.id } });
+      const email = member.email.trim().toLowerCase();
+      await onChange(
+        members.filter((item) => item.email.trim().toLowerCase() !== email),
+      );
+      toast.success(text("Reisgenoot verwijderd.", "Traveller removed."));
+    } catch (error) {
+      toast.error(
+        error instanceof Error && !error.message.startsWith("MEMBER_")
+          ? error.message
+          : text(
+              "Reisgenoot kon niet worden verwijderd. Probeer het opnieuw.",
+              "Traveller could not be removed. Please try again.",
+            ),
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <Card className="surface">
       <CardHeader className="pb-2">
@@ -190,11 +213,7 @@ export function TripMembers({
               onChangeStatus={(status) => updateMember(member.id, { status })}
               onRemove={
                 editable
-                  ? () =>
-                      void saveMembers(
-                        members.filter((item) => item.id !== member.id),
-                        text("Reisgenoot verwijderd.", "Traveller removed."),
-                      )
+                  ? () => void removeMember(member)
                   : undefined
               }
             />

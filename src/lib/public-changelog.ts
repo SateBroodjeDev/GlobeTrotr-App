@@ -41,6 +41,37 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-trip-member-cleanup",
+    version: "Beta 0.18",
+    publishedAt: "2026-09-09T12:13:00+02:00",
+    title: "Een duidelijke lijst met reisgenoten",
+    titleEn: "A clear traveller list",
+    summary:
+      "Geaccepteerde reisgenoten staan voortaan één keer in de lijst en kunnen door de reiseigenaar volledig worden verwijderd.",
+    summaryEn:
+      "Accepted travellers now appear once in the list and can be removed completely by the trip owner.",
+    changes: [
+      {
+        kind: "fixed",
+        title: "Geen dubbele reisgenoten",
+        titleEn: "No duplicate travellers",
+        description:
+          "Oude uitnodigingsregels worden bij acceptatie automatisch opgeruimd.",
+        descriptionEn:
+          "Old invitation entries are now cleaned up automatically after acceptance.",
+      },
+      {
+        kind: "fixed",
+        title: "Verwijderen werkt definitief",
+        titleEn: "Removal is permanent",
+        description:
+          "Een verwijderde reisgenoot verdwijnt uit de reis en openstaande uitnodigingen voor die deelname worden ingetrokken.",
+        descriptionEn:
+          "A removed traveller leaves the trip and any pending invitations for that membership are revoked.",
+      },
+    ],
+  },
+  {
     id: "2026-09-09-secure-trip-invitations",
     version: "Beta 0.17",
     publishedAt: "2026-09-09T01:40:00+02:00",
