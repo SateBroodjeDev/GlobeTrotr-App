@@ -550,6 +550,7 @@ export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
       titleEn: string;
       bodyNl: string;
       bodyEn: string;
+      statusKey?: string;
     }) => input,
   )
   .handler(async ({ data, context }) => {
@@ -561,7 +562,7 @@ export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
       values[1]!.length > 120 || values[2]!.length > 1000 || values[3]!.length > 1000) {
       throw new Error("INVALID_ANNOUNCEMENT");
     }
-    const { data: announcementId, error } = await db.rpc("publish_platform_announcement", {
+    const { data: announcementId, error } = await db.rpc("publish_platform_announcement_v2", {
       p_actor_id: context.userId,
       p_announcement_type: data.type,
       p_severity: data.severity,
@@ -569,11 +570,32 @@ export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
       p_title_en: values[1],
       p_body_nl: values[2],
       p_body_en: values[3],
+      p_status_key: data.type === "status" && data.statusKey ? data.statusKey : null,
     });
     if (error) throw error;
     await audit(db, context.userId, "platform.announcement.publish", "platform_announcement",
       announcementId, "success", { type: data.type, severity: data.severity });
     return { published: true };
+  });
+
+export const listPlatformAnnouncements = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await adminDb(context.userId);
+    const { data, error } = await db
+      .from("platform_announcements")
+      .select("id,announcement_type,severity,title_nl,title_en,body_nl,body_en,status_key,published_at")
+      .not("published_at", "is", null)
+      .order("published_at", { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    const latestStatus = new Set<string>();
+    return (data ?? []).map((item: any) => {
+      const key = item.status_key as string | null;
+      const current = item.announcement_type === "status" && Boolean(key) && !latestStatus.has(key!);
+      if (key) latestStatus.add(key);
+      return { ...item, current };
+    });
   });
 
 export const manageAdminRecord = createServerFn({ method: "POST" })

@@ -1,4 +1,4 @@
--- Uitvoeren na 20260908027000_invitation_cleanup_and_platform_publish.sql.
+-- Uitvoeren na 20260908028000_platform_status_lifecycle.sql.
 -- Controleert samengevoegde reis-, verwijder-, feedback- en platformmeldingen.
 -- Alle testdata wordt teruggedraaid.
 BEGIN;
@@ -28,13 +28,45 @@ SELECT member_id,'Testfeedback','Dit is feedback voor de meldingentest.' FROM no
 UPDATE public.beta_feedback SET status='reviewing'
 WHERE user_id=(SELECT member_id FROM notification_lifecycle_ids) AND title='Testfeedback';
 DELETE FROM public.trip_members WHERE id='member' AND trip_uuid=(SELECT trip_id FROM notification_lifecycle_ids);
-SELECT public.publish_platform_announcement(
+SELECT public.publish_platform_announcement_v2(
   owner_id, 'update', 'info', 'Belangrijke update', 'Important update',
-  'Nederlandse tekst', 'English text'
+  'Nederlandse tekst', 'English text', NULL
 ) FROM notification_lifecycle_ids;
+SELECT public.publish_platform_announcement_v2(
+  owner_id, 'status', 'warning', 'Storing', 'Incident',
+  'Er is een storing', 'There is an incident', NULL
+) FROM notification_lifecycle_ids;
+SELECT public.publish_platform_announcement_v2(
+  ids.owner_id, 'status', 'resolved', 'Storing opgelost', 'Incident resolved',
+  'De storing is opgelost', 'The incident is resolved', announcement.status_key
+)
+FROM notification_lifecycle_ids ids
+JOIN public.platform_announcements announcement
+  ON announcement.title_nl='Storing'
+ AND announcement.created_by=ids.owner_id;
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.notifications WHERE user_id=(SELECT member_id FROM notification_lifecycle_ids) AND kind='membership') THEN RAISE EXCEPTION 'Verwijdermelding ontbreekt'; END IF;
   IF NOT EXISTS (SELECT 1 FROM public.notifications WHERE user_id=(SELECT member_id FROM notification_lifecycle_ids) AND kind='feedback') THEN RAISE EXCEPTION 'Feedbackmelding ontbreekt'; END IF;
-  IF (SELECT count(*) FROM public.notifications WHERE user_id IN (SELECT owner_id FROM notification_lifecycle_ids UNION ALL SELECT member_id FROM notification_lifecycle_ids) AND kind='platform') <> 2 THEN RAISE EXCEPTION 'Platformbericht bereikte niet beide accounts'; END IF;
+  IF (SELECT count(*) FROM public.notifications WHERE user_id IN (SELECT owner_id FROM notification_lifecycle_ids UNION ALL SELECT member_id FROM notification_lifecycle_ids) AND kind='platform' AND split_part(body,'|',1)='update') <> 2 THEN RAISE EXCEPTION 'Platformbericht bereikte niet beide accounts'; END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.notifications
+    WHERE user_id IN (
+      SELECT owner_id FROM notification_lifecycle_ids
+      UNION ALL SELECT member_id FROM notification_lifecycle_ids
+    )
+      AND kind='platform'
+      AND split_part(body,'|',2)='warning'
+      AND dismissed_at IS NULL
+  ) THEN RAISE EXCEPTION 'Opgeloste statusbanner bleef zichtbaar'; END IF;
+  IF (
+    SELECT count(*) FROM public.notifications
+    WHERE user_id IN (
+      SELECT owner_id FROM notification_lifecycle_ids
+      UNION ALL SELECT member_id FROM notification_lifecycle_ids
+    )
+      AND kind='platform'
+      AND split_part(body,'|',2)='resolved'
+      AND dismissed_at IS NULL
+  ) <> 2 THEN RAISE EXCEPTION 'Oplossingsmelding ontbreekt'; END IF;
 END $$;
 ROLLBACK;

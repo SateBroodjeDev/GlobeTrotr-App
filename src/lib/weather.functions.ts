@@ -77,6 +77,47 @@ async function getMetFallback(lat: number, lon: number): Promise<Weather> {
   };
 }
 
+async function fetchWeatherForecast(lat: number, lon: number): Promise<Weather> {
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lon),
+    current: "temperature_2m,wind_speed_10m,weather_code",
+    daily: "temperature_2m_min,temperature_2m_max,weather_code",
+    forecast_days: "5",
+    timezone: "auto",
+  });
+  let payload: OpenMeteoResponse;
+  try {
+    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!response.ok) throw new Error("WEATHER_PROVIDER_UNAVAILABLE");
+    payload = (await response.json()) as OpenMeteoResponse;
+  } catch {
+    return getMetFallback(lat, lon);
+  }
+  const current = payload.current;
+  const daily = payload.daily;
+  if (
+    !current || !daily?.time || !daily.temperature_2m_min ||
+    !daily.temperature_2m_max || !daily.weather_code ||
+    !Number.isFinite(current.temperature_2m) ||
+    !Number.isFinite(current.wind_speed_10m) || !Number.isFinite(current.weather_code)
+  ) return getMetFallback(lat, lon);
+  return {
+    temperature: current.temperature_2m!,
+    windspeed: current.wind_speed_10m!,
+    code: current.weather_code!,
+    daily: daily.time.map((date, index) => ({
+      date,
+      min: daily.temperature_2m_min![index]!,
+      max: daily.temperature_2m_max![index]!,
+      code: daily.weather_code![index]!,
+    })),
+  };
+}
+
 export const getWeather = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { lat: number; lon: number }) => input)
@@ -99,48 +140,29 @@ export const getWeather = createServerFn({ method: "GET" })
     if (workspaceError || !workspace || workspace.plan === "free") {
       throw new Error("WEATHER_PLAN_REQUIRED");
     }
-    const params = new URLSearchParams({
-      latitude: String(data.lat),
-      longitude: String(data.lon),
-      current: "temperature_2m,wind_speed_10m,weather_code",
-      daily: "temperature_2m_min,temperature_2m_max,weather_code",
-      forecast_days: "5",
-      timezone: "auto",
-    });
-    let payload: OpenMeteoResponse;
-    try {
-      const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`, {
-        headers: { Accept: "application/json", "User-Agent": "GlobeTrotr-Weather" },
-        signal: AbortSignal.timeout(8_000),
-      });
-      if (!response.ok) throw new Error("WEATHER_PROVIDER_UNAVAILABLE");
-      payload = (await response.json()) as OpenMeteoResponse;
-    } catch {
-      return getMetFallback(data.lat, data.lon);
+    return fetchWeatherForecast(data.lat, data.lon);
+  });
+
+export const getPublicWeather = createServerFn({ method: "POST" })
+  .inputValidator((input: { token: string; tripId: string; pin?: string; lat: number; lon: number }) => input)
+  .handler(async ({ data }) => {
+    if (!Number.isFinite(data.lat) || !Number.isFinite(data.lon)) throw new Error("INVALID_COORDINATES");
+    const { createPublicDatabaseClient, hashPin } = await import("@/lib/public.functions");
+    const db = await createPublicDatabaseClient();
+    const pinHash = data.pin ? await hashPin(data.pin) : null;
+    const { data: result, error } = await db.rpc("get_public_trip" as never, {
+      p_token: data.token, p_trip_id: data.tripId, p_pin_hash: pinHash,
+    } as never);
+    const response = result as unknown as {
+      status?: string;
+      trip?: { weatherEnabled?: boolean; stops?: Array<{ lat: number; lon: number }> };
+    };
+    const matchingStop = response.trip?.stops?.some(
+      (stop) => Math.abs(Number(stop.lat) - data.lat) < 0.000001 &&
+        Math.abs(Number(stop.lon) - data.lon) < 0.000001,
+    );
+    if (error || response.status !== "ok" || !response.trip?.weatherEnabled || !matchingStop) {
+      throw new Error("PUBLIC_WEATHER_FORBIDDEN");
     }
-    const current = payload.current;
-    const daily = payload.daily;
-    if (
-      !current ||
-      !daily?.time ||
-      !daily.temperature_2m_min ||
-      !daily.temperature_2m_max ||
-      !daily.weather_code ||
-      !Number.isFinite(current.temperature_2m) ||
-      !Number.isFinite(current.wind_speed_10m) ||
-      !Number.isFinite(current.weather_code)
-    ) {
-      return getMetFallback(data.lat, data.lon);
-    }
-    return {
-      temperature: current.temperature_2m!,
-      windspeed: current.wind_speed_10m!,
-      code: current.weather_code!,
-      daily: daily.time.map((date, index) => ({
-        date,
-        min: daily.temperature_2m_min![index]!,
-        max: daily.temperature_2m_max![index]!,
-        code: daily.weather_code![index]!,
-      })),
-    } satisfies Weather;
+    return fetchWeatherForecast(data.lat, data.lon);
   });

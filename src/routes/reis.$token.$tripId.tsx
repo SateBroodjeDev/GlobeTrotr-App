@@ -263,7 +263,13 @@ function PublicTrip() {
         </Card>
       </section>
 
-      {trip.weatherEnabled && weatherStop && <WeatherWidget stop={weatherStop} enabled />}
+      {trip.weatherEnabled && weatherStop && (
+        <WeatherWidget
+          stop={weatherStop}
+          enabled
+          publicAccess={{ token, tripId, ...(submittedPin ? { pin: submittedPin } : {}) }}
+        />
+      )}
 
       <section className="space-y-4">
         <div>

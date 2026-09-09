@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import logoIcon from "@/assets/logo-icon.asset.json";
 import { NotificationPanel } from "@/components/NotificationPanel";
+import { PlatformStatusBanner } from "@/components/PlatformStatusBanner";
 import { useLocale } from "@/lib/locale";
 import { localizeTagline } from "@/lib/localized-values";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
@@ -173,6 +174,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      {user && <PlatformStatusBanner userId={user.id} />}
       <main className="mx-auto max-w-[1500px] px-4 py-6 lg:px-6 lg:py-8">{children}</main>
     </div>;
   }
@@ -304,6 +306,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      {user && <PlatformStatusBanner userId={user.id} />}
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-4 pb-10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>
@@ -324,7 +327,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
             {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
             <DropdownMenuItem asChild><Link to="/beta-voorwaarden">{text("Beta-voorwaarden", "Beta terms")}</Link></DropdownMenuItem>
           </FooterMenu>
-          <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo · Frankfurter/ECB</span>
+          <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo/MET Norway · Frankfurter/ECB</span>
         </nav>
       </footer>
     </div>

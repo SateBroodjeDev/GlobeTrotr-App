@@ -1,17 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { weatherLabel } from "@/lib/services";
-import { getWeather } from "@/lib/weather.functions";
+import { getPublicWeather, getWeather } from "@/lib/weather.functions";
 import type { Stop } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry, localizedWeather } from "@/lib/localized-values";
 
-export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean }) {
+export function WeatherWidget({ stop, enabled, publicAccess }: { stop?: Stop; enabled: boolean; publicAccess?: { token: string; tripId: string; pin?: string } }) {
   const { locale, text } = useLocale();
   const q = useQuery({
-    queryKey: ["weather", stop?.lat, stop?.lon],
-    queryFn: () => getWeather({ data: { lat: stop!.lat, lon: stop!.lon } }),
+    queryKey: ["weather", stop?.lat, stop?.lon, publicAccess?.token, publicAccess?.tripId],
+    queryFn: () => publicAccess
+      ? getPublicWeather({ data: { ...publicAccess, lat: stop!.lat, lon: stop!.lon } })
+      : getWeather({ data: { lat: stop!.lat, lon: stop!.lon } }),
     enabled: !!stop && enabled,
     staleTime: 1000 * 60 * 30,
     retry: 1,

@@ -10,14 +10,18 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 - [x] Migraties `20260908024000`, `20260908025000` en `20260908026000` in volgorde uitgevoerd; de praktijktest bevestigt de bijbehorende meldings- en ledenstromen.
 - [ ] SQL-tests `trip_member_removal_and_deduplication.sql` en `notification_lifecycle.sql` zonder fouten afronden.
-- [ ] Uitnodiging accepteren en weigeren; controleer één ledenrij, gesloten uitnodigingsmelding en terugkoppeling aan de uitnodiger.
+- [x] Uitnodiging accepteren en weigeren bevestigd: één ledenrij, gesloten uitnodigingsmelding, opruiming na weigeren en terugkoppeling aan de uitnodiger.
 - [x] Actief reisgenoot verwijderen; de reis verdwijnt, er blijft geen dubbel lid staan en het verwijderde account ontvangt een melding.
 - [x] Een gedeelde reis minstens drie keer wijzigen; per reis blijft één actuele wijzigingsmelding zichtbaar.
-- [ ] Feedbackstatus wijzigen en vanuit Corporate Admin een tweetalig status- of updatebericht publiceren. Feedback is bevestigd; platformpublicatie wacht op migratie `20260908027000`.
+- [x] Feedbackstatus wijzigen en vanuit Corporate Admin een tweetalig status- of updatebericht publiceren bevestigd.
 - [ ] Live weer en Corporate Admin-platformstatus opnieuw controleren.
 - [ ] JSON-back-up exporteren en importeren; controleer een nieuwe privé-reis zonder ledenkoppelingen, PIN of oude bonpaden.
 - [x] Corporate Admin-auditlog gecontroleerd op de uitvoerende gebruiker.
-- [ ] Migratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitvoeren en daarna weigeren, platformpublicatie, live weer en JSON-import opnieuw testen.
+- [x] Migratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitgevoerd; weigeren en platformpublicatie zijn in productie bevestigd.
+- [ ] Migratie `20260908028000_platform_status_lifecycle.sql` uitvoeren en de statusbanner, vervolgstatus en oplossing met twee accounts testen.
+- [x] Publieke roadmap opgeschoond: interne praktijktaken zijn verwijderd en bevestigde resultaten staan in het publieke changelog.
+- [x] Back-upbediening verduidelijkt met één volledige workspaceback-up en een afzonderlijke JSON-back-up per reis.
+- [x] Openbaar weer gebruikt een apart gevalideerd pad voor gedeelde reis, PIN en bestemming en kan daardoor zonder accountsessie laden.
 
 - [x] Juridische contactgegevens gepubliceerd: GlobeTrotr, postadres (geen bezoekadres) Gedempte Oude Gracht 95, 2011 GT Haarlem en privacy@globetrotr.nl.
 - [x] Privacykeuzes voor ingelogde gebruikers naar Accountinstellingen verplaatst; alleen gasten zien de keuze in de footer.
@@ -60,9 +64,10 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 - Automatische app-e-mails, waaronder uitnodigingsmails, zijn nog niet actief; uitnodigingslinks en accountmeldingen werken wel.
 - Inloggen met Apple, Google en Microsoft volgt na de beta-infrastructuur.
-- Openstaande reisuitnodigingen kunnen nog niet door de reisbeheerder worden ingetrokken of met een nieuwe vervaldatum worden vernieuwd.
+- Openstaande reisuitnodigingen hebben nog geen afzonderlijk beheeroverzicht om ze handmatig in te trekken of met een nieuwe vervaldatum te vernieuwen; verwijderen van een reisgenoot trekt gekoppelde open uitnodigingen al automatisch in.
 - Feedback en bekende problemen moeten nog handmatig naar NL/EN worden vertaald.
-- [ ] Migratie `20260908021000_seed_current_beta_limitations.sql` uitvoeren; daarna de drie nieuwe regels vanuit Corporate Admin naar GitHub synchroniseren.
+- Live weer met Open-Meteo en MET Norway wordt gemonitord totdat de widget en platformstatus in productie stabiel zijn bevestigd.
+- [x] Migratie `20260908021000_seed_current_beta_limitations.sql` uitgevoerd en de bekende beperkingen naar GitHub geïmporteerd.
 
 - [x] Privacy- en browseropslagverklaring uitgebreid met gegevensdoelen, AVG-grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten, openbare gegevens en een concrete opslaginventaris.
 - [x] Privacykeuze op iedere eerste sessie toegevoegd: optionele taalopslag staat standaard uit, weigeren en opslaan zijn gelijkwaardig en de keuze is later via footer en privacypagina aanpasbaar.
@@ -78,7 +83,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Accountgegevens kunnen vanuit Accountinstellingen als machineleesbare JSON worden geëxporteerd; accountverwijdering gebruikt een expliciete `DELETE`-bevestiging en ruimt eigen databasegegevens en uploads op.
 - [x] Praktijktest bevestigd: zowel de volledige gegevens-export als accountverwijdering werken stabiel in de gekoppelde omgeving.
 - [x] Negen regressietests en de client-, SSR- en Cloudflare-productiebuild zijn na de pagina- en accountwijzigingen geslaagd.
-- [ ] Voor een volledig openbare productieopening de officiële juridische naam, vestigings-/postadres en een werkend privacycontactadres van de verwerkingsverantwoordelijke publiceren.
+- [x] Officiële juridische naam, postadres met aanduiding geen bezoekadres en werkend privacycontactadres gepubliceerd.
 - [x] Reisinstellingen tonen bij de reisnaam een live tekenteller tot de limiet van 30, gelijk aan de teller bij de omschrijving.
 - [x] Migratie `20260908002000_trip_text_limits.sql` en regressietest `supabase/tests/trip_text_limits.sql` uitgevoerd; reisnamen zijn maximaal 30 tekens en reisomschrijvingen maximaal 375 tekens.
 - [x] Mobiele slimme verrekening hersteld: de vierkolomstabel is op telefoon vervangen door compacte kaarten en Saldo krijgt een eigen volledige rij binnen de kaart.
@@ -541,7 +546,8 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 - [x] Migratie `20260908025000_notify_invitation_responses.sql` uitgevoerd; de uitnodiger krijgt bij accepteren en weigeren een vertaalde melding met een link naar de reisgenoten
 - [x] Handmatige statuswissels verwijderd: alleen de genodigde kan een uitnodiging accepteren of weigeren; de eigenaar kan wel de rol wijzigen of de deelname verwijderen
 - [x] Migratie `20260908026000_notification_lifecycle.sql` uitgevoerd: reiswijzigingen worden per reis samengevoegd en verwijderde leden en feedbackindieners krijgen bericht
-- [ ] Herstelmigratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitvoeren: geweigerde placeholders verdwijnen ook uit de ledenlijst en platformberichten worden in één databasebewerking gepubliceerd
+- [x] Herstelmigratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitgevoerd: geweigerde placeholders verdwijnen uit de ledenlijst en platformberichten worden in één databasebewerking gepubliceerd
+- [ ] Migratie `20260908028000_platform_status_lifecycle.sql` uitvoeren: actuele statussen krijgen een wegklikbare banner, opvolging vervangt de oude banner en opgelost wordt een gewone melding
 - [x] Corporate Admin-auditlog toont per actie de beheerder met herkenbare naam en e-mailadres naast actie, doel, resultaat en tijdstip
 - [x] JSON-workspaceback-ups kunnen vanuit het reisoverzicht als nieuwe privéreizen worden geïmporteerd; nieuwe UUID's voorkomen overschrijven en accountkoppelingen, publicatie, PIN en oude bonpaden worden niet overgenomen
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn
@@ -632,8 +638,8 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 ## P1 — Nederlands & English
 
 - [ ] Taalinfrastructuur met Nederlandse en Engelse vertaalbestanden; geen losse hardcoded Engelse labels
-- [ ] Taalkeuze in accountinstellingen en bij eerste bezoek, standaard Nederlands
-- [ ] Taalkeuze uit `profiles.locale` toepassen op e-mails, publieke reispagina’s en exports
+- [x] Taalkeuze in accountinstellingen en bij eerste bezoek, standaard Nederlands
+- [ ] Taalkeuze uit `profiles.locale` toepassen op automatische e-mails; app, publieke reispagina’s en exports volgen de accounttaal al
 - [ ] Datums, bedragen, valuta en tijdzones tonen volgens de gekozen locale
 - [ ] Nieuwe teksten alleen via vertaalkeys toevoegen; controle op ontbrekende vertalingen in de build
 
@@ -723,7 +729,7 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 - [x] Eerste Corporate Admin-basis voor feedback en bekende problemen gebouwd
 - [x] Zoeken, categoriefilter en gezamenlijk archieffilter voor feedback en bekende problemen toegevoegd
 - [ ] Feedback-inbox verder uitbreiden met labels, eigenaar, prioriteit, interne notities, duplicaten koppelen en bulkstatus
-- [ ] Bekende problemen vanuit Corporate Admin publiceren, wijzigen, vertalen en oplossen; openbare statuspagina en GitHub Issues blijven gesynchroniseerd
+- [x] Bekende problemen vanuit Corporate Admin publiceren, wijzigen, vertalen, categoriseren en oplossen; openbare statuspagina en GitHub Issues synchroniseren
 - [ ] Storings- en foutoverzicht met aantallen, getroffen routes/versies en trend, zonder onnodige persoonsgegevens in foutmeldingen
 - [ ] Operationele status verder uitbreiden met kaarten, e-mail en betalingen zodra daarvoor gecontroleerde serverintegraties bestaan
 - [x] Veilige handmatige healthchecks voor database, Storage, vluchtconfiguratie, weer, valuta en GitHub Issues toegevoegd
@@ -741,7 +747,7 @@ Een afzonderlijke backend-beheeromgeving voor de eigenaar van GlobeTrotr. Dit da
 - [ ] Moderatie voor openbare reizen: verbergen en herstellen met reden, zonder standaard toegang tot privéreisinhoud
 - [ ] Beheerbare featureflags, beta-uitrolpercentages, onderhoudsmelding en noodstop per externe integratie
 - [ ] Handmatige plan-correctie alleen met reden en auditlog; Stripe-webhooks blijven leidend voor betaalstatus
-- [ ] Changelog, bekende problemen, beta-status en publieke servicemelding vanuit Corporate Admin beheren met concept, preview en publicatiemoment
+- [ ] Changelog, bekende problemen, beta-status en publieke servicemelding volledig vanuit Corporate Admin beheren met concept, preview en gepland publicatiemoment; directe servicemeldingen en hun statuscyclus zijn gebouwd
 - [ ] Privacytools: inzage-, export-, correctie- en verwijderverzoeken volgen, wettelijke termijnen bewaken en afhandeling registreren
 - [ ] Bewaarbeleid, misbruikmeldingen, geblokkeerde accounts en beveiligingsincidenten beheren met beperkte rollen en vierogenprincipe voor definitieve acties
 

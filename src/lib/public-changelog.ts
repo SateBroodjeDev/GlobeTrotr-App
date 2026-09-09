@@ -41,6 +41,46 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-platform-status-banners",
+    version: "Beta 0.23",
+    publishedAt: "2026-09-09T13:06:00+02:00",
+    title: "Actuele platformstatus in beeld",
+    titleEn: "Current platform status at a glance",
+    summary:
+      "Ingelogde gebruikers zien een actuele storing als banner en ontvangen een gewone melding zodra deze is opgelost.",
+    summaryEn:
+      "Signed-in users see an active incident as a banner and receive a regular notification when it is resolved.",
+    changes: [
+      {
+        kind: "new",
+        title: "Wegklikbare statusbanner",
+        titleEn: "Dismissible status banner",
+        description:
+          "Informatie, waarschuwingen en kritieke platformstatussen staan zichtbaar boven het reisplatform en kunnen persoonlijk worden gesloten.",
+        descriptionEn:
+          "Information, warnings and critical platform statuses appear above the travel platform and can be dismissed individually.",
+      },
+      {
+        kind: "improved",
+        title: "Status bijwerken en oplossen",
+        titleEn: "Update and resolve a status",
+        description:
+          "Een vervolg vervangt de eerdere banner. Bij opgelost verdwijnt de banner en verschijnt de oplossing als melding rechtsboven.",
+        descriptionEn:
+          "A follow-up replaces the previous banner. Once resolved, the banner disappears and the resolution appears as a notification in the top right.",
+      },
+      {
+        kind: "new",
+        title: "Berichtgeschiedenis voor beheer",
+        titleEn: "Message history for administrators",
+        description:
+          "Corporate Admin houdt actuele statussen en eerdere platformberichten overzichtelijk bij.",
+        descriptionEn:
+          "Corporate Admin keeps current statuses and previous platform messages organised.",
+      },
+    ],
+  },
+  {
     id: "2026-09-09-reliability-recovery",
     version: "Beta 0.22",
     publishedAt: "2026-09-09T12:48:00+02:00",
@@ -51,6 +91,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     summaryEn:
       "Declining invitations, platform updates, live weather and restoring trip backups are now more robust.",
     changes: [
+      {
+        kind: "improved",
+        title: "Samenwerking praktisch bevestigd",
+        titleEn: "Collaboration verified in practice",
+        description:
+          "Accepteren, verwijderen, antwoord- en verwijdermeldingen, samengevoegde reisupdates, feedbackmeldingen en de herkenbare auditlog zijn in de beta gecontroleerd.",
+        descriptionEn:
+          "Acceptance, removal, response and removal notifications, combined trip updates, feedback notifications and the identifiable audit log have been verified in the beta.",
+      },
       {
         kind: "fixed",
         title: "Geweigerde uitnodiging verdwijnt",
@@ -77,6 +126,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Een nieuwe reis is tijdens de import meteen beschikbaar om de veilige back-upinhoud op te slaan.",
         descriptionEn:
           "A new trip is immediately available during import so its safe backup content can be saved.",
+      },
+      {
+        kind: "new",
+        title: "Back-up per reis",
+        titleEn: "Backup per trip",
+        description:
+          "Naast de volledige back-up heeft iedere reiskaart nu een eigen JSON-back-upknop.",
+        descriptionEn:
+          "Alongside the complete backup, every trip card now has its own JSON backup button.",
       },
       {
         kind: "fixed",

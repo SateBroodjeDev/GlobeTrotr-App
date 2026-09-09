@@ -269,7 +269,7 @@ function TripsOverview() {
             toast.success(text("Back-up gedownload", "Backup downloaded"));
           }}
         >
-          <Download className="size-4" /> JSON {text("back-up", "backup")}
+          <Download className="size-4" /> {text("Alle reizen", "All trips")} · JSON
         </Button>
         <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={(event)=>void importBackup(event)}/>
         <Button variant="outline" size="sm" disabled={!editable||importing} onClick={()=>importInput.current?.click()}>
@@ -345,6 +345,17 @@ function TripsOverview() {
                     {text("van", "of")} {formatMoney(trip.budget, base)}
                   </span>
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    downloadJson({ trips: [trip] }, trip.name);
+                    toast.success(text("Reisback-up gedownload", "Trip backup downloaded"));
+                  }}
+                >
+                  <Download className="size-4" /> {text("Back-up van deze reis", "Back up this trip")}
+                </Button>
               </CardContent>
             </Card>
           );

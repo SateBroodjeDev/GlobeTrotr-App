@@ -4,12 +4,23 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 13:06 CEST — Beheerbare platformstatus met banner
+
+- Actuele platformstatussen verschijnen als duidelijke, wegklikbare banner bij ingelogde gebruikers; belangrijke productupdates blijven gewone meldingen rechtsboven.
+- Iedere status krijgt een vaste incidentcode. Een vervolgstatus vervangt automatisch de vorige banner en **Opgelost** sluit de banner bij alle gebruikers en stuurt een gewone oplossingsmelding.
+- Corporate Admin toont actieve statussen en een begrensde berichtgeschiedenis en kan een status bijwerken of als opgelost melden.
+- Migratie `20260908028000_platform_status_lifecycle.sql` bewaart de statusrelatie, herstelt bestaande statusmeldingen en actualiseert de geregistreerde bekende problemen.
+- De interne en publieke roadmap zijn vergeleken met de gebouwde functies en bevestigde praktijktests; verouderde open punten over uitnodigingen, platformpublicatie, juridische contactgegevens en probleembeheer zijn bijgewerkt.
+
 ## 2026-09-09 12:48 CEST — Weigeren, platformberichten, weer en import hersteld
 
 - Een geweigerde uitnodiging verwijdert nu ook de niet-gekoppelde placeholder uit Reisgenoten; reeds achtergebleven geweigerde regels worden veilig opgeruimd zolang er geen nieuwe open uitnodiging bestaat.
 - Platformberichten worden via één afgeschermde databasefunctie aangemaakt en gepubliceerd, zodat de meldingentrigger niet meer afhankelijk is van twee losse API-bewerkingen.
 - Live weer en de platformstatus vallen terug op MET Norway wanneer Open-Meteo vanuit de serveromgeving niet bereikbaar is.
+- De openbare weerwidget valideert de gedeelde reis, eventuele PIN en bestemming via de publieke reis-RPC; hij vereist daardoor geen ingelogde sessie meer.
 - JSON-import houdt de zojuist aangemaakte reis direct in de interne workspace-state beschikbaar, zodat de inhoud aansluitend zonder render-race kan worden opgeslagen.
+- Het reisoverzicht onderscheidt nu duidelijk de back-up van alle reizen en biedt op iedere reiskaart een afzonderlijke JSON-back-up.
+- De publieke roadmap toont geen interne praktijktest meer; de bevestigde testresultaten staan gebruikersgericht in Beta 0.22 van het publieke changelog.
 - Migratie `20260908027000_invitation_cleanup_and_platform_publish.sql` en de bestaande SQL-regressietests zijn uitgebreid voor opruimen na weigering en de publicatie-RPC.
 
 ## 2026-09-09 12:32 CEST — Herkenbare auditlog en veilige reisimport

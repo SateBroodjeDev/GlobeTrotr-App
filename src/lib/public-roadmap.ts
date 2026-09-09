@@ -14,15 +14,7 @@ export const PUBLIC_TODAY = {
     ["Betrouwbaarder live weer via een beveiligde serververbinding met tweede weerbron", "More reliable live weather through a secured server connection with a second provider"],
     ["JSON-reisback-ups veilig importeren als nieuwe privéreizen", "Safely import JSON trip backups as new private trips"],
     ["Een herkenbare Corporate Admin-auditlog met de uitvoerende beheerder", "A recognisable Corporate Admin audit log showing the acting administrator"],
-  ],
-  tests: [
-    ["Nodig één bestaand account uit en controleer dat weigeren ook de regel Uitgenodigd verwijdert", "Invite one existing account and check that declining also removes its Invited row"],
-    ["Controleer dat acceptatie één reisgenoot toont en dat verwijderen op beide accounts doorwerkt", "Check that acceptance shows one traveller and removal is reflected for both accounts"],
-    ["Wijzig een gedeelde reis meerdere keren en controleer dat één melding overblijft", "Change a shared trip several times and check that one notification remains"],
-    ["Wijzig een feedbackstatus en publiceer één testbericht vanuit Corporate Admin", "Change a feedback status and publish one test message from Corporate Admin"],
-    ["Controleer live weer en voer daarna de platformstatuscontrole uit", "Check live weather and then run the platform status check"],
-    ["Exporteer een back-up, importeer hem en controleer dat een nieuwe privéreis ontstaat", "Export a backup, import it and check that a new private trip is created"],
-    ["Open de auditlog en controleer naam, e-mailadres, actie, resultaat en tijd", "Open the audit log and check name, email, action, result and time"],
+    ["Actuele platformstatus als wegklikbare banner met opvolging en oplossing", "Current platform status as a dismissible banner with updates and resolution"],
   ],
 } as const;
 
@@ -52,6 +44,7 @@ export const PUBLIC_ROADMAP = [
         "Reisplanning en openbare reispagina's verfijnen",
         "Refine trip planning and public trip pages",
       ],
+      ["Live weer met twee providers in productie volgen", "Monitor live weather with two providers in production"],
     ],
   },
   {
@@ -72,6 +65,7 @@ export const PUBLIC_ROADMAP = [
       ],
       ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"],
       ["Meer meldingsvoorkeuren", "More notification preferences"],
+      ["Afzonderlijk beheer van open reisuitnodigingen", "Dedicated management of pending trip invitations"],
     ],
   },
   {

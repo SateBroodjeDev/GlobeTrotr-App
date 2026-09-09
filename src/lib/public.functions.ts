@@ -141,7 +141,7 @@ function relationalPublicTravelItem(item: RelationalTravelItem): PublicTravelIte
   };
 }
 
-async function createPublicDatabaseClient() {
+export async function createPublicDatabaseClient() {
   const url = process.env["SUPABASE_URL"];
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) throw new Error("Publieke databaseconfiguratie ontbreekt.");
@@ -438,7 +438,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     return { status: "ok", trip: detail } as PublicTripResult;
   });
 
-async function hashPin(pin: string) {
+export async function hashPin(pin: string) {
   const bytes = new Uint8Array(
     await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pin)),
   );
