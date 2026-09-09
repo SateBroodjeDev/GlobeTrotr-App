@@ -41,6 +41,86 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-invitation-management",
+    version: "Beta 0.25",
+    publishedAt: "2026-09-09T13:32:00+02:00",
+    title: "Uitnodigingen onder controle",
+    titleEn: "Invitations under control",
+    summary:
+      "Reisbeheerders zien openstaande uitnodigingen bij elkaar en kunnen iedere link veilig vernieuwen of intrekken.",
+    summaryEn:
+      "Trip managers can see pending invitations together and securely renew or revoke each link.",
+    changes: [
+      {
+        kind: "new",
+        title: "Overzicht bij Reisgenoten",
+        titleEn: "Overview under Travellers",
+        description:
+          "Openstaande en verlopen uitnodigingen tonen het adres, de rol en de actuele geldigheid zonder de volledige link te bewaren.",
+        descriptionEn:
+          "Pending and expired invitations show the address, role and current validity without storing the complete link.",
+      },
+      {
+        kind: "improved",
+        title: "Veilig een nieuwe link maken",
+        titleEn: "Create a new link securely",
+        description:
+          "Vernieuwen maakt de oude link ongeldig, geeft een nieuwe link en verlengt de uitnodiging met zeven dagen.",
+        descriptionEn:
+          "Renewing invalidates the old link, provides a new link and extends the invitation by seven days.",
+      },
+      {
+        kind: "secure",
+        title: "Uitnodiging volledig intrekken",
+        titleEn: "Revoke an invitation completely",
+        description:
+          "Na bevestiging verdwijnen de open toegang, accountmelding en onbevestigde reisgenoot direct uit beeld.",
+        descriptionEn:
+          "After confirmation, pending access, the account notification and the unconfirmed traveller disappear immediately.",
+      },
+    ],
+  },
+  {
+    id: "2026-09-09-admin-dialogs",
+    version: "Beta 0.24",
+    publishedAt: "2026-09-09T13:21:00+02:00",
+    title: "Duidelijker beheer van statussen",
+    titleEn: "Clearer status management",
+    summary:
+      "Platformstoringen en bekende problemen zijn sneller en duidelijker vanuit aparte vensters te beheren.",
+    summaryEn:
+      "Platform incidents and known issues can now be managed faster and more clearly in dedicated dialogs.",
+    changes: [
+      {
+        kind: "improved",
+        title: "Eigen venster voor statusupdates",
+        titleEn: "Dedicated window for status updates",
+        description:
+          "Bijwerken en oplossen opent direct bij de gekozen status. Een oplossing krijgt herkenbare hersteltekst.",
+        descriptionEn:
+          "Updating and resolving opens directly for the selected status. A resolution receives recognisable recovery text.",
+      },
+      {
+        kind: "improved",
+        title: "Problemen bewerken zonder zoeken",
+        titleEn: "Edit issues without searching",
+        description:
+          "Een bekend probleem opent in een popup en verdwijnt na bevestigd archiveren direct uit de actieve lijst.",
+        descriptionEn:
+          "A known issue opens in a popup and disappears from the active list immediately after confirmed archiving.",
+      },
+      {
+        kind: "fixed",
+        title: "Weer en reisback-ups bevestigd",
+        titleEn: "Weather and trip backups verified",
+        description:
+          "Live weer en het importeren en exporteren van reisback-ups zijn in de beta werkend bevestigd.",
+        descriptionEn:
+          "Live weather and importing and exporting trip backups have been verified in the beta.",
+      },
+    ],
+  },
+  {
     id: "2026-09-09-platform-status-banners",
     version: "Beta 0.23",
     publishedAt: "2026-09-09T13:06:00+02:00",

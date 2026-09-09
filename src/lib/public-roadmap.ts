@@ -15,6 +15,7 @@ export const PUBLIC_TODAY = {
     ["JSON-reisback-ups veilig importeren als nieuwe privéreizen", "Safely import JSON trip backups as new private trips"],
     ["Een herkenbare Corporate Admin-auditlog met de uitvoerende beheerder", "A recognisable Corporate Admin audit log showing the acting administrator"],
     ["Actuele platformstatus als wegklikbare banner met opvolging en oplossing", "Current platform status as a dismissible banner with updates and resolution"],
+    ["Openstaande reisuitnodigingen bekijken, vernieuwen en intrekken", "View, renew and revoke pending trip invitations"],
   ],
 } as const;
 
@@ -28,8 +29,8 @@ export const PUBLIC_ROADMAP = [
     ],
     items: [
       [
-        "Beveiligde uitnodigingslinks, antwoorden en terugkoppeling aan de uitnodiger",
-        "Secure invitation links, responses and updates for the inviter",
+        "Beveiligde uitnodigingslinks met antwoorden, beheer en terugkoppeling",
+        "Secure invitation links with responses, management and updates",
       ],
       ["Betere feedback- en probleemopvolging", "Better feedback and issue follow-up"],
       [
@@ -59,13 +60,8 @@ export const PUBLIC_ROADMAP = [
         "Automatische reisuitnodigingen en updates via e-mail",
         "Automated trip invitations and updates by email",
       ],
-      [
-        "Uitnodigingen intrekken, vernieuwen en overzichtelijk beheren",
-        "Revoke, renew and clearly manage invitations",
-      ],
       ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"],
       ["Meer meldingsvoorkeuren", "More notification preferences"],
-      ["Afzonderlijk beheer van open reisuitnodigingen", "Dedicated management of pending trip invitations"],
     ],
   },
   {

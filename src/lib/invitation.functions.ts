@@ -8,6 +8,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export type InvitationResponseStatus =
   "accepted" | "already_member" | "declined" | "expired" | "revoked" | "forbidden" | "invalid";
 
+export type PendingTripInvitation = {
+  id: string;
+  email: string;
+  role: TripMemberRole;
+  createdAt: string;
+  expiresAt: string;
+  status: "pending" | "expired";
+};
+
 async function adminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as any;
@@ -58,6 +67,74 @@ export const createTripInvitation = createServerFn({ method: "POST" })
       .single();
     if (error) throw error;
     return { id: invitation.id as string, token, expiresAt: invitation.expires_at as string };
+  });
+
+export const listPendingTripInvitations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { tripId: string }) => input)
+  .handler(async ({ data, context }) => {
+    if (!/^[0-9a-f-]{36}$/i.test(data.tripId)) throw new Error("INVALID_INPUT");
+    const db = await adminClient();
+    const { data: trip, error: tripError } = await db
+      .from("trips")
+      .select("trip_uuid")
+      .eq("trip_uuid", data.tripId)
+      .eq("workspace_user_id", context.userId)
+      .maybeSingle();
+    if (tripError || !trip) throw tripError ?? new Error("TRIP_OWNER_REQUIRED");
+    const { data: invitations, error } = await db
+      .from("trip_invitations")
+      .select("id, email, role, created_at, expires_at")
+      .eq("trip_uuid", data.tripId)
+      .is("accepted_at", null)
+      .is("declined_at", null)
+      .is("revoked_at", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const now = Date.now();
+    return (invitations ?? []).map((invitation: any) => ({
+      id: invitation.id as string,
+      email: invitation.email as string,
+      role: invitation.role as TripMemberRole,
+      createdAt: invitation.created_at as string,
+      expiresAt: invitation.expires_at as string,
+      status: Date.parse(invitation.expires_at) <= now ? "expired" : "pending",
+    })) as PendingTripInvitation[];
+  });
+
+export const manageTripInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { tripId: string; invitationId: string; action: "revoke" | "renew" }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    if (
+      !/^[0-9a-f-]{36}$/i.test(data.tripId) ||
+      !/^[0-9a-f-]{36}$/i.test(data.invitationId) ||
+      !["revoke", "renew"].includes(data.action)
+    ) throw new Error("INVALID_INPUT");
+    const token = data.action === "renew" ? invitationToken() : "";
+    const db = await adminClient();
+    const { data: result, error } = await db.rpc("manage_trip_invitation", {
+      p_invitation_id: data.invitationId,
+      p_trip_uuid: data.tripId,
+      p_owner_id: context.userId,
+      p_action: data.action,
+      p_token_hash: token ? await sha256(token) : null,
+    });
+    if (error) {
+      console.error("[Trip invitation] Management failed.", { code: error.code, action: data.action });
+      throw new Error(error.code === "PGRST202" ? "INVITATION_MANAGEMENT_UNAVAILABLE" : "INVITATION_MANAGEMENT_FAILED");
+    }
+    const expectedStatus = data.action === "renew" ? "renewed" : "revoked";
+    if (!result || result.status !== expectedStatus) {
+      throw new Error(`INVITATION_MANAGEMENT_${String(result?.status ?? "INVALID").toUpperCase()}`);
+    }
+    return {
+      status: result.status as "revoked" | "renewed",
+      token: token || undefined,
+      expiresAt: result.expiresAt as string | undefined,
+    };
   });
 
 export const getTripInvitation = createServerFn({ method: "GET" })

@@ -14,14 +14,16 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Actief reisgenoot verwijderen; de reis verdwijnt, er blijft geen dubbel lid staan en het verwijderde account ontvangt een melding.
 - [x] Een gedeelde reis minstens drie keer wijzigen; per reis blijft één actuele wijzigingsmelding zichtbaar.
 - [x] Feedbackstatus wijzigen en vanuit Corporate Admin een tweetalig status- of updatebericht publiceren bevestigd.
-- [ ] Live weer en Corporate Admin-platformstatus opnieuw controleren.
-- [ ] JSON-back-up exporteren en importeren; controleer een nieuwe privé-reis zonder ledenkoppelingen, PIN of oude bonpaden.
+- [x] Live weer in de reis en Corporate Admin-platformstatus opnieuw gecontroleerd en werkend bevestigd.
+- [x] JSON-back-up per reis en voor alle reizen geëxporteerd en veilig geïmporteerd.
 - [x] Corporate Admin-auditlog gecontroleerd op de uitvoerende gebruiker.
 - [x] Migratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitgevoerd; weigeren en platformpublicatie zijn in productie bevestigd.
-- [ ] Migratie `20260908028000_platform_status_lifecycle.sql` uitvoeren en de statusbanner, vervolgstatus en oplossing met twee accounts testen.
+- [x] Migratie `20260908028000_platform_status_lifecycle.sql` uitgevoerd; statusbanner, vervolgstatus en oplossingsmelding werken. Alleen de gecorrigeerde SQL-regressietest moet opnieuw worden gedraaid.
 - [x] Publieke roadmap opgeschoond: interne praktijktaken zijn verwijderd en bevestigde resultaten staan in het publieke changelog.
 - [x] Back-upbediening verduidelijkt met één volledige workspaceback-up en een afzonderlijke JSON-back-up per reis.
 - [x] Openbaar weer gebruikt een apart gevalideerd pad voor gedeelde reis, PIN en bestemming en kan daardoor zonder accountsessie laden.
+- [x] Afzonderlijk overzicht voor openstaande en verlopen reisuitnodigingen gebouwd; de eigenaar kan een nieuwe zeven dagen geldige link maken of de uitnodiging na bevestiging intrekken.
+- [ ] Migratie `20260908029000_manage_pending_trip_invitations.sql` en test `supabase/tests/pending_trip_invitation_management.sql` uitvoeren; daarna vernieuwen en intrekken met een bestaand account praktisch controleren.
 
 - [x] Juridische contactgegevens gepubliceerd: GlobeTrotr, postadres (geen bezoekadres) Gedempte Oude Gracht 95, 2011 GT Haarlem en privacy@globetrotr.nl.
 - [x] Privacykeuzes voor ingelogde gebruikers naar Accountinstellingen verplaatst; alleen gasten zien de keuze in de footer.
@@ -64,9 +66,7 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 
 - Automatische app-e-mails, waaronder uitnodigingsmails, zijn nog niet actief; uitnodigingslinks en accountmeldingen werken wel.
 - Inloggen met Apple, Google en Microsoft volgt na de beta-infrastructuur.
-- Openstaande reisuitnodigingen hebben nog geen afzonderlijk beheeroverzicht om ze handmatig in te trekken of met een nieuwe vervaldatum te vernieuwen; verwijderen van een reisgenoot trekt gekoppelde open uitnodigingen al automatisch in.
 - Feedback en bekende problemen moeten nog handmatig naar NL/EN worden vertaald.
-- Live weer met Open-Meteo en MET Norway wordt gemonitord totdat de widget en platformstatus in productie stabiel zijn bevestigd.
 - [x] Migratie `20260908021000_seed_current_beta_limitations.sql` uitgevoerd en de bekende beperkingen naar GitHub geïmporteerd.
 
 - [x] Privacy- en browseropslagverklaring uitgebreid met gegevensdoelen, AVG-grondslagen, ontvangers, doorgiften, bewaartermijnen, rechten, openbare gegevens en een concrete opslaginventaris.
@@ -547,10 +547,10 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 - [x] Handmatige statuswissels verwijderd: alleen de genodigde kan een uitnodiging accepteren of weigeren; de eigenaar kan wel de rol wijzigen of de deelname verwijderen
 - [x] Migratie `20260908026000_notification_lifecycle.sql` uitgevoerd: reiswijzigingen worden per reis samengevoegd en verwijderde leden en feedbackindieners krijgen bericht
 - [x] Herstelmigratie `20260908027000_invitation_cleanup_and_platform_publish.sql` uitgevoerd: geweigerde placeholders verdwijnen uit de ledenlijst en platformberichten worden in één databasebewerking gepubliceerd
-- [ ] Migratie `20260908028000_platform_status_lifecycle.sql` uitvoeren: actuele statussen krijgen een wegklikbare banner, opvolging vervangt de oude banner en opgelost wordt een gewone melding
+- [x] Migratie `20260908028000_platform_status_lifecycle.sql` uitgevoerd: actuele statussen krijgen een wegklikbare banner, opvolging vervangt de oude banner en opgelost wordt een gewone melding
 - [x] Corporate Admin-auditlog toont per actie de beheerder met herkenbare naam en e-mailadres naast actie, doel, resultaat en tijdstip
 - [x] JSON-workspaceback-ups kunnen vanuit het reisoverzicht als nieuwe privéreizen worden geïmporteerd; nieuwe UUID's voorkomen overschrijven en accountkoppelingen, publicatie, PIN en oude bonpaden worden niet overgenomen
-- [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn
+- [x] Openstaande en verlopen uitnodigingen afzonderlijk tonen; de eigenaar kan de link veilig roteren en zeven dagen verlengen of de uitnodiging intrekken, waarna de placeholder en accountmelding worden opgeruimd
 - [ ] Rate limiting en auditlog voor e-mailverzending; geen mailadres uitlekken in foutmeldingen
 - [ ] De huidige één-workspace-per-account-opzet uitbreiden met veilige toegang per reis, zodat een genodigde niet alle reizen van de eigenaar ziet
 

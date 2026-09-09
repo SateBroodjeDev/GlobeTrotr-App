@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Copy, Link2, Plus, Trash2, Users } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Copy, Link2, Plus, RefreshCw, Trash2, UserRoundPlus, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import type { PlanId, TripMember, TripMemberRole } from "@/lib/types";
 import { uid } from "@/lib/workspace";
@@ -8,7 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLocale } from "@/lib/locale";
-import { createTripInvitation, removeTripMember } from "@/lib/invitation.functions";
+import {
+  createTripInvitation,
+  listPendingTripInvitations,
+  manageTripInvitation,
+  removeTripMember,
+} from "@/lib/invitation.functions";
 
 const PERSONAL_ROLES: { id: TripMemberRole; label: string; description: string }[] = [
   { id: "traveler", label: "Medereiziger", description: "Plant mee en voegt kosten toe." },
@@ -48,6 +54,7 @@ export function TripMembers({
   ownerEmail?: string;
 }) {
   const { text } = useLocale();
+  const queryClient = useQueryClient();
   const roles = plan === "agency" ? AGENCY_ROLES : PERSONAL_ROLES;
   const maxMembers = plan === "free" ? 2 : Infinity;
   const [name, setName] = useState("");
@@ -55,6 +62,11 @@ export function TripMembers({
   const [role, setRole] = useState<TripMemberRole>(roles[0]!.id);
   const [saving, setSaving] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const invitationsQuery = useQuery({
+    queryKey: ["pending-trip-invitations", tripId],
+    queryFn: () => listPendingTripInvitations({ data: { tripId } }),
+    enabled: editable,
+  });
 
   async function saveMembers(next: TripMember[], successMessage: string) {
     setSaving(true);
@@ -117,12 +129,36 @@ export function TripMembers({
     try {
       const invitation = await createTripInvitation({ data: { tripId, email: email.trim().toLowerCase(), role } });
       setInviteLink(`${window.location.origin}/uitnodiging/${invitation.token}`);
+      await queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations", tripId] });
       toast.success(text("Uitnodiging aangemaakt. Kopieer de link om hem zelf te delen.", "Invitation created. Copy the link to share it yourself."));
     } catch {
       toast.error(text("De reisgenoot is bewaard, maar de beveiligde uitnodigingslink kon niet worden gemaakt.", "The traveller was saved, but the secure invitation link could not be created."));
     }
     setName("");
     setEmail("");
+  }
+
+  async function manageInvitation(invitationId: string, invitationEmail: string, action: "revoke" | "renew") {
+    if (action === "revoke" && !window.confirm(text(
+      `Uitnodiging voor ${invitationEmail} intrekken? De huidige link werkt daarna niet meer.`,
+      `Revoke the invitation for ${invitationEmail}? The current link will stop working.`,
+    ))) return;
+    setSaving(true);
+    try {
+      const result = await manageTripInvitation({ data: { tripId, invitationId, action } });
+      if (action === "renew" && result.token) {
+        setInviteLink(`${window.location.origin}/uitnodiging/${result.token}`);
+        toast.success(text("Nieuwe uitnodigingslink gemaakt. Deel alleen deze nieuwe link.", "A new invitation link was created. Share only this new link."));
+      } else {
+        await onChange(members.filter((member) => member.email.trim().toLowerCase() !== invitationEmail.toLowerCase()));
+        toast.success(text("Uitnodiging ingetrokken.", "Invitation revoked."));
+      }
+      await queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations", tripId] });
+    } catch {
+      toast.error(text("De uitnodiging kon niet worden beheerd.", "The invitation could not be managed."));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function updateMember(id: string, patch: Partial<Pick<TripMember, "role">>) {
@@ -201,6 +237,35 @@ export function TripMembers({
           </Button>
         </div>
         {inviteLink && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3"><p className="flex items-center gap-2 text-sm font-medium"><Link2 className="size-4" />{text("Uitnodigingslink", "Invitation link")}</p><p className="mt-1 text-xs text-muted-foreground">{text("Deze link wordt alleen nu volledig getoond en verloopt na zeven dagen.", "This link is shown in full only now and expires after seven days.")}</p><div className="mt-3 flex flex-col gap-2 sm:flex-row"><Input className="min-w-0" readOnly value={inviteLink} aria-label={text("Uitnodigingslink", "Invitation link")} /><Button type="button" variant="outline" onClick={async () => { try { await navigator.clipboard.writeText(inviteLink); toast.success(text("Link gekopieerd.", "Link copied.")); } catch { toast.error(text("Kopiëren lukte niet. Selecteer de link handmatig.", "Copying failed. Select the link manually.")); } }}><Copy className="size-4" />{text("Kopiëren", "Copy")}</Button></div></div>}
+        {editable && (invitationsQuery.data?.length ?? 0) > 0 && (
+          <section className="rounded-xl border border-border bg-muted/20 p-3">
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <UserRoundPlus className="size-4" /> {text("Openstaande uitnodigingen", "Pending invitations")}
+            </h3>
+            <div className="mt-3 space-y-2">
+              {invitationsQuery.data!.map((invitation) => (
+                <div key={invitation.id} className="flex flex-col gap-2 rounded-lg border bg-card px-3 py-2 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{invitation.email}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {roleLabel(invitation.role, labels[invitation.role], text)} · {invitation.status === "expired"
+                        ? text("Verlopen", "Expired")
+                        : `${text("Geldig tot", "Valid until")} ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(invitation.expiresAt))}`}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="button" size="sm" variant="outline" disabled={saving} onClick={() => void manageInvitation(invitation.id, invitation.email, "renew")}>
+                      <RefreshCw className="size-4" /> {text("Nieuwe link", "New link")}
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" disabled={saving} onClick={() => void manageInvitation(invitation.id, invitation.email, "revoke")}>
+                      <X className="size-4" /> {text("Intrekken", "Revoke")}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         <div className="space-y-2">
           <MemberRow name={ownerName} email={ownerEmail} role="owner" status="active" owner />
           {members.map((member) => (

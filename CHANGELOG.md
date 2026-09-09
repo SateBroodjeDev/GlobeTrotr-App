@@ -4,6 +4,23 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 13:32 CEST — Openstaande uitnodigingen beheren
+
+- Reisinstellingen tonen voor de eigenaar een afzonderlijk overzicht van openstaande en verlopen uitnodigingen, met e-mailadres, rol en vervaldatum.
+- **Nieuwe link** roteert het geheime token, verlengt de uitnodiging zeven dagen en heropent voor een bestaand account de uitnodigingsmelding; de oude link werkt daarna niet meer.
+- **Intrekken** vraagt om bevestiging, sluit de uitnodiging en melding en verwijdert uitsluitend de nog ongekoppelde placeholder uit de reisgenotenlijst.
+- Nieuwe service-role-only RPC `manage_trip_invitation` controleert de reiseigenaar en voert iedere beheeractie atomair uit.
+- Migratie `20260908029000_manage_pending_trip_invitations.sql` en SQL-regressietest `supabase/tests/pending_trip_invitation_management.sql` toegevoegd.
+- Alle 21 regressietests en de client-, SSR- en Cloudflare-productiebuild slagen.
+
+## 2026-09-09 13:21 CEST — Sneller storingen en problemen beheren
+
+- Het bijwerken en oplossen van een platformstoring opent nu in een dialoog bij de gekozen status, zonder handmatig naar het publicatieformulier te scrollen.
+- Een oplossingsdialoog vult bewust een afzonderlijke titel **Opgelost:** en hersteltekst in, zodat de herstelmelding niet gelijk is aan de oorspronkelijke storing.
+- Bekende problemen openen bij bewerken in een eigen dialoog. Archiveren vraagt voortaan bevestiging en werkt de lijst direct bij; herstellen en verwijderen geven eveneens directe terugkoppeling.
+- Live weer en JSON-import/export zijn in productie werkend bevestigd. De weerbeperking kan via het nieuwe bewerkvenster op opgelost worden gezet.
+- De fout in de SQL-regressietest is hersteld: oplossingsmeldingen worden alleen voor de twee tijdelijke testaccounts en het unieke testincident geteld.
+
 ## 2026-09-09 13:06 CEST — Beheerbare platformstatus met banner
 
 - Actuele platformstatussen verschijnen als duidelijke, wegklikbare banner bij ingelogde gebruikers; belangrijke productupdates blijven gewone meldingen rechtsboven.

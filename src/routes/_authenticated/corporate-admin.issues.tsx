@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Archive, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, severityLabel, statusLabel } from "@/lib/corporate-admin-ui";
 import { issueCategoryLabel, ISSUE_CATEGORIES } from "@/lib/issue-categories";
 import {
@@ -32,6 +33,7 @@ const empty = {
 };
 function IssuesPage() {
   const { text } = useLocale();
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["corporate-admin-data"],
     queryFn: () => getCorporateAdminData(),
@@ -59,10 +61,28 @@ function IssuesPage() {
     }
   }
   async function manage(id: string, action: "archive" | "restore" | "delete") {
-    if (action === "delete" && !confirm(text("Definitief verwijderen?", "Permanently delete?")))
+    const question = action === "delete"
+      ? text("Dit bekende probleem definitief verwijderen?", "Permanently delete this known issue?")
+      : action === "archive"
+        ? text("Dit bekende probleem archiveren?", "Archive this known issue?")
+        : null;
+    if (question && !confirm(question))
       return;
-    await manageAdminRecord({ data: { kind: "issue", id, action } });
-    await query.refetch();
+    try {
+      await manageAdminRecord({ data: { kind: "issue", id, action } });
+      queryClient.setQueryData(["corporate-admin-data"], (current: any) => current ? ({
+        ...current,
+        issues: action === "delete"
+          ? current.issues.filter((issue: any) => issue.id !== id)
+          : current.issues.map((issue: any) => issue.id === id
+            ? { ...issue, archived_at: action === "archive" ? new Date().toISOString() : null }
+            : issue),
+      }) : current);
+      await query.refetch();
+      toast.success(action === "archive" ? text("Probleem gearchiveerd.", "Issue archived.") : action === "restore" ? text("Probleem hersteld.", "Issue restored.") : text("Probleem verwijderd.", "Issue deleted."));
+    } catch {
+      toast.error(text("De actie kon niet worden uitgevoerd.", "The action could not be completed."));
+    }
   }
   async function syncMissingGithubIssues() {
     setSyncing(true);
@@ -102,7 +122,7 @@ function IssuesPage() {
   );
   return (
     <div className="space-y-4">
-      <Card>
+      {!form.id && <Card>
         <CardHeader>
           <CardTitle>
             {form.id
@@ -189,14 +209,9 @@ function IssuesPage() {
             >
               {saving ? text("Opslaan…", "Saving…") : text("Opslaan", "Save")}
             </Button>
-            {form.id && (
-              <Button variant="outline" onClick={() => setForm(empty)}>
-                {text("Annuleren", "Cancel")}
-              </Button>
-            )}
           </div>
         </CardContent>
-      </Card>
+      </Card>}
       <Card>
         <CardContent className="flex flex-wrap gap-3 p-4">
           <Input
@@ -225,6 +240,22 @@ function IssuesPage() {
           )}
         </CardContent>
       </Card>
+      <Dialog open={Boolean(form.id)} onOpenChange={(open) => { if (!open) setForm(empty); }}>
+        <DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto">
+          <DialogHeader><DialogTitle>{text("Bekend probleem bewerken", "Edit known issue")}</DialogTitle></DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Titel NL"><Input value={form.titleNl} onChange={(e)=>setForm({...form,titleNl:e.target.value})}/></Field>
+            <Field label="Title EN"><Input value={form.titleEn} onChange={(e)=>setForm({...form,titleEn:e.target.value})}/></Field>
+            <Field label="Omschrijving NL"><Textarea value={form.descriptionNl} onChange={(e)=>setForm({...form,descriptionNl:e.target.value})}/></Field>
+            <Field label="Description EN"><Textarea value={form.descriptionEn} onChange={(e)=>setForm({...form,descriptionEn:e.target.value})}/></Field>
+            <Field label={text("Categorie","Category")}><select className="h-10 w-full rounded-md border bg-background px-3" value={form.category} onChange={(e)=>setForm({...form,category:e.target.value as any})}>{ISSUE_CATEGORIES.map(v=><option key={v} value={v}>{issueCategoryLabel(v,text)}</option>)}</select></Field>
+            <Field label="Status"><select className="h-10 w-full rounded-md border bg-background px-3" value={form.status} onChange={(e)=>setForm({...form,status:e.target.value as any})}>{["investigating","planned","monitoring","resolved"].map(v=><option key={v} value={v}>{statusLabel(v,text)}</option>)}</select></Field>
+            <Field label={text("Ernst","Severity")}><select className="h-10 w-full rounded-md border bg-background px-3" value={form.severity} onChange={(e)=>setForm({...form,severity:e.target.value as any})}>{["low","medium","high","critical"].map(v=><option key={v} value={v}>{severityLabel(v,text)}</option>)}</select></Field>
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.public} onChange={(e)=>setForm({...form,public:e.target.checked})}/>{text("Openbaar","Public")}</label>
+          </div>
+          <div className="flex justify-end gap-2"><Button variant="outline" onClick={()=>setForm(empty)}>{text("Annuleren","Cancel")}</Button><Button disabled={saving||![form.titleNl,form.titleEn,form.descriptionNl,form.descriptionEn].every(Boolean)} onClick={()=>void save()}>{saving?text("Opslaan…","Saving…"):text("Wijzigingen opslaan","Save changes")}</Button></div>
+        </DialogContent>
+      </Dialog>
       <Card>
         <CardHeader>
           <CardTitle>{text("Bekende problemen", "Known issues")}</CardTitle>
