@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Plus, Trash2, MapPin, Wallet, Lock, Download } from "lucide-react";
+import { useRef, useState, type ChangeEvent } from "react";
+import { Plus, Trash2, MapPin, Wallet, Lock, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
 import { canEdit, ownsTrip, planOf } from "@/lib/plans";
@@ -10,6 +10,8 @@ import {
   tripStatus,
   type TripStatus,
   type TripTemplate,
+  type Trip,
+  type WorkspaceState,
 } from "@/lib/types";
 import { convert, formatMoney } from "@/lib/services";
 import { downloadJson } from "@/lib/exporters";
@@ -43,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function TripsOverview() {
-  const { state, addTrip, removeTrip, rates, ratesLive } = useWorkspace();
+  const { state, addTrip, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
   const { locale, text } = useLocale();
   const navigate = useNavigate();
   const plan = planOf(state.plan);
@@ -51,6 +53,8 @@ function TripsOverview() {
   const [name, setName] = useState("");
   const [template, setTemplate] = useState<TripTemplate>("citytrip");
   const [filter, setFilter] = useState<TripStatus | "all">("all");
+  const [importing, setImporting] = useState(false);
+  const importInput = useRef<HTMLInputElement>(null);
 
   const ownedTripCount = state.trips.filter((trip) => ownsTrip(trip.accessRole)).length;
   const atLimit = ownedTripCount >= plan.tripLimit;
@@ -105,6 +109,45 @@ function TripsOverview() {
         ),
       );
     }
+  }
+
+  async function importBackup(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    let imported = 0;
+    try {
+      const parsed = JSON.parse(await file.text()) as Partial<WorkspaceState> | Trip[];
+      const trips = Array.isArray(parsed) ? parsed : parsed.trips;
+      if (!Array.isArray(trips) || !trips.length) throw new Error("INVALID_BACKUP");
+      const room = Number.isFinite(plan.tripLimit) ? Math.max(0, plan.tripLimit - ownedTripCount) : trips.length;
+      if (trips.length > room) throw new Error("TRIP_LIMIT");
+      for (const source of trips) {
+        if (!source || typeof source !== "object" || typeof source.name !== "string") throw new Error("INVALID_BACKUP");
+        const importedTemplate = TEMPLATES.some((item) => item.id === source.template) ? source.template : "citytrip";
+        const importedName = source.name.trim().slice(0, TRIP_NAME_MAX_LENGTH);
+        if (!importedName) throw new Error("INVALID_BACKUP");
+        const id = await addTrip(importedName, importedTemplate);
+        await saveTripNow(id, (created) => ({
+          ...created, ...source, id, revision: created.revision, ownerId: created.ownerId,
+          accessRole: "owner", name: importedName, template: importedTemplate,
+          description: typeof source.description === "string" ? source.description.slice(0, 375) : undefined,
+          start: /^\d{4}-\d{2}-\d{2}$/.test(source.start ?? "") ? source.start : created.start,
+          end: /^\d{4}-\d{2}-\d{2}$/.test(source.end ?? "") ? source.end : created.end,
+          budget: Number.isFinite(source.budget) ? Math.max(0, source.budget) : created.budget,
+          stops: Array.isArray(source.stops) ? source.stops : [], itinerary: Array.isArray(source.itinerary) ? source.itinerary : [],
+          travelItems: Array.isArray(source.travelItems) ? source.travelItems : [],
+          expenses: Array.isArray(source.expenses) ? source.expenses.map((expense) => ({ ...expense, receiptPath: undefined, receiptName: undefined })) : [],
+          packing: Array.isArray(source.packing) ? source.packing : [], travelers: Array.isArray(source.travelers) ? source.travelers : [],
+          members: [], archived: false, public: false, shareFinancials: false, sharePinHash: undefined,
+        }));
+        imported += 1;
+      }
+      toast.success(text(`${imported} reizen geïmporteerd.`, `${imported} trips imported.`));
+    } catch (error) {
+      toast.error(imported > 0 ? text(`${imported} reizen zijn geïmporteerd; de import stopte bij een ongeldige reis.`,`${imported} trips were imported; import stopped at an invalid trip.`) : error instanceof Error && error.message === "TRIP_LIMIT" ? text("Je abonnement heeft onvoldoende ruimte voor alle reizen in deze back-up.","Your plan does not have enough room for every trip in this backup.") : text("Deze back-up kon niet veilig worden geïmporteerd.","This backup could not be imported safely."));
+    } finally { setImporting(false); }
   }
 
   return (
@@ -227,6 +270,10 @@ function TripsOverview() {
           }}
         >
           <Download className="size-4" /> JSON {text("back-up", "backup")}
+        </Button>
+        <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={(event)=>void importBackup(event)}/>
+        <Button variant="outline" size="sm" disabled={!editable||importing} onClick={()=>importInput.current?.click()}>
+          <Upload className="size-4" /> {importing?text("Importeren…","Importing…"):text("JSON importeren","Import JSON")}
         </Button>
       </div>
 

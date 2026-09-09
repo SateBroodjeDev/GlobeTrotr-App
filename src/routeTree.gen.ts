@@ -30,6 +30,7 @@ import { Route as AuthenticatedCorporateAdminIndexRouteImport } from './routes/_
 import { Route as AuthenticatedCorporateAdminAuditRouteImport } from './routes/_authenticated/corporate-admin.audit'
 import { Route as AuthenticatedCorporateAdminFeedbackRouteImport } from './routes/_authenticated/corporate-admin.feedback'
 import { Route as AuthenticatedCorporateAdminIssuesRouteImport } from './routes/_authenticated/corporate-admin.issues'
+import { Route as AuthenticatedCorporateAdminNotificationsRouteImport } from './routes/_authenticated/corporate-admin.notifications'
 import { Route as AuthenticatedCorporateAdminStatusRouteImport } from './routes/_authenticated/corporate-admin.status'
 import { Route as AuthenticatedCorporateAdminUsersRouteImport } from './routes/_authenticated/corporate-admin.users'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
@@ -145,6 +146,12 @@ const AuthenticatedCorporateAdminIssuesRoute =
     path: '/issues',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
+const AuthenticatedCorporateAdminNotificationsRoute =
+  AuthenticatedCorporateAdminNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 const AuthenticatedCorporateAdminStatusRoute =
   AuthenticatedCorporateAdminStatusRouteImport.update({
     id: '/status',
@@ -195,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -221,6 +229,7 @@ export interface FileRoutesByTo {
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -250,6 +259,7 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/_authenticated/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/_authenticated/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
   '/_authenticated/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
   '/_authenticated/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/audit'
     | '/corporate-admin/feedback'
     | '/corporate-admin/issues'
+    | '/corporate-admin/notifications'
     | '/corporate-admin/status'
     | '/corporate-admin/users'
     | '/trips/$tripId'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/audit'
     | '/corporate-admin/feedback'
     | '/corporate-admin/issues'
+    | '/corporate-admin/notifications'
     | '/corporate-admin/status'
     | '/corporate-admin/users'
     | '/trips/$tripId'
@@ -333,6 +345,7 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin/audit'
     | '/_authenticated/corporate-admin/feedback'
     | '/_authenticated/corporate-admin/issues'
+    | '/_authenticated/corporate-admin/notifications'
     | '/_authenticated/corporate-admin/status'
     | '/_authenticated/corporate-admin/users'
     | '/_authenticated/trips/$tripId'
@@ -504,6 +517,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCorporateAdminIssuesRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
+    '/_authenticated/corporate-admin/notifications': {
+      id: '/_authenticated/corporate-admin/notifications'
+      path: '/notifications'
+      fullPath: '/corporate-admin/notifications'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminNotificationsRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
     '/_authenticated/corporate-admin/status': {
       id: '/_authenticated/corporate-admin/status'
       path: '/status'
@@ -546,6 +566,7 @@ interface AuthenticatedCorporateAdminRouteChildren {
   AuthenticatedCorporateAdminAuditRoute: typeof AuthenticatedCorporateAdminAuditRoute
   AuthenticatedCorporateAdminFeedbackRoute: typeof AuthenticatedCorporateAdminFeedbackRoute
   AuthenticatedCorporateAdminIssuesRoute: typeof AuthenticatedCorporateAdminIssuesRoute
+  AuthenticatedCorporateAdminNotificationsRoute: typeof AuthenticatedCorporateAdminNotificationsRoute
   AuthenticatedCorporateAdminStatusRoute: typeof AuthenticatedCorporateAdminStatusRoute
   AuthenticatedCorporateAdminUsersRoute: typeof AuthenticatedCorporateAdminUsersRoute
   AuthenticatedCorporateAdminIndexRoute: typeof AuthenticatedCorporateAdminIndexRoute
@@ -560,6 +581,8 @@ const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRoute
       AuthenticatedCorporateAdminFeedbackRoute,
     AuthenticatedCorporateAdminIssuesRoute:
       AuthenticatedCorporateAdminIssuesRoute,
+    AuthenticatedCorporateAdminNotificationsRoute:
+      AuthenticatedCorporateAdminNotificationsRoute,
     AuthenticatedCorporateAdminStatusRoute:
       AuthenticatedCorporateAdminStatusRoute,
     AuthenticatedCorporateAdminUsersRoute:

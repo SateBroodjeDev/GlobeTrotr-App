@@ -525,6 +525,11 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 - [ ] Migratie `20260908024000_remove_members_and_deduplicate.sql` uitvoeren en `supabase/tests/trip_member_removal_and_deduplication.sql` draaien; dit verwijdert bestaande dubbelen en maakt eigenaarverwijdering definitief
 - [x] Dashboardladen na acceptatie hersteld: de RLS-query bepaalt eerst toegankelijke reis-ID's en alleen de server vult daarvoor ledengegevens aan; e-mailadressen worden uitsluitend aan de reiseigenaar teruggegeven
 - [x] Accepteren via een uitnodigingslink sluit de bijbehorende persistente accountmelding server-side voordat het dashboard opnieuw wordt geladen
+- [ ] Migratie `20260908025000_notify_invitation_responses.sql` uitvoeren; de uitnodiger krijgt daarna bij accepteren en weigeren een vertaalde melding met een link naar de reisgenoten
+- [x] Handmatige statuswissels verwijderd: alleen de genodigde kan een uitnodiging accepteren of weigeren; de eigenaar kan wel de rol wijzigen of de deelname verwijderen
+- [ ] Migratie `20260908026000_notification_lifecycle.sql` uitvoeren en `supabase/tests/notification_lifecycle.sql` draaien: reiswijzigingen worden per reis samengevoegd, verwijderde leden en feedbackindieners krijgen bericht, en Corporate Admin kan status- en updateberichten naar alle bevestigde accounts publiceren
+- [x] Corporate Admin-auditlog toont per actie de beheerder met herkenbare naam en e-mailadres naast actie, doel, resultaat en tijdstip
+- [x] JSON-workspaceback-ups kunnen vanuit het reisoverzicht als nieuwe privéreizen worden geïmporteerd; nieuwe UUID's voorkomen overschrijven en accountkoppelingen, publicatie, PIN en oude bonpaden worden niet overgenomen
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn
 - [ ] Rate limiting en auditlog voor e-mailverzending; geen mailadres uitlekken in foutmeldingen
 - [ ] De huidige één-workspace-per-account-opzet uitbreiden met veilige toegang per reis, zodat een genodigde niet alle reizen van de eigenaar ziet

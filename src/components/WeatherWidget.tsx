@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchWeather, weatherLabel } from "@/lib/services";
+import { weatherLabel } from "@/lib/services";
+import { getWeather } from "@/lib/weather.functions";
 import type { Stop } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,9 +11,10 @@ export function WeatherWidget({ stop, enabled }: { stop?: Stop; enabled: boolean
   const { locale, text } = useLocale();
   const q = useQuery({
     queryKey: ["weather", stop?.lat, stop?.lon],
-    queryFn: () => fetchWeather(stop!.lat, stop!.lon),
+    queryFn: () => getWeather({ data: { lat: stop!.lat, lon: stop!.lon } }),
     enabled: !!stop && enabled,
     staleTime: 1000 * 60 * 30,
+    retry: 1,
   });
 
   return (

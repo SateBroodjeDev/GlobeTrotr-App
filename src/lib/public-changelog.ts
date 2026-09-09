@@ -41,6 +41,117 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-trip-backup-import",
+    version: "Beta 0.21",
+    publishedAt: "2026-09-09T12:32:00+02:00",
+    title: "Je reisback-up weer terugzetten",
+    titleEn: "Restore your trip backup",
+    summary:
+      "Een GlobeTrotr JSON-back-up kan nu vanuit het reisoverzicht veilig als nieuwe reizen worden geïmporteerd.",
+    summaryEn:
+      "A GlobeTrotr JSON backup can now be imported safely as new trips from the trip overview.",
+    changes: [
+      {
+        kind: "new",
+        title: "JSON-import voor reizen",
+        titleEn: "JSON import for trips",
+        description:
+          "Route, planning, boekingen, uitgaven en paklijst worden hersteld met nieuwe reis-ID’s, zonder bestaande reizen te overschrijven.",
+        descriptionEn:
+          "Routes, itinerary, bookings, expenses and packing lists are restored with new trip IDs without overwriting existing trips.",
+      },
+      {
+        kind: "secure",
+        title: "Privé en veilig teruggezet",
+        titleEn: "Restored privately and safely",
+        description:
+          "Geïmporteerde reizen starten privé; oude accountkoppelingen, deel-PINs en bonpaden worden niet overgenomen.",
+        descriptionEn:
+          "Imported trips start privately; old account links, sharing PINs and receipt paths are not restored.",
+      },
+    ],
+  },
+  {
+    id: "2026-09-09-complete-notification-cycle",
+    version: "Beta 0.20",
+    publishedAt: "2026-09-09T12:28:00+02:00",
+    title: "Meldingen die je echt bijpraten",
+    titleEn: "Notifications that keep you informed",
+    summary:
+      "Reizigers krijgen gerichte updates over hun reizen, feedback en belangrijke gebeurtenissen binnen GlobeTrotr.",
+    summaryEn:
+      "Travellers receive focused updates about their trips, feedback and important GlobeTrotr events.",
+    changes: [
+      {
+        kind: "improved",
+        title: "Eén melding per gewijzigde reis",
+        titleEn: "One notification per updated trip",
+        description:
+          "Meerdere wijzigingen worden samengevoegd tot één actuele melding per reis.",
+        descriptionEn:
+          "Multiple changes are combined into one current notification per trip.",
+      },
+      {
+        kind: "new",
+        title: "Feedback en deelname volgen",
+        titleEn: "Track feedback and participation",
+        description:
+          "Je krijgt bericht bij een nieuwe feedbackstatus en wanneer je uit een reis bent verwijderd.",
+        descriptionEn:
+          "You are notified when feedback receives a new status and when you are removed from a trip.",
+      },
+      {
+        kind: "new",
+        title: "Belangrijke GlobeTrotr-berichten",
+        titleEn: "Important GlobeTrotr messages",
+        description:
+          "Actuele platformstatus en belangrijke productupdates verschijnen rechtstreeks bij ingelogde gebruikers.",
+        descriptionEn:
+          "Current platform status and important product updates appear directly for signed-in users.",
+      },
+    ],
+  },
+  {
+    id: "2026-09-09-invitation-feedback-weather",
+    version: "Beta 0.19",
+    publishedAt: "2026-09-09T12:20:00+02:00",
+    title: "Duidelijke uitnodigingen en betrouwbaarder weer",
+    titleEn: "Clear invitations and more reliable weather",
+    summary:
+      "Reisuitnodigingen hebben nu één duidelijke status en de uitnodiger krijgt bericht over het antwoord.",
+    summaryEn:
+      "Trip invitations now have one clear status and the inviter is notified about the response.",
+    changes: [
+      {
+        kind: "improved",
+        title: "Antwoord zichtbaar voor de uitnodiger",
+        titleEn: "Response visible to the inviter",
+        description:
+          "Bij accepteren of weigeren ontvangt de uitnodiger een melding met een directe link naar de reis.",
+        descriptionEn:
+          "When an invitation is accepted or declined, the inviter receives a notification with a direct trip link.",
+      },
+      {
+        kind: "fixed",
+        title: "Geen handmatige schijnstatus",
+        titleEn: "No manual placeholder status",
+        description:
+          "Alleen de genodigde kan deelname accepteren of weigeren; overbodige handmatige statusknoppen zijn verwijderd.",
+        descriptionEn:
+          "Only the invitee can accept or decline participation; redundant manual status controls have been removed.",
+      },
+      {
+        kind: "fixed",
+        title: "Weer via een stabiele serververbinding",
+        titleEn: "Weather through a stable server connection",
+        description:
+          "De weerwidget gebruikt een beveiligde serveraanroep en de actuele gegevensvelden van de weerprovider.",
+        descriptionEn:
+          "The weather widget uses a secured server request and the provider's current data fields.",
+      },
+    ],
+  },
+  {
     id: "2026-09-09-trip-member-cleanup",
     version: "Beta 0.18",
     publishedAt: "2026-09-09T12:13:00+02:00",

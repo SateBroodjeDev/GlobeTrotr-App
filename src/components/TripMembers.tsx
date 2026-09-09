@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Copy, Link2, Plus, RotateCcw, Trash2, Users } from "lucide-react";
+import { Copy, Link2, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { PlanId, TripMember, TripMemberRole } from "@/lib/types";
 import { uid } from "@/lib/workspace";
@@ -125,7 +125,7 @@ export function TripMembers({
     setEmail("");
   }
 
-  function updateMember(id: string, patch: Partial<Pick<TripMember, "role" | "status">>) {
+  function updateMember(id: string, patch: Partial<Pick<TripMember, "role">>) {
     void saveMembers(
       members.map((member) => (member.id === id ? { ...member, ...patch } : member)),
       text("Reisgenoot bijgewerkt.", "Traveller updated."),
@@ -210,7 +210,6 @@ export function TripMembers({
               roles={roles}
               editable={editable && !saving}
               onChangeRole={(nextRole) => updateMember(member.id, { role: nextRole })}
-              onChangeStatus={(status) => updateMember(member.id, { status })}
               onRemove={
                 editable
                   ? () => void removeMember(member)
@@ -241,14 +240,12 @@ function MemberRow({
   roles,
   editable,
   onChangeRole,
-  onChangeStatus,
   onRemove,
 }: Pick<TripMember, "name" | "email" | "role" | "status"> & {
   owner?: boolean;
   roles?: { id: TripMemberRole; label: string }[];
   editable?: boolean;
   onChangeRole?: (role: TripMemberRole) => void;
-  onChangeStatus?: (status: TripMember["status"]) => void;
   onRemove?: () => void;
 }) {
   const { text } = useLocale();
@@ -279,26 +276,6 @@ function MemberRow({
           <Badge variant={status === "active" ? "default" : "outline"}>
             {status === "active" ? text("Actief", "Active") : text("Uitgenodigd", "Invited")}
           </Badge>
-        )}
-        {!owner && editable && onChangeStatus && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={
-              status === "active"
-                ? text(`${name} weer als uitgenodigd markeren`, `Mark ${name} as invited again`)
-                : text(`${name} activeren`, `Activate ${name}`)
-            }
-            title={
-              status === "active"
-                ? text("Zet terug op uitgenodigd", "Set back to invited")
-                : text("Handmatig als actief markeren", "Mark as active manually")
-            }
-            onClick={() => onChangeStatus(status === "active" ? "invited" : "active")}
-          >
-            {status === "active" ? <RotateCcw className="size-4" /> : <Check className="size-4" />}
-          </Button>
         )}
         {onRemove && (
           <Button

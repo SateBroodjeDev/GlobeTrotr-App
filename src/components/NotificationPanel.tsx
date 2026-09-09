@@ -28,6 +28,21 @@ const styles = {
     color:
       "border-violet-300 bg-violet-50 text-violet-950 dark:border-violet-800 dark:bg-violet-950/50 dark:text-violet-100",
   },
+  membership: {
+    emoji: "👋",
+    label: "Reisdeelname",
+    color: "border-orange-300 bg-orange-50 text-orange-950 dark:border-orange-800 dark:bg-orange-950/50 dark:text-orange-100",
+  },
+  feedback: {
+    emoji: "💬",
+    label: "Feedback",
+    color: "border-cyan-300 bg-cyan-50 text-cyan-950 dark:border-cyan-800 dark:bg-cyan-950/50 dark:text-cyan-100",
+  },
+  platform: {
+    emoji: "📣",
+    label: "GlobeTrotr",
+    color: "border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-100",
+  },
 } as const;
 
 export function NotificationPanel({ userId }: { userId: string }) {
@@ -197,6 +212,42 @@ export function NotificationPanel({ userId }: { userId: string }) {
           )}
           {notifications.data?.items.map((notification) => {
             const style = styles[notification.kind];
+            const responseMatch = notification.event_key.match(
+              /^invitation-response:(accepted|declined):/,
+            );
+            const responseParts = responseMatch ? notification.body.split("|") : [];
+            const responseAccepted = responseMatch?.[1] === "accepted";
+            const feedbackParts = notification.kind === "feedback" ? notification.body.split("|") : [];
+            const platformParts = notification.kind === "platform" ? notification.body.split("|") : [];
+            const feedbackStatus = ({ reviewing: text("Wordt bekeken", "Under review"), planned: text("Gepland", "Planned"), resolved: text("Opgelost", "Resolved"), closed: text("Gesloten", "Closed"), new: text("Ontvangen", "Received") } as Record<string,string>)[feedbackParts[0] ?? ""];
+            const notificationTitle = notification.kind === "platform"
+              ? locale.startsWith("nl") ? notification.title : platformParts[2] || notification.title
+              : notification.kind === "feedback"
+                ? text("Feedback bijgewerkt", "Feedback updated")
+                : notification.kind === "membership"
+                  ? text("Uit reis verwijderd", "Removed from trip")
+              : responseMatch
+              ? responseAccepted
+                ? text("Uitnodiging geaccepteerd", "Invitation accepted")
+                : text("Uitnodiging geweigerd", "Invitation declined")
+              : notification.title;
+            const notificationBody = notification.kind === "platform"
+              ? locale.startsWith("nl") ? platformParts[3] || notification.body : platformParts[4] || notification.body
+              : notification.kind === "feedback"
+                ? text(`Status: ${feedbackStatus}. ${feedbackParts.slice(1).join("|")}`, `Status: ${feedbackStatus}. ${feedbackParts.slice(1).join("|")}`)
+                : notification.kind === "membership"
+                  ? text(`Je bent verwijderd uit ${notification.body}.`, `You have been removed from ${notification.body}.`)
+              : responseMatch
+              ? responseAccepted
+                ? text(
+                    `${responseParts[0]} neemt nu deel aan ${responseParts.slice(1).join("|")}.`,
+                    `${responseParts[0]} has joined ${responseParts.slice(1).join("|")}.`,
+                  )
+                : text(
+                    `${responseParts[0]} heeft de uitnodiging voor ${responseParts.slice(1).join("|")} geweigerd.`,
+                    `${responseParts[0]} declined the invitation for ${responseParts.slice(1).join("|")}.`,
+                  )
+              : notification.body;
             const invitationId =
               notification.kind === "invitation" && notification.event_key.startsWith("invitation:")
                 ? notification.event_key.slice("invitation:".length)
@@ -215,11 +266,17 @@ export function NotificationPanel({ userId }: { userId: string }) {
                           ? "Account"
                           : notification.kind === "trip_change"
                             ? "Trip change"
-                            : "Invitation",
+                            : notification.kind === "invitation"
+                              ? "Invitation"
+                              : notification.kind === "membership"
+                                ? "Trip membership"
+                                : notification.kind === "feedback"
+                                  ? "Feedback"
+                                  : "GlobeTrotr",
                       )}
                     </p>
-                    <h3 className="mt-1 text-sm font-semibold">{notification.title}</h3>
-                    <p className="mt-1 whitespace-pre-wrap text-sm">{notification.body}</p>
+                    <h3 className="mt-1 text-sm font-semibold">{notificationTitle}</h3>
+                    <p className="mt-1 whitespace-pre-wrap text-sm">{notificationBody}</p>
                     <time
                       dateTime={notification.created_at}
                       className="mt-2 block text-xs opacity-75"
@@ -248,6 +305,16 @@ export function NotificationPanel({ userId }: { userId: string }) {
                         onClick={() => setOpen(false)}
                       >
                         {text("Bekijk reis", "View trip")}
+                      </Link>
+                    )}
+                    {responseMatch && notification.trip_uuid && (
+                      <Link
+                        to="/trips/$tripId"
+                        params={{ tripId: notification.trip_uuid }}
+                        className="mt-2 inline-block text-xs font-medium underline"
+                        onClick={() => setOpen(false)}
+                      >
+                        {text("Bekijk reisgenoten", "View travellers")}
                       </Link>
                     )}
                     {invitationId && (

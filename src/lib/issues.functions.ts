@@ -127,7 +127,15 @@ export const getCorporateAdminData = createServerFn({ method: "GET" })
     return {
       feedback: feedbackRows,
       issues: issueRows,
-      auditLog: auditLog.data ?? [],
+      auditLog: (auditLog.data ?? []).map((entry: any) => {
+        const actor: any = profileById.get(entry.actor_user_id);
+        const authActor = authUsers.data.users.find((user: any) => user.id === entry.actor_user_id);
+        return {
+          ...entry,
+          actorName: actor?.display_name || authActor?.user_metadata?.full_name || "",
+          actorEmail: actor?.email || authActor?.email || "",
+        };
+      }),
       users: authUsers.data.users.map((user: any) => {
         const profile: any = profileById.get(user.id);
         const workspace: any = workspaceById.get(user.id);
@@ -393,8 +401,8 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
       timedCheck("storage", async () => !(await db.storage.listBuckets()).error),
       timedCheck("weather", () =>
         reachable(
-          "https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current=temperature_2m",
-          { Accept: "application/json", "User-Agent": "GlobeTrotr-Healthcheck" },
+          "https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current=temperature_2m,weather_code",
+          { Accept: "application/json" },
         ),
       ),
       timedCheck("rates", () => reachable("https://api.frankfurter.app/latest?from=EUR&to=USD")),
@@ -527,6 +535,49 @@ export const updateFeedbackStatus = createServerFn({ method: "POST" })
       status: data.status,
     });
     return { ok: true };
+  });
+
+export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      type: "status" | "update";
+      severity: "info" | "warning" | "critical" | "resolved";
+      titleNl: string;
+      titleEn: string;
+      bodyNl: string;
+      bodyEn: string;
+    }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    const values = [data.titleNl, data.titleEn, data.bodyNl, data.bodyEn].map((value) =>
+      value.trim(),
+    );
+    if (values.some((value) => value.length < 3) || values[0]!.length > 120 ||
+      values[1]!.length > 120 || values[2]!.length > 1000 || values[3]!.length > 1000) {
+      throw new Error("INVALID_ANNOUNCEMENT");
+    }
+    const { data: announcement, error } = await db
+      .from("platform_announcements")
+      .insert({
+        announcement_type: data.type,
+        severity: data.severity,
+        title_nl: values[0], title_en: values[1], body_nl: values[2], body_en: values[3],
+        created_by: context.userId,
+      })
+      .select("id")
+      .single();
+    if (error) throw error;
+    const { error: publishError } = await db
+      .from("platform_announcements")
+      .update({ published_at: new Date().toISOString() })
+      .eq("id", announcement.id)
+      .is("published_at", null);
+    if (publishError) throw publishError;
+    await audit(db, context.userId, "platform.announcement.publish", "platform_announcement",
+      announcement.id, "success", { type: data.type, severity: data.severity });
+    return { published: true };
   });
 
 export const manageAdminRecord = createServerFn({ method: "POST" })

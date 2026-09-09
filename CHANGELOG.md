@@ -4,6 +4,27 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 12:32 CEST — Herkenbare auditlog en veilige reisimport
+
+- De Corporate Admin-auditlog toont nu per actie de naam en het e-mailadres van de uitvoerende beheerder, naast actie, doel, resultaat en tijdstip.
+- De JSON-back-up in het reisoverzicht kan weer worden geïmporteerd. Iedere reis krijgt een nieuwe UUID en wordt privé en actief teruggezet, zodat bestaande reizen niet worden overschreven.
+- Uit veiligheid worden accountkoppelingen, openbare publicatie, deel-PIN en oude bonpaden niet uit een back-up overgenomen; inhoudelijke reisdata blijft behouden.
+
+## 2026-09-09 12:28 CEST — Volledige meldingscyclus
+
+- Reiswijzigingen gebruiken voortaan één stabiele melding per ontvanger en reis; nieuwe wijzigingen verversen die melding in plaats van duplicaten toe te voegen.
+- Een actief reisgenootaccount krijgt bericht wanneer de eigenaar de deelname verwijdert.
+- De indiener krijgt automatisch een vertaalde melding wanneer Corporate Admin de feedbackstatus wijzigt.
+- Corporate Admin heeft een afzonderlijke Berichten-pagina om een actuele platformstatus of belangrijke update in NL en EN naar alle bevestigde accounts te publiceren, met bevestiging en auditlog.
+- Migratie `20260908026000_notification_lifecycle.sql` voegt de meldingstypen, triggers, publicatietabel en bestaande ontdubbeling toe; `supabase/tests/notification_lifecycle.sql` controleert de vier stromen.
+
+## 2026-09-09 12:20 CEST — Eenduidige uitnodigingsstatus en betrouwbaarder weer
+
+- De betekenisloze knoppen om een reisgenoot handmatig te bevestigen of opnieuw uit te nodigen zijn verwijderd; acceptatie en weigering blijven uitsluitend bij de genodigde.
+- Migratie `20260908025000_notify_invitation_responses.sql` meldt de uitnodiger voortaan wanneer een uitnodiging is geaccepteerd of geweigerd. De app vertaalt deze melding naar NL/EN en linkt naar de reis.
+- De weerwidget haalt Open-Meteo voortaan via een geauthenticeerde serverfunctie op met de actuele API-velden, invoercontrole en een timeout; de Pro/Agency-controle wordt ook server-side afgedwongen.
+- De platform-healthcheck gebruikt dezelfde actuele weerendpoint zonder een afwijkende User-Agent-header.
+
 ## 2026-09-09 12:13 CEST — Reisgenoten definitief verwijderen en ontdubbelen
 
 - De verwijderknop gebruikt nu een eigenaar-geautoriseerde serveractie die alle ledenrijen met hetzelfde adres verwijdert, open uitnodigingen intrekt en bijbehorende meldingen sluit.

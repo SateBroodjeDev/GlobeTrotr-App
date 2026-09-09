@@ -8,8 +8,8 @@ export const PUBLIC_ROADMAP = [
     ],
     items: [
       [
-        "Beveiligde uitnodigingslinks en antwoorden via accountmeldingen",
-        "Secure invitation links and responses through account notifications",
+        "Beveiligde uitnodigingslinks, antwoorden en terugkoppeling aan de uitnodiger",
+        "Secure invitation links, responses and updates for the inviter",
       ],
       ["Betere feedback- en probleemopvolging", "Better feedback and issue follow-up"],
       [
