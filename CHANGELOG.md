@@ -4,6 +4,12 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 12:05 CEST — Gedeelde reis zichtbaar na acceptatie
+
+- De relationele workspace-loader vroeg na de privacyversterking nog alle kolommen van `trip_members` op; de ontbrekende e-mailgrant liet daardoor de hele laadactie terugvallen op de oude workspacekopie.
+- RLS bepaalt nu eerst welke reizen het account mag zien. Alleen die reis-ID's worden server-side met leden aangevuld en uitsluitend een reiseigenaar ontvangt daarbij e-mailadressen.
+- Acceptatie via de uitnodigingslink sluit nu ook server-side de bijbehorende persistente melding voordat het dashboard opnieuw wordt geladen.
+
 ## 2026-09-09 11:55 CEST — Geweigerde en verouderde uitnodigingen gesloten
 
 - Weigeren roteert voortaan de opgeslagen tokenhash, waardoor de oorspronkelijke uitnodigingslink onmiddellijk ongeldig wordt terwijl de rij als auditspoor behouden blijft.

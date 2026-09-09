@@ -102,6 +102,16 @@ export const respondToTripInvitation = createServerFn({ method: "POST" })
     const db = await adminClient();
     let tokenHash =
       data.token && /^[0-9a-f]{64}$/i.test(data.token) ? await sha256(data.token) : "";
+    let invitationId = "";
+    if (tokenHash) {
+      const { data: invitation, error } = await db
+        .from("trip_invitations")
+        .select("id")
+        .eq("token_hash", tokenHash)
+        .maybeSingle();
+      if (error || !invitation) throw error ?? new Error("INVITATION_NOT_FOUND");
+      invitationId = invitation.id;
+    }
     if (!tokenHash && data.invitationId && /^[0-9a-f-]{36}$/i.test(data.invitationId)) {
       const { data: invitation, error } = await db
         .from("trip_invitations")
@@ -110,6 +120,7 @@ export const respondToTripInvitation = createServerFn({ method: "POST" })
         .maybeSingle();
       if (error || !invitation) throw error ?? new Error("INVITATION_NOT_FOUND");
       tokenHash = invitation.token_hash;
+      invitationId = data.invitationId;
     }
     if (!tokenHash) throw new Error("INVALID_INVITATION");
     const functionName =
@@ -135,6 +146,19 @@ export const respondToTripInvitation = createServerFn({ method: "POST" })
     if (!result || typeof result !== "object" || typeof result.status !== "string") {
       console.error("[Trip invitation] RPC returned an invalid response shape.");
       throw new Error("INVITATION_RESPONSE_FAILED:invalid-response");
+    }
+    if (["accepted", "already_member", "declined"].includes(result.status) && invitationId) {
+      const { error: notificationError } = await db
+        .from("notifications")
+        .update({ dismissed_at: new Date().toISOString() })
+        .eq("user_id", context.userId)
+        .eq("event_key", `invitation:${invitationId}`)
+        .is("dismissed_at", null);
+      if (notificationError) {
+        console.error("[Trip invitation] Notification could not be dismissed.", {
+          code: notificationError.code,
+        });
+      }
     }
     return result as { status: InvitationResponseStatus; tripId?: string };
   });

@@ -347,13 +347,17 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   ];
   const ids = rows.map((row) => String(row.trip_uuid));
   if (!ids.length) return [];
+  // RLS bepaalt eerst welke reizen dit account mag zien. Pas daarna vult de
+  // server leden aan; alleen de eigenaar ontvangt hieronder e-mailadressen.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const memberClient = supabaseAdmin as unknown as UntypedSupabase;
   const [stops, itinerary, expenses, travelItems, packing, members] = await Promise.all([
     client.from("trip_stops").select("*").in("trip_uuid", ids).order("position"),
     client.from("trip_itinerary_items").select("*").in("trip_uuid", ids).order("position"),
     client.from("trip_expenses").select("*").in("trip_uuid", ids),
     client.from("trip_travel_items").select("*").in("trip_uuid", ids),
     client.from("trip_packing_items").select("*").in("trip_uuid", ids).order("position"),
-    client.from("trip_members").select("*").in("trip_uuid", ids),
+    memberClient.from("trip_members").select("*").in("trip_uuid", ids),
   ]);
   const childError = [stops, itinerary, expenses, travelItems, packing, members].find(
     (result) => result.error,
@@ -452,7 +456,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         .map((member) => ({
           id: String(member.id),
           name: String(member.name),
-          email: accessRole === "owner" ? String(member.email) : "",
+          email: accessRole === "owner" && member.email ? String(member.email) : "",
           role: member.role,
           status: member.status,
           invitedAt: String(member.invited_at),

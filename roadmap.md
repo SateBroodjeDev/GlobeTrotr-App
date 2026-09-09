@@ -522,6 +522,8 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 - [x] Atomaire database-respons voor `accepted` en `declined` gebouwd; verlopen, ingetrokken, verboden en ongeldige uitnodigingen worden zonder toegang afgewezen
 - [ ] Herstelmigratie `20260908022000_resolve_existing_invitation_memberships.sql` uitvoeren en de uitgebreide uitnodigingsregressietest opnieuw uitvoeren; een bestaand actief lid of eigenaar wordt daarna zonder unieke-indexconflict hergebruikt
 - [ ] Migratie `20260908023000_invalidate_declined_and_stale_invitations.sql` uitvoeren: geweigerde links direct ongeldig maken, bijbehorende meldingen sluiten en oude open uitnodigingen voor reeds actieve leden afhandelen; dit ruimt ook de verouderde uitnodigingsstaat van reis `352d3b68-866d-4295-8948-2164b629c2db` generiek op
+- [x] Dashboardladen na acceptatie hersteld: de RLS-query bepaalt eerst toegankelijke reis-ID's en alleen de server vult daarvoor ledengegevens aan; e-mailadressen worden uitsluitend aan de reiseigenaar teruggegeven
+- [x] Accepteren via een uitnodigingslink sluit de bijbehorende persistente accountmelding server-side voordat het dashboard opnieuw wordt geladen
 - [ ] Uitnodigingen intrekken, opnieuw verzenden en verlopen laten zijn
 - [ ] Rate limiting en auditlog voor e-mailverzending; geen mailadres uitlekken in foutmeldingen
 - [ ] De huidige één-workspace-per-account-opzet uitbreiden met veilige toegang per reis, zodat een genodigde niet alle reizen van de eigenaar ziet
