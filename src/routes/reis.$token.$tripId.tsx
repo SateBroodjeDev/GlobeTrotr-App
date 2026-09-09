@@ -152,9 +152,10 @@ function PublicTrip() {
   const visibleStops = showAllStops ? stops : stops.slice(0, 4);
   const weatherStop = stops.find((stop) => stop.id === activeStopId) ?? stops[0];
   const countryCount = new Set(stops.map((stop) => stop.country).filter(Boolean)).size;
+  const tripBranding = trip.branding;
   return (
     <div className="space-y-6 sm:space-y-8">
-      <header className="aurora relative overflow-hidden rounded-3xl px-6 py-10 sm:px-10 sm:py-14">
+      <header className="aurora relative overflow-hidden rounded-3xl px-6 py-10 sm:px-10 sm:py-14" style={tripBranding?{background:`linear-gradient(135deg,hsl(${tripBranding.accent} 70% 45% / .20),transparent)`}:undefined}>
         <div className="relative max-w-3xl">
           <Badge variant="secondary" className="mb-5 gap-1.5">
             <Sparkles className="size-3" /> {text("Openbaar reisverhaal", "Public travel story")}
@@ -185,6 +186,7 @@ function PublicTrip() {
                     "The route and daily itinerary for this trip are shared here.",
                   ))}
           </p>
+          {tripBranding&&<p className="mt-5 text-xs opacity-75">{tripBranding.brandName} · {tripBranding.domain}</p>}
         </div>
       </header>
 

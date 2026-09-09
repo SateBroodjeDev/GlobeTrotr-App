@@ -11,10 +11,11 @@ import {
   Monitor,
   ShieldCheck,
   Trash2,
+  Upload,
   Unlink,
   UserRound,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -29,6 +30,9 @@ import { Label } from "@/components/ui/label";
 import { useLocale } from "@/lib/locale";
 import { deleteAccount, exportAccountData } from "@/lib/account.functions";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
+import { TEMPLATES, type Trip, type WorkspaceState } from "@/lib/types";
+import { ownsTrip } from "@/lib/plans";
+import { TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,7 +90,7 @@ function asThemePreference(value: string | null | undefined): ThemePreference {
 
 function AccountPage() {
   const { user } = useAuth();
-  const { state, cloud } = useWorkspace();
+  const { state, cloud, addTrip, saveTripNow } = useWorkspace();
   const { setLocale: applyLocale, text } = useLocale();
   const plan = planOf(state.plan);
   const activeTripCount = state.trips.filter((trip) => !trip.archived).length;
@@ -117,6 +121,8 @@ function AccountPage() {
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const importInput = useRef<HTMLInputElement>(null);
   const [oauthAction, setOauthAction] = useState<string>();
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -334,6 +340,54 @@ function AccountPage() {
     }
   }
 
+  async function importTripBackup(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    let imported = 0;
+    try {
+      const parsed = JSON.parse(await file.text()) as Partial<WorkspaceState> | Trip[];
+      const trips = Array.isArray(parsed) ? parsed : parsed.trips;
+      if (!Array.isArray(trips) || !trips.length) throw new Error("INVALID_BACKUP");
+      const owned = state.trips.filter((trip) => ownsTrip(trip.accessRole)).length;
+      const room = Number.isFinite(plan.tripLimit) ? Math.max(0, plan.tripLimit - owned) : trips.length;
+      if (trips.length > room) throw new Error("TRIP_LIMIT");
+      for (const source of trips) {
+        if (!source || typeof source !== "object" || typeof source.name !== "string") throw new Error("INVALID_BACKUP");
+        const template = TEMPLATES.some((item) => item.id === source.template) ? source.template : "citytrip";
+        const name = source.name.trim().slice(0, TRIP_NAME_MAX_LENGTH);
+        if (!name) throw new Error("INVALID_BACKUP");
+        const id = await addTrip(name, template);
+        await saveTripNow(id, (created) => ({
+          ...created, ...source, id, revision: created.revision, ownerId: created.ownerId,
+          accessRole: "owner", name, template,
+          description: typeof source.description === "string" ? source.description.slice(0, 375) : undefined,
+          start: /^\d{4}-\d{2}-\d{2}$/.test(source.start ?? "") ? source.start : created.start,
+          end: /^\d{4}-\d{2}-\d{2}$/.test(source.end ?? "") ? source.end : created.end,
+          budget: Number.isFinite(source.budget) ? Math.max(0, source.budget) : created.budget,
+          stops: Array.isArray(source.stops) ? source.stops : [],
+          itinerary: Array.isArray(source.itinerary) ? source.itinerary : [],
+          travelItems: Array.isArray(source.travelItems) ? source.travelItems : [],
+          expenses: Array.isArray(source.expenses) ? source.expenses.map((expense) => ({ ...expense, receiptPath: undefined, receiptName: undefined })) : [],
+          packing: Array.isArray(source.packing) ? source.packing : [],
+          travelers: Array.isArray(source.travelers) ? source.travelers : [],
+          members: [], archived: false, public: false, shareFinancials: false, sharePinHash: undefined,
+        }));
+        imported += 1;
+      }
+      toast.success(text(`${imported} reizen geïmporteerd.`, `${imported} trips imported.`));
+    } catch (error) {
+      toast.error(imported > 0
+        ? text(`${imported} reizen zijn geïmporteerd; de import stopte bij een ongeldige reis.`, `${imported} trips were imported; import stopped at an invalid trip.`)
+        : error instanceof Error && error.message === "TRIP_LIMIT"
+          ? text("Je abonnement heeft onvoldoende ruimte voor deze back-up.", "Your plan does not have enough room for this backup.")
+          : text("Deze back-up kon niet veilig worden geïmporteerd.", "This backup could not be imported safely."));
+    } finally {
+      setImporting(false);
+    }
+  }
+
   async function removeAccount() {
     if (deleteConfirmation !== "DELETE") return;
     setDeleting(true);
@@ -421,6 +475,15 @@ function AccountPage() {
           <Button disabled={saving || profileQuery.isLoading} onClick={saveProfile}>
             {saving ? text("Opslaan…", "Saving…") : text("Profiel en e-mailadres opslaan", "Save profile and email address")}
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="surface">
+        <CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><Upload className="size-4" />{text("Reisback-up importeren", "Import trip backup")}</CardTitle></CardHeader>
+        <CardContent className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <div><p className="font-medium">{text("Zet een GlobeTrotr JSON-back-up terug", "Restore a GlobeTrotr JSON backup")}</p><p className="mt-1 text-xs text-muted-foreground">{text("Reizen worden als nieuwe privéreizen toegevoegd. Leden, publicatie, PIN en oude bonbestanden worden niet overgenomen.", "Trips are added as new private trips. Members, publication, PIN and old receipt files are not restored.")}</p></div>
+          <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={(event) => void importTripBackup(event)} />
+          <Button type="button" variant="outline" className="shrink-0" disabled={importing} onClick={() => importInput.current?.click()}><Upload className="size-4" />{importing ? text("Importeren…", "Importing…") : text("Back-up kiezen", "Choose backup")}</Button>
         </CardContent>
       </Card>
 

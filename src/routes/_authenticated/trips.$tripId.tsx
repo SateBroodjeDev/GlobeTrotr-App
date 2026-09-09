@@ -7,6 +7,7 @@ import {
   Archive,
   BookOpen,
   FileDown,
+  Download,
   FileText,
   Globe2,
   Paperclip,
@@ -29,7 +30,7 @@ import {
 } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
-import { downloadCsv, openGuide, openPdf } from "@/lib/exporters";
+import { downloadCsv, downloadJson, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import {
   normalizeExpenseParticipants,
@@ -47,6 +48,7 @@ import { Countdown } from "@/components/Countdown";
 import { TripBookings } from "@/components/TripBookings";
 import { TripMembers } from "@/components/TripMembers";
 import { TripTimeline } from "@/components/TripTimeline";
+import { TripBrandingSettings } from "@/components/TripBrandingSettings";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -60,6 +62,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
+import { resolveBranding } from "@/lib/branding";
 import {
   fuelEstimateFor,
   fuelTravelItemIdForExpense,
@@ -152,6 +155,8 @@ function TripDetail() {
   const editable = canPlanTrip(accessRole);
   const moneyEditable = canManageTripMoney(accessRole);
   const tripOwner = ownsTrip(accessRole);
+  const [exportBrandingOverride,setExportBrandingOverride]=useState(trip.branding);
+  const exportBranding = resolveBranding(state.plan, null, state.branding, exportBrandingOverride);
   const [editingBooking, setEditingBooking] = useState<TravelItem | null>(null);
   async function updateItineraryItem(item: ItineraryItem) {
     if (!editable) return;
@@ -703,7 +708,7 @@ function TripDetail() {
             variant="outline"
             disabled={false}
             onClick={() => {
-              if (!openGuide(trip, base, rates, state.branding, locale))
+              if (!openGuide(trip, base, rates, exportBranding, locale))
                 toast.error(
                   text(
                     "Sta pop-ups toe om de reisgids te openen.",
@@ -726,7 +731,7 @@ function TripDetail() {
                 );
                 return;
               }
-              if (!openPdf(trip, base, rates, state.branding, locale))
+              if (!openPdf(trip, base, rates, exportBranding, locale))
                 toast.error(
                   text(
                     "Sta pop-ups toe om de PDF te genereren.",
@@ -907,6 +912,10 @@ function TripDetail() {
             </CardContent>
           </Card>
 
+          {state.plan === "agency" && (
+            <TripBrandingSettings tripId={trip.id} agencyBranding={state.branding} onSaved={setExportBrandingOverride} />
+          )}
+
           <Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
@@ -1044,6 +1053,16 @@ function TripDetail() {
                   {trip.archived
                     ? text("Heractiveren", "Reactivate")
                     : text("Archiveren", "Archive")}
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={!tripOwner}
+                  onClick={() => {
+                    downloadJson({ trips: [trip] }, trip.name);
+                    toast.success(text("Reisback-up gedownload", "Trip backup downloaded"));
+                  }}
+                >
+                  <Download className="size-4" /> {text("Back-up downloaden", "Download backup")}
                 </Button>
                 <Button
                   variant="destructive"

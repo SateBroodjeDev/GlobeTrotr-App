@@ -22,6 +22,25 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Publieke roadmap opgeschoond: interne praktijktaken zijn verwijderd en bevestigde resultaten staan in het publieke changelog.
 - [x] Back-upbediening verduidelijkt met één volledige workspaceback-up en een afzonderlijke JSON-back-up per reis.
 - [x] Openbaar weer gebruikt een apart gevalideerd pad voor gedeelde reis, PIN en bestemming en kan daardoor zonder accountsessie laden.
+- [x] Openstaande uitnodigingen praktisch gecontroleerd: vernieuwen maakt een nieuwe link en intrekken sluit de uitnodiging correct.
+- [x] Back-upbediening heringedeeld: reisback-up bij Reisinstellingen, veilige import bij Accountinstellingen en volledige workspaceback-up op het reisoverzicht.
+- [x] GitHub Actions overgezet naar Node 24-compatibele Actions en installatie via het aanwezige `bun.lock`; `npm ci` vereist geen ontbrekend `package-lock.json` meer.
+- [x] README volledig bijgewerkt naar de actuele beta, functionaliteit, architectuur, installatie, controles en migratiewerkwijze.
+- [x] Relationeel Agency-teamfundament gebouwd met workspace-UUID, interne leden en uitnodigingen, rolgerichte RLS en Agencybrede reisloading; klanten blijven per reis begrensd.
+- [ ] Migratie `20260908030000_agency_workspace_members.sql` en test `supabase/tests/agency_workspace_access.sql` uitvoeren en daarna met een adviseur- en financieel testaccount controleren.
+- [x] Volledig Agency-teambeheer gebouwd: uitnodigen via beveiligde link en accountmelding, accepteren/weigeren, link vernieuwen/intrekken, rol wijzigen, toegang blokkeren/herstellen en een lid verwijderen.
+- [ ] Migratie `20260908031000_agency_team_management.sql` en test `supabase/tests/agency_team_management.sql` uitvoeren; daarna de volledige stroom met eigenaar, adviseur en financieel testaccount praktisch controleren.
+- [x] Afzonderlijk Agency-instellingendashboard gebouwd voor systeemnaam, afzender, contactadres, domein, taal, valuta, tijdzone, tagline, accentkleur en logo, inclusief live voorbeeld en veldtellers.
+- [ ] Migratie `20260908032000_agency_settings_and_logo.sql` en test `supabase/tests/agency_settings.sql` later samen met de overige Agency-migraties uitvoeren.
+- [x] Configureerbare Agency-rechten gebouwd met standaarden per rol en gerichte allow/deny-afwijkingen per gebruiker; reislezen, aanmaken, plannen, uitgaven en instellingen worden server-side afzonderlijk afgedwongen.
+- [x] Agency Admin opgesplitst in een vaste beheeromgeving met afzonderlijke routes en mobiele navigatie; zichtbare onderdelen volgen de effectieve rol- en gebruikersrechten.
+- [x] Centrale merkhiërarchie gebouwd: GlobeTrotr voor Free/Pro, Agency-instellingen voor een actief Agency-plan en technische ondersteuning voor een toekomstige reisafwijking.
+- [ ] Branding-, analyse-, facturatie- en ledenrechten ook binnen iedere bijbehorende serveractie afdwingen; de reisrechten zijn al afzonderlijk beschermd.
+- [x] Optionele branding per reis gebouwd met naam, domein, tagline, accentkleur, live voorbeeld, afzonderlijke opslag en een duidelijke reset naar de Agency-standaard.
+- [ ] Migratie `20260908034000_trip_branding_overrides.sql` en test `supabase/tests/trip_branding_overrides.sql` later met de volledige Agency-reeks uitvoeren.
+- [x] De effectieve reisbranding doorgegeven aan openbare reispagina's, reisgidsen en PDF-exports via uitsluitend expliciet deelbare merkvelden.
+- [ ] Na uitvoering praktisch controleren dat planwijziging of vertrek uit de Agency overal direct naar GlobeTrotr terugvalt.
+- [ ] Migratie `20260908033000_agency_permission_overrides.sql` en test `supabase/tests/agency_permission_overrides.sql` later met de volledige Agency-reeks uitvoeren.
 - [x] Afzonderlijk overzicht voor openstaande en verlopen reisuitnodigingen gebouwd; de eigenaar kan een nieuwe zeven dagen geldige link maken of de uitnodiging na bevestiging intrekken.
 - [ ] Migratie `20260908029000_manage_pending_trip_invitations.sql` en test `supabase/tests/pending_trip_invitation_management.sql` uitvoeren; daarna vernieuwen en intrekken met een bestaand account praktisch controleren.
 
@@ -565,8 +584,8 @@ De huidige ledenknop bewaart een reisgenoot en probeert een bestaand account bij
 
 - [x] **Reisadviseur**, **Financiën** en **Klant/reiziger** als rollen per reis
 - [ ] Workspace-eigenaar: abonnement, branding, team en alle reizen
-- [ ] Actieve interne Agency-teamleden krijgen workspacebreed zicht op alle reizen van hun Agency; hun rol bepaalt vervolgens welke planning-, financiële en beheeracties zij mogen uitvoeren
-- [ ] Klanten en externe reizigers blijven uitsluitend per reis gekoppeld en krijgen nooit automatisch toegang tot alle Agency-reizen
+- [x] Actieve interne Agency-teamleden krijgen workspacebreed zicht op alle reizen van hun Agency; hun rol bepaalt vervolgens welke planning-, financiële en beheeracties zij mogen uitvoeren
+- [x] Klanten en externe reizigers blijven uitsluitend per reis gekoppeld en krijgen nooit automatisch toegang tot alle Agency-reizen
 - [ ] Rechten voor adviseur, financiën en klant daadwerkelijk per actie afdwingen
 - [ ] Rechten daadwerkelijk op de server afdwingen; een rol in de browser of in JSON is niet voldoende
 
@@ -673,29 +692,44 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 
 ## P1 — Agency-administratie
 
+### Uitwerking A–Z en bouwvolgorde
+
+1. **Navigatie en begrenzing:** één ingang `/agency-admin`, een eigen overzicht en daarna subpagina's voor Algemeen, Branding, Team, Reizen, Abonnement en Audit. Iedere route controleert server-side een actief Agency-plan en de workspace-rol.
+2. **Relationele workspace:** `workspaces` krijgt een stabiele workspace-UUID. `workspace_members` en `workspace_invitations` worden de bron voor interne Agency-toegang; klanten en reizigers blijven uitsluitend aan specifieke reizen gekoppeld.
+3. **Rollenmatrix:** eigenaar beheert alles, reisadviseur beheert reizen en klanten, financiën ziet en beheert financiële onderdelen. Alleen de eigenaar beheert abonnement, branding, team en risicovolle acties.
+4. **Algemene instellingen:** organisatienaam, afzendernaam, contactgegevens, standaardtaal, tijdzone en valuta. Verplichte waarden worden getrimd, begrensd en bij lege legacydata zichtbaar naar veilige standaardwaarden hersteld.
+5. **Branding:** logo in een private Agency Storage-map, accentkleur en klantweergave met live voorbeeld. Geldige reisafwijking gaat vóór Agency-branding; zonder actief Agency-recht gebruikt ieder scherm direct GlobeTrotr-branding.
+6. **Team en toegang:** uitnodigen, accepteren, weigeren, vernieuwen, intrekken, rol wijzigen, blokkeren en verwijderen via atomaire serverfuncties. Interne leden zien Agencybreed reizen; externe klanten nooit.
+7. **Operatie:** compacte werkvoorraad voor reizen, ontbrekende boekingsgegevens, verlopen uitnodigingen, declarabele kosten en later facturen. Statistieken komen uitsluitend uit echte relationele gegevens.
+8. **Abonnement en lifecycle:** gebruik en limieten zichtbaar; downgrade stopt het uitserveren van Agency-branding en -rechten zonder de instellingen direct te vernietigen. Vertrek of verwijdering wist Agencycache en logo-URL's uit de sessie.
+9. **Audit en veiligheid:** actor, actie, doel, reden en resultaat voor team-, branding-, klant- en factuuracties; rate limits en herbevestiging bij risicovolle wijzigingen.
+10. **Migratie en verificatie:** schema en backfill, afgeschermde RPC's, serverloaders, interface, daarna SQL-tests voor eigenaar/adviseur/financiën/klant en praktijktests voor toegang, downgrade en brandingterugval.
+
 Dit wordt een duidelijk, verzorgd en zelfstandig **Agency Workspace Admin**-dashboard binnen het reisplatform. Het is nadrukkelijk iets anders dan reisinstellingen en per-reisrollen: een Agency-eigenaar beheert hier de organisatie, het abonnement, het team, klanten, branding en de werkvoorraad van één workspace.
 
-- [ ] Alleen Agency-eigenaren krijgen toegang tot een **Agency Admin**-dashboard; geen route alleen op basis van een verborgen navigatieknop beveiligen
-- [ ] Alle Agency-instellingen onderbrengen in één afzonderlijk Agency Workspace Admin-dashboard, met een eigen overzichtelijke route en navigatie los van Accountinstellingen, Corporate Admin en de instellingen van een afzonderlijke reis
+- [x] Eerste afzonderlijke route `/agency-admin` gebouwd met centrale ingang, actuele workspacecijfers en kaarten voor branding, team, reisoperatie en abonnement; niet-Agency-accounts krijgen een duidelijke blokkade
+- [ ] Iedere Agency Admin-subroute aanvullend server-side autoriseren; een verborgen navigatieknop geldt nooit als beveiliging
+- [ ] Alle vervolginstellingen als subpagina's onder dezelfde Agency Admin-shell brengen, los van Accountinstellingen, Corporate Admin en de instellingen van een afzonderlijke reis
 - [ ] Agency-instellingen per logisch onderdeel tonen: algemeen, branding, team en rollen, reizen en toegang, abonnement en facturatie, meldingen en beveiliging
-- [ ] Verplichte Agency-instellingen mogen niet leeg worden opgeslagen; validatie vindt zowel in de interface als server-side plaats
-- [ ] Lege of uitsluitend uit spaties bestaande verplichte Agency-waarden bij laden of opslaan veilig herstellen naar vastgelegde GlobeTrotr-standaardwaarden
-- [ ] Bij iedere automatische herstelactie duidelijk aangeven welke waarde is teruggezet en waarom, zonder geldige bestaande Agency-instellingen te overschrijven
-- [ ] Een maximale lengte voor de zichtbare systeemnaam/Agency-naam vastleggen en afdwingen in formulier, serverfunctie en databaseconstraint; lange bestaande waarden vóór activering gecontroleerd inkorten
-- [ ] Tekentellers en vertaalde validatiemeldingen tonen bij begrensde Agency-velden, inclusief de systeemnaam
+- [x] Verplichte Agency-instellingen mogen niet leeg worden opgeslagen; validatie vindt zowel in de interface als server-side plaats
+- [x] Lege of uitsluitend uit spaties bestaande verplichte Agency-waarden bij laden of opslaan veilig herstellen naar vastgelegde GlobeTrotr-standaardwaarden
+- [x] Bij iedere automatische herstelactie duidelijk aangeven welke waarde is teruggezet en waarom, zonder geldige bestaande Agency-instellingen te overschrijven
+- [x] Een maximale lengte voor de zichtbare systeemnaam/Agency-naam vastleggen en afdwingen in formulier, serverfunctie en databaseconstraint; lange bestaande waarden vóór activering gecontroleerd inkorten
+- [x] Tekentellers en vertaalde validatiemeldingen tonen bij begrensde Agency-velden, inclusief de systeemnaam
 - [ ] Dashboard visueel uitwerken met duidelijke secties, statuskaarten, snelle acties, lege statussen en een goede mobiele weergave
 - [ ] Workspaceprofiel beheren: organisatienaam, bedrijfsgegevens, contactgegevens, standaardvaluta, tijdzone en standaardtaal
 - [ ] Agency-abonnement, gebruikslimieten en facturatie-instellingen op één herkenbare plaats tonen
 - [ ] Agencybrede branding beheren met live voorbeeld van organisatienaam, logo, accentkleur, afzendernaam, domein en klantweergave
-- [ ] Agency-logo uploaden, vervangen en verwijderen via een afgeschermd Storage-pad met bestandstype-, bestandsgrootte- en eigenaarscontrole
+- [x] Agency-logo uploaden, vervangen en verwijderen via een afgeschermd Storage-pad met bestandstype-, bestandsgrootte- en eigenaarscontrole
 - [ ] Per reis kunnen kiezen tussen de standaard Agency-branding en een reisafwijking voor logo, accentkleur, afzendernaam en klantweergave
 - [ ] Brandinghiërarchie eenduidig toepassen: geldige reisafwijking → actieve Agency-branding → standaard GlobeTrotr-branding
 - [ ] Agency-branding tonen aan alle actieve interne Agency-teamleden en op klant- en openbare reispagina's waar die branding bewust is ingeschakeld
 - [ ] Bij verlaten/verwijderen van het Agency-team direct alle Agency-branding, logo-URL's en workspacecache uit de sessie verwijderen en weer de normale GlobeTrotr-branding tonen
 - [ ] Bij downgrade of einde van het Agency-abonnement Agency- en reisbranding niet langer uitserveren; instellingen veilig bewaren volgens het bewaarbeleid zodat herstel na een nieuwe upgrade mogelijk is
-- [ ] Relationele `workspace_members`- en `workspace_invitations`-tabellen toevoegen, met UUID, status, verloopdatum en RLS per workspace
+- [x] Relationele `workspace_members`- en `workspace_invitations`-tabellen toegevoegd, met UUID, status, verloopdatum en RLS per workspace
 - [ ] Teamleden beheren met rollen: eigenaar, reisadviseur en financiën; klanten blijven uitsluitend per reis gekoppeld
-- [ ] Workspacebrede reisqueries en alle brandingqueries server-side autoriseren via actief `workspace_members`-lidmaatschap en een actief Agency-plan; browserstate of een oud cacheobject verleent nooit toegang
+- [x] Workspacebrede reisloading en bestaande reiswrites server-side autoriseren via actief `workspace_members`-lidmaatschap en een actief Agency-plan; browserstate of een oud cacheobject verleent geen toegang
+- [ ] Nieuwe reizen door een Agency-adviseur in de bestaande Agency-workspace laten aanmaken en alle overige serveracties expliciet langs dezelfde workspaceautorisatie leiden
 - [ ] Eigen teamoverzicht met actieve leden, open uitnodigingen, limieten en laatst actieve wijzigingen
 - [ ] Werkvoorraad: aankomende reizen, ontbrekende boekingsdetails, open kosten, onbetaalde facturen en verlopen uitnodigingen
 - [ ] Agency-statistieken alleen uit echte data: actieve klantreizen, uitgaven, declarabel, omzet/openstaand zodra Stripe bestaat en documentgebruik zodra Storage-meting bestaat

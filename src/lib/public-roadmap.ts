@@ -16,6 +16,9 @@ export const PUBLIC_TODAY = {
     ["Een herkenbare Corporate Admin-auditlog met de uitvoerende beheerder", "A recognisable Corporate Admin audit log showing the acting administrator"],
     ["Actuele platformstatus als wegklikbare banner met opvolging en oplossing", "Current platform status as a dismissible banner with updates and resolution"],
     ["Openstaande reisuitnodigingen bekijken, vernieuwen en intrekken", "View, renew and revoke pending trip invitations"],
+    ["Eerste centrale Agency Admin-omgeving met echte workspacegegevens", "Initial central Agency Admin area with real workspace data"],
+    ["Veilige databasebasis voor interne Agency-teams en afgescheiden klanten", "Secure database foundation for internal Agency teams and separated clients"],
+    ["Agency-teamleden uitnodigen en hun rollen en toegang beheren", "Invite Agency team members and manage their roles and access"],
   ],
 } as const;
 
@@ -74,10 +77,7 @@ export const PUBLIC_ROADMAP = [
     items: [
       ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"],
       ["Periodieke vluchtupdates", "Periodic flight updates"],
-      [
-        "Agencybreed samenwerken met gedeelde reizen en herkenbare branding",
-        "Agency-wide collaboration with shared trips and recognisable branding",
-      ],
+      ["Agency-logo en klantweergave verder uitwerken", "Further develop Agency logos and client presentation"],
       ["Agency-logo en optionele branding per reis", "Agency logo and optional branding per trip"],
     ],
   },

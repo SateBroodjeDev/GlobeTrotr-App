@@ -18,6 +18,7 @@ import {
   UserRound,
   Users,
   Shield,
+  Building2,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
@@ -43,9 +44,7 @@ import { openPrivacyChoices } from "@/lib/privacy-consent";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
-  { to: "/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/team", label: "Team & rollen", icon: Users },
-  { to: "/branding", label: "White-label", icon: Palette },
+  { to: "/agency-admin", label: "Agency Admin", icon: Building2 },
 ] as const;
 const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
 type ThemePreference = "system" | "light" | "dark";

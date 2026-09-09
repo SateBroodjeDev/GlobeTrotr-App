@@ -33,6 +33,7 @@ export type PublicTripCard = {
   end: string;
   stops: PublicStop[];
   authorName: string;
+  branding?: { brandName: string; domain: string; tagline: string; accent: number };
 };
 
 export type PublicTripDetail = PublicTripCard & {
@@ -319,7 +320,12 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       { p_token: input.token, p_trip_id: input.tripId, p_pin_hash: submittedPinHash } as never,
     );
     if (!publicError && publicResult && typeof publicResult === "object") {
-      return publicResult as unknown as PublicTripResult;
+      const result = publicResult as unknown as PublicTripResult;
+      if (result.status === "ok") {
+        const { data: branding } = await publicDb.rpc("get_public_trip_branding" as never, { p_token: input.token, p_trip_id: input.tripId } as never);
+        if (branding && typeof branding === "object") result.trip.branding = branding as PublicTripDetail["branding"];
+      }
+      return result;
     }
     if (!process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
       return { status: "not_found" } as PublicTripResult;

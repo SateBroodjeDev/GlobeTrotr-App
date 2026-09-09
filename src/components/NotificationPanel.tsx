@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useLocale } from "@/lib/locale";
 import { respondToTripInvitation } from "@/lib/invitation.functions";
+import { respondToAgencyInvitation } from "@/lib/agency.functions";
 
 const styles = {
   account: {
@@ -98,12 +99,16 @@ export function NotificationPanel({ userId }: { userId: string }) {
       notificationId,
       invitationId,
       response,
+      agency,
     }: {
       notificationId: string;
       invitationId: string;
       response: "accept" | "decline";
+      agency?: boolean;
     }) => {
-      const result = await respondToTripInvitation({ data: { invitationId, response } });
+      const result = agency
+        ? await respondToAgencyInvitation({ data: { invitationId, response } })
+        : await respondToTripInvitation({ data: { invitationId, response } });
       if (!["accepted", "already_member", "declined"].includes(result.status))
         throw new Error(result.status);
       const { error } = await supabase
@@ -252,6 +257,10 @@ export function NotificationPanel({ userId }: { userId: string }) {
               notification.kind === "invitation" && notification.event_key.startsWith("invitation:")
                 ? notification.event_key.slice("invitation:".length)
                 : "";
+            const agencyInvitationId =
+              notification.kind === "invitation" && notification.event_key.startsWith("workspace-invitation:")
+                ? notification.event_key.slice("workspace-invitation:".length)
+                : "";
             return (
               <article key={notification.id} className={`rounded-xl border p-3 ${style.color}`}>
                 <div className="flex items-start gap-2">
@@ -317,7 +326,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
                         {text("Bekijk reisgenoten", "View travellers")}
                       </Link>
                     )}
-                    {invitationId && (
+                    {(invitationId || agencyInvitationId) && (
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button
                           size="sm"
@@ -325,8 +334,9 @@ export function NotificationPanel({ userId }: { userId: string }) {
                           onClick={() =>
                             respondInvitation.mutate({
                               notificationId: notification.id,
-                              invitationId,
+                              invitationId: invitationId || agencyInvitationId,
                               response: "accept",
+                              agency: Boolean(agencyInvitationId),
                             })
                           }
                         >
@@ -340,8 +350,9 @@ export function NotificationPanel({ userId }: { userId: string }) {
                           onClick={() =>
                             respondInvitation.mutate({
                               notificationId: notification.id,
-                              invitationId,
+                              invitationId: invitationId || agencyInvitationId,
                               response: "decline",
+                              agency: Boolean(agencyInvitationId),
                             })
                           }
                         >

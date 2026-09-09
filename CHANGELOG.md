@@ -4,6 +4,74 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-09 22:04 CEST — Optionele branding per Agency-reis
+
+- Reisinstellingen tonen voor Agency-eigenaren een afzonderlijke reishuisstijl met naam, domein, tagline, accentkleur en live voorbeeld.
+- Ieder leeg afwijkingsveld erft automatisch de centrale Agency-instelling; **Agency-standaard herstellen** schakelt de afwijking volledig uit.
+- Nieuwe tabel `trip_branding_overrides` bewaart de optionele reisafwijking los van de reissnapshot en verwijdert deze via de reisrelatie automatisch mee.
+- Service-role-only RPC's controleren het actieve Agency-plan en het effectieve `branding_manage`-recht van de uitvoerende gebruiker.
+- De publieke reispagina vraagt via een aparte anon-RPC uitsluitend naam, domein, tagline en accentkleur op; interne instellingen en logo-opslagpaden worden niet gedeeld.
+- Relationeel geladen reizen bevatten de actieve reisafwijking, zodat PDF en reisgids direct dezelfde effectieve huisstijl gebruiken.
+- Migratie `20260908034000_trip_branding_overrides.sql` en rollbacktest `supabase/tests/trip_branding_overrides.sql` toegevoegd.
+- Alle 25 regressietests en de volledige client-, SSR- en Cloudflare-productiebuild slagen.
+
+## 2026-09-09 22:00 CEST — Rechtenbewuste Agency Admin-shell
+
+- Agency Admin gebruikt nu een vaste geneste beheerindeling voor overzicht, organisatie, rollen en rechten, klanten, operatie en abonnement.
+- De navigatie werkt horizontaal op mobiel en als vaste zijbalk op grotere schermen.
+- Een nieuwe geauthenticeerde serverfunctie bepaalt de actieve Agency-workspace, rol en effectieve rechten van de huidige gebruiker.
+- Beheeronderdelen en overzichtskaarten worden alleen getoond wanneer de eigenaar, rolstandaard of persoonlijke uitzondering daar toegang toe geeft.
+- De centrale branding-resolver hanteert Agency-instellingen boven legacywaarden en valt bij een ander plan altijd terug op GlobeTrotr; reisafwijkingen zijn technisch voorbereid.
+- Er zijn regressietests toegevoegd voor Agency-rechten en de merkhiërarchie. Alle 25 tests en de volledige client-, SSR- en Cloudflare-productiebuild slagen.
+
+## 2026-09-09 21:55 CEST — Agency-rechten per rol en gebruiker
+
+- Nieuw scherm `/agency-permissions` beheert standaardrechten voor Advisor en Finance en afzonderlijke uitzonderingen per teamlid.
+- Rechten zijn opgesplitst in reizen bekijken en aanmaken, planning, uitgaven, reisinstellingen, reisgenoten, analyses, branding en abonnement.
+- De eigenaar houdt altijd alle rechten en kan niet via een gebruikersafwijking worden beperkt.
+- De server dwingt de effectieve rechten afzonderlijk af bij reisloading, nieuwe Agency-reizen en bestaande reiswrites; velden buiten de bevoegdheid blijven gelijk aan de databaseversie.
+- Migratie `20260908033000_agency_permission_overrides.sql`, SQL-regressietest en twee TypeScript-regressietests toegevoegd.
+- Alle 23 regressietests en de volledige client-, SSR- en Cloudflare-productiebuild slagen.
+
+## 2026-09-09 21:39 CEST — Veilige Agency-instellingen en logo
+
+- Nieuwe afzonderlijke route `/agency-settings` groepeert algemene organisatiegegevens en merkuitstraling buiten account- en reisinstellingen.
+- Systeemnaam, afzendernaam, contactadres, domein, standaardtaal, valuta, tijdzone, tagline en accentkleur hebben expliciete validatie en zichtbare tekentellers.
+- Lege verplichte legacywaarden worden server-side teruggezet naar veilige GlobeTrotr-standaardwaarden en de beheerder krijgt daar na opslaan melding van.
+- Agency-logo's gebruiken een private Storage-bucket met een limiet van 2 MB, beperkte afbeeldingsformaten en een workspacegebonden eigenaarsbeleid.
+- Het dashboard bevat een live voorbeeld van naam, domein, tagline, accentkleur en logo.
+- Migratie `20260908032000_agency_settings_and_logo.sql` en rollbacktest `supabase/tests/agency_settings.sql` toegevoegd.
+- Alle 21 regressietests en de volledige client-, SSR- en Cloudflare-productiebuild slagen.
+
+## 2026-09-09 21:19 CEST — Volledig beheer van Agency-teams
+
+- Agency Admin toont echte workspaceleden en openstaande uitnodigingen in één centrale teamsectie.
+- Een eigenaar kan een adviseur of financieel medewerker via een zeven dagen geldige, gehashte uitnodigingslink toevoegen; bestaande accounts ontvangen ook een melding.
+- De genodigde kan via een afzonderlijke NL/EN-pagina of rechtstreeks vanuit Meldingen accepteren of weigeren. Het exacte accountadres wordt server-side gecontroleerd.
+- Openstaande uitnodigingen kunnen veilig worden vernieuwd of ingetrokken. Bij vernieuwen wordt de oude link ongeldig en wordt de nieuwe link gekopieerd.
+- Rollen kunnen worden gewijzigd en toegang kan worden geblokkeerd, hersteld of verwijderd; de eigenaar kan zichzelf niet via deze acties aanpassen.
+- Migratie `20260908031000_agency_team_management.sql` en rollbacktest `supabase/tests/agency_team_management.sql` toegevoegd.
+- Alle 21 regressietests en de volledige client-, SSR- en Cloudflare-productiebuild slagen.
+
+## 2026-09-09 20:50 CEST — Relationele Agency-teams
+
+- Iedere workspace krijgt een vaste UUID; bestaande en nieuwe reizen worden automatisch aan die stabiele organisatie-ID gekoppeld.
+- Nieuwe relationele tabellen bewaren interne Agency-leden en toekomstige Agency-uitnodigingen los van reisgenoten en browserdata.
+- De database vertaalt actieve workspace-rollen naar de bestaande reisrechten: adviseurs kunnen plannen, financiële medewerkers beheren geldzaken en klanten blijven uitsluitend per reis gekoppeld.
+- De workspace-loader geeft een intern teamlid de actieve Agency-branding en alle reizen van de organisatie, zonder e-mailadressen van reisgenoten vrij te geven.
+- Reiswrites herkennen dezelfde Agency-rollen server-side en blijven onbevoegde accounts weigeren.
+- Migratie `20260908030000_agency_workspace_members.sql` en rollbacktest `supabase/tests/agency_workspace_access.sql` toegevoegd.
+- Alle 21 regressietests en de volledige client-, SSR- en Cloudflare-productiebuild slagen.
+
+## 2026-09-09 18:20 CEST — Start van Agency Admin en logischere back-ups
+
+- Nieuwe centrale route `/agency-admin` geeft Agency-eigenaren één overzicht met actuele reizen, workspaceleden, actieve branding en ingangen voor team, operatie en abonnement.
+- De interne roadmap beschrijft de volledige Agency-bouwvolgorde van relationele workspace en rollen tot branding, lifecycle, audit en regressietests.
+- De afzonderlijke reisback-up is van de dashboardkaart naar Reisinstellingen verplaatst; veilige JSON-import staat nu in Accountinstellingen.
+- De README is volledig herschreven naar de actuele beta, functies, architectuur, lokale installatie, controles, migraties en Lovable-werkwijze.
+- GitHub Actions gebruikt Node 24-compatibele Actions en Bun met het aanwezige `bun.lock`; de fout door een ontbrekend npm-lockbestand is daarmee verwijderd.
+- Alle 21 regressietests en de client-, SSR- en Cloudflare-productiebuild slagen.
+
 ## 2026-09-09 13:32 CEST — Openstaande uitnodigingen beheren
 
 - Reisinstellingen tonen voor de eigenaar een afzonderlijk overzicht van openstaande en verlopen uitnodigingen, met e-mailadres, rol en vervaldatum.

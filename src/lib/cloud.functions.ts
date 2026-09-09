@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Trip, TripMemberRole, WorkspaceState } from "@/lib/types";
 import { protectTripUpdate } from "@/lib/trip-access";
+import { effectiveAgencyPermissions, protectAgencyTripUpdate, type AgencyPermissionMap } from "@/lib/agency-permissions";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
+import { resolveBranding } from "@/lib/branding";
 
 type UntypedSupabase = {
   from: (relation: string) => any;
@@ -341,15 +343,48 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   const accessByTrip = new Map<string, TripMemberRole>(
     membershipRows.map((membership) => [String(membership.trip_uuid), membership.role]),
   );
+  // Interne Agency-leden ontlenen toegang aan de workspace. Deze optionele
+  // stap blijft compatibel totdat de relationele Agency-migratie is uitgevoerd.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const agencyClient = supabaseAdmin as unknown as UntypedSupabase;
+  const { data: agencyMemberships, error: agencyMembershipError } = await agencyClient
+    .from("workspace_members")
+    .select("workspace_uuid, role, permission_overrides")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .neq("role", "owner");
+  let agencyParents: Record<string, any>[] = [];
+  if (!agencyMembershipError && agencyMemberships?.length) {
+    const candidateWorkspaceIds = agencyMemberships.map((membership: any) => membership.workspace_uuid);
+    const { data: permissionRows } = await agencyClient.from("agency_role_permissions").select("workspace_uuid, role, permissions").in("workspace_uuid", candidateWorkspaceIds);
+    const defaultsByRole = new Map((permissionRows ?? []).map((row: any) => [`${row.workspace_uuid}:${row.role}`, row.permissions]));
+    const visibleMemberships = agencyMemberships.filter((membership: any) => effectiveAgencyPermissions(membership.role, defaultsByRole.get(`${membership.workspace_uuid}:${membership.role}`), membership.permission_overrides).trips_view);
+    const workspaceIds = visibleMemberships.map((membership: any) => membership.workspace_uuid);
+    const roleByWorkspace = new Map<string, TripMemberRole>(visibleMemberships.map((membership: any) => [
+      String(membership.workspace_uuid),
+      membership.role === "finance" ? "finance" : "advisor",
+    ]));
+    const { data: rows, error: agencyError } = await client
+      .from("trips")
+      .select(`${parentColumns}, workspace_uuid`)
+      .in("workspace_uuid", workspaceIds)
+      .order("start_date", { ascending: true });
+    if (agencyError) throw agencyError;
+    agencyParents = (rows ?? []) as Record<string, any>[];
+    for (const row of agencyParents) {
+      const role = roleByWorkspace.get(String(row.workspace_uuid));
+      if (role) accessByTrip.set(String(row.trip_uuid), role);
+    }
+  }
   const rows = [
     ...((ownedParents ?? []) as Record<string, any>[]),
     ...((sharedParents ?? []) as Record<string, any>[]),
-  ];
+    ...agencyParents,
+  ].filter((row, index, all) => all.findIndex((candidate) => candidate.trip_uuid === row.trip_uuid) === index);
   const ids = rows.map((row) => String(row.trip_uuid));
   if (!ids.length) return [];
   // RLS bepaalt eerst welke reizen dit account mag zien. Pas daarna vult de
   // server leden aan; alleen de eigenaar ontvangt hieronder e-mailadressen.
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const memberClient = supabaseAdmin as unknown as UntypedSupabase;
   const [stops, itinerary, expenses, travelItems, packing, members] = await Promise.all([
     client.from("trip_stops").select("*").in("trip_uuid", ids).order("position"),
@@ -377,6 +412,16 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   const travelByTrip = grouped(travelItems);
   const packingByTrip = grouped(packing);
   const membersByTrip = grouped(members);
+  const { data: brandingRows } = await memberClient.from("trip_branding_overrides")
+    .select("trip_uuid, enabled, brand_name, domain, tagline, accent").in("trip_uuid", ids);
+  const brandingByTrip = new Map(((brandingRows ?? []) as Record<string,any>[])
+    .filter((branding) => branding.enabled)
+    .map((branding) => [String(branding.trip_uuid), {
+      ...(branding.brand_name ? { brandName: String(branding.brand_name) } : {}),
+      ...(branding.domain ? { domain: String(branding.domain) } : {}),
+      ...(branding.tagline ? { tagline: String(branding.tagline) } : {}),
+      ...(branding.accent == null ? {} : { accent: Number(branding.accent) }),
+    }]));
   return rows.map((row) => {
     const id = String(row.trip_uuid);
     const accessRole = accessByTrip.get(id) ?? "owner";
@@ -388,6 +433,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
       ...(row["revision"] == null ? {} : { revision: String(row["revision"]) }),
       name: String(row.name ?? "Reis"),
       ...(row.description ? { description: String(row.description) } : {}),
+      ...(brandingByTrip.has(id) ? { branding: brandingByTrip.get(id) } : {}),
       template: row.template,
       start: row.start_date ?? "",
       end: row.end_date ?? "",
@@ -469,19 +515,59 @@ export const loadWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data, error } = await supabase
+    const { data: personalWorkspace, error } = await supabase
       .from("workspaces")
-      .select("data, public_token, share_enabled, share_financials")
+      .select("data, public_token, share_enabled, share_financials, plan, base_currency, branding")
       .eq("user_id", userId)
       .maybeSingle();
     if (error) throw error;
-    if (!data) return null;
+    if (!personalWorkspace) return null;
     try {
       const db = supabase as unknown as UntypedSupabase;
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const admin = supabaseAdmin as unknown as UntypedSupabase;
+      const { data: agencyMembership } = await admin
+        .from("workspace_members")
+        .select("workspace_uuid, role")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .neq("role", "owner")
+        .limit(1)
+        .maybeSingle();
+      let data = personalWorkspace as Record<string, any>;
+      let workspaceRole: "editor" | "accountant" | undefined;
+      if (agencyMembership) {
+        const { data: agencyWorkspace } = await admin
+          .from("workspaces")
+          .select("data, public_token, share_enabled, share_financials, plan, base_currency, branding")
+          .eq("workspace_uuid", agencyMembership.workspace_uuid)
+          .eq("plan", "agency")
+          .maybeSingle();
+        if (agencyWorkspace) {
+          data = agencyWorkspace as Record<string, any>;
+          workspaceRole = agencyMembership.role === "finance" ? "accountant" : "editor";
+        }
+      }
       const relationalTrips = await loadRelationalTrips(db, userId);
       const jsonWorkspace = data.data as WorkspaceState;
+      let agencyBranding: Record<string,any>|null=null;
+      if(data.plan==="agency"){
+        let workspaceId=agencyMembership?.workspace_uuid;
+        if(!workspaceId){const {data:ownedWorkspace}=await admin.from("workspaces").select("workspace_uuid").eq("user_id",userId).maybeSingle();workspaceId=ownedWorkspace?.workspace_uuid;}
+        if(workspaceId){const {data:settings}=await admin.from("agency_settings").select("system_name,domain,accent,tagline,logo_path").eq("workspace_uuid",workspaceId).maybeSingle();agencyBranding=settings;}
+      }
       if (relationalTrips.length || !jsonWorkspace?.trips?.length) {
-        return { ...data, data: { ...jsonWorkspace, trips: relationalTrips } };
+        return {
+          ...data,
+          data: {
+            ...jsonWorkspace,
+            plan: data.plan ?? jsonWorkspace.plan,
+            baseCurrency: data.base_currency ?? jsonWorkspace.baseCurrency,
+            branding: resolveBranding(data.plan ?? jsonWorkspace.plan, agencyBranding, data.branding ?? jsonWorkspace.branding),
+            ...(workspaceRole ? { role: workspaceRole } : {}),
+            trips: relationalTrips,
+          },
+        };
       }
       const { data: trips, error: tripsError } = await db
         .from("trips")
@@ -492,7 +578,7 @@ export const loadWorkspace = createServerFn({ method: "GET" })
     } catch {
       // De eerste UUID-migratie kan nog niet uitgevoerd zijn; JSON is dan de
       // compatibele bron tot de relationele tabellen beschikbaar zijn.
-      return data;
+      return personalWorkspace;
     }
   });
 
@@ -514,11 +600,22 @@ export const createTrip = createServerFn({ method: "POST" })
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
+    let workspaceOwnerId = context.userId;
+    const { data: agencyMembership } = await db.from("workspace_members").select("workspace_uuid, role, permission_overrides").eq("user_id", context.userId).eq("status", "active").neq("role", "owner").limit(1).maybeSingle();
+    if (agencyMembership) {
+      const [{ data: roleSettings }, { data: agencyWorkspace }] = await Promise.all([
+        db.from("agency_role_permissions").select("permissions").eq("workspace_uuid", agencyMembership.workspace_uuid).eq("role", agencyMembership.role).maybeSingle(),
+        db.from("workspaces").select("user_id, plan").eq("workspace_uuid", agencyMembership.workspace_uuid).maybeSingle(),
+      ]);
+      const permissions = effectiveAgencyPermissions(agencyMembership.role, roleSettings?.permissions, agencyMembership.permission_overrides);
+      if (agencyWorkspace?.plan !== "agency" || !permissions.trips_create) throw new Error("Je mag geen reizen aanmaken in deze Agency-workspace.");
+      workspaceOwnerId = agencyWorkspace.user_id;
+    }
     const { data: trip, error } = await db
       .from("trips")
       .insert({
         // Alleen de middleware bepaalt de eigenaar; de browser kan dit nooit invullen.
-        workspace_user_id: context.userId,
+        workspace_user_id: workspaceOwnerId,
         id: data.tripId,
         trip_uuid: data.tripId,
         name,
@@ -556,6 +653,7 @@ export const saveTrip = createServerFn({ method: "POST" })
     if (storedError || !storedTrip) throw new Error("Reis niet gevonden.");
     const ownerId = String(storedTrip.workspace_user_id);
     let accessRole: TripMemberRole = "owner";
+    let agencyPermissions: AgencyPermissionMap | undefined;
     if (ownerId !== context.userId) {
       const { data: membership, error: membershipError } = await db
         .from("trip_members")
@@ -564,8 +662,31 @@ export const saveTrip = createServerFn({ method: "POST" })
         .eq("user_id", context.userId)
         .eq("status", "active")
         .maybeSingle();
-      if (membershipError || !membership) throw new Error("Je hebt geen toegang tot deze reis.");
-      accessRole = membership.role as TripMemberRole;
+      if (membershipError) throw new Error("Je hebt geen toegang tot deze reis.");
+      if (membership) {
+        accessRole = membership.role as TripMemberRole;
+      } else {
+        const { data: workspace, error: workspaceError } = await db
+          .from("workspaces")
+          .select("workspace_uuid, plan")
+          .eq("user_id", ownerId)
+          .eq("plan", "agency")
+          .maybeSingle();
+        if (workspaceError || !workspace) throw new Error("Je hebt geen toegang tot deze reis.");
+        const { data: agencyMembership, error: agencyMembershipError } = await db
+          .from("workspace_members")
+          .select("role, permission_overrides")
+          .eq("workspace_uuid", workspace.workspace_uuid)
+          .eq("user_id", context.userId)
+          .eq("status", "active")
+          .maybeSingle();
+        if (agencyMembershipError || !agencyMembership) throw new Error("Je hebt geen toegang tot deze reis.");
+        accessRole = agencyMembership.role === "finance" ? "finance" : "advisor";
+        const { data: roleSettings, error: roleSettingsError } = await db.from("agency_role_permissions").select("permissions").eq("workspace_uuid", workspace.workspace_uuid).eq("role", agencyMembership.role).maybeSingle();
+        if (roleSettingsError) throw new Error("Agency-rechten konden niet worden gecontroleerd.");
+        agencyPermissions = effectiveAgencyPermissions(agencyMembership.role, roleSettings?.permissions, agencyMembership.permission_overrides);
+        if (!agencyPermissions.trips_view) throw new Error("Je hebt geen toegang tot deze reis.");
+      }
     }
     if (accessRole === "viewer" || accessRole === "client") {
       throw new Error("Je hebt alleen-lezen toegang tot deze reis.");
@@ -573,7 +694,7 @@ export const saveTrip = createServerFn({ method: "POST" })
     if (accessRole !== "owner") {
       const current = (await loadRelationalTrips(db, ownerId)).find((item) => item.id === trip.id);
       if (!current) throw new Error("Reis niet gevonden.");
-      trip = protectTripUpdate(current, trip, accessRole);
+      trip = agencyPermissions ? protectAgencyTripUpdate(current, trip, agencyPermissions) : protectTripUpdate(current, trip, accessRole);
       trip = normalizeTripForPersistence(trip);
     }
     const { data: saved, error } = await db.rpc("save_trip_snapshot_versioned", {

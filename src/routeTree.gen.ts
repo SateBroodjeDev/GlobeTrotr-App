@@ -19,13 +19,18 @@ import { Route as MogelijkhedenRouteImport } from './routes/mogelijkheden'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedAgencyAdminRouteImport } from './routes/_authenticated/agency-admin'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedBrandingRouteImport } from './routes/_authenticated/branding'
 import { Route as AuthenticatedCorporateAdminRouteImport } from './routes/_authenticated/corporate-admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as AgencyUitnodigingTokenRouteImport } from './routes/agency-uitnodiging.$token'
 import { Route as UitnodigingTokenRouteImport } from './routes/uitnodiging.$token'
+import { Route as AuthenticatedAgencyAdminIndexRouteImport } from './routes/_authenticated/agency-admin.index'
+import { Route as AuthenticatedAgencyAdminPermissionsRouteImport } from './routes/_authenticated/agency-admin.permissions'
+import { Route as AuthenticatedAgencyAdminSettingsRouteImport } from './routes/_authenticated/agency-admin.settings'
 import { Route as AuthenticatedCorporateAdminIndexRouteImport } from './routes/_authenticated/corporate-admin.index'
 import { Route as AuthenticatedCorporateAdminAuditRouteImport } from './routes/_authenticated/corporate-admin.audit'
 import { Route as AuthenticatedCorporateAdminFeedbackRouteImport } from './routes/_authenticated/corporate-admin.feedback'
@@ -86,6 +91,12 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAgencyAdminRoute =
+  AuthenticatedAgencyAdminRouteImport.update({
+    id: '/agency-admin',
+    path: '/agency-admin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -117,11 +128,34 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AgencyUitnodigingTokenRoute = AgencyUitnodigingTokenRouteImport.update({
+  id: '/agency-uitnodiging/$token',
+  path: '/agency-uitnodiging/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UitnodigingTokenRoute = UitnodigingTokenRouteImport.update({
   id: '/uitnodiging/$token',
   path: '/uitnodiging/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAgencyAdminIndexRoute =
+  AuthenticatedAgencyAdminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminPermissionsRoute =
+  AuthenticatedAgencyAdminPermissionsRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminSettingsRoute =
+  AuthenticatedAgencyAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
 const AuthenticatedCorporateAdminIndexRoute =
   AuthenticatedCorporateAdminIndexRouteImport.update({
     id: '/',
@@ -192,13 +226,17 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/roadmap': typeof RoadmapRoute
   '/account': typeof AuthenticatedAccountRoute
+  '/agency-admin': typeof AuthenticatedAgencyAdminRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/branding': typeof AuthenticatedBrandingRoute
   '/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
+  '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
+  '/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
@@ -207,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/agency-admin/': typeof AuthenticatedAgencyAdminIndexRoute
   '/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
   '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
 }
@@ -225,7 +264,10 @@ export interface FileRoutesByTo {
   '/branding': typeof AuthenticatedBrandingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
+  '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
+  '/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
@@ -234,6 +276,7 @@ export interface FileRoutesByTo {
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/agency-admin': typeof AuthenticatedAgencyAdminIndexRoute
   '/corporate-admin': typeof AuthenticatedCorporateAdminIndexRoute
   '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
 }
@@ -249,13 +292,17 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/roadmap': typeof RoadmapRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/agency-admin': typeof AuthenticatedAgencyAdminRouteWithChildren
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/branding': typeof AuthenticatedBrandingRoute
   '/_authenticated/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
+  '/_authenticated/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
+  '/_authenticated/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
   '/_authenticated/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
   '/_authenticated/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
@@ -264,6 +311,7 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/_authenticated/agency-admin/': typeof AuthenticatedAgencyAdminIndexRoute
   '/_authenticated/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
   '/_authenticated/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
 }
@@ -279,13 +327,17 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/roadmap'
     | '/account'
+    | '/agency-admin'
     | '/analytics'
     | '/billing'
     | '/branding'
     | '/corporate-admin'
     | '/dashboard'
     | '/team'
+    | '/agency-uitnodiging/$token'
     | '/uitnodiging/$token'
+    | '/agency-admin/permissions'
+    | '/agency-admin/settings'
     | '/corporate-admin/audit'
     | '/corporate-admin/feedback'
     | '/corporate-admin/issues'
@@ -294,6 +346,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/agency-admin/'
     | '/corporate-admin/'
     | '/corporate-admin/user/$userId'
   fileRoutesByTo: FileRoutesByTo
@@ -312,7 +365,10 @@ export interface FileRouteTypes {
     | '/branding'
     | '/dashboard'
     | '/team'
+    | '/agency-uitnodiging/$token'
     | '/uitnodiging/$token'
+    | '/agency-admin/permissions'
+    | '/agency-admin/settings'
     | '/corporate-admin/audit'
     | '/corporate-admin/feedback'
     | '/corporate-admin/issues'
@@ -321,6 +377,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/agency-admin'
     | '/corporate-admin'
     | '/corporate-admin/user/$userId'
   id:
@@ -335,13 +392,17 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/roadmap'
     | '/_authenticated/account'
+    | '/_authenticated/agency-admin'
     | '/_authenticated/analytics'
     | '/_authenticated/billing'
     | '/_authenticated/branding'
     | '/_authenticated/corporate-admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/team'
+    | '/agency-uitnodiging/$token'
     | '/uitnodiging/$token'
+    | '/_authenticated/agency-admin/permissions'
+    | '/_authenticated/agency-admin/settings'
     | '/_authenticated/corporate-admin/audit'
     | '/_authenticated/corporate-admin/feedback'
     | '/_authenticated/corporate-admin/issues'
@@ -350,6 +411,7 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin/users'
     | '/_authenticated/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/_authenticated/agency-admin/'
     | '/_authenticated/corporate-admin/'
     | '/_authenticated/corporate-admin/user/$userId'
   fileRoutesById: FileRoutesById
@@ -364,6 +426,7 @@ export interface RootRouteChildren {
   MogelijkhedenRoute: typeof MogelijkhedenRoute
   PrivacyRoute: typeof PrivacyRoute
   RoadmapRoute: typeof RoadmapRoute
+  AgencyUitnodigingTokenRoute: typeof AgencyUitnodigingTokenRoute
   UitnodigingTokenRoute: typeof UitnodigingTokenRoute
   ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
 }
@@ -440,6 +503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agency-admin': {
+      id: '/_authenticated/agency-admin'
+      path: '/agency-admin'
+      fullPath: '/agency-admin'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/analytics': {
       id: '/_authenticated/analytics'
       path: '/analytics'
@@ -482,12 +552,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/agency-uitnodiging/$token': {
+      id: '/agency-uitnodiging/$token'
+      path: '/agency-uitnodiging/$token'
+      fullPath: '/agency-uitnodiging/$token'
+      preLoaderRoute: typeof AgencyUitnodigingTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/uitnodiging/$token': {
       id: '/uitnodiging/$token'
       path: '/uitnodiging/$token'
       fullPath: '/uitnodiging/$token'
       preLoaderRoute: typeof UitnodigingTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/agency-admin/': {
+      id: '/_authenticated/agency-admin/'
+      path: '/'
+      fullPath: '/agency-admin/'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/permissions': {
+      id: '/_authenticated/agency-admin/permissions'
+      path: '/permissions'
+      fullPath: '/agency-admin/permissions'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminPermissionsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/settings': {
+      id: '/_authenticated/agency-admin/settings'
+      path: '/settings'
+      fullPath: '/agency-admin/settings'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
     }
     '/_authenticated/corporate-admin/': {
       id: '/_authenticated/corporate-admin/'
@@ -562,6 +660,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAgencyAdminRouteChildren {
+  AuthenticatedAgencyAdminPermissionsRoute: typeof AuthenticatedAgencyAdminPermissionsRoute
+  AuthenticatedAgencyAdminSettingsRoute: typeof AuthenticatedAgencyAdminSettingsRoute
+  AuthenticatedAgencyAdminIndexRoute: typeof AuthenticatedAgencyAdminIndexRoute
+}
+
+const AuthenticatedAgencyAdminRouteChildren: AuthenticatedAgencyAdminRouteChildren =
+  {
+    AuthenticatedAgencyAdminPermissionsRoute:
+      AuthenticatedAgencyAdminPermissionsRoute,
+    AuthenticatedAgencyAdminSettingsRoute:
+      AuthenticatedAgencyAdminSettingsRoute,
+    AuthenticatedAgencyAdminIndexRoute: AuthenticatedAgencyAdminIndexRoute,
+  }
+
+const AuthenticatedAgencyAdminRouteWithChildren =
+  AuthenticatedAgencyAdminRoute._addFileChildren(
+    AuthenticatedAgencyAdminRouteChildren,
+  )
+
 interface AuthenticatedCorporateAdminRouteChildren {
   AuthenticatedCorporateAdminAuditRoute: typeof AuthenticatedCorporateAdminAuditRoute
   AuthenticatedCorporateAdminFeedbackRoute: typeof AuthenticatedCorporateAdminFeedbackRoute
@@ -600,6 +718,7 @@ const AuthenticatedCorporateAdminRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedAgencyAdminRoute: typeof AuthenticatedAgencyAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedBrandingRoute: typeof AuthenticatedBrandingRoute
@@ -611,6 +730,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedAgencyAdminRoute: AuthenticatedAgencyAdminRouteWithChildren,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedBrandingRoute: AuthenticatedBrandingRoute,
@@ -634,6 +754,7 @@ const rootRouteChildren: RootRouteChildren = {
   MogelijkhedenRoute: MogelijkhedenRoute,
   PrivacyRoute: PrivacyRoute,
   RoadmapRoute: RoadmapRoute,
+  AgencyUitnodigingTokenRoute: AgencyUitnodigingTokenRoute,
   UitnodigingTokenRoute: UitnodigingTokenRoute,
   ReisTokenTripIdRoute: ReisTokenTripIdRoute,
 }

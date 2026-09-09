@@ -8,7 +8,7 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "test": "node --test src/lib/trip-save-queue.test.ts src/lib/public-changelog.test.ts src/lib/trip-access.test.ts src/lib/settle.test.ts src/lib/flight-schedule.test.ts src/lib/fuel-costs.test.ts src/lib/exporters.test.ts",
+    "test": "node --test src/lib/trip-save-queue.test.ts src/lib/public-changelog.test.ts src/lib/trip-access.test.ts src/lib/agency-permissions.test.ts src/lib/branding.test.ts src/lib/settle.test.ts src/lib/flight-schedule.test.ts src/lib/fuel-costs.test.ts src/lib/exporters.test.ts",
     "check": "npm test && npm run build",
     "lint": "eslint .",
     "format": "prettier --write ."

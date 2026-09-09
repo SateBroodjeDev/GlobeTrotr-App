@@ -41,6 +41,157 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-09-trip-branding",
+    version: "Beta 0.32",
+    publishedAt: "2026-09-09T22:04:00+02:00",
+    title: "Een eigen uitstraling per Agency-reis",
+    titleEn: "Custom branding for each Agency trip",
+    summary: "Een Agency kan een specifieke reis een eigen naam, domein, tagline en accentkleur geven.",
+    summaryEn: "An Agency can give a specific trip its own name, domain, tagline and accent colour.",
+    changes: [
+      { kind: "new", title: "Reishuisstijl", titleEn: "Trip branding", description: "Reisinstellingen bevatten een eigen brandingsectie met direct voorbeeld en duidelijke veldgrenzen.", descriptionEn: "Trip settings include a dedicated branding section with an instant preview and clear field limits." },
+      { kind: "improved", title: "Agency-standaard behouden", titleEn: "Agency defaults preserved", description: "Lege velden gebruiken de Agency-huisstijl en met één actie wordt de volledige reisafwijking uitgeschakeld.", descriptionEn: "Empty fields use Agency branding, and one action disables the complete trip override." },
+      { kind: "secure", title: "Afgeschermd beheer", titleEn: "Protected management", description: "Alleen een actief Agency-lid met brandingrechten kan de reishuisstijl bekijken of aanpassen.", descriptionEn: "Only an active Agency member with branding permission can view or change trip branding." },
+      { kind: "improved", title: "Dezelfde stijl bij delen en exporteren", titleEn: "Consistent sharing and exports", description: "De openbare reis, PDF en reisgids gebruiken automatisch de effectieve reishuisstijl.", descriptionEn: "The public trip, PDF and trip guide automatically use the effective trip branding." },
+    ],
+  },
+  {
+    id: "2026-09-09-agency-admin-shell",
+    version: "Beta 0.31",
+    publishedAt: "2026-09-09T22:00:00+02:00",
+    title: "Een helder Agency-beheerdashboard",
+    titleEn: "A clear Agency administration dashboard",
+    summary: "Agency-beheer is verdeeld over duidelijke pagina's en past zich aan de rechten van ieder teamlid aan.",
+    summaryEn: "Agency administration is divided into clear pages and adapts to each team member's permissions.",
+    changes: [
+      { kind: "improved", title: "Vaste beheerindeling", titleEn: "Consistent administration layout", description: "Overzicht, organisatie, rechten, klanten, operatie en abonnement hebben een vaste navigatie op desktop en mobiel.", descriptionEn: "Overview, organisation, permissions, clients, operations and plan have consistent navigation on desktop and mobile." },
+      { kind: "secure", title: "Menu's volgens rechten", titleEn: "Permission-aware menus", description: "Een teamlid ziet alleen de beheeronderdelen die bij de Agency-rol en persoonlijke uitzonderingen horen.", descriptionEn: "Team members only see administration areas granted by their Agency role and personal exceptions." },
+      { kind: "improved", title: "Betrouwbare merkterugval", titleEn: "Reliable brand fallback", description: "De merkweergave gebruikt één vaste volgorde en valt buiten een actief Agency-plan automatisch terug op GlobeTrotr.", descriptionEn: "Brand presentation uses one consistent hierarchy and automatically falls back to GlobeTrotr without an active Agency plan." },
+    ],
+  },
+  {
+    id: "2026-09-09-agency-permissions",
+    version: "Beta 0.30",
+    publishedAt: "2026-09-09T21:55:00+02:00",
+    title: "Precieze rechten voor ieder Agency-team",
+    titleEn: "Precise permissions for every Agency team",
+    summary: "Een Agency bepaalt standaardrechten per rol en kan die waar nodig voor één teamlid aanpassen.",
+    summaryEn: "An Agency sets default permissions per role and can adjust them for an individual team member where needed.",
+    changes: [
+      {kind:"new",title:"Rollenmatrix",titleEn:"Role permission matrix",description:"Advisor en Finance hebben duidelijke, aanpasbare rechten voor reizen, planning, uitgaven en beheer.",descriptionEn:"Advisor and Finance have clear, configurable permissions for trips, planning, expenses and management."},
+      {kind:"improved",title:"Uitzondering per gebruiker",titleEn:"Per-user exceptions",description:"Een teamlid kan een gericht extra of beperkt recht krijgen zonder de hele rol te veranderen.",descriptionEn:"A team member can receive a targeted additional or restricted permission without changing the whole role."},
+      {kind:"secure",title:"Controle op de server",titleEn:"Server-side enforcement",description:"Reisgegevens buiten iemands effectieve rechten worden niet door een browserwijziging overschreven.",descriptionEn:"Trip data outside a person's effective permissions cannot be overwritten by a browser change."},
+    ],
+  },
+  {
+    id: "2026-09-09-agency-settings",
+    version: "Beta 0.29",
+    publishedAt: "2026-09-09T21:39:00+02:00",
+    title: "Agency-instellingen krijgen een eigen plek",
+    titleEn: "A dedicated place for Agency settings",
+    summary: "Organisatiegegevens, merkuitstraling en het Agency-logo zijn overzichtelijk en veilig samen te beheren.",
+    summaryEn: "Organisation details, brand appearance and the Agency logo can be managed together safely and clearly.",
+    changes: [
+      { kind: "new", title: "Eigen instellingendashboard", titleEn: "Dedicated settings dashboard", description: "Taal, valuta, tijdzone, contactgegevens en branding staan bij elkaar met een direct voorbeeld.", descriptionEn: "Language, currency, timezone, contact details and branding are grouped with an instant preview." },
+      { kind: "secure", title: "Afgeschermd Agency-logo", titleEn: "Protected Agency logo", description: "Logo's hebben vaste bestands- en groottelimieten en worden alleen voor de juiste workspace opgeslagen.", descriptionEn: "Logos have fixed file and size limits and are stored only for the correct workspace." },
+      { kind: "improved", title: "Duidelijke veldgrenzen", titleEn: "Clear field limits", description: "Tekentellers en veilige standaardwaarden voorkomen lege instellingen en overlopende organisatienamen.", descriptionEn: "Character counters and safe defaults prevent empty settings and overflowing organisation names." },
+    ],
+  },
+  {
+    id: "2026-09-09-agency-team-management",
+    version: "Beta 0.28",
+    publishedAt: "2026-09-09T21:19:00+02:00",
+    title: "Agency-teams vanuit één plek beheren",
+    titleEn: "Manage Agency teams from one place",
+    summary: "Agency-eigenaren kunnen interne teamleden veilig uitnodigen en hun workspacebrede toegang beheren.",
+    summaryEn: "Agency owners can securely invite internal team members and manage their workspace-wide access.",
+    changes: [
+      { kind: "new", title: "Veilige Agency-uitnodiging", titleEn: "Secure Agency invitation", description: "Adviseurs en financiële medewerkers krijgen een tijdelijke link en, bij een bestaand account, een melding om zelf te accepteren of weigeren.", descriptionEn: "Advisors and finance team members receive a temporary link and, for an existing account, a notification to accept or decline." },
+      { kind: "improved", title: "Teambeheer in Agency Admin", titleEn: "Team management in Agency Admin", description: "De eigenaar kan rollen wijzigen, toegang blokkeren of herstellen en een lid uit het team verwijderen.", descriptionEn: "The owner can change roles, suspend or restore access and remove a member from the team." },
+      { kind: "secure", title: "Workspacebrede rechten", titleEn: "Workspace-wide permissions", description: "Alleen actieve interne Agency-leden krijgen toegang tot alle reizen; klanten blijven gekoppeld aan hun eigen reis.", descriptionEn: "Only active internal Agency members receive access to all trips; clients remain linked to their own trip." },
+    ],
+  },
+  {
+    id: "2026-09-09-agency-workspaces",
+    version: "Beta 0.27",
+    publishedAt: "2026-09-09T20:50:00+02:00",
+    title: "Agency-teams krijgen een veilig fundament",
+    titleEn: "A secure foundation for Agency teams",
+    summary:
+      "Interne teamleden kunnen straks vanuit één Agency-workspace samenwerken, met duidelijke rollen en afgescheiden klanttoegang.",
+    summaryEn:
+      "Internal team members will be able to collaborate from one Agency workspace with clear roles and separated client access.",
+    changes: [
+      {
+        kind: "secure",
+        title: "Vaste organisatie-identiteit",
+        titleEn: "Stable organisation identity",
+        description:
+          "Workspaces en hun reizen zijn voortaan via een vaste organisatie-ID verbonden, los van tijdelijke browsergegevens.",
+        descriptionEn:
+          "Workspaces and their trips are now linked through a stable organisation ID, independent of temporary browser data.",
+      },
+      {
+        kind: "new",
+        title: "Interne Agency-rollen",
+        titleEn: "Internal Agency roles",
+        description:
+          "De database onderscheidt eigenaar, reisadviseur en financiën en koppelt iedere rol aan passende reisrechten.",
+        descriptionEn:
+          "The database distinguishes owner, travel advisor and finance roles and maps each role to appropriate trip access.",
+      },
+      {
+        kind: "secure",
+        title: "Klanten blijven reisgebonden",
+        titleEn: "Clients remain trip-specific",
+        description:
+          "Een klant krijgt nooit automatisch toegang tot andere reizen of de interne Agency-workspace.",
+        descriptionEn:
+          "A client never automatically receives access to other trips or the internal Agency workspace.",
+      },
+    ],
+  },
+  {
+    id: "2026-09-09-agency-admin-start",
+    version: "Beta 0.26",
+    publishedAt: "2026-09-09T18:20:00+02:00",
+    title: "Een centrale plek voor Agency-beheer",
+    titleEn: "A central place for Agency management",
+    summary:
+      "Agency-eigenaren krijgen een eigen beheeromgeving en back-ups staan voortaan op de plek waar je ze verwacht.",
+    summaryEn:
+      "Agency owners now have a dedicated management area, while backups appear where users expect them.",
+    changes: [
+      {
+        kind: "new",
+        title: "Agency Admin-overzicht",
+        titleEn: "Agency Admin overview",
+        description:
+          "Echte reis-, leden- en merkgegevens komen samen met snelle ingangen voor branding, team, operatie en abonnement.",
+        descriptionEn:
+          "Real trip, member and brand data is brought together with quick access to branding, team, operations and plans.",
+      },
+      {
+        kind: "improved",
+        title: "Back-ups op een logische plaats",
+        titleEn: "Backups in a logical place",
+        description:
+          "Een reisback-up download je bij de instellingen van die reis; een JSON-back-up importeer je bij je accountinstellingen.",
+        descriptionEn:
+          "Download a trip backup from that trip's settings and import a JSON backup from account settings.",
+      },
+      {
+        kind: "improved",
+        title: "Betrouwbaardere kwaliteitscontrole",
+        titleEn: "More reliable quality checks",
+        description:
+          "De automatische GitHub-controle gebruikt voortaan de dependency-lockfile die daadwerkelijk bij het project hoort.",
+        descriptionEn:
+          "The automated GitHub check now uses the dependency lockfile that actually belongs to the project.",
+      },
+    ],
+  },
+  {
     id: "2026-09-09-invitation-management",
     version: "Beta 0.25",
     publishedAt: "2026-09-09T13:32:00+02:00",

@@ -222,6 +222,8 @@ export type Trip = {
   name: string;
   /** Korte introductie van de reis, zichtbaar op de publieke pagina wanneer gedeeld. */
   description?: string | undefined;
+  /** Optionele Agency-huisstijl voor uitsluitend deze reis. */
+  branding?: Partial<Branding>;
   template: TripTemplate;
   start: string;
   end: string;
@@ -349,6 +351,8 @@ export type Branding = {
   domain: string;
   accent: number; // hue
   tagline: string;
+  /** Private Storage-path; de browser ontvangt alleen een tijdelijke signed URL. */
+  logoPath?: string;
 };
 
 export type WorkspaceState = {
