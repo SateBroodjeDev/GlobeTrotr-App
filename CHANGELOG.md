@@ -4,6 +4,43 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-10 19:36 CEST — Append-only Agency-auditlog
+
+- Agency Admin heeft een afzonderlijke eigenaarspagina **Activiteit** met maximaal honderd recente beheeracties en een compacte standaardweergave.
+- Klantopslag en archivering, organisatie- en reishuisstijl, rol- en gebruikersrechten, teamuitnodigingen en teamlidacties leggen actor, actie, doel en tijdstip vast.
+- Ook het accepteren of weigeren van een Agency-uitnodiging wordt aan de juiste workspace toegeschreven.
+- Context blijft doelbewust beperkt: uitnodigingstokens, klantnotities en volledige gewijzigde records komen niet in de auditlog.
+- De nieuwe tabel is afgeschermd voor browserrollen en append-only voor de service-role; de meegeleverde SQL-test controleert beide eigenschappen.
+
+## 2026-09-10 19:28 CEST — Operationele Agency-werkvoorraad
+
+- De pagina **Operatie** combineert de bestaande echte portfolio- en kostencijfers met een concrete werkvoorraad.
+- Aankomende reizen, toekomstige boekingen zonder aanbieder of boekingsnummer, declarabele uitgaven en verlopen teamuitnodigingen staan in vier begrensde lijsten.
+- Ieder reisgebonden aandachtspunt opent direct de juiste reis; lege categorieën krijgen een duidelijke rustige status.
+- De nieuwe serverloader controleert `analytics_view` en retourneert uitsluitend compacte operationele samenvattingen uit de relationele Agency-data.
+- Factuurstatus wordt nog niet gesuggereerd: declarabele uitgaven blijven als open weergegeven totdat het geplande factuurmodel een echte betaaldatum kan leveren.
+
+## 2026-09-10 19:21 CEST — Klantprofielen in Agency Admin
+
+- Nieuwe pagina `/agency-admin/clients` beheert klantprofielen los van interne Agency-teamleden en reisuitnodigingen.
+- Een profiel bevat naam, e-mail, telefoonnummer, voorkeurstaal en interne notities en kan aan meerdere reizen worden gekoppeld.
+- Actieve en gearchiveerde klanten zijn afzonderlijk filterbaar; de begrensde lijst houdt ook een grotere klantenportefeuille overzichtelijk.
+- Profielwijzigingen en de volledige set reiskoppelingen worden door één service-role-only RPC atomair opgeslagen en controleren opnieuw het effectieve `members_manage`-recht.
+- Het operationele reis- en kostenoverzicht staat nu als eigen pagina in Agency Admin; bestaande links naar `/analytics` worden doorgestuurd.
+- De SQL-regressietest bewijst dat een ongeldige reiskoppeling ook de voorafgaande profielwijziging terugdraait.
+
+## 2026-09-10 16:58 CEST — Directe Agency-branding en compact beheer
+
+- Opslaan van Agency-instellingen herlaadt de actieve workspace onmiddellijk; naam, domein, tagline, valuta en accentkleur wachten niet langer op een volgende sessie.
+- Logo-upload gebruikt een uniek, workspacegebonden bestandspad, slaat de nieuwe verwijzing atomair op en verwijdert daarna het vorige bestand. AppShell toont het private logo via een signed URL.
+- De publieke Agency-reis gebruikt de effectieve bedrijfsnaam bij **gedeeld door** en ontvangt alleen expliciet veilige merkvelden.
+- Blokkeren en herstellen van een Agency-lid maakt of actualiseert een accountmelding voor dat lid.
+- Persoonlijke rechten gebruiken een teamlidselector en renderen daardoor niet langer alle uitgebreide matrices onder elkaar.
+- Corporate Admin heeft een afzonderlijke pagina **Agencies** voor inzage en correctie van organisatie-instellingen; iedere wijziging vereist een reden en wordt in de auditlog vastgelegd.
+- Agency-serverfuncties bepalen voor eigenaar, Advisor en Finance eerst de effectieve rolstandaard en persoonlijke uitzondering; organisatie-instellingen en teamacties vertrouwen niet alleen op verborgen browserknoppen.
+- De routes voor analyse en reisleden controleren `analytics_view` respectievelijk `members_manage`, ook wanneer iemand een directe URL opent.
+- De volledige client-, SSR- en Cloudflare-productiebuild slaagt.
+
 ## 2026-09-09 22:04 CEST — Optionele branding per Agency-reis
 
 - Reisinstellingen tonen voor Agency-eigenaren een afzonderlijke reishuisstijl met naam, domein, tagline, accentkleur en live voorbeeld.

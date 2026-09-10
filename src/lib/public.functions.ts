@@ -323,7 +323,10 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       const result = publicResult as unknown as PublicTripResult;
       if (result.status === "ok") {
         const { data: branding } = await publicDb.rpc("get_public_trip_branding" as never, { p_token: input.token, p_trip_id: input.tripId } as never);
-        if (branding && typeof branding === "object") result.trip.branding = branding as PublicTripDetail["branding"];
+        if (branding && typeof branding === "object") {
+          result.trip.branding = branding as PublicTripDetail["branding"];
+          result.trip.authorName = result.trip.branding?.brandName || result.trip.authorName;
+        }
       }
       return result;
     }

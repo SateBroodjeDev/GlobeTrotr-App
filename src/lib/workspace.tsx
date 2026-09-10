@@ -56,6 +56,7 @@ type Ctx = {
   ratesLive: boolean;
   reset: () => void;
   changePlan: (plan: PlanId) => Promise<boolean>;
+  refreshWorkspace: () => Promise<void>;
   cloud: "local" | "loading" | "synced" | "saving";
 };
 
@@ -361,6 +362,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
+  const refreshWorkspace = useCallback(async () => {
+    if (!user) return;
+    setCloud("loading");
+    try {
+      const row = await loadWorkspace();
+      const remote = row?.data as WorkspaceState | undefined;
+      if (remote && Array.isArray(remote.trips)) {
+        stateRef.current = remote;
+        setState(remote);
+      }
+      setCloud("synced");
+    } catch (error) {
+      setCloud("synced");
+      throw error;
+    }
+  }, [user]);
+
   const value = useMemo<Ctx>(
     () => ({
       state,
@@ -373,6 +391,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       ratesLive: !!ratesQuery.data,
       reset,
       changePlan,
+      refreshWorkspace,
       cloud,
     }),
     [
@@ -385,6 +404,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       ratesQuery.data,
       reset,
       changePlan,
+      refreshWorkspace,
       cloud,
     ],
   );

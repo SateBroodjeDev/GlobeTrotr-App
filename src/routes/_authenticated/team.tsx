@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Lock, Users } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
-import { canBill, hasFeature } from "@/lib/plans";
+import { hasFeature } from "@/lib/plans";
 import type { TripMemberRole } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocale } from "@/lib/locale";
+import { useQuery } from "@tanstack/react-query";
+import { getMyAgencyAccess } from "@/lib/agency.functions";
 
 export const Route = createFileRoute("/_authenticated/team")({
   head: () => ({
@@ -48,7 +50,8 @@ const ALL_PERMISSIONS = [
 function TeamPage() {
   const { text } = useLocale();
   const { state } = useWorkspace();
-  const allowed = hasFeature(state.plan, "roles") && canBill(state.role);
+  const access=useQuery({queryKey:["my-agency-access"],queryFn:()=>getMyAgencyAccess(),enabled:state.plan==="agency",retry:false});
+  const allowed = hasFeature(state.plan, "roles") && access.data?.permissions.members_manage===true;
   const trips = state.trips ?? [];
 
   return (

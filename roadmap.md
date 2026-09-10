@@ -35,8 +35,13 @@ GlobeTrotr is in de eerste plaats een reisplanner voor vriendengroepen, koppels 
 - [x] Configureerbare Agency-rechten gebouwd met standaarden per rol en gerichte allow/deny-afwijkingen per gebruiker; reislezen, aanmaken, plannen, uitgaven en instellingen worden server-side afzonderlijk afgedwongen.
 - [x] Agency Admin opgesplitst in een vaste beheeromgeving met afzonderlijke routes en mobiele navigatie; zichtbare onderdelen volgen de effectieve rol- en gebruikersrechten.
 - [x] Centrale merkhiërarchie gebouwd: GlobeTrotr voor Free/Pro, Agency-instellingen voor een actief Agency-plan en technische ondersteuning voor een toekomstige reisafwijking.
-- [ ] Branding-, analyse-, facturatie- en ledenrechten ook binnen iedere bijbehorende serveractie afdwingen; de reisrechten zijn al afzonderlijk beschermd.
+- [x] Branding-, analyse- en ledenrechten gekoppeld aan de effectieve Agency-rol en persoonlijke uitzonderingen, inclusief directe route- en servercontrole.
+- [ ] Facturatierechten koppelen aan echte Stripe-abonnementshandelingen zodra de betaalprovider en webhooks zijn gebouwd; planwijzigingen blijven tot die tijd uitsluitend voor de workspace-eigenaar.
 - [x] Optionele branding per reis gebouwd met naam, domein, tagline, accentkleur, live voorbeeld, afzonderlijke opslag en een duidelijke reset naar de Agency-standaard.
+- [x] Agency-instellingen en logo na opslaan direct in de actieve workspace toegepast; unieke logoversies voorkomen verouderde browser- en CDN-cache.
+- [x] Persoonlijke Agency-rechten compact gemaakt met een selector voor één teamlid tegelijk.
+- [x] Corporate Admin uitgebreid met Agency-inzage en gecontroleerde instellingencorrecties met verplichte reden en auditregistratie.
+- [x] Blokkeren en herstellen van een Agency-teamlid gekoppeld aan een blijvende accountmelding.
 - [ ] Migratie `20260908034000_trip_branding_overrides.sql` en test `supabase/tests/trip_branding_overrides.sql` later met de volledige Agency-reeks uitvoeren.
 - [x] De effectieve reisbranding doorgegeven aan openbare reispagina's, reisgidsen en PDF-exports via uitsluitend expliciet deelbare merkvelden.
 - [ ] Na uitvoering praktisch controleren dat planwijziging of vertrek uit de Agency overal direct naar GlobeTrotr terugvalt.
@@ -708,32 +713,34 @@ Grote planners bieden offline toegang, kalenderintegratie en proactieve vluchtme
 Dit wordt een duidelijk, verzorgd en zelfstandig **Agency Workspace Admin**-dashboard binnen het reisplatform. Het is nadrukkelijk iets anders dan reisinstellingen en per-reisrollen: een Agency-eigenaar beheert hier de organisatie, het abonnement, het team, klanten, branding en de werkvoorraad van één workspace.
 
 - [x] Eerste afzonderlijke route `/agency-admin` gebouwd met centrale ingang, actuele workspacecijfers en kaarten voor branding, team, reisoperatie en abonnement; niet-Agency-accounts krijgen een duidelijke blokkade
-- [ ] Iedere Agency Admin-subroute aanvullend server-side autoriseren; een verborgen navigatieknop geldt nooit als beveiliging
-- [ ] Alle vervolginstellingen als subpagina's onder dezelfde Agency Admin-shell brengen, los van Accountinstellingen, Corporate Admin en de instellingen van een afzonderlijke reis
+- [x] Iedere gebouwde Agency Admin-subroute aanvullend server-side autoriseren op het actieve Agency-plan en het effectieve rol- of gebruikersrecht; een verborgen navigatieknop geldt nooit als beveiliging
+- [x] Organisatie, rollen en rechten en klanten als afzonderlijke subpagina's onder dezelfde Agency Admin-shell gebracht, los van Accountinstellingen, Corporate Admin en de instellingen van een afzonderlijke reis
 - [ ] Agency-instellingen per logisch onderdeel tonen: algemeen, branding, team en rollen, reizen en toegang, abonnement en facturatie, meldingen en beveiliging
 - [x] Verplichte Agency-instellingen mogen niet leeg worden opgeslagen; validatie vindt zowel in de interface als server-side plaats
 - [x] Lege of uitsluitend uit spaties bestaande verplichte Agency-waarden bij laden of opslaan veilig herstellen naar vastgelegde GlobeTrotr-standaardwaarden
 - [x] Bij iedere automatische herstelactie duidelijk aangeven welke waarde is teruggezet en waarom, zonder geldige bestaande Agency-instellingen te overschrijven
 - [x] Een maximale lengte voor de zichtbare systeemnaam/Agency-naam vastleggen en afdwingen in formulier, serverfunctie en databaseconstraint; lange bestaande waarden vóór activering gecontroleerd inkorten
 - [x] Tekentellers en vertaalde validatiemeldingen tonen bij begrensde Agency-velden, inclusief de systeemnaam
-- [ ] Dashboard visueel uitwerken met duidelijke secties, statuskaarten, snelle acties, lege statussen en een goede mobiele weergave
-- [ ] Workspaceprofiel beheren: organisatienaam, bedrijfsgegevens, contactgegevens, standaardvaluta, tijdzone en standaardtaal
+- [x] Dashboard visueel uitgewerkt met duidelijke secties, statuskaarten, snelle acties, lege statussen en een mobiele navigatie
+- [x] Workspaceprofiel beheren: organisatienaam, afzender- en contactgegevens, standaardvaluta, tijdzone en standaardtaal
 - [ ] Agency-abonnement, gebruikslimieten en facturatie-instellingen op één herkenbare plaats tonen
-- [ ] Agencybrede branding beheren met live voorbeeld van organisatienaam, logo, accentkleur, afzendernaam, domein en klantweergave
+- [x] Agencybrede branding beheren met live voorbeeld van organisatienaam, logo, accentkleur, afzendernaam, domein en klantweergave
 - [x] Agency-logo uploaden, vervangen en verwijderen via een afgeschermd Storage-pad met bestandstype-, bestandsgrootte- en eigenaarscontrole
-- [ ] Per reis kunnen kiezen tussen de standaard Agency-branding en een reisafwijking voor logo, accentkleur, afzendernaam en klantweergave
-- [ ] Brandinghiërarchie eenduidig toepassen: geldige reisafwijking → actieve Agency-branding → standaard GlobeTrotr-branding
-- [ ] Agency-branding tonen aan alle actieve interne Agency-teamleden en op klant- en openbare reispagina's waar die branding bewust is ingeschakeld
+- [x] Per reis kunnen kiezen tussen de standaard Agency-branding en een reisafwijking voor naam, domein, tagline en accentkleur; een apart reislogo en afzendernaam blijven vervolgwerk
+- [x] Brandinghiërarchie eenduidig toepassen: geldige reisafwijking → actieve Agency-branding → standaard GlobeTrotr-branding
+- [x] Agency-branding tonen aan alle actieve interne Agency-teamleden en op openbare reispagina's waar die branding bewust is ingeschakeld
 - [ ] Bij verlaten/verwijderen van het Agency-team direct alle Agency-branding, logo-URL's en workspacecache uit de sessie verwijderen en weer de normale GlobeTrotr-branding tonen
 - [ ] Bij downgrade of einde van het Agency-abonnement Agency- en reisbranding niet langer uitserveren; instellingen veilig bewaren volgens het bewaarbeleid zodat herstel na een nieuwe upgrade mogelijk is
 - [x] Relationele `workspace_members`- en `workspace_invitations`-tabellen toegevoegd, met UUID, status, verloopdatum en RLS per workspace
-- [ ] Teamleden beheren met rollen: eigenaar, reisadviseur en financiën; klanten blijven uitsluitend per reis gekoppeld
+- [x] Teamleden beheren met rollen: eigenaar, reisadviseur en financiën; klanten blijven uitsluitend per reis gekoppeld
 - [x] Workspacebrede reisloading en bestaande reiswrites server-side autoriseren via actief `workspace_members`-lidmaatschap en een actief Agency-plan; browserstate of een oud cacheobject verleent geen toegang
 - [ ] Nieuwe reizen door een Agency-adviseur in de bestaande Agency-workspace laten aanmaken en alle overige serveracties expliciet langs dezelfde workspaceautorisatie leiden
-- [ ] Eigen teamoverzicht met actieve leden, open uitnodigingen, limieten en laatst actieve wijzigingen
-- [ ] Werkvoorraad: aankomende reizen, ontbrekende boekingsdetails, open kosten, onbetaalde facturen en verlopen uitnodigingen
+- [x] Eigen teamoverzicht met actieve leden, open uitnodigingen en statusbeheer; gebruikslimieten en recente auditwijzigingen blijven vervolgwerk
+- [x] Afzonderlijke Agency-klantprofielen met contactgegevens, taal, interne notities, actieve/gearchiveerde status en meerdere gekoppelde reizen; opslag en koppelingen gebeuren in één afgeschermde databasetransactie
+- [x] Het operationele reis- en kostenoverzicht onder `/agency-admin/operations` in dezelfde Agency Admin-shell geplaatst; bestaande `/analytics`-bookmarks worden veilig doorgestuurd
+- [x] Werkvoorraad voor aankomende reizen, ontbrekende aanbieder/boekingsreferentie, declarabele kosten en verlopen teamuitnodigingen; onbetaalde facturen volgen zodra het factuurmodel bestaat
 - [ ] Agency-statistieken alleen uit echte data: actieve klantreizen, uitgaven, declarabel, omzet/openstaand zodra Stripe bestaat en documentgebruik zodra Storage-meting bestaat
-- [ ] Auditlog voor team-, rol-, factuur- en klantwijzigingen met actor, tijdstip en context
+- [x] Append-only Agency-auditlog en afzonderlijke eigenaarspagina voor klant-, team-, uitnodigings-, rol-, rechten- en brandingwijzigingen met actor, tijdstip, doel en beperkte context; factuuracties volgen met het factuurmodel
 - [ ] Regressietests uitvoeren met twee Agency-teamleden en één klant: alle interne reizen zichtbaar, acties volgens rol begrensd, klant ziet alleen gekoppelde reis, branding gelijk op meerdere accounts en GlobeTrotr-branding direct terug na vertrek of downgrade
 
 ## P1 — GlobeTrotr Corporate Admin

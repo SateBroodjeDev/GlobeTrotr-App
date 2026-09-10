@@ -62,8 +62,9 @@ BEGIN
   v_timezone:=COALESCE(NULLIF(btrim(p_settings->>'timezone'),''),'Europe/Amsterdam');
   IF char_length(v_name)>50 OR char_length(v_sender)>60 OR char_length(v_domain)>120 OR char_length(v_tagline)>120 OR char_length(v_timezone)>50 THEN RAISE EXCEPTION 'AGENCY_FIELD_TOO_LONG'; END IF;
   IF COALESCE(p_settings->>'contactEmail','') !~* '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' OR p_settings->>'defaultLocale' NOT IN ('nl','en') OR COALESCE(p_settings->>'currency','') !~ '^[A-Z]{3}$' OR COALESCE((p_settings->>'accent')::INTEGER,-1) NOT BETWEEN 0 AND 360 THEN RAISE EXCEPTION 'INVALID_AGENCY_SETTINGS'; END IF;
-  IF NULLIF(p_settings->>'logoPath','') IS NOT NULL AND p_settings->>'logoPath' !~ ('^'||v_workspace::TEXT||'/logo\.(png|jpg|jpeg|webp)$') THEN RAISE EXCEPTION 'INVALID_LOGO_PATH'; END IF;
+  IF NULLIF(p_settings->>'logoPath','') IS NOT NULL AND p_settings->>'logoPath' !~ ('^'||v_workspace::TEXT||'/logo(-[0-9]+)?\.(png|jpg|jpeg|webp)$') THEN RAISE EXCEPTION 'INVALID_LOGO_PATH'; END IF;
   UPDATE public.agency_settings SET system_name=v_name,sender_name=v_sender,contact_email=lower(p_settings->>'contactEmail'),default_locale=p_settings->>'defaultLocale',timezone=v_timezone,currency=p_settings->>'currency',domain=v_domain,tagline=v_tagline,accent=(p_settings->>'accent')::INTEGER,logo_path=NULLIF(p_settings->>'logoPath',''),updated_at=now(),updated_by=p_owner_id WHERE workspace_uuid=v_workspace;
+  UPDATE public.workspaces SET branding=jsonb_build_object('brandName',v_name,'domain',v_domain,'tagline',v_tagline,'accent',(p_settings->>'accent')::INTEGER,'logoPath',NULLIF(p_settings->>'logoPath','')),base_currency=p_settings->>'currency' WHERE workspace_uuid=v_workspace;
   RETURN jsonb_build_object('ok',true,'restored',to_jsonb(v_restored));
 END $$;
 

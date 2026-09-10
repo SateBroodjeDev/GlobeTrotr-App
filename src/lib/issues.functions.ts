@@ -90,6 +90,29 @@ async function syncGithub(issue: any) {
   return { synced: true, number: result.number };
 }
 
+export const getCorporateAgencies = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await adminDb(context.userId);
+    const { data, error } = await db.from("workspaces").select("workspace_uuid,user_id,created_at,agency_settings(system_name,sender_name,contact_email,default_locale,timezone,currency,domain,tagline,accent,logo_path,updated_at)").eq("plan","agency").order("created_at",{ascending:false});
+    if(error)throw error;
+    const owners=await Promise.all((data??[]).map(async(row:any)=>{const user=await db.auth.admin.getUserById(row.user_id);return {...row,ownerEmail:user.data.user?.email??"",settings:Array.isArray(row.agency_settings)?row.agency_settings[0]:row.agency_settings}}));
+    await audit(db,context.userId,"admin.agencies.view","agency",null,"success");
+    return owners;
+  });
+
+export const saveCorporateAgencySettings = createServerFn({method:"POST"})
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input:{ownerId:string;settings:{systemName:string;senderName:string;contactEmail:string;defaultLocale:"nl"|"en";timezone:string;currency:string;domain:string;tagline:string;accent:number;logoPath:string|null};reason:string})=>input)
+  .handler(async({data,context})=>{
+    const db=await adminDb(context.userId);const reason=data.reason.trim();
+    if(!/^[0-9a-f-]{36}$/i.test(data.ownerId)||reason.length<5)throw new Error("INVALID_INPUT");
+    const {data:result,error}=await db.rpc("save_agency_settings",{p_owner_id:data.ownerId,p_settings:data.settings});
+    await audit(db,context.userId,"admin.agency_settings.update","agency",data.ownerId,error||!result?.ok?"failure":"success",{reason});
+    if(error||!result?.ok)throw new Error("AGENCY_SETTINGS_SAVE_FAILED");
+    return {ok:true};
+  });
+
 export const getCorporateAdminData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {

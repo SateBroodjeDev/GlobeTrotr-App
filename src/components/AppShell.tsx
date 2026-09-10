@@ -78,6 +78,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const [guestTheme, setGuestTheme] = useState<ThemePreference>(cachedTheme);
   const [dark, setDark] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>();
+  const [agencyLogoUrl, setAgencyLogoUrl] = useState<string>();
   const profileQuery = useQuery({
     queryKey: ["profile-theme", user?.id],
     enabled: Boolean(user),
@@ -120,6 +121,16 @@ function AppShellContent({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-hue", String(state.branding.accent));
   }, [state.branding.accent]);
+  useEffect(() => {
+    if (state.plan !== "agency" || !state.branding.logoPath) {
+      setAgencyLogoUrl(undefined);
+      return;
+    }
+    let active=true;
+    supabase.storage.from("agency-logos").createSignedUrl(state.branding.logoPath,60*60)
+      .then(({data})=>{if(active)setAgencyLogoUrl(data?.signedUrl?`${data.signedUrl}&v=${encodeURIComponent(state.branding.logoPath!)}`:undefined)});
+    return()=>{active=false};
+  }, [state.plan,state.branding.logoPath]);
   useEffect(() => {
     if (!profileQuery.data?.avatar_path) {
       setAvatarUrl(undefined);
@@ -183,7 +194,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={logoIcon.url}
+              src={agencyLogoUrl ?? logoIcon.url}
               alt={`${state.branding.brandName} logo`}
               className="size-9 rounded-xl"
             />

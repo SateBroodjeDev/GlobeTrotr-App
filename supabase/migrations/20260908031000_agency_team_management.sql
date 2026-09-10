@@ -95,7 +95,7 @@ CREATE OR REPLACE FUNCTION public.manage_workspace_member(
   p_member_user_id UUID, p_owner_id UUID, p_action TEXT, p_role TEXT DEFAULT NULL
 ) RETURNS JSONB
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
-DECLARE v_workspace UUID; v_brand TEXT;
+DECLARE v_workspace UUID; v_brand TEXT; v_changed INTEGER := 0;
 BEGIN
   SELECT workspace_uuid, COALESCE(data->'branding'->>'brandName', 'GlobeTrotr Agency')
   INTO v_workspace, v_brand FROM public.workspaces
@@ -104,17 +104,27 @@ BEGIN
   IF p_action = 'role' AND p_role IN ('advisor', 'finance') THEN
     UPDATE public.workspace_members SET role = p_role, updated_at = now()
     WHERE workspace_uuid = v_workspace AND user_id = p_member_user_id AND role <> 'owner';
+    GET DIAGNOSTICS v_changed = ROW_COUNT;
   ELSIF p_action IN ('suspend', 'restore') THEN
     UPDATE public.workspace_members SET status = CASE p_action WHEN 'suspend' THEN 'suspended' ELSE 'active' END, updated_at = now()
     WHERE workspace_uuid = v_workspace AND user_id = p_member_user_id AND role <> 'owner';
+    GET DIAGNOSTICS v_changed = ROW_COUNT;
+    IF v_changed = 0 THEN RETURN jsonb_build_object('ok', false); END IF;
+    INSERT INTO public.notifications(user_id, kind, title, body, event_key)
+    VALUES (p_member_user_id, 'account',
+      CASE p_action WHEN 'suspend' THEN 'Agency-toegang geblokkeerd' ELSE 'Agency-toegang hersteld' END,
+      v_brand, 'workspace-access:' || v_workspace::TEXT)
+    ON CONFLICT (user_id, event_key) DO UPDATE SET title=EXCLUDED.title,body=EXCLUDED.body,created_at=now(),dismissed_at=NULL;
   ELSIF p_action = 'remove' THEN
     DELETE FROM public.workspace_members WHERE workspace_uuid = v_workspace AND user_id = p_member_user_id AND role <> 'owner';
+    GET DIAGNOSTICS v_changed = ROW_COUNT;
+    IF v_changed = 0 THEN RETURN jsonb_build_object('ok', false); END IF;
     INSERT INTO public.notifications(user_id, kind, title, body, event_key)
     VALUES (p_member_user_id, 'account', 'Uit Agency-team verwijderd', v_brand,
       'workspace-removed:' || v_workspace::TEXT || ':' || floor(extract(epoch from now()))::TEXT)
     ON CONFLICT (user_id, event_key) DO NOTHING;
   ELSE RETURN jsonb_build_object('ok', false); END IF;
-  IF NOT FOUND THEN RETURN jsonb_build_object('ok', false); END IF;
+  IF v_changed = 0 THEN RETURN jsonb_build_object('ok', false); END IF;
   RETURN jsonb_build_object('ok', true);
 END;
 $$;
