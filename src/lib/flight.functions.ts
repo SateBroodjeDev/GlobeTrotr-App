@@ -34,7 +34,7 @@ export type FlightLookup = {
 /** Looks up one flight while keeping the provider key on the server. */
 export const lookupFlight = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: { flightNumber: string; flightDate?: string; departureIata?: string }) => input,
   )
   .handler(async ({ data, context }): Promise<FlightLookup> => {

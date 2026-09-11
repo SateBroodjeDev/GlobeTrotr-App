@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   BarChart3,
   AlertTriangle,
@@ -19,6 +19,10 @@ import {
   Users,
   Shield,
   Building2,
+  BriefcaseBusiness,
+  Tags,
+  Scale,
+  RotateCcw,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
@@ -41,11 +45,13 @@ import { PlatformStatusBanner } from "@/components/PlatformStatusBanner";
 import { useLocale } from "@/lib/locale";
 import { localizeTagline } from "@/lib/localized-values";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
+import { getMyAgencyAccess } from "@/lib/agency.functions";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
   { to: "/agency-admin", label: "Agency Admin", icon: Building2 },
 ] as const;
+const CLIENT_NAV = [{ to: "/client-portal", label: "Klantportaal", icon: BriefcaseBusiness }] as const;
 const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
 type ThemePreference = "system" | "light" | "dark";
 const THEME_STORAGE_KEY = "globetrotr.theme";
@@ -68,7 +74,7 @@ function FooterMenu({label,children}:{label:string;children:ReactNode}) {
 // delen shell en routes ook tijdens Lovable/Vite-refreshes altijd dezelfde
 // contextinstantie.
 function AppShellContent({ children }: { children: ReactNode }) {
-  const { state, cloud } = useWorkspace();
+  const { state, cloud, refreshWorkspace } = useWorkspace();
   const plan = planOf(state.plan);
   const { user } = useAuth();
   const { locale, setLocale, text } = useLocale();
@@ -79,6 +85,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [agencyLogoUrl, setAgencyLogoUrl] = useState<string>();
+  const agencyRefreshPending = useRef(false);
   const profileQuery = useQuery({
     queryKey: ["profile-theme", user?.id],
     enabled: Boolean(user),
@@ -96,11 +103,25 @@ function AppShellContent({ children }: { children: ReactNode }) {
       } | null;
     },
   });
+  const agencyAccessQuery = useQuery({
+    queryKey: ["agency-access-watch", user?.id],
+    enabled: Boolean(user && state.plan === "agency"),
+    queryFn: async () => {
+      try {
+        await getMyAgencyAccess();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: "always",
+  });
   const preference = user
     ? profileQuery.data === undefined ? cachedTheme() : asTheme(profileQuery.data?.theme)
     : guestTheme;
   const navItems = user
-    ? [...CORE_NAV, ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
+    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
     : PUBLIC_NAV;
   const displayName =
     profileQuery.data?.display_name ||
@@ -121,6 +142,16 @@ function AppShellContent({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.style.setProperty("--brand-hue", String(state.branding.accent));
   }, [state.branding.accent]);
+  useEffect(() => {
+    if (agencyAccessQuery.data !== false || agencyRefreshPending.current) return;
+    agencyRefreshPending.current = true;
+    refreshWorkspace()
+      .then(() => queryClient.removeQueries({ queryKey: ["agency-access-watch", user?.id] }))
+      .catch(() => undefined)
+      .finally(() => {
+        agencyRefreshPending.current = false;
+      });
+  }, [agencyAccessQuery.data, queryClient, refreshWorkspace, user?.id]);
   useEffect(() => {
     if (state.plan !== "agency" || !state.branding.logoPath) {
       setAgencyLogoUrl(undefined);
@@ -217,7 +248,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 activeProps={{ className: "bg-accent text-accent-foreground" }}
               >
                 <item.icon className="size-4" />
-                {item.to === "/dashboard" ? text("Reizen", "Trips") : item.label}
+                {item.to === "/dashboard" ? text("Reizen", "Trips") : item.to === "/client-portal" ? text("Klantportaal", "Client portal") : item.label}
               </Link>
             ))}
           </nav>
@@ -328,12 +359,15 @@ function AppShellContent({ children }: { children: ReactNode }) {
         >
           <FooterMenu label={text("Ontdek", "Explore")}>
             <DropdownMenuItem asChild><Link to="/mogelijkheden"><Map className="size-4"/>{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/prijzen"><Tags className="size-4"/>{text("Prijzen", "Pricing")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/roadmap"><Compass className="size-4"/>Roadmap</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/changelog"><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/bekende-problemen"><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
             <DropdownMenuItem asChild><Link to="/privacy">{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/algemene-voorwaarden"><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/terugbetalingsbeleid"><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</Link></DropdownMenuItem>
             {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
             <DropdownMenuItem asChild><Link to="/beta-voorwaarden">{text("Beta-voorwaarden", "Beta terms")}</Link></DropdownMenuItem>
           </FooterMenu>

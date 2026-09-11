@@ -9,10 +9,20 @@ export type AgencySettings = { workspaceId: string; systemName: string; senderNa
 export type AgencyPermissionSettings = { roles: Record<"advisor"|"finance",AgencyPermissionMap>; members: {userId:string;role:"advisor"|"finance";overrides:AgencyPermissionOverrides}[] };
 export type MyAgencyAccess = { workspaceId: string; role: AgencyRole; permissions: AgencyPermissionMap };
 export type TripBrandingSettings = { enabled: boolean; brandName: string; domain: string; tagline: string; accent: number | null };
-export type AgencyClient = {id:string;fullName:string;email:string;phone:string;locale:"nl"|"en";notes:string;status:"active"|"archived";tripIds:string[];createdAt:string;updatedAt:string};
+export type AgencyClient = {id:string;fullName:string;email:string;phone:string;locale:"nl"|"en";notes:string;status:"active"|"archived";tripIds:string[];accessTripIds:string[];createdAt:string;updatedAt:string};
 export type AgencyOperationItem={id:string;tripId:string;tripName:string;title:string;date:string;detail:string};
-export type AgencyOperations={upcoming:AgencyOperationItem[];missingBookings:AgencyOperationItem[];billableExpenses:AgencyOperationItem[];expiredInvitations:{id:string;email:string;expiresAt:string}[]};
+export type AgencyOperations={upcoming:AgencyOperationItem[];missingBookings:AgencyOperationItem[];billableExpenses:AgencyOperationItem[];expiringDocuments:AgencyOperationItem[];expiredInvitations:{id:string;email:string;expiresAt:string}[]};
 export type AgencyAuditEntry={id:string;action:string;targetType:string;targetId:string;context:Record<string,unknown>;createdAt:string;actorId:string;actorName:string};
+export type AgencyNotificationPreferences={workspaceId:string;tripChanges:boolean;invitationResponses:boolean;clientUpdates:boolean};
+export type AgencyUsage={plan:"agency";teamMembers:number;pendingInvitations:number;activeClients:number;activeTrips:number;publicTrips:number;archivedTrips:number};
+export type AgencyTask={id:string;title:string;notes:string;dueDate:string;priority:"low"|"normal"|"high"|"urgent";status:"open"|"in_progress"|"done"|"cancelled";tripId:string;clientId:string;assigneeUserId:string;assigneeName:string;createdAt:string;updatedAt:string};
+export type AgencyTaskBoard={tasks:AgencyTask[];members:{userId:string;name:string}[];trips:{id:string;name:string}[];clients:{id:string;name:string}[];canManage:boolean};
+export type AgencyTemplate={id:string;name:string;type:"itinerary"|"packing"|"message";items:string[];createdAt:string;updatedAt:string};
+export type AgencyQuoteVariant={name:string;description:string;amount:number};
+export type AgencyQuote={id:string;clientId:string;clientName:string;tripId:string;tripName:string;title:string;introduction:string;currency:string;status:"draft"|"ready"|"accepted"|"rejected"|"expired"|"cancelled";validUntil:string;sharedAt:string;shareExpiresAt:string;variants:AgencyQuoteVariant[];createdAt:string;updatedAt:string};
+export type AgencyQuoteBoard={quotes:AgencyQuote[];clients:{id:string;name:string}[];trips:{id:string;name:string}[];canManage:boolean};
+export type AgencyQuoteShare={url:string;expiresAt:string};
+export type AgencyQuoteConversion={quoteId:string;title:string;introduction:string;clientName:string;tripId:string;tripName:string;convertedTripId:string;variantName:string;amount:number;currency:string};
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID = /^[0-9a-f-]{36}$/i;
@@ -77,7 +87,7 @@ export const getMyAgencyAccess = createServerFn({ method: "GET" })
 
 export const getTripBranding = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { tripId: string }) => input)
+  .validator((input: { tripId: string }) => input)
   .handler(async ({ data, context }) => {
     if (!UUID.test(data.tripId)) throw new Error("INVALID_TRIP");
     const db = await adminClient();
@@ -88,7 +98,7 @@ export const getTripBranding = createServerFn({ method: "GET" })
 
 export const saveTripBranding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { tripId: string; branding: TripBrandingSettings }) => input)
+  .validator((input: { tripId: string; branding: TripBrandingSettings }) => input)
   .handler(async ({ data, context }) => {
     const branding = { enabled: data.branding.enabled, brandName: clean(data.branding.brandName, 50), domain: clean(data.branding.domain, 120).toLowerCase(), tagline: clean(data.branding.tagline, 120), accent: data.branding.accent == null ? null : Math.round(data.branding.accent) };
     if (!UUID.test(data.tripId) || (branding.accent != null && (branding.accent < 0 || branding.accent > 360))) throw new Error("INVALID_TRIP_BRANDING");
@@ -104,17 +114,18 @@ const clean = (value: string, max: number) => value.trim().slice(0, max);
 
 export const getAgencyClients=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
   const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");
-  const {data:clients,error}=await db.from("agency_clients").select("id,full_name,email,phone,locale,notes,status,created_at,updated_at,agency_client_trips(trip_uuid)").eq("workspace_uuid",access.workspaceId).order("full_name");
-  if(error)throw error;return (clients??[]).map((client:any)=>({id:client.id,fullName:client.full_name,email:client.email??"",phone:client.phone??"",locale:client.locale,notes:client.notes??"",status:client.status,tripIds:(client.agency_client_trips??[]).map((link:any)=>link.trip_uuid),createdAt:client.created_at,updatedAt:client.updated_at})) as AgencyClient[];
+  const {data:clients,error}=await db.from("agency_clients").select("id,full_name,email,phone,locale,notes,status,created_at,updated_at").eq("workspace_uuid",access.workspaceId).order("full_name");
+  if(error)throw error;const ids=(clients??[]).map((client:any)=>client.id);const [linkResult,memberResult]=ids.length?await Promise.all([db.from("agency_client_trips").select("client_id,trip_uuid").in("client_id",ids),db.from("trip_members").select("agency_client_id,trip_uuid").in("agency_client_id",ids)]):[{data:[],error:null},{data:[],error:null}];if(linkResult.error||memberResult.error)throw new Error("AGENCY_CLIENTS_UNAVAILABLE");
+  return (clients??[]).map((client:any)=>({id:client.id,fullName:client.full_name,email:client.email??"",phone:client.phone??"",locale:client.locale,notes:client.notes??"",status:client.status,tripIds:(linkResult.data??[]).filter((link:any)=>link.client_id===client.id).map((link:any)=>link.trip_uuid),accessTripIds:(memberResult.data??[]).filter((member:any)=>member.agency_client_id===client.id).map((member:any)=>member.trip_uuid),createdAt:client.created_at,updatedAt:client.updated_at})) as AgencyClient[];
 });
-export const saveAgencyClient=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).inputValidator((input:{id?:string;fullName:string;email:string;phone:string;locale:"nl"|"en";notes:string;tripIds:string[]})=>input).handler(async({data,context})=>{
+export const saveAgencyClient=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{id?:string;fullName:string;email:string;phone:string;locale:"nl"|"en";notes:string;tripIds:string[]})=>input).handler(async({data,context})=>{
   const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");const fullName=clean(data.fullName,100),email=clean(data.email,254).toLowerCase(),phone=clean(data.phone,40),notes=clean(data.notes,2000);
   if(!fullName||(email&&!EMAIL.test(email))||!['nl','en'].includes(data.locale)||data.tripIds.some(id=>!UUID.test(id)))throw new Error("INVALID_CLIENT");
   if(data.id&&!UUID.test(data.id))throw new Error("INVALID_CLIENT");
   const {data:clientId,error}=await db.rpc("save_agency_client",{p_actor_id:context.userId,p_workspace_uuid:access.workspaceId,p_client_id:data.id??null,p_client:{fullName,email,phone,locale:data.locale,notes},p_trip_ids:[...new Set(data.tripIds)]});
   if(error||!clientId)throw new Error("CLIENT_SAVE_FAILED");await agencyAudit(db,access.workspaceId,context.userId,data.id?"client.update":"client.create","client",clientId as string,{tripCount:new Set(data.tripIds).size});return {ok:true,id:clientId as string};
 });
-export const setAgencyClientArchived=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).inputValidator((input:{id:string;archived:boolean})=>input).handler(async({data,context})=>{if(!UUID.test(data.id))throw new Error("INVALID_CLIENT");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");const {data:ok,error}=await db.rpc("set_agency_client_archived",{p_actor_id:context.userId,p_workspace_uuid:access.workspaceId,p_client_id:data.id,p_archived:data.archived});if(error||!ok)throw new Error("CLIENT_STATUS_FAILED");await agencyAudit(db,access.workspaceId,context.userId,data.archived?"client.archive":"client.restore","client",data.id);return {ok:true}});
+export const setAgencyClientArchived=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{id:string;archived:boolean})=>input).handler(async({data,context})=>{if(!UUID.test(data.id))throw new Error("INVALID_CLIENT");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");const {data:ok,error}=await db.rpc("set_agency_client_archived",{p_actor_id:context.userId,p_workspace_uuid:access.workspaceId,p_client_id:data.id,p_archived:data.archived});if(error||!ok)throw new Error("CLIENT_STATUS_FAILED");await agencyAudit(db,access.workspaceId,context.userId,data.archived?"client.archive":"client.restore","client",data.id);return {ok:true}});
 
 export const getAgencyAudit=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
   const db=await adminClient();const workspaceId=await ownerWorkspace(db,context.userId);const {data,error}=await db.from("agency_audit_log").select("id,actor_user_id,action,target_type,target_id,context,created_at").eq("workspace_uuid",workspaceId).order("created_at",{ascending:false}).limit(100);if(error)throw new Error("AGENCY_AUDIT_UNAVAILABLE");
@@ -122,19 +133,83 @@ export const getAgencyAudit=createServerFn({method:"GET"}).middleware([requireSu
   return (data??[]).map((row:any)=>({id:row.id,action:row.action,targetType:row.target_type??"",targetId:row.target_id??"",context:row.context??{},createdAt:row.created_at,actorId:row.actor_user_id??"",actorName:names.get(row.actor_user_id)||""})) as AgencyAuditEntry[];
 });
 
+export const getAgencyNotificationPreferences=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
+  const db=await adminClient();const {data,error}=await db.rpc("get_agency_notification_preferences",{p_user_id:context.userId});
+  if(error||!data)throw new Error("AGENCY_NOTIFICATION_PREFERENCES_UNAVAILABLE");return data as AgencyNotificationPreferences;
+});
+
+export const getAgencyUsage=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
+  const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"billing_manage");
+  const [members,invitations,clients,activeTrips,publicTrips,archivedTrips]=await Promise.all([
+    db.from("workspace_members").select("user_id",{count:"exact",head:true}).eq("workspace_uuid",access.workspaceId).eq("status","active"),
+    db.from("workspace_invitations").select("id",{count:"exact",head:true}).eq("workspace_uuid",access.workspaceId).is("accepted_at",null).is("declined_at",null).is("revoked_at",null).gt("expires_at",new Date().toISOString()),
+    db.from("agency_clients").select("id",{count:"exact",head:true}).eq("workspace_uuid",access.workspaceId).eq("status","active"),
+    db.from("trips").select("trip_uuid",{count:"exact",head:true}).eq("workspace_uuid",access.workspaceId).eq("archived",false),
+    db.from("trips").select("trip_uuid",{count:"exact",head:true}).eq("workspace_uuid",access.workspaceId).eq("archived",false).eq("is_public",true),
+    db.from("trips").select("trip_uuid",{count:"exact",head:true}).eq("workspace_uuid",access.workspaceId).eq("archived",true),
+  ]);
+  if([members,invitations,clients,activeTrips,publicTrips,archivedTrips].some(result=>result.error))throw new Error("AGENCY_USAGE_UNAVAILABLE");
+  return {plan:"agency",teamMembers:members.count??0,pendingInvitations:invitations.count??0,activeClients:clients.count??0,activeTrips:activeTrips.count??0,publicTrips:publicTrips.count??0,archivedTrips:archivedTrips.count??0} as AgencyUsage;
+});
+export const saveAgencyNotificationPreferences=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:Omit<AgencyNotificationPreferences,"workspaceId">)=>input).handler(async({data,context})=>{
+  if([data.tripChanges,data.invitationResponses,data.clientUpdates].some(value=>typeof value!=="boolean"))throw new Error("INVALID_NOTIFICATION_PREFERENCES");
+  const db=await adminClient();const {data:ok,error}=await db.rpc("save_agency_notification_preferences",{p_user_id:context.userId,p_preferences:data});
+  if(error||!ok)throw new Error("AGENCY_NOTIFICATION_PREFERENCES_SAVE_FAILED");const access=await workspaceForPermission(db,context.userId,"trips_view");await agencyAudit(db,access.workspaceId,context.userId,"notifications.preferences.update","member",context.userId);return {ok:true};
+});
+
 export const getAgencyOperations=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
   const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"analytics_view");const today=new Date().toISOString().slice(0,10);
   const [{data:trips,error:tripError},{data:expired,error:inviteError}]=await Promise.all([
-    db.from("trips").select("trip_uuid,name,start_date,end_date,archived,trip_travel_items(id,item_type,title,start_date,provider,booking_reference),trip_expenses(id,title,expense_date,amount,currency,billable)").eq("workspace_uuid",access.workspaceId).order("start_date"),
+    db.from("trips").select("trip_uuid,name,start_date,end_date,archived").eq("workspace_uuid",access.workspaceId).order("start_date"),
     db.from("workspace_invitations").select("id,email,expires_at").eq("workspace_uuid",access.workspaceId).is("accepted_at",null).is("declined_at",null).is("revoked_at",null).lt("expires_at",new Date().toISOString()).order("expires_at"),
   ]);if(tripError||inviteError)throw new Error("AGENCY_OPERATIONS_UNAVAILABLE");
+  const tripIds=(trips??[]).map((trip:any)=>trip.trip_uuid);const [{data:travelItems,error:travelError},{data:expenses,error:expenseError},{data:documents}]=tripIds.length?await Promise.all([
+    db.from("trip_travel_items").select("id,trip_uuid,item_type,title,start_date,provider,booking_reference").in("trip_uuid",tripIds),
+    db.from("trip_expenses").select("id,trip_uuid,title,expense_date,amount,currency,billable").in("trip_uuid",tripIds).eq("billable",true),
+    db.from("trip_documents").select("id,trip_uuid,file_name,document_type,expires_on").in("trip_uuid",tripIds).not("expires_on","is",null).lte("expires_on",new Date(Date.now()+30*86400000).toISOString().slice(0,10)).order("expires_on"),
+  ]):[{data:[],error:null},{data:[],error:null},{data:[],error:null}];if(travelError||expenseError)throw new Error("AGENCY_OPERATIONS_UNAVAILABLE");
+  const travelByTrip=new Map<string,any[]>(),expensesByTrip=new Map<string,any[]>();for(const item of travelItems??[]){const list=travelByTrip.get(item.trip_uuid)??[];list.push(item);travelByTrip.set(item.trip_uuid,list)}for(const expense of expenses??[]){const list=expensesByTrip.get(expense.trip_uuid)??[];list.push(expense);expensesByTrip.set(expense.trip_uuid,list)}
   const upcoming:AgencyOperationItem[]=[],missingBookings:AgencyOperationItem[]=[],billableExpenses:AgencyOperationItem[]=[];
   for(const trip of trips??[]){const tripId=String(trip.trip_uuid),tripName=String(trip.name);if(!trip.archived&&trip.end_date>=today)upcoming.push({id:tripId,tripId,tripName,title:tripName,date:trip.start_date??"",detail:trip.end_date??""});
-    for(const item of trip.trip_travel_items??[]){if(item.start_date>=today&&item.item_type!=="activity"&&(!item.provider||!item.booking_reference))missingBookings.push({id:String(item.id),tripId,tripName,title:String(item.title),date:item.start_date??"",detail:[!item.provider?"provider":"",!item.booking_reference?"reference":""].filter(Boolean).join(",")});}
-    for(const expense of trip.trip_expenses??[]){if(expense.billable)billableExpenses.push({id:String(expense.id),tripId,tripName,title:String(expense.title),date:expense.expense_date??"",detail:`${expense.currency} ${expense.amount}`});}
+    for(const item of travelByTrip.get(tripId)??[]){if(item.start_date>=today&&item.item_type!=="activity"&&(!item.provider||!item.booking_reference))missingBookings.push({id:String(item.id),tripId,tripName,title:String(item.title),date:item.start_date??"",detail:[!item.provider?"provider":"",!item.booking_reference?"reference":""].filter(Boolean).join(",")});}
+    for(const expense of expensesByTrip.get(tripId)??[])billableExpenses.push({id:String(expense.id),tripId,tripName,title:String(expense.title),date:expense.expense_date??"",detail:`${expense.currency} ${expense.amount}`});
   }
-  return {upcoming:upcoming.slice(0,30),missingBookings:missingBookings.slice(0,30),billableExpenses:billableExpenses.slice(0,30),expiredInvitations:(expired??[]).slice(0,30).map((item:any)=>({id:item.id,email:item.email,expiresAt:item.expires_at}))} as AgencyOperations;
+  const tripNames=new Map((trips??[]).map((trip:any)=>[String(trip.trip_uuid),String(trip.name)]));
+  const expiringDocuments:AgencyOperationItem[]=(documents??[]).slice(0,30).map((item:any)=>({id:String(item.id),tripId:String(item.trip_uuid),tripName:tripNames.get(String(item.trip_uuid))??"",title:String(item.file_name),date:String(item.expires_on),detail:String(item.document_type)}));
+  return {upcoming:upcoming.slice(0,30),missingBookings:missingBookings.slice(0,30),billableExpenses:billableExpenses.slice(0,30),expiringDocuments,expiredInvitations:(expired??[]).slice(0,30).map((item:any)=>({id:item.id,email:item.email,expiresAt:item.expires_at}))} as AgencyOperations;
 });
+
+export const getAgencyTasks=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
+  const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_view");
+  const [{data:tasks,error},{data:members},{data:trips},{data:clients}]=await Promise.all([
+    db.from("agency_tasks").select("id,title,notes,due_date,priority,status,trip_uuid,client_id,assignee_user_id,created_at,updated_at").eq("workspace_uuid",access.workspaceId).order("due_date",{ascending:true,nullsFirst:false}).order("created_at",{ascending:false}).limit(200),
+    db.from("workspace_members").select("user_id").eq("workspace_uuid",access.workspaceId).eq("status","active").in("role",["owner","advisor","finance"]),
+    db.from("trips").select("trip_uuid,name").eq("workspace_uuid",access.workspaceId).eq("archived",false).order("start_date"),
+    db.from("agency_clients").select("id,full_name").eq("workspace_uuid",access.workspaceId).eq("status","active").order("full_name"),
+  ]);if(error)throw new Error("AGENCY_TASKS_UNAVAILABLE");
+  const memberIds=(members??[]).map((member:any)=>member.user_id);const {data:profiles}=memberIds.length?await db.from("profiles").select("id,display_name").in("id",memberIds):{data:[]};
+  const profileNames=new Map((profiles??[]).map((profile:any)=>[profile.id,profile.display_name]));
+  const memberOptions=(members??[]).map((member:any)=>({userId:String(member.user_id),name:String(profileNames.get(member.user_id)||(member.user_id===context.userId?"Jij":member.user_id))}));
+  let canManage=true;try{await workspaceForPermission(db,context.userId,"trips_plan")}catch{canManage=false}
+  return {tasks:(tasks??[]).map((task:any)=>({id:task.id,title:task.title,notes:task.notes??"",dueDate:task.due_date??"",priority:task.priority,status:task.status,tripId:task.trip_uuid??"",clientId:task.client_id??"",assigneeUserId:task.assignee_user_id??"",assigneeName:profileNames.get(task.assignee_user_id)??"",createdAt:task.created_at,updatedAt:task.updated_at})),members:memberOptions,trips:(trips??[]).map((trip:any)=>({id:trip.trip_uuid,name:trip.name})),clients:(clients??[]).map((client:any)=>({id:client.id,name:client.full_name})),canManage} as AgencyTaskBoard;
+});
+
+export const saveAgencyTask=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{id?:string;title:string;notes:string;dueDate:string;priority:AgencyTask["priority"];status:AgencyTask["status"];tripId:string;clientId:string;assigneeUserId:string})=>input).handler(async({data,context})=>{
+  const title=clean(data.title,120),notes=clean(data.notes,1000);if(!title||!(["low","normal","high","urgent"] as string[]).includes(data.priority)||!(["open","in_progress","done","cancelled"] as string[]).includes(data.status)||data.id&&!UUID.test(data.id)||data.tripId&&!UUID.test(data.tripId)||data.clientId&&!UUID.test(data.clientId)||data.assigneeUserId&&!UUID.test(data.assigneeUserId))throw new Error("INVALID_TASK");
+  const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");let id=data.id;
+  if(id){const {data:existing}=await db.from("agency_tasks").select("assignee_user_id").eq("id",id).eq("workspace_uuid",access.workspaceId).maybeSingle();if(!existing)throw new Error("TASK_NOT_FOUND");
+    const {error}=await db.from("agency_tasks").update({title,notes:notes||null,due_date:data.dueDate||null,priority:data.priority,status:data.status,trip_uuid:data.tripId||null,client_id:data.clientId||null,assignee_user_id:data.assigneeUserId||null,updated_by:context.userId}).eq("id",id).eq("workspace_uuid",access.workspaceId);if(error)throw new Error("TASK_SAVE_FAILED");
+  }else{const {data:created,error}=await db.from("agency_tasks").insert({workspace_uuid:access.workspaceId,title,notes:notes||null,due_date:data.dueDate||null,priority:data.priority,status:data.status,trip_uuid:data.tripId||null,client_id:data.clientId||null,assignee_user_id:data.assigneeUserId||null,created_by:context.userId,updated_by:context.userId}).select("id").single();if(error||!created)throw new Error("TASK_SAVE_FAILED");id=created.id;}
+  await agencyAudit(db,access.workspaceId,context.userId,data.id?"task.update":"task.create","task",id,{status:data.status,priority:data.priority,assigned:Boolean(data.assigneeUserId)});return {ok:true,id};
+});
+
+export const getAgencyTemplates=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
+ const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_view");const {data,error}=await db.from("agency_templates").select("id,name,template_type,content,created_at,updated_at").eq("workspace_uuid",access.workspaceId).is("archived_at",null).order("template_type").order("name");if(error)throw new Error("AGENCY_TEMPLATES_UNAVAILABLE");return(data??[]).map((item:any)=>({id:item.id,name:item.name,type:item.template_type,items:Array.isArray(item.content)?item.content:[],createdAt:item.created_at,updatedAt:item.updated_at})) as AgencyTemplate[];
+});
+export const saveAgencyTemplate=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{id?:string;name:string;type:AgencyTemplate["type"];items:string[]})=>input).handler(async({data,context})=>{
+ const name=clean(data.name,80),items=[...new Set(data.items.map(item=>clean(item,1000)).filter(Boolean))].slice(0,100);if(!name||!(["itinerary","packing","message"]as string[]).includes(data.type)||!items.length||data.id&&!UUID.test(data.id))throw new Error("INVALID_TEMPLATE");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");let id=data.id;if(id){const {data:updated,error}=await db.from("agency_templates").update({name,template_type:data.type,content:items,updated_by:context.userId}).eq("id",id).eq("workspace_uuid",access.workspaceId).is("archived_at",null).select("id").maybeSingle();if(error||!updated)throw new Error("TEMPLATE_SAVE_FAILED");}else{const {data:created,error}=await db.from("agency_templates").insert({workspace_uuid:access.workspaceId,name,template_type:data.type,content:items,created_by:context.userId,updated_by:context.userId}).select("id").single();if(error||!created)throw new Error("TEMPLATE_SAVE_FAILED");id=created.id;}await agencyAudit(db,access.workspaceId,context.userId,data.id?"template.update":"template.create","template",id,{type:data.type,itemCount:items.length});return{ok:true,id};
+});
+export const archiveAgencyTemplate=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{id:string})=>input).handler(async({data,context})=>{if(!UUID.test(data.id))throw new Error("INVALID_TEMPLATE");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");const {data:updated,error}=await db.from("agency_templates").update({archived_at:new Date().toISOString(),updated_by:context.userId}).eq("id",data.id).eq("workspace_uuid",access.workspaceId).select("id").maybeSingle();if(error||!updated)throw new Error("TEMPLATE_ARCHIVE_FAILED");await agencyAudit(db,access.workspaceId,context.userId,"template.archive","template",data.id);return{ok:true};});
 
 export const getAgencySettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -149,7 +224,7 @@ export const getAgencySettings = createServerFn({ method: "GET" })
 
 export const saveAgencySettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: Omit<AgencySettings, "workspaceId">) => input)
+  .validator((input: Omit<AgencySettings, "workspaceId">) => input)
   .handler(async ({ data, context }) => {
     const values = {
       systemName: clean(data.systemName, 50), senderName: clean(data.senderName, 60),
@@ -177,12 +252,12 @@ export const getAgencyPermissions = createServerFn({ method: "GET" }).middleware
   if (error || !data) throw new Error("AGENCY_PERMISSIONS_UNAVAILABLE");
   return { roles: data.roles, members: data.members ?? [] } as AgencyPermissionSettings;
 });
-export const saveAgencyRolePermissions = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((input: { role: "advisor"|"finance"; permissions: AgencyPermissionMap }) => input).handler(async ({ data, context }) => {
+export const saveAgencyRolePermissions = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).validator((input: { role: "advisor"|"finance"; permissions: AgencyPermissionMap }) => input).handler(async ({ data, context }) => {
   if (!["advisor","finance"].includes(data.role) || !validPermissions(data.permissions, true)) throw new Error("INVALID_PERMISSIONS");
   const db = await adminClient(); const { data: ok, error } = await db.rpc("save_agency_role_permissions", { p_owner_id: context.userId, p_role: data.role, p_permissions: data.permissions });
   if (error || !ok) throw new Error("PERMISSIONS_SAVE_FAILED"); const workspaceId=await ownerWorkspace(db,context.userId);await agencyAudit(db,workspaceId,context.userId,"permissions.role.update","role",data.role);return { ok: true };
 });
-export const saveAgencyMemberPermissions = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).inputValidator((input: { userId: string; overrides: AgencyPermissionOverrides }) => input).handler(async ({ data, context }) => {
+export const saveAgencyMemberPermissions = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth]).validator((input: { userId: string; overrides: AgencyPermissionOverrides }) => input).handler(async ({ data, context }) => {
   if (!UUID.test(data.userId) || !validPermissions(data.overrides)) throw new Error("INVALID_PERMISSIONS");
   const db = await adminClient(); const { data: ok, error } = await db.rpc("save_agency_member_permissions", { p_owner_id: context.userId, p_member_user_id: data.userId, p_overrides: data.overrides });
   if (error || !ok) throw new Error("PERMISSIONS_SAVE_FAILED"); const workspaceId=await ownerWorkspace(db,context.userId);await agencyAudit(db,workspaceId,context.userId,"permissions.member.update","member",data.userId,{overrides:Object.keys(data.overrides)});return { ok: true };
@@ -212,7 +287,7 @@ export const getAgencyTeam = createServerFn({ method: "GET" })
 
 export const createAgencyInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { email: string; role: "advisor" | "finance" }) => input)
+  .validator((input: { email: string; role: "advisor" | "finance" }) => input)
   .handler(async ({ data, context }) => {
     const email = data.email.trim().toLowerCase();
     if (!EMAIL.test(email) || !["advisor", "finance"].includes(data.role)) throw new Error("INVALID_INPUT");
@@ -227,7 +302,7 @@ export const createAgencyInvitation = createServerFn({ method: "POST" })
 
 export const manageAgencyInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { invitationId: string; action: "renew" | "revoke" }) => input)
+  .validator((input: { invitationId: string; action: "renew" | "revoke" }) => input)
   .handler(async ({ data, context }) => {
     if (!UUID.test(data.invitationId)) throw new Error("INVALID_INPUT");
     const rawToken = data.action === "renew" ? token() : "";
@@ -241,7 +316,7 @@ export const manageAgencyInvitation = createServerFn({ method: "POST" })
 
 export const manageAgencyMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string; action: "role" | "suspend" | "restore" | "remove"; role?: "advisor" | "finance" }) => input)
+  .validator((input: { userId: string; action: "role" | "suspend" | "restore" | "remove"; role?: "advisor" | "finance" }) => input)
   .handler(async ({ data, context }) => {
     if (!UUID.test(data.userId) || (data.action === "role" && !data.role)) throw new Error("INVALID_INPUT");
     const db = await adminClient();
@@ -253,7 +328,7 @@ export const manageAgencyMember = createServerFn({ method: "POST" })
   });
 
 export const getAgencyInvitation = createServerFn({ method: "GET" })
-  .inputValidator((input: { token: string }) => input)
+  .validator((input: { token: string }) => input)
   .handler(async ({ data }) => {
     if (!/^[0-9a-f]{64}$/i.test(data.token)) return { status: "invalid" as const };
     const db = await adminClient();
@@ -266,7 +341,7 @@ export const getAgencyInvitation = createServerFn({ method: "GET" })
 
 export const respondToAgencyInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { response: "accept" | "decline"; token?: string; invitationId?: string }) => input)
+  .validator((input: { response: "accept" | "decline"; token?: string; invitationId?: string }) => input)
   .handler(async ({ data, context }) => {
     const db = await adminClient();
     let tokenHash = data.token && /^[0-9a-f]{64}$/i.test(data.token) ? await sha256(data.token) : "";
@@ -281,3 +356,33 @@ export const respondToAgencyInvitation = createServerFn({ method: "POST" })
     if(["accepted","declined"].includes(result.status)&&invitation?.workspace_uuid)await agencyAudit(db,invitation.workspace_uuid,context.userId,`invitation.${data.response}`,"invitation",invitation.id);
     return result as { status: "accepted" | "declined" | "expired" | "revoked" | "forbidden"; workspaceId?: string };
   });
+
+export const getAgencyQuotes=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
+ const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_view");const [{data:quotes,error},{data:variants},{data:clients},{data:trips}]=await Promise.all([db.from("agency_quotes").select("id,client_id,trip_uuid,title,introduction,currency,status,valid_until,shared_at,share_expires_at,created_at,updated_at").eq("workspace_uuid",access.workspaceId).order("updated_at",{ascending:false}),db.from("agency_quote_variants").select("quote_id,name,description,amount,position").order("position"),db.from("agency_clients").select("id,full_name").eq("workspace_uuid",access.workspaceId).eq("status","active").order("full_name"),db.from("trips").select("trip_uuid,name").eq("workspace_uuid",access.workspaceId).eq("archived",false).order("start_date")]);if(error)throw new Error("AGENCY_QUOTES_UNAVAILABLE");let canManage=true;try{await workspaceForPermission(db,context.userId,"trips_plan")}catch{canManage=false}const clientNames=new Map((clients??[]).map((x:any)=>[x.id,x.full_name])),tripNames=new Map((trips??[]).map((x:any)=>[x.trip_uuid,x.name]));return{quotes:(quotes??[]).map((q:any)=>({id:q.id,clientId:q.client_id,clientName:clientNames.get(q.client_id)??"",tripId:q.trip_uuid??"",tripName:tripNames.get(q.trip_uuid)??"",title:q.title,introduction:q.introduction??"",currency:q.currency,status:q.status,validUntil:q.valid_until??"",sharedAt:q.shared_at??"",shareExpiresAt:q.share_expires_at??"",variants:(variants??[]).filter((v:any)=>v.quote_id===q.id).map((v:any)=>({name:v.name,description:v.description??"",amount:Number(v.amount)})),createdAt:q.created_at,updatedAt:q.updated_at})),clients:(clients??[]).map((x:any)=>({id:x.id,name:x.full_name})),trips:(trips??[]).map((x:any)=>({id:x.trip_uuid,name:x.name})),canManage} as AgencyQuoteBoard;
+});
+
+export const saveAgencyQuote=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{id?:string;clientId:string;tripId:string;title:string;introduction:string;currency:string;status:AgencyQuote["status"];validUntil:string;variants:AgencyQuoteVariant[]})=>input).handler(async({data,context})=>{
+ const title=clean(data.title,120),introduction=clean(data.introduction,3000),currency=data.currency.trim().toUpperCase(),variants=data.variants.slice(0,10).map(v=>({name:clean(v.name,80),description:clean(v.description,2000),amount:Number(v.amount)}));if((data.id&&!UUID.test(data.id))||!UUID.test(data.clientId)||(data.tripId&&!UUID.test(data.tripId))||!title||!/^[A-Z]{3}$/.test(currency)||!(["draft","ready","cancelled"]as string[]).includes(data.status)||!variants.length||variants.some(v=>!v.name||!Number.isFinite(v.amount)||v.amount<0))throw new Error("INVALID_QUOTE");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");const {data:id,error}=await db.rpc("save_agency_quote",{p_workspace_uuid:access.workspaceId,p_quote_id:data.id??null,p_payload:{clientId:data.clientId,tripId:data.tripId,title,introduction,currency,status:data.status,validUntil:data.validUntil},p_variants:variants,p_actor_id:context.userId});if(error||!id)throw new Error("QUOTE_SAVE_FAILED");await agencyAudit(db,access.workspaceId,context.userId,data.id?"quote.update":"quote.create","quote",String(id),{status:data.status,variantCount:variants.length});return{ok:true,id:String(id)};
+});
+
+export const createAgencyQuoteShare=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{quoteId:string})=>input).handler(async({data,context})=>{
+ if(!UUID.test(data.quoteId))throw new Error("INVALID_QUOTE");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");const rawToken=token(),expiresAt=new Date(Date.now()+14*86400000).toISOString();const {error}=await db.rpc("prepare_agency_quote_share",{p_workspace_uuid:access.workspaceId,p_quote_id:data.quoteId,p_token_hash:await sha256(rawToken),p_expires_at:expiresAt,p_actor_id:context.userId});if(error)throw new Error(error.code==="PGRST202"?"QUOTE_SHARING_UNAVAILABLE":"QUOTE_SHARE_FAILED");await agencyAudit(db,access.workspaceId,context.userId,"quote.share","quote",data.quoteId,{expiresAt});return{url:`/quote/${rawToken}`,expiresAt} as AgencyQuoteShare;
+});
+
+export const getAgencyQuoteConversion=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).validator((input:{quoteId:string})=>input).handler(async({data,context})=>{
+ if(!UUID.test(data.quoteId))throw new Error("INVALID_QUOTE");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_create");
+ const {data:q,error}=await db.from("agency_quotes").select("id,title,introduction,currency,status,trip_uuid,converted_trip_uuid,accepted_variant_id,agency_clients(full_name)").eq("workspace_uuid",access.workspaceId).eq("id",data.quoteId).maybeSingle();
+ if(error||!q||q.status!=="accepted"||!q.accepted_variant_id)throw new Error("QUOTE_NOT_ACCEPTED");const {data:v}=await db.from("agency_quote_variants").select("name,amount").eq("quote_id",q.id).eq("id",q.accepted_variant_id).maybeSingle();if(!v)throw new Error("QUOTE_VARIANT_MISSING");
+ let tripName="";if(q.trip_uuid){const {data:t}=await db.from("trips").select("name").eq("workspace_uuid",access.workspaceId).eq("trip_uuid",q.trip_uuid).maybeSingle();if(!t)throw new Error("LINKED_TRIP_UNAVAILABLE");tripName=t.name}
+ const client=Array.isArray(q.agency_clients)?q.agency_clients[0]:q.agency_clients;
+ return{quoteId:q.id,title:q.title,introduction:q.introduction??"",clientName:client?.full_name??"",tripId:q.trip_uuid??"",tripName,convertedTripId:q.converted_trip_uuid??"",variantName:v.name,amount:Number(v.amount),currency:q.currency} as AgencyQuoteConversion;
+});
+
+export const convertAgencyQuote=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{quoteId:string;name:string;start:string;end:string;template:string})=>input).handler(async({data,context})=>{
+ const name=clean(data.name,30);if(!UUID.test(data.quoteId)||!name||!/^\d{4}-\d{2}-\d{2}$/.test(data.start)||!/^\d{4}-\d{2}-\d{2}$/.test(data.end)||data.end<data.start||!["citytrip","roadtrip","backpacking","beach","winter","business","safari","cruise"].includes(data.template))throw new Error("INVALID_TRIP");
+ const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_create");const {data:tripId,error}=await db.rpc("convert_agency_quote",{p_workspace_uuid:access.workspaceId,p_quote_id:data.quoteId,p_actor_id:context.userId,p_trip:{name,start:data.start,end:data.end,template:data.template}});if(error||!tripId)throw new Error(error?.message??"QUOTE_CONVERSION_FAILED");return{ok:true,tripId:String(tripId)};
+});
+
+export const revokeAgencyQuoteShare=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{quoteId:string})=>input).handler(async({data,context})=>{
+ if(!UUID.test(data.quoteId))throw new Error("INVALID_QUOTE");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");const {data:revoked,error}=await db.rpc("revoke_agency_quote_share",{p_workspace_uuid:access.workspaceId,p_quote_id:data.quoteId,p_actor_id:context.userId});if(error)throw new Error(error.code==="PGRST202"?"QUOTE_SHARE_MANAGEMENT_UNAVAILABLE":"QUOTE_SHARE_REVOKE_FAILED");return{ok:true,revoked:Boolean(revoked)};
+});

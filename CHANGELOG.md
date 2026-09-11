@@ -4,6 +4,286 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-12 00:14 CEST — Offertecyclus gemeld en geaudit
+
+- Delen, vernieuwen en intrekken van een offertelink informeren andere bevoegde teamleden met één actuele, vertaalde offertemelding.
+- Offertes opslaan controleert nu ook in de database het vereiste planningsrecht en blokkeert wijzigingen aan definitief beantwoorde offertes.
+- Aanmaak, wijziging, delen en vernieuwen vullen de bestaande auditregels voor antwoorden, intrekken en converteren aan tot een volledige beheerhistorie.
+- Auditregels en meldingen bevatten geen deeltoken, klantnotitie of contactgegevens.
+- Migratie `20260908054000_agency_quote_lifecycle.sql` en rollbacktest `agency_quote_lifecycle.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-12 00:10 CEST — Gerichte meldingen bij Agency-klanten
+
+- Toevoegen, bijwerken, koppelen, ontkoppelen, archiveren en herstellen van een Agency-klant levert één actuele `agency_client`-melding per klant op.
+- Alleen de Agency-eigenaar en actieve medewerkers met klantbeheerrecht ontvangen de melding; de uitvoerder wordt overgeslagen.
+- De persoonlijke voorkeur `client_updates` wordt gerespecteerd en de melding bevat alleen een begrensde klant- en eventuele reisnaam.
+- Migratie `20260908053000_agency_client_notifications.sql` en rollbacktest `agency_client_notifications.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-12 00:06 CEST — Meldingen bij reisdocumenten
+
+- Toevoegen, verwijderen, categoriseren en wijzigen van een documentvervaldatum levert een vertaalde, gebundelde `trip_document`-melding op.
+- Ontvangers worden afgeleid uit eigenaar, actieve reisleden en bevoegde Agency-teamleden; de uitvoerder wordt uitgesloten.
+- Bestaande Agency-voorkeuren voor reiswijzigingen kunnen deze informatieve meldingen onderdrukken.
+- Meldingen bevatten uitsluitend de begrensde bestandsnaam, actie en eventuele vervaldatum, zonder opslagpad of documentinhoud.
+- Migratie `20260908052000_trip_document_notifications.sql` en rollbacktest `trip_document_notifications.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-12 00:02 CEST — Atomaire Agency-taakmeldingen
+
+- Taaktoewijzing, overdracht, status en deadline informeren de betrokken uitvoerder met een vertaalde `agency_task`-melding.
+- Bij overdracht ontvangen de vorige en nieuwe uitvoerder ieder de juiste context; de gebruiker die de wijziging zelf uitvoert krijgt geen overbodige melding.
+- Een stabiele gebeurtenissleutel houdt per taak één actuele openstaande melding en heropent die na een nieuwe relevante wijziging.
+- De eerdere losse melding vanuit de serveractie is verwijderd; een databasetrigger verwerkt taak en melding nu atomair.
+- Migratie `20260908051000_agency_task_notifications.sql` en rollbacktest `agency_task_notifications.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-12 00:00 CEST — Meldingen bij Agency-huisstijl
+
+- Inhoudelijke wijzigingen aan centrale Agency-instellingen en huisstijl informeren uitsluitend andere actieve gebruikers met `branding_manage`.
+- Nieuwe of gewijzigde huisstijl per reis krijgt een eigen gebundelde melding met de betreffende reisnaam.
+- De uitvoerder ontvangt geen overbodige melding en wijzigingen die alleen het opslagtijdstip raken veroorzaken geen melding.
+- Databasetriggers bewaren de wijziging en melding binnen dezelfde transactie, ongeacht welke beheerinterface later wordt gebruikt.
+- Migratie `20260908050000_agency_branding_notifications.sql` en rollbacktest `agency_branding_notifications.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-11 23:58 CEST — Meldingen bij Agency-rollen en rechten
+
+- Rolwijzigingen en persoonlijke rechtenwijzigingen informeren het betrokken teamlid met een vertaalde `agency_access`-melding.
+- Een wijziging aan de standaardrechten van adviseurs of finance informeert uitsluitend actieve medewerkers met die rol.
+- Stabiele gebeurtenissleutels bundelen herhaalde wijzigingen en maken een eerder weggeklikte melding bij een nieuwe wijziging opnieuw zichtbaar.
+- De rechtenwijziging en melding worden binnen dezelfde databasefunctie opgeslagen.
+- Migratie `20260908049000_agency_access_notifications.sql` en rollbacktest `agency_access_notifications.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-11 23:54 CEST — Beheer van Agency-offertelinks
+
+- Agency Admin toont nu de vervaldatum van een actieve offertelink.
+- Veilig vernieuwen genereert een nieuw willekeurig token en maakt de oude link onmiddellijk ongeldig.
+- Een bevoegde medewerker kan een link na bevestiging direct intrekken; tokenhash en deeltijden worden samen gewist.
+- Intrekken is herhaalveilig en wordt met de uitvoerende gebruiker in de Agency-auditlog vastgelegd.
+- Migratie `20260908048000_manage_agency_quote_shares.sql` en rollbacktest `agency_quote_share_management.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-11 23:49 CEST — Geaccepteerde Agency-offerte omzetten
+
+- Een aparte controlepagina toont klant, gekozen variant, bedrag en de uiteindelijke reis voordat een geaccepteerde offerte wordt omgezet.
+- Zonder gekoppelde reis maakt de flow precies één nieuwe privéreis met gecontroleerde naam, datums, type en het geaccepteerde offertebedrag als budget.
+- Bij een bestaande reis legt de flow alleen de offerte- en klantkoppeling vast; planning, boekingen en uitgaven blijven intact.
+- De conversie is transactioneel en herhaalveilig, verleent een bestaand klantaccount zo nodig toegang, informeert het Agency-team en schrijft de actor naar de auditlog.
+- Migratie `20260908047000_convert_agency_quotes.sql` en rollbacktest `agency_quote_conversion.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-11 23:47 CEST — Klantrespons op Agency-offertes
+
+- Een klant kan precies één offertevariant accepteren of de volledige offerte afwijzen, met een optionele opmerking tot 500 tekens.
+- De eerste geldige respons wordt atomair vastgelegd; dubbel klikken, vernieuwen of een tweede keuze wijzigt de uitkomst niet.
+- De openbare offertepagina toont na antwoorden een duidelijke bevestiging in Nederlands of Engels.
+- Actieve Agency-teamleden krijgen één gebundelde en vertaalde offertemelding; de respons komt zonder fictieve gebruiker in de append-only auditlog.
+- Migratie `20260908046000_agency_quote_responses.sql` en rollbacktest `agency_quote_responses.sql` staan klaar voor de implementatieronde.
+
+## 2026-09-11 23:40 CEST — Roadmap opgeschoond en notificaties uitgewerkt
+
+- De private roadmap is teruggebracht van bijna negenhonderd regels naar één actuele productroadmap met een korte bouwvolgorde, gegroepeerde prioriteiten en een apart implementatieoverzicht.
+- Afgeronde dagtests en herhaalde historische plannen zijn verwijderd; de uitgevoerde geschiedenis blijft in dit changelog bewaard.
+- Volledige notificatiedekking is als P0 uitgewerkt voor accounts, reiswijzigingen, uitnodigingen, rollen, blokkades, boekingen, uitgaven, documenten, Agency, offertes, feedback en platformbeheer.
+- De notificatieregels leggen ontvangers, deduplicatie, verplichte veiligheidsmeldingen, persoonlijke voorkeuren, vertaling, veilige links en de latere koppeling met SMTP vast.
+- De publieke roadmap vermeldt gerichte, gebundelde meldingen en voorkeuren per reis en onderwerp als komende verbetering.
+
+## 2026-09-11 23:36 CEST — Veilige klantweergave voor Agency-offertes
+
+- Een deelklare offerte kan vanuit Agency Admin een nieuwe, veertien dagen geldige klantlink krijgen.
+- Alleen de SHA-256-hash van het willekeurige token wordt opgeslagen; een nieuwe link maakt een eerder exemplaar ongeldig.
+- De publieke route `/quote/:token` toont uitsluitend de offertevarianten, bedragen, geldigheid, klant- en reisnaam en openbare Agency-huisstijl.
+- Concepten, geannuleerde, afgeronde en verlopen offertes worden niet via de link vrijgegeven.
+- Migratie `20260908045000_secure_agency_quote_sharing.sql` en rollbacktest `agency_quote_sharing.sql` staan klaar voor de latere implementatieronde.
+- Accepteren of afwijzen is bewust nog niet aan deze leesstap gekoppeld en volgt als afzonderlijke atomaire responsstroom.
+
+## 2026-09-11 19:20 CEST — Nieuwe publieke website ingepland
+
+- De private en publieke roadmap bevatten nu de volledige herbouw van de GlobeTrotr-homepage en marketingwebsite.
+- De scope omvat afzonderlijke pagina's voor reizigers, groepen en Agencies, een interactieve productdemo, een nieuwe navigatie en een duidelijke productpresentatie.
+- Alle publieke routes krijgen Engelstalige slugs. Bestaande Nederlandse URL's blijven via permanente redirects werken, zodat gedeelde reizen, uitnodigingen en bestaande links niet breken.
+- De resterende bouwvolgorde is aangescherpt: offerte delen en beantwoorden, offerteconversie, publieke website, leveranciers, productiecontrole, VPS-portabiliteit en daarna SMTP en Paddle.
+
+## 2026-09-11 19:09 CEST — Roadmaps en implementatievolgorde gelijkgetrokken
+
+- De interne roadmap begint nu met één concrete bouwvolgorde van offerteacceptatie tot VPS, SMTP en Paddle.
+- De grens tussen gebouwd en geïmplementeerd is expliciet gemaakt; migraties `39000` t/m `44000` blijven open totdat ze werkelijk zijn uitgevoerd en getest.
+- De publieke roadmap vermeldt het interne offertebeheer als afgerond en veilige klantgoedkeuring plus reisconversie als volgende stappen.
+- De README bevat nu alle Agency-routes en de volledige migratievolgorde door `20260908044000_agency_quote_management.sql`.
+- Verouderde Lovable-mailinstructies zijn vervangen door de gekozen toekomstige VPS- en SMTP-route.
+
+## 2026-09-11 19:06 CEST — Intern Agency-offertebeheer
+
+- Agency Admin heeft een offertepagina met klant- en optionele reiskoppeling, geldigheid, valuta, statusfilters en maximaal tien varianten.
+- Iedere variant heeft een begrensde naam, omschrijving en niet-negatief bedrag.
+- Service-role-only RPC `save_agency_quote` bewaart de offerte en volledige variantenset atomair; geaccepteerde, afgewezen en verlopen offertes zijn niet intern overschrijfbaar.
+- Migratie `20260908044000_agency_quote_management.sql` en rollbacktest `agency_quotes.sql` staan klaar voor de latere implementatieronde.
+- Publieke tokenacceptatie en conversie naar een reis blijven bewust de volgende afzonderlijke beveiligingsstap.
+
+## 2026-09-11 18:59 CEST — Paddle, eigen hosting en SMTP in juridische informatie
+
+- Paddle is in prijzen, voorwaarden en terugbetalingsbeleid vastgelegd als toekomstige Merchant of Record voor betaalde abonnementen.
+- De voorwaarden onderscheiden de Paddle-koop en betaling van de software, accounttoegang en productondersteuning die GlobeTrotr levert.
+- De privacyverklaring beschrijft afzonderlijk de rollen van Paddle, Supabase, de geplande VPS-infrastructuur en de nog te selecteren SMTP-provider.
+- Account- en service-e-mail, bezorgmetadata, transactiegegevens, grondslagen en bewaardoelen zijn toegevoegd in NL/EN.
+- De verklaring belooft geen onbekende leverancier of regio: concrete VPS- en SMTP-partijen, locaties, termijnen en eventuele cookies moeten vóór productie worden gepubliceerd.
+- Actuele facturatiepagina's en roadmaps verwijzen voortaan naar Paddle en SMTP in plaats van de eerder beoogde Stripe- en Lovable-mailroute.
+
+## 2026-09-11 18:55 CEST — Publieke prijzen en juridische aankoopinformatie
+
+- Een nieuwe openbare prijspagina vergelijkt Free, Pro en Agency met de bestaande beoogde maandprijzen.
+- De pagina maakt expliciet dat de huidige beta gratis is en dat pas na activering van de beveiligde Paddle-checkout betalingen kunnen plaatsvinden.
+- Afzonderlijke algemene voorwaarden beschrijven accounts, toegestaan gebruik, abonnementen, opzegging, consumentenbescherming, aansprakelijkheid en klachten in NL/EN.
+- Een afzonderlijk terugbetalingsbeleid beschrijft de wettelijke bedenktijd, opzegging, terugbetalingsgronden en aanvraagprocedure in NL/EN.
+- De drie pagina's zijn vanuit de compacte footer en onderling bereikbaar.
+- Voor live betaalactivatie blijft een afzonderlijke checkoutcontrole nodig; deze teksten activeren geen betaling en bevatten geen verzonnen ondernemingsgegevens.
+
+## 2026-09-11 18:52 CEST — Relationele basis voor Agency-offertes
+
+- Een nieuwe workspacegebonden offerte-opslag ondersteunt klant, optionele reis, valuta, geldigheid en een gecontroleerde statuscyclus.
+- Iedere offerte kan meerdere geordende varianten met eigen omschrijving en bedrag bevatten.
+- Databasecontroles voorkomen koppelingen met klanten, reizen of geaccepteerde varianten buiten de offerte en workspace.
+- RLS maakt offertes leesbaar voor interne Agency-leden en wijzigbaar voor teamleden met effectief planrecht.
+- Migratie `20260908043000_agency_quotes.sql` staat klaar; beheerinterface, veilige klantacceptatie en regressietest volgen in de volgende bouwstap voordat dit publiek als afgerond verschijnt.
+
+## 2026-09-11 18:48 CEST — Herbruikbare Agency-sjablonen
+
+- Agency Admin heeft een eigen sjablonenpagina voor reisschema's, paklijsten en klantteksten.
+- Bevoegde planners kunnen sjablonen aanmaken, wijzigen en archiveren; andere interne Agency-leden kunnen ze alleen lezen.
+- Een programma- of paklijstsjabloon kan vanuit de reisinstellingen worden toegevoegd zonder bestaande reisinhoud te vervangen.
+- Klantteksten worden vanuit dezelfde bediening naar het klembord gekopieerd voor gecontroleerd hergebruik.
+- Opslag is workspacegebonden, begrensd tot honderd geldige onderdelen en opgenomen in de Agency-auditlog.
+- Migratie `20260908042000_agency_templates.sql` en SQL-test `agency_templates.sql` staan klaar voor implementatie.
+- De productiebuild slaagt met de nieuwe beheer- en reisroutes.
+
+## 2026-09-11 18:43 CEST — Agency-taken en deadlines
+
+- Agency Admin heeft een eigen pagina voor openstaande, afgeronde en geannuleerde taken.
+- Taken ondersteunen prioriteit, status, deadline, notities en optionele koppelingen aan een reis, klant en actief teamlid.
+- Persoonlijke Agency-rechten bepalen wie taken alleen leest en wie ze aanmaakt of wijzigt.
+- Een nieuwe toewijzing maakt een melding voor de uitvoerder; eigen toewijzingen veroorzaken geen overbodige melding.
+- Alle taakopslag wordt workspacegebonden gevalideerd en wijzigingen worden aan de append-only Agency-auditlog toegevoegd.
+- Migratie `20260908041000_agency_tasks.sql` en SQL-test `agency_tasks.sql` staan klaar voor de implementatieronde.
+- De productiebuild en alle 29 applicatieregressietests slagen.
+
+## 2026-09-11 18:38 CEST — Vervaldatums en documentwerkvoorraad
+
+- Reisbeheerders kunnen de categorie, gekoppelde boeking en optionele vervaldatum van een bestaand document wijzigen.
+- Een vervaldatum kan direct tijdens het uploaden worden vastgelegd.
+- Agency Operatie toont documenten die al verlopen zijn of binnen dertig dagen verlopen en linkt terug naar de juiste reis.
+- De database valideert dat documentmetadata en het gekoppelde reisonderdeel werkelijk bij dezelfde onveranderlijke reis-UUID horen.
+- Migratie `20260908040000_trip_document_expiry.sql` bouwt voort op de private documentenopslag; `trip_documents_security.sql` controleert ook mutatierechten en ongeldige koppelingen.
+- De productiebuild en alle 29 applicatieregressietests slagen.
+
+## 2026-09-11 18:34 CEST — Eerste Agency-klantportaal
+
+- Accounts met een actieve klantrol krijgen een afzonderlijke navigatie naar **Klantportaal**.
+- Het portaal toont uitsluitend expliciet gekoppelde klantreizen, met reisperiode, bestemmingen, boekingen, documenten en eerstvolgende planning.
+- Documentaantallen worden rechtstreeks onder bestaande RLS geladen; een fout of nog niet uitgevoerde documentmigratie lekt geen gegevens en blokkeert de rest van het portaal niet.
+- De pagina gebruikt de actieve Agency-huisstijl en verwijst voor volledige details naar de bestaande afgeschermde reisweergave.
+- Facturen en betaalstatus worden pas toegevoegd nadat een echte betaalprovider en een relationeel factuurmodel beschikbaar zijn.
+- De productiebuild slaagt en de gegenereerde router bevat de nieuwe route.
+
+## 2026-09-11 18:31 CEST — Documenten aan een reisonderdeel koppelen
+
+- Bij uploaden kan een ticket, voucher of ander document optioneel aan een bestaande vlucht, accommodatie, rit of activiteit worden gekoppeld.
+- De documentenlijst toont het gekoppelde reisonderdeel en blijft op smalle schermen binnen de kaart.
+- Algemene reisdocumenten blijven mogelijk wanneer er geen specifieke boeking gekozen wordt.
+- De productiebuild slaagt na deze uitbreiding.
+
+## 2026-09-11 18:28 CEST — Private reisdocumenten
+
+- Iedere reis heeft een eigen tab **Documenten** voor tickets, vouchers, verzekeringen, visa en boekingsbevestigingen.
+- PDF-, JPG-, PNG- en WebP-bestanden tot 15 MB worden in een private Storage-bucket opgeslagen en uitsluitend via een tijdelijke beveiligde link geopend.
+- Leestoegang volgt het actieve reislidmaatschap; uploaden en verwijderen volgen het effectieve planrecht, inclusief persoonlijke Agency-afwijkingen.
+- Storage-paden gebruiken de onveranderlijke reis-UUID en ongeldige paden veroorzaken geen UUID-castfout in de policies.
+- Migratie `20260908039000_secure_trip_documents.sql` en SQL-test `trip_documents_security.sql` staan klaar voor de latere implementatieronde.
+- Productiebuild en alle 29 applicatieregressietests slagen.
+
+## 2026-09-11 18:21 CEST — Serverfuncties bijgewerkt voor actuele TanStack API
+
+- Alle serverfuncties gebruiken nu `validator()` in plaats van de verouderde `inputValidator()`-methode.
+- De wijziging omvat account, Agency, reizen, uitnodigingen, publieke pagina's, feedback, weer, valuta en vluchtdata.
+- De productiebuild slaagt zonder de eerdere TanStack-deprecatiewaarschuwingen; alle 29 regressietests blijven slagen.
+- De resterende melding over `vite-tsconfig-paths` komt uit de gedeelde Lovable-configuratie en wordt niet lokaal dubbel aangepast.
+
+## 2026-09-11 13:51 CEST — Echt Agency-abonnementsoverzicht
+
+- Agency Admin heeft een eigen pagina **Abonnement** met het actieve plan en actuele aantallen teamleden, uitnodigingen, klanten en actieve, openbare en gearchiveerde reizen.
+- De loader gebruikt uitsluitend compacte server-side count-query’s en vereist het effectieve `billing_manage`-recht.
+- Facturen en bedragen worden niet gesimuleerd; het scherm vermeldt duidelijk dat deze na de gecontroleerde Stripe-koppeling beschikbaar komen.
+- De bestaande algemene plannenpagina blijft bereikbaar vanuit het Agency-overzicht.
+
+## 2026-09-11 13:49 CEST — Complete Agency-autorisatiematrix
+
+- Een nieuwe integrale SQL-regressietest controleert alle negen Agency-rechten voor eigenaar, standaardadviseur, adviseur met persoonlijke afwijkingen, finance, klant en buitenstaander.
+- De test bewijst daarnaast dat interne medewerkers alle Agency-reizen kunnen lezen, een klant uitsluitend de gekoppelde reis ziet en een buitenstaander geen reizen ziet.
+- Persoonlijke deny- en allow-afwijkingen worden expliciet boven de rolstandaard getest.
+- De test gebruikt uitsluitend tijdelijke gegevens en draait alles terug.
+
+## 2026-09-11 13:46 CEST — Persoonlijke Agency-meldingsvoorkeuren
+
+- Ieder actief Agency-teamlid krijgt eigen voorkeuren voor reiswijzigingen, uitnodigingsreacties en klantupdates.
+- Een nieuwe Agency Admin-pagina **Meldingen** leest en bewaart de voorkeuren via afgeschermde serverfuncties en registreert wijzigingen in de auditlog.
+- Een database-trigger onderdrukt uitgeschakelde reiswijzigingen en reacties op workspace-uitnodigingen vóórdat ze als melding worden opgeslagen.
+- Kritieke meldingen over blokkades, verwijderde toegang en platformstatus blijven verplicht actief.
+- Migratie `20260908038000_agency_notification_preferences.sql` en SQL-test `agency_notification_preferences.sql` staan klaar voor de latere implementatieronde.
+
+## 2026-09-11 13:42 CEST — Agency-reisacties beter traceerbaar
+
+- Nieuwe reizen krijgen de stabiele workspace-UUID nu expliciet mee, ook wanneer een bevoegde adviseur de reis aanmaakt.
+- Aanmaken en definitief verwijderen van een reis worden voor Agency-workspaces aan de bestaande auditlog toegevoegd met de werkelijke uitvoerder.
+- Definitief verwijderen controleert vooraf expliciet dat de ingelogde gebruiker de workspace-eigenaar is.
+- De volledige productiebuild en alle 29 regressietests slagen.
+
+## 2026-09-11 13:35 CEST — Agency-beveiligingsoverzicht
+
+- Agency-eigenaren hebben een afzonderlijke pagina **Beveiliging** met aantallen actieve en geblokkeerde teamleden en verlopen uitnodigingen.
+- De vijf recentste beheeracties tonen uitvoerder en tijdstip; de volledige append-only historie blijft via **Activiteit** bereikbaar.
+- Snelle acties openen het bestaande team- en rechtenbeheer zonder beveiligingslogica te dupliceren.
+- De pagina gebruikt uitsluitend bestaande beveiligde Agency-loaders en vereist daardoor geen aanvullende migratie.
+
+## 2026-09-11 13:32 CEST — Agency-instellingen rustiger ingedeeld
+
+- Organisatie- en regiogegevens en de huisstijl staan voortaan in afzonderlijke tabs binnen het Agency-instellingenscherm.
+- Het live voorbeeld blijft naast het actieve onderdeel zichtbaar en bestaande opslag, logo-upload en validatie zijn behouden.
+
+## 2026-09-11 13:31 CEST — Persoonlijke Agency-rechten zichtbaar consequent
+
+- Persoonlijke uitzonderingen voor reisplanning, uitgaven en reisinstellingen bepalen nu ook direct welke bediening in het reisscherm beschikbaar is.
+- Tijdens het laden van Agency-toegang worden geen kortstondig onbevoegde bewerkknoppen getoond.
+- Reisinstellingen, openbaar delen en archiveren controleren hun effectieve recht ook in de browserhandler; de bestaande servercontrole blijft leidend.
+- De regressietest dekt een adviseur met ingetrokken planrecht, toegekend instellingenrecht, de laadstatus en terugval naar een gewone reisrol.
+
+## 2026-09-11 13:27 CEST — Reisgenotenbeheer volgt Agency-rechten
+
+- Een centrale server-side controle staat reisgenotenbeheer toe aan de reiseigenaar of een actief Agency-teamlid met expliciet `members_manage`.
+- Uitnodigingen aanmaken, bekijken, vernieuwen en intrekken en reisgenoten verwijderen gebruiken dezelfde controle; bestaande service-role-only databasefuncties blijven de mutaties uitvoeren.
+- De interface toont het reisgenotenbeheer aan een bevoegd Agency-teamlid en houdt het verborgen voor onbevoegde adviseurs, finance en buitenstaanders.
+- Agency-acties op uitnodigingen en verwijderingen krijgen actor en doel in de append-only Agency-auditlog.
+- Een negatieve regressietest controleert eigenaar, bevoegde adviseur, standaardadviseur, finance en buitenstaander.
+
+## 2026-09-11 13:23 CEST — Conflicterende Agency-reisrollen opgelost
+
+- Reisloading en reisopslag gebruiken nu dezelfde keuze wanneer iemand zowel een interne Agency-rol als een oude per-reisrol heeft.
+- Een actief Agency-lidmaatschap met `trips_view` gaat voor een conflicterende klant-, viewer- of reizigersrol op dezelfde reis.
+- Wanneer het Agency-kijkrecht uitstaat, blijft een afzonderlijk geldig reis­lidmaatschap bruikbaar en worden geen Agency-bewerkrechten overgenomen.
+- Twee negatieve regressietests bewaken beide situaties.
+
+## 2026-09-11 13:20 CEST — Verouderde Agency-sessies worden hersteld
+
+- De applicatieshell controleert voor actieve Agency-sessies periodiek en bij terugkeer naar het browservenster of het teamlidmaatschap en Agency-plan nog geldig zijn.
+- Na blokkeren, verwijderen of een downgrade wordt de workspace opnieuw veilig geladen; oude Agency-navigatie, kleuren en logo's verdwijnen daardoor zonder nieuwe login.
+- Tijdelijke controlefouten laten de bestaande server-side beveiliging leidend en veroorzaken geen onbehandelde browserfout.
+- De roadmap erkent nu dat bevoegde Agency-adviseurs al reizen in de gedeelde workspace kunnen aanmaken.
+
+## 2026-09-11 12:52 CEST — Agency-klanttoegang en werkvoorraad hersteld
+
+- De foutcode van een ongeldige klant-reiskoppeling is gecorrigeerd, zodat de atomaire rollbacktest de verwachte fout herkent.
+- Een Agency-klant met een bestaand GlobeTrotr-account krijgt na koppeling automatisch een actieve `client`-deelname aan de geselecteerde reizen.
+- De herstelmigratie vult ook eerder opgeslagen actieve klantkoppelingen aan; opnieuw opslaan is daarvoor niet nodig.
+- Automatisch gemaakte deelnames verwijzen naar het klantprofiel; ontkoppelen verwijdert daardoor uitsluitend deze toegang en laat handmatig beheerde deelnames staan.
+- Archiveren trekt automatisch verleende klanttoegang in en herstellen activeert de gekoppelde reizen opnieuw wanneer het account nog bestaat.
+- De werkvoorraad laadt reizen, boekingen en uitgaven via afzonderlijke workspacegebonden queries en vertrouwt niet meer op een ontbrekende impliciete PostgREST-relatie.
+- Het klantenscherm toont of het account daadwerkelijk toegang heeft en legt uit wanneer voor een nieuw account nog een uitnodiging nodig is.
+- Corrupte typografische tekens en scheidingstekens in Agency Admin zijn hersteld.
+- README, AGENTS.md, publieke roadmap, interne roadmap, mogelijkhedenpagina en beide changelogs zijn gecontroleerd en gelijkgetrokken met de actuele Agency-functionaliteit.
+
 ## 2026-09-10 19:36 CEST — Append-only Agency-auditlog
 
 - Agency Admin heeft een afzonderlijke eigenaarspagina **Activiteit** met maximaal honderd recente beheeracties en een compacte standaardweergave.

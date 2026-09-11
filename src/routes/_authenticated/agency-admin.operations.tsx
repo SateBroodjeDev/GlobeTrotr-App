@@ -1,5 +1,5 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, CalendarClock, CircleDollarSign, Clock3, Lock } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AlertTriangle, CalendarClock, CircleDollarSign, Clock3, FileWarning, Lock } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -24,12 +24,12 @@ import { getAgencyOperations, getMyAgencyAccess, type AgencyOperationItem } from
 export const Route = createFileRoute("/_authenticated/agency-admin/operations")({
   head: () => ({
     meta: [
-      { title: "Agency-overzicht â€” GlobeTrotr" },
+      { title: "Agency-overzicht — GlobeTrotr" },
       {
         name: "description",
         content: "Inzicht in reizen, kosten en declarabele uitgaven voor je agency.",
       },
-      { property: "og:title", content: "Agency-overzicht â€” GlobeTrotr" },
+      { property: "og:title", content: "Agency-overzicht — GlobeTrotr" },
       {
         property: "og:description",
         content: "Overzicht van reizen, kosten en declarabele uitgaven.",
@@ -66,7 +66,7 @@ function Analytics() {
   })).filter((d) => d.value > 0);
 
   const perTrip = trips.map((t) => ({
-    name: t.name.length > 18 ? `${t.name.slice(0, 18)}â€¦` : t.name,
+    name: t.name.length > 18 ? `${t.name.slice(0, 18)}…` : t.name,
     expenses: Math.round(
       t.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0),
     ),
@@ -121,6 +121,7 @@ function Analytics() {
           <QueueCard icon={CalendarClock} title={text("Aankomende reizen","Upcoming trips")} empty={text("Geen aankomende reizen.","No upcoming trips.")} items={operations.data?.upcoming??[]} locale={locale} text={text}/>
           <QueueCard icon={AlertTriangle} title={text("Ontbrekende boekingsgegevens","Missing booking details")} empty={text("Alle toekomstige boekingen zijn compleet.","All future bookings are complete.")} items={operations.data?.missingBookings??[]} locale={locale} text={text} missing/>
           <QueueCard icon={CircleDollarSign} title={text("Open declarabele kosten","Open billable expenses")} empty={text("Geen declarabele kosten gevonden.","No billable expenses found.")} items={operations.data?.billableExpenses??[]} locale={locale} text={text}/>
+          <QueueCard icon={FileWarning} title={text("Documenten verlopen binnen 30 dagen","Documents expiring within 30 days")} empty={text("Geen documenten verlopen binnenkort.","No documents expire soon.")} items={operations.data?.expiringDocuments??[]} locale={locale} text={text}/>
           <Card className="surface"><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-base"><Clock3 className="size-4 text-primary"/>{text("Verlopen teamuitnodigingen","Expired team invitations")}<span className="ml-auto text-sm text-muted-foreground">{operations.data?.expiredInvitations.length??0}</span></CardTitle></CardHeader><CardContent className="max-h-72 space-y-2 overflow-y-auto">{operations.data?.expiredInvitations.map(item=><div key={item.id} className="rounded-xl border p-3"><p className="truncate text-sm font-medium">{item.email}</p><p className="text-xs text-muted-foreground">{text("Verlopen op","Expired on")} {formatDate(item.expiresAt,locale)}</p></div>)}{operations.data&&!operations.data.expiredInvitations.length&&<Empty>{text("Geen verlopen uitnodigingen.","No expired invitations.")}</Empty>}</CardContent></Card>
         </div>
       </section>

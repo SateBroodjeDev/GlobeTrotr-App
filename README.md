@@ -1,8 +1,8 @@
-﻿# GlobeTrotr
+# GlobeTrotr
 
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
-De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord werkt. OAuth en automatische app-e-mails staan bewust nog niet aan.
+De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord werkt. OAuth en automatische app-e-mails staan bewust nog niet aan. Voor productie is Paddle de gekozen Merchant of Record voor abonnementen; de applicatieserver verhuist later van Lovable naar een eigen VPS en transactionele e-mail gaat dan via een afzonderlijke SMTP-provider.
 
 ## Wat de applicatie bevat
 
@@ -14,7 +14,7 @@ De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord 
 - Openbare reispagina's met kaart, planning, optioneel gedeelde boekingen, PIN-bescherming en weer.
 - JSON-back-up per reis, volledige workspaceback-up, veilige import en AVG-gegevensexport.
 - Persistente meldingen, platformstatusbanners, feedback en een publieke lijst met bekende problemen.
-- Agency-mogelijkheden voor rollen, declarabele uitgaven, bonnetjes, analytics en white-label branding.
+- Een afzonderlijke Agency Admin met organisatie-instellingen, private logo-opslag, centrale en per-reisbranding, interne teamrollen, persoonlijke rechten, klantprofielen, operationele werkvoorraad en append-only auditlog.
 - Afgeschermd Corporate Admin-dashboard voor gebruikers, platformstatus, feedback, problemen en auditlog.
 
 ## Techniek
@@ -43,7 +43,7 @@ npm install
 npm run dev
 ```
 
-Plaats secrets uitsluitend in de lokale omgeving of Lovable Cloud en commit nooit `.env`-bestanden of service-role-sleutels.
+Plaats secrets uitsluitend in de afgeschermde serveromgeving en commit nooit `.env`-bestanden, SMTP-wachtwoorden, Paddle-webhooksecrets of service-role-sleutels.
 
 ## Controles
 
@@ -59,7 +59,40 @@ Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Ed
 
 ## Databasewijzigingen
 
-Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, feedback, platformbeheer en auditregistratie.
+Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
+
+De nog te implementeren Agency-uitbreidingen worden strikt in deze volgorde toegepast:
+
+1. `20260908030000_agency_workspace_members.sql` t/m `20260908034000_trip_branding_overrides.sql`;
+2. `20260908035000_agency_clients.sql`;
+3. `20260908036000_agency_audit_log.sql`;
+4. `20260908037000_fix_agency_clients_and_operations.sql`;
+5. `20260908038000_agency_notification_preferences.sql`;
+6. `20260908039000_secure_trip_documents.sql` en `20260908040000_trip_document_expiry.sql`;
+7. `20260908041000_agency_tasks.sql` en `20260908042000_agency_templates.sql`;
+8. `20260908043000_agency_quotes.sql`, `20260908044000_agency_quote_management.sql`, `20260908045000_secure_agency_quote_sharing.sql`, `20260908046000_agency_quote_responses.sql`, `20260908047000_convert_agency_quotes.sql`, `20260908048000_manage_agency_quote_shares.sql`, `20260908049000_agency_access_notifications.sql`, `20260908050000_agency_branding_notifications.sql`, `20260908051000_agency_task_notifications.sql`, `20260908052000_trip_document_notifications.sql`, `20260908053000_agency_client_notifications.sql` en `20260908054000_agency_quote_lifecycle.sql`.
+
+De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke migratie eerst vereist is.
+
+### Agency Admin
+
+- `/agency-admin`: workspaceoverzicht en teambeheer.
+- `/agency-admin/settings`: organisatiegegevens, standaardtaal, valuta, tijdzone, domein, accentkleur en logo.
+- `/agency-admin/permissions`: standaardrechten per rol en persoonlijke uitzonderingen.
+- `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Een bestaand account met hetzelfde e-mailadres krijgt automatisch de rol `client` op die reizen; archiveren trekt deze automatische toegang in en herstellen bouwt haar opnieuw op. Voor een nieuw account blijft een uitnodiging nodig.
+- `/agency-admin/operations`: portfolio, kosten en concrete aandachtspunten uit relationele reisdata.
+- `/agency-admin/quotes`: interne offertes met klant, optionele reis, geldigheid en meerdere prijsvarianten.
+- `/agency-admin/quotes/:quoteId/convert`: controlepagina om een geaccepteerde offerte aan een bestaande reis te koppelen of als nieuwe privéreis aan te maken.
+- `/quote/:token`: tijdelijke, beveiligde klantweergave van een deelklare Agency-offerte.
+- `/agency-admin/tasks`: taken, prioriteiten, deadlines en toewijzingen aan teamleden.
+- `/agency-admin/templates`: herbruikbare programma's, paklijsten en klantteksten.
+- `/agency-admin/notifications`: persoonlijke Agency-meldingsvoorkeuren.
+- `/agency-admin/security`: teamstatus, verlopen uitnodigingen en recente veiligheidsrelevante activiteit.
+- `/agency-admin/subscription`: actief Agency-plan en werkelijke gebruiksaantallen zonder gesimuleerde facturen.
+- `/agency-admin/audit`: onveranderbare beheerhistorie voor de Agency-eigenaar.
+- `/client-portal`: afgeschermde klantweergave van uitsluitend expliciet gekoppelde reizen.
+
+Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waaraan hun profiel of geaccepteerde uitnodiging expliciet is gekoppeld.
 
 ## Projectdocumentatie
 
@@ -67,7 +100,8 @@ Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolg
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.
 - `/changelog`: publieke release notes.
-- `/privacy` en `/beta-voorwaarden`: gepubliceerde privacy-informatie en betavoorwaarden.
+- `/prijzen`: openbare vergelijking van Free, Pro en Agency; de betaalde tarieven zijn tijdens de gratis beta nog niet actief.
+- `/privacy`, `/algemene-voorwaarden`, `/terugbetalingsbeleid` en `/beta-voorwaarden`: gepubliceerde privacy-, gebruiks-, terugbetalings- en betavoorwaarden in NL/EN.
 
 ## Lovable
 

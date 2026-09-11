@@ -311,7 +311,7 @@ export const listPublicTrips = createServerFn({ method: "GET" }).handler(async (
 });
 
 export const getPublicTrip = createServerFn({ method: "GET" })
-  .inputValidator((input: { token: string; tripId: string; pin?: string }) => input)
+  .validator((input: { token: string; tripId: string; pin?: string }) => input)
   .handler(async ({ data: input }) => {
     const publicDb = await createPublicDatabaseClient();
     const submittedPinHash = input.pin ? await hashPin(input.pin) : null;

@@ -44,6 +44,31 @@ const styles = {
     label: "GlobeTrotr",
     color: "border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-100",
   },
+  agency_quote: {
+    emoji: "🧾",
+    label: "Offerte",
+    color: "border-teal-300 bg-teal-50 text-teal-950 dark:border-teal-800 dark:bg-teal-950/50 dark:text-teal-100",
+  },
+  agency_access: {
+    emoji: "🔐",
+    label: "Agency-toegang",
+    color: "border-indigo-300 bg-indigo-50 text-indigo-950 dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-100",
+  },
+  agency_task: {
+    emoji: "✅",
+    label: "Agency-taak",
+    color: "border-sky-300 bg-sky-50 text-sky-950 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-100",
+  },
+  trip_document: {
+    emoji: "📄",
+    label: "Reisdocument",
+    color: "border-fuchsia-300 bg-fuchsia-50 text-fuchsia-950 dark:border-fuchsia-800 dark:bg-fuchsia-950/50 dark:text-fuchsia-100",
+  },
+  agency_client: {
+    emoji: "🤝",
+    label: "Agency-klant",
+    color: "border-lime-300 bg-lime-50 text-lime-950 dark:border-lime-800 dark:bg-lime-950/50 dark:text-lime-100",
+  },
 } as const;
 
 export function NotificationPanel({ userId }: { userId: string }) {
@@ -224,8 +249,29 @@ export function NotificationPanel({ userId }: { userId: string }) {
             const responseAccepted = responseMatch?.[1] === "accepted";
             const feedbackParts = notification.kind === "feedback" ? notification.body.split("|") : [];
             const platformParts = notification.kind === "platform" ? notification.body.split("|") : [];
+            const quoteParts = notification.kind === "agency_quote" ? notification.body.split("|") : [];
+            const accessParts = notification.kind === "agency_access" ? notification.body.split("|") : [];
+            const taskParts = notification.kind === "agency_task" ? notification.body.split("|") : [];
+            const documentParts = notification.kind === "trip_document" ? notification.body.split("|") : [];
+            const clientParts = notification.kind === "agency_client" ? notification.body.split("|") : [];
+            const accessRole = accessParts[2] === "finance" ? text("financieel medewerker", "finance member") : text("adviseur", "adviser");
             const feedbackStatus = ({ reviewing: text("Wordt bekeken", "Under review"), planned: text("Gepland", "Planned"), resolved: text("Opgelost", "Resolved"), closed: text("Gesloten", "Closed"), new: text("Ontvangen", "Received") } as Record<string,string>)[feedbackParts[0] ?? ""];
-            const notificationTitle = notification.kind === "platform"
+            const notificationTitle = notification.kind === "agency_client"
+              ? clientParts[0] === "created" ? text("Klant toegevoegd", "Client added") : clientParts[0] === "linked" ? text("Klant aan reis gekoppeld", "Client linked to trip") : clientParts[0] === "unlinked" ? text("Klant van reis ontkoppeld", "Client unlinked from trip") : clientParts[0] === "archived" ? text("Klant gearchiveerd", "Client archived") : clientParts[0] === "restored" ? text("Klant hersteld", "Client restored") : clientParts[0] === "removed" ? text("Klant verwijderd", "Client removed") : text("Klant bijgewerkt", "Client updated")
+              : notification.kind === "trip_document"
+              ? documentParts[0] === "added" ? text("Reisdocument toegevoegd", "Trip document added") : documentParts[0] === "removed" ? text("Reisdocument verwijderd", "Trip document removed") : documentParts[0] === "expiry" ? text("Vervaldatum gewijzigd", "Expiry date changed") : text("Reisdocument bijgewerkt", "Trip document updated")
+              : notification.kind === "agency_task"
+              ? taskParts[0] === "assigned" ? text("Nieuwe taak toegewezen", "New task assigned") : taskParts[0] === "unassigned" ? text("Taak overgedragen", "Task reassigned") : taskParts[0] === "deadline" ? text("Deadline gewijzigd", "Deadline changed") : taskParts[0] === "status" ? text("Taakstatus gewijzigd", "Task status changed") : text("Taak bijgewerkt", "Task updated")
+              : notification.kind === "agency_access"
+              ? accessParts[0] === "role" ? text("Je Agency-rol is gewijzigd", "Your Agency role changed") : accessParts[0] === "member_permissions" ? text("Je persoonlijke rechten zijn gewijzigd", "Your personal permissions changed") : accessParts[0] === "branding" ? text("Agency-huisstijl gewijzigd", "Agency branding changed") : accessParts[0] === "trip_branding" ? text("Reishuisstijl gewijzigd", "Trip branding changed") : text("De rechten van je Agency-rol zijn gewijzigd", "Your Agency role permissions changed")
+              : notification.kind === "agency_quote"
+              ? quoteParts[0] === "accept" ? text("Offerte geaccepteerd", "Quote accepted")
+                : quoteParts[0] === "converted" ? text("Offerte omgezet", "Quote converted")
+                : quoteParts[0] === "shared" ? text("Offerte gedeeld", "Quote shared")
+                : quoteParts[0] === "renewed" ? text("Offertelink vernieuwd", "Quote link renewed")
+                : quoteParts[0] === "revoked" ? text("Offertelink ingetrokken", "Quote link revoked")
+                : text("Offerte afgewezen", "Quote rejected")
+              : notification.kind === "platform"
               ? locale.startsWith("nl") ? notification.title : platformParts[2] || notification.title
               : notification.kind === "feedback"
                 ? text("Feedback bijgewerkt", "Feedback updated")
@@ -236,7 +282,29 @@ export function NotificationPanel({ userId }: { userId: string }) {
                 ? text("Uitnodiging geaccepteerd", "Invitation accepted")
                 : text("Uitnodiging geweigerd", "Invitation declined")
               : notification.title;
-            const notificationBody = notification.kind === "platform"
+            const notificationBody = notification.kind === "agency_client"
+              ? clientParts[2]
+                ? text(`${clientParts[1]} · reis: ${clientParts[2]}`, `${clientParts[1]} · trip: ${clientParts[2]}`)
+                : clientParts[1]
+              : notification.kind === "trip_document"
+              ? `${documentParts[1]}${documentParts[2] ? ` · ${text("vervalt op", "expires on")} ${documentParts[2]}` : ""}`
+              : notification.kind === "agency_task"
+              ? taskParts[0] === "unassigned" ? text(`${taskParts[1]} is niet meer aan jou toegewezen.`, `${taskParts[1]} is no longer assigned to you.`) : text(`${taskParts[1]}${taskParts[2] ? ` · ${text("deadline", "deadline")}: ${taskParts[2]}` : ""}`, `${taskParts[1]}${taskParts[2] ? ` · deadline: ${taskParts[2]}` : ""}`)
+              : notification.kind === "agency_access"
+              ? accessParts[0] === "role" ? text(`Je bent nu ${accessRole} binnen ${accessParts[1]}.`, `You are now a ${accessRole} within ${accessParts[1]}.`) : accessParts[0] === "branding" ? text(`De huisstijl van ${accessParts[1]} is bijgewerkt.`, `The branding of ${accessParts[1]} was updated.`) : accessParts[0] === "trip_branding" ? text(`De huisstijl van ${accessParts[2]} binnen ${accessParts[1]} is bijgewerkt.`, `The branding of ${accessParts[2]} within ${accessParts[1]} was updated.`) : text(`Je toegang binnen ${accessParts[1]} is bijgewerkt.`, `Your access within ${accessParts[1]} has been updated.`)
+              : notification.kind === "agency_quote"
+              ? quoteParts[0] === "accept"
+                ? text(`${quoteParts[1]} accepteerde ${quoteParts[3]} voor ${quoteParts[2]}.`, `${quoteParts[1]} accepted ${quoteParts[3]} for ${quoteParts[2]}.`)
+                : quoteParts[0] === "converted"
+                  ? text(`${quoteParts[2]} voor ${quoteParts[1]} is omgezet naar ${quoteParts[3]}.`, `${quoteParts[2]} for ${quoteParts[1]} was converted into ${quoteParts[3]}.`)
+                  : quoteParts[0] === "shared"
+                    ? text(`${quoteParts[2]} voor ${quoteParts[1]} is gedeeld.`, `${quoteParts[2]} for ${quoteParts[1]} was shared.`)
+                    : quoteParts[0] === "renewed"
+                      ? text(`De klantlink voor ${quoteParts[2]} is vernieuwd.`, `The client link for ${quoteParts[2]} was renewed.`)
+                      : quoteParts[0] === "revoked"
+                        ? text(`De klantlink voor ${quoteParts[2]} is ingetrokken.`, `The client link for ${quoteParts[2]} was revoked.`)
+                : text(`${quoteParts[1]} wees ${quoteParts[2]} af.`, `${quoteParts[1]} rejected ${quoteParts[2]}.`)
+              : notification.kind === "platform"
               ? locale.startsWith("nl") ? platformParts[3] || notification.body : platformParts[4] || notification.body
               : notification.kind === "feedback"
                 ? text(`Status: ${feedbackStatus}. ${feedbackParts.slice(1).join("|")}`, `Status: ${feedbackStatus}. ${feedbackParts.slice(1).join("|")}`)
@@ -281,7 +349,17 @@ export function NotificationPanel({ userId }: { userId: string }) {
                                 ? "Trip membership"
                                 : notification.kind === "feedback"
                                   ? "Feedback"
-                                  : "GlobeTrotr",
+                                  : notification.kind === "agency_quote"
+                                    ? "Quote"
+                                    : notification.kind === "agency_access"
+                                      ? "Agency access"
+                                    : notification.kind === "agency_task"
+                                      ? "Agency task"
+                                    : notification.kind === "trip_document"
+                                      ? "Trip document"
+                                    : notification.kind === "agency_client"
+                                      ? "Agency client"
+                                    : "GlobeTrotr",
                       )}
                     </p>
                     <h3 className="mt-1 text-sm font-semibold">{notificationTitle}</h3>

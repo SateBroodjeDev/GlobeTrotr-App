@@ -88,8 +88,8 @@ function TeamPage() {
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             {text(
-              "Reisgenoten voeg je toe in Reisinstellingen → Reisgenoten. E-mailuitnodigingen volgen zodra Lovable Cloud Emails is geactiveerd; deze pagina toont daarom geen verzendbevestiging.",
-              "Add travellers under Trip settings → Travellers. Email invitations will follow once Lovable Cloud Emails is enabled; this page therefore shows no delivery confirmation.",
+              "Reisgenoten voeg je toe in Reisinstellingen → Reisgenoten. E-mailuitnodigingen volgen zodra de SMTP-provider is geactiveerd; deze pagina toont daarom geen verzendbevestiging.",
+              "Add travellers under Trip settings → Travellers. Email invitations will follow once the SMTP provider is enabled; this page therefore shows no delivery confirmation.",
             )}
           </p>
           {trips.length ? (

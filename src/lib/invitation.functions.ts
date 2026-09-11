@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { TripMemberRole } from "@/lib/types";
+import { requireTripManagementAccess, recordTripManagementAudit } from "@/lib/trip-management-access.server";
 
 const INVITABLE_ROLES: TripMemberRole[] = ["traveler", "viewer", "advisor", "finance", "client"];
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,7 +35,7 @@ function invitationToken() {
 
 export const createTripInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { tripId: string; email: string; role: TripMemberRole }) => input)
+  .validator((input: { tripId: string; email: string; role: TripMemberRole }) => input)
   .handler(async ({ data, context }) => {
     const email = data.email.trim().toLowerCase();
     if (
@@ -44,13 +45,7 @@ export const createTripInvitation = createServerFn({ method: "POST" })
     )
       throw new Error("INVALID_INPUT");
     const db = await adminClient();
-    const { data: trip, error: tripError } = await db
-      .from("trips")
-      .select("trip_uuid")
-      .eq("trip_uuid", data.tripId)
-      .eq("workspace_user_id", context.userId)
-      .maybeSingle();
-    if (tripError || !trip) throw tripError ?? new Error("TRIP_NOT_FOUND");
+    const access = await requireTripManagementAccess(db, context.userId, data.tripId, "members_manage");
 
     const token = invitationToken();
     const { data: invitation, error } = await db
@@ -66,22 +61,17 @@ export const createTripInvitation = createServerFn({ method: "POST" })
       .select("id, expires_at")
       .single();
     if (error) throw error;
+    await recordTripManagementAudit(db, access, context.userId, "trip_invitation.create", "invitation", invitation.id);
     return { id: invitation.id as string, token, expiresAt: invitation.expires_at as string };
   });
 
 export const listPendingTripInvitations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { tripId: string }) => input)
+  .validator((input: { tripId: string }) => input)
   .handler(async ({ data, context }) => {
     if (!/^[0-9a-f-]{36}$/i.test(data.tripId)) throw new Error("INVALID_INPUT");
     const db = await adminClient();
-    const { data: trip, error: tripError } = await db
-      .from("trips")
-      .select("trip_uuid")
-      .eq("trip_uuid", data.tripId)
-      .eq("workspace_user_id", context.userId)
-      .maybeSingle();
-    if (tripError || !trip) throw tripError ?? new Error("TRIP_OWNER_REQUIRED");
+    await requireTripManagementAccess(db, context.userId, data.tripId, "members_manage");
     const { data: invitations, error } = await db
       .from("trip_invitations")
       .select("id, email, role, created_at, expires_at")
@@ -104,7 +94,7 @@ export const listPendingTripInvitations = createServerFn({ method: "GET" })
 
 export const manageTripInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: { tripId: string; invitationId: string; action: "revoke" | "renew" }) => input,
   )
   .handler(async ({ data, context }) => {
@@ -115,10 +105,11 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
     ) throw new Error("INVALID_INPUT");
     const token = data.action === "renew" ? invitationToken() : "";
     const db = await adminClient();
+    const access = await requireTripManagementAccess(db, context.userId, data.tripId, "members_manage");
     const { data: result, error } = await db.rpc("manage_trip_invitation", {
       p_invitation_id: data.invitationId,
       p_trip_uuid: data.tripId,
-      p_owner_id: context.userId,
+      p_owner_id: access.ownerId,
       p_action: data.action,
       p_token_hash: token ? await sha256(token) : null,
     });
@@ -130,6 +121,7 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
     if (!result || result.status !== expectedStatus) {
       throw new Error(`INVITATION_MANAGEMENT_${String(result?.status ?? "INVALID").toUpperCase()}`);
     }
+    await recordTripManagementAudit(db, access, context.userId, `trip_invitation.${data.action}`, "invitation", data.invitationId);
     return {
       status: result.status as "revoked" | "renewed",
       token: token || undefined,
@@ -138,7 +130,7 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
   });
 
 export const getTripInvitation = createServerFn({ method: "GET" })
-  .inputValidator((input: { token: string }) => input)
+  .validator((input: { token: string }) => input)
   .handler(async ({ data }) => {
     if (!/^[0-9a-f]{64}$/i.test(data.token)) return { status: "invalid" as const };
     const db = await adminClient();
@@ -172,7 +164,7 @@ export const getTripInvitation = createServerFn({ method: "GET" })
 
 export const respondToTripInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: { response: "accept" | "decline"; token?: string; invitationId?: string }) => input,
   )
   .handler(async ({ data, context }) => {
@@ -242,16 +234,17 @@ export const respondToTripInvitation = createServerFn({ method: "POST" })
 
 export const removeTripMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { tripId: string; memberId: string }) => input)
+  .validator((input: { tripId: string; memberId: string }) => input)
   .handler(async ({ data, context }) => {
     if (!/^[0-9a-f-]{36}$/i.test(data.tripId) || !data.memberId.trim()) {
       throw new Error("INVALID_INPUT");
     }
     const db = await adminClient();
+    const access = await requireTripManagementAccess(db, context.userId, data.tripId, "members_manage");
     const { data: removed, error } = await db.rpc("remove_trip_member", {
       p_trip_uuid: data.tripId,
       p_member_id: data.memberId,
-      p_owner_id: context.userId,
+      p_owner_id: access.ownerId,
     });
     if (error) {
       console.error("[Trip member] Removal failed.", { code: error.code });
@@ -260,5 +253,6 @@ export const removeTripMember = createServerFn({ method: "POST" })
       );
     }
     if (!removed) throw new Error("MEMBER_NOT_FOUND");
+    await recordTripManagementAudit(db, access, context.userId, "trip_member.remove", "member", data.memberId);
     return { removed: true };
   });

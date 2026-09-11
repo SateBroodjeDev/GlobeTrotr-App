@@ -103,7 +103,7 @@ export const getCorporateAgencies = createServerFn({ method: "GET" })
 
 export const saveCorporateAgencySettings = createServerFn({method:"POST"})
   .middleware([requireSupabaseAuth])
-  .inputValidator((input:{ownerId:string;settings:{systemName:string;senderName:string;contactEmail:string;defaultLocale:"nl"|"en";timezone:string;currency:string;domain:string;tagline:string;accent:number;logoPath:string|null};reason:string})=>input)
+  .validator((input:{ownerId:string;settings:{systemName:string;senderName:string;contactEmail:string;defaultLocale:"nl"|"en";timezone:string;currency:string;domain:string;tagline:string;accent:number;logoPath:string|null};reason:string})=>input)
   .handler(async({data,context})=>{
     const db=await adminDb(context.userId);const reason=data.reason.trim();
     if(!/^[0-9a-f-]{36}$/i.test(data.ownerId)||reason.length<5)throw new Error("INVALID_INPUT");
@@ -200,7 +200,7 @@ export const getCorporateAdminData = createServerFn({ method: "GET" })
 
 export const getPlatformUserDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string }) => input)
+  .validator((input: { userId: string }) => input)
   .handler(async ({ data, context }) => {
     const db = await adminDb(context.userId);
     if (!/^[0-9a-f-]{36}$/i.test(data.userId)) throw new Error("INVALID_INPUT");
@@ -279,7 +279,7 @@ export const getPlatformUserDetail = createServerFn({ method: "GET" })
 
 export const setPlatformUserBlocked = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string; blocked: boolean; reason: string }) => input)
+  .validator((input: { userId: string; blocked: boolean; reason: string }) => input)
   .handler(async ({ data, context }) => {
     const db = await adminDb(context.userId);
     const reason = data.reason.trim();
@@ -323,7 +323,7 @@ export const setPlatformUserBlocked = createServerFn({ method: "POST" })
 
 export const updatePlatformUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       userId: string;
       displayName: string;
@@ -455,7 +455,7 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
 
 export const saveKnownIssue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: IssueInput) => input)
+  .validator((input: IssueInput) => input)
   .handler(async ({ data, context }) => {
     const db = await adminDb(context.userId);
     const row = {
@@ -546,7 +546,7 @@ export const syncUnsyncedKnownIssues = createServerFn({ method: "POST" })
 
 export const updateFeedbackStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: { id: string; status: "new" | "reviewing" | "planned" | "resolved" | "closed" }) =>
       input,
   )
@@ -565,7 +565,7 @@ export const updateFeedbackStatus = createServerFn({ method: "POST" })
 
 export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: {
       type: "status" | "update";
       severity: "info" | "warning" | "critical" | "resolved";
@@ -623,7 +623,7 @@ export const listPlatformAnnouncements = createServerFn({ method: "GET" })
 
 export const manageAdminRecord = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: { kind: "feedback" | "issue"; id: string; action: "archive" | "restore" | "delete" }) =>
       input,
   )

@@ -114,7 +114,7 @@ function Billing() {
           <CardContent className="space-y-2 text-sm text-muted-foreground">
             <p>{text("Er zijn nog geen echte GlobeTrotr-facturen of betalingen gekoppeld.", "No real GlobeTrotr invoices or payments are connected yet.")}</p>
             <p>
-              {text("Tot Stripe en webhookverificatie zijn gebouwd, wijzigt deze pagina alleen de beschikbare functies in je testomgeving en wordt er niets afgeschreven.", "Until Stripe and webhook verification are available, this page only changes features in your test environment and no money is charged.")}
+              {text("Tot Paddle Checkout en ondertekende webhookverificatie zijn gebouwd, wijzigt deze pagina alleen de beschikbare functies in je testomgeving en wordt er niets afgeschreven.", "Until Paddle Checkout and signed webhook verification are available, this page only changes features in your test environment and no money is charged.")}
             </p>
           </CardContent>
         </Card>

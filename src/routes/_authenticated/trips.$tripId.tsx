@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { canManageTripMoney, canPlanTrip, hasFeature, ownsTrip } from "@/lib/plans";
+import { resolveTripCapability } from "@/lib/agency-permissions";
 import {
   CATEGORIES,
   TEMPLATES,
@@ -49,6 +50,8 @@ import { TripBookings } from "@/components/TripBookings";
 import { TripMembers } from "@/components/TripMembers";
 import { TripTimeline } from "@/components/TripTimeline";
 import { TripBrandingSettings } from "@/components/TripBrandingSettings";
+import { TripDocuments } from "@/components/TripDocuments";
+import { TripTemplateApply } from "@/components/TripTemplateApply";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -63,6 +66,7 @@ import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 import { resolveBranding } from "@/lib/branding";
+import { getMyAgencyAccess } from "@/lib/agency.functions";
 import {
   fuelEstimateFor,
   fuelTravelItemIdForExpense,
@@ -146,15 +150,25 @@ function TripDetail() {
     profileQuery.data?.trim() ||
     String(user?.user_metadata.full_name ?? user?.email?.split("@")[0] ?? "Jij");
   const accessRole = trip.accessRole ?? "owner";
+  const agencyAccessQuery = useQuery({
+    queryKey: ["trip-agency-access", user?.id, trip.id],
+    enabled: Boolean(user && state.plan === "agency" && accessRole !== "owner"),
+    queryFn: () => getMyAgencyAccess(),
+    retry: false,
+  });
+  const agencyPermissions = agencyAccessQuery.data?.permissions;
+  const agencyAccessPending = agencyAccessQuery.isLoading && accessRole !== "owner";
+  const mayManageMembers = accessRole === "owner" || resolveTripCapability(agencyAccessPending, agencyPermissions, "members_manage", false);
   const ownerName = accessRole === "owner" ? currentAccountName : text("Eigenaar", "Owner");
   const ownerParticipant = {
     id: ownerParticipantId(trip.ownerId ?? (accessRole === "owner" ? user?.id : undefined)),
     name: ownerName,
   };
   const financialParticipants = participantsOf(trip, ownerParticipant);
-  const editable = canPlanTrip(accessRole);
-  const moneyEditable = canManageTripMoney(accessRole);
+  const editable = resolveTripCapability(agencyAccessPending, agencyPermissions, "trips_plan", canPlanTrip(accessRole));
+  const moneyEditable = resolveTripCapability(agencyAccessPending, agencyPermissions, "expenses_manage", canManageTripMoney(accessRole));
   const tripOwner = ownsTrip(accessRole);
+  const settingsEditable = tripOwner || resolveTripCapability(agencyAccessPending, agencyPermissions, "trip_settings_manage", false);
   const [exportBrandingOverride,setExportBrandingOverride]=useState(trip.branding);
   const exportBranding = resolveBranding(state.plan, null, state.branding, exportBrandingOverride);
   const [editingBooking, setEditingBooking] = useState<TravelItem | null>(null);
@@ -223,6 +237,7 @@ function TripDetail() {
 
   async function saveTripSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!settingsEditable) return;
     const name = settings.name.trim();
     const budget = Number(settings.budget);
     if (!name) {
@@ -300,6 +315,7 @@ function TripDetail() {
     }>,
     successMessage: string,
   ) {
+    if (!settingsEditable) return;
     setSharingSaving(true);
     try {
       await saveTripNow(trip.id, (current) => {
@@ -529,6 +545,7 @@ function TripDetail() {
   }
 
   async function toggleArchive() {
+    if (!settingsEditable) return;
     if (
       !window.confirm(
         trip.archived
@@ -787,6 +804,7 @@ function TripDetail() {
           <TabsTrigger value="expenses">{text("Uitgaven", "Expenses")}</TabsTrigger>
           <TabsTrigger value="money">{text("Geld-tools", "Money tools")}</TabsTrigger>
           <TabsTrigger value="packing">{text("Paklijst", "Packing list")}</TabsTrigger>
+          <TabsTrigger value="documents">{text("Documenten", "Documents")}</TabsTrigger>
           <TabsTrigger value="settings">{text("Instellingen", "Settings")}</TabsTrigger>
         </TabsList>
 
@@ -804,7 +822,7 @@ function TripDetail() {
                   <Input
                     value={settings.name}
                     maxLength={TRIP_NAME_MAX_LENGTH}
-                    disabled={!editable || settingsSaving}
+                    disabled={!settingsEditable || settingsSaving}
                     required
                     onChange={(event) =>
                       setSettings((current) => ({ ...current, name: event.target.value }))
@@ -820,7 +838,7 @@ function TripDetail() {
                   </span>
                   <Textarea
                     value={settings.description}
-                    disabled={!editable || settingsSaving}
+                    disabled={!settingsEditable || settingsSaving}
                     maxLength={TRIP_DESCRIPTION_MAX_LENGTH}
                     rows={4}
                     placeholder={text(
@@ -840,7 +858,7 @@ function TripDetail() {
                   <Input
                     type="date"
                     value={settings.start}
-                    disabled={!editable || settingsSaving}
+                    disabled={!settingsEditable || settingsSaving}
                     required
                     onChange={(event) => {
                       const start = event.target.value;
@@ -858,7 +876,7 @@ function TripDetail() {
                     type="date"
                     value={settings.end}
                     min={settings.start || undefined}
-                    disabled={!editable || settingsSaving}
+                    disabled={!settingsEditable || settingsSaving}
                     required
                     onChange={(event) =>
                       setSettings((current) => ({ ...current, end: event.target.value }))
@@ -872,7 +890,7 @@ function TripDetail() {
                     min="0"
                     step="0.01"
                     value={settings.budget}
-                    disabled={!editable || settingsSaving}
+                    disabled={!settingsEditable || settingsSaving}
                     required
                     onChange={(event) =>
                       setSettings((current) => ({ ...current, budget: event.target.value }))
@@ -886,7 +904,7 @@ function TripDetail() {
                   <select
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={settings.template}
-                    disabled={!editable || settingsSaving}
+                    disabled={!settingsEditable || settingsSaving}
                     onChange={(event) =>
                       setSettings((current) => ({
                         ...current,
@@ -902,7 +920,7 @@ function TripDetail() {
                   </select>
                 </label>
                 <div className="mt-2 flex items-end sm:col-span-2">
-                  <Button type="submit" disabled={!editable || settingsSaving}>
+                  <Button type="submit" disabled={!settingsEditable || settingsSaving}>
                     {settingsSaving
                       ? text("Opslaan…", "Saving…")
                       : text("Wijzigingen opslaan", "Save changes")}
@@ -913,7 +931,7 @@ function TripDetail() {
           </Card>
 
           {state.plan === "agency" && (
-            <TripBrandingSettings tripId={trip.id} agencyBranding={state.branding} onSaved={setExportBrandingOverride} />
+            <><TripTemplateApply trip={trip} editable={editable} save={(fn)=>saveTripNow(trip.id,fn)} /><TripBrandingSettings tripId={trip.id} agencyBranding={state.branding} onSaved={setExportBrandingOverride} /></>
           )}
 
           <Card className="surface">
@@ -930,7 +948,7 @@ function TripDetail() {
                   "Show this trip on the homepage through a unique link.",
                 )}
                 checked={trip.public ?? false}
-                disabled={!tripOwner || sharingSaving}
+                disabled={!settingsEditable || sharingSaving}
                 onChange={(checked) =>
                   void saveSharing(
                     { isPublic: checked },
@@ -949,7 +967,7 @@ function TripDetail() {
                       "Show the budget on the public trip page.",
                     )}
                     checked={trip.shareFinancials ?? false}
-                    disabled={!tripOwner || sharingSaving}
+                    disabled={!settingsEditable || sharingSaving}
                     onChange={(checked) =>
                       void saveSharing(
                         { shareFinancials: checked },
@@ -972,13 +990,13 @@ function TripDetail() {
                         minLength={6}
                         maxLength={12}
                         value={sharePin}
-                        disabled={!tripOwner || sharingSaving}
+                        disabled={!settingsEditable || sharingSaving}
                         onChange={(e) => setSharePin(e.target.value.replace(/\D/g, ""))}
                         placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
                       />
                       <Button
                         variant="outline"
-                        disabled={!tripOwner || sharingSaving || sharePin.length < 6}
+                        disabled={!settingsEditable || sharingSaving || sharePin.length < 6}
                         onClick={async () => {
                           const sharePinHash = await hashSharingPin(sharePin);
                           await saveSharing(
@@ -995,7 +1013,7 @@ function TripDetail() {
                       {trip.sharePinHash && (
                         <Button
                           variant="ghost"
-                          disabled={!tripOwner || sharingSaving}
+                          disabled={!settingsEditable || sharingSaving}
                           onClick={() =>
                             void saveSharing(
                               { sharePinHash: undefined },
@@ -1017,7 +1035,7 @@ function TripDetail() {
             members={trip.members ?? []}
             tripId={trip.id}
             plan={state.plan}
-            editable={tripOwner}
+            editable={mayManageMembers}
             ownerName={ownerName}
             ownerEmail={user?.email ?? "Eigenaar van deze reis"}
             onChange={(members) =>
@@ -1046,7 +1064,7 @@ function TripDetail() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  disabled={!tripOwner}
+                  disabled={!settingsEditable}
                   onClick={() => void toggleArchive()}
                 >
                   <Archive className="size-4" />{" "}
@@ -1106,6 +1124,10 @@ function TripDetail() {
             editable={editable}
             onChange={(next) => saveTripNow(trip.id, (t) => ({ ...t, packing: next }))}
           />
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <TripDocuments tripId={trip.id} editable={editable} />
         </TabsContent>
 
         <TabsContent value="route" className="space-y-4">

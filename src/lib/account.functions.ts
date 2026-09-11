@@ -123,7 +123,7 @@ export const exportAccountData = createServerFn({ method: "GET" })
 
 export const deleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { confirmation: string }) => input)
+  .validator((input: { confirmation: string }) => input)
   .handler(async ({ data, context }) => {
     if (data.confirmation !== "DELETE") throw new Error("ACCOUNT_DELETE_CONFIRMATION_INVALID");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

@@ -2,9 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Trip, TripMemberRole, WorkspaceState } from "@/lib/types";
 import { protectTripUpdate } from "@/lib/trip-access";
-import { effectiveAgencyPermissions, protectAgencyTripUpdate, type AgencyPermissionMap } from "@/lib/agency-permissions";
+import { effectiveAgencyPermissions, protectAgencyTripUpdate, resolveEffectiveTripAccess, type AgencyPermissionMap } from "@/lib/agency-permissions";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 import { resolveBranding } from "@/lib/branding";
+import { recordTripManagementAudit } from "@/lib/trip-management-access.server";
 
 type UntypedSupabase = {
   from: (relation: string) => any;
@@ -584,7 +585,7 @@ export const loadWorkspace = createServerFn({ method: "GET" })
 
 export const createTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (input: { tripId: string; name: string; template: string; start: string; budget: number }) =>
       input,
   )
@@ -601,6 +602,8 @@ export const createTrip = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
     let workspaceOwnerId = context.userId;
+    let workspaceId: string | undefined;
+    let isAgencyWorkspace = false;
     const { data: agencyMembership } = await db.from("workspace_members").select("workspace_uuid, role, permission_overrides").eq("user_id", context.userId).eq("status", "active").neq("role", "owner").limit(1).maybeSingle();
     if (agencyMembership) {
       const [{ data: roleSettings }, { data: agencyWorkspace }] = await Promise.all([
@@ -610,12 +613,22 @@ export const createTrip = createServerFn({ method: "POST" })
       const permissions = effectiveAgencyPermissions(agencyMembership.role, roleSettings?.permissions, agencyMembership.permission_overrides);
       if (agencyWorkspace?.plan !== "agency" || !permissions.trips_create) throw new Error("Je mag geen reizen aanmaken in deze Agency-workspace.");
       workspaceOwnerId = agencyWorkspace.user_id;
+      workspaceId = String(agencyMembership.workspace_uuid);
+      isAgencyWorkspace = true;
+    } else {
+      const { data: ownedWorkspace, error: workspaceError } = await db.from("workspaces")
+        .select("workspace_uuid, plan").eq("user_id", context.userId).maybeSingle();
+      if (workspaceError || !ownedWorkspace?.workspace_uuid) throw new Error("Workspace niet gevonden.");
+      workspaceId = String(ownedWorkspace.workspace_uuid);
+      isAgencyWorkspace = ownedWorkspace.plan === "agency";
     }
+    if (!workspaceId) throw new Error("Workspace niet gevonden.");
     const { data: trip, error } = await db
       .from("trips")
       .insert({
         // Alleen de middleware bepaalt de eigenaar; de browser kan dit nooit invullen.
         workspace_user_id: workspaceOwnerId,
+        workspace_uuid: workspaceId,
         id: data.tripId,
         trip_uuid: data.tripId,
         name,
@@ -629,13 +642,14 @@ export const createTrip = createServerFn({ method: "POST" })
     if (error) throw error;
     const tripUuid = (trip as { trip_uuid?: unknown } | null)?.trip_uuid;
     if (typeof tripUuid !== "string") throw new Error("Reis-ID kon niet worden aangemaakt.");
+    await recordTripManagementAudit(db, { ownerId: workspaceOwnerId, workspaceId, isAgency: isAgencyWorkspace }, context.userId, "trip.create", "trip", tripUuid);
     return { tripId: tripUuid, revision: String(trip.revision) };
   });
 
 /** Primary version-checked, atomic write path, including publication settings. */
 export const saveTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { trip: Trip }) => input)
+  .validator((input: { trip: Trip }) => input)
   .handler(async ({ data, context }) => {
     let trip = normalizeTripForPersistence(data.trip);
     if (!trip.revision || !/^\d+$/.test(trip.revision)) {
@@ -647,7 +661,7 @@ export const saveTrip = createServerFn({ method: "POST" })
     const db = supabaseAdmin as unknown as UntypedSupabase;
     const { data: storedTrip, error: storedError } = await db
       .from("trips")
-      .select("workspace_user_id")
+      .select("workspace_user_id, workspace_uuid")
       .eq("trip_uuid", trip.id)
       .maybeSingle();
     if (storedError || !storedTrip) throw new Error("Reis niet gevonden.");
@@ -655,38 +669,28 @@ export const saveTrip = createServerFn({ method: "POST" })
     let accessRole: TripMemberRole = "owner";
     let agencyPermissions: AgencyPermissionMap | undefined;
     if (ownerId !== context.userId) {
-      const { data: membership, error: membershipError } = await db
-        .from("trip_members")
-        .select("role")
-        .eq("trip_uuid", trip.id)
-        .eq("user_id", context.userId)
-        .eq("status", "active")
-        .maybeSingle();
-      if (membershipError) throw new Error("Je hebt geen toegang tot deze reis.");
-      if (membership) {
-        accessRole = membership.role as TripMemberRole;
-      } else {
-        const { data: workspace, error: workspaceError } = await db
-          .from("workspaces")
-          .select("workspace_uuid, plan")
-          .eq("user_id", ownerId)
-          .eq("plan", "agency")
-          .maybeSingle();
-        if (workspaceError || !workspace) throw new Error("Je hebt geen toegang tot deze reis.");
-        const { data: agencyMembership, error: agencyMembershipError } = await db
-          .from("workspace_members")
-          .select("role, permission_overrides")
-          .eq("workspace_uuid", workspace.workspace_uuid)
-          .eq("user_id", context.userId)
-          .eq("status", "active")
-          .maybeSingle();
-        if (agencyMembershipError || !agencyMembership) throw new Error("Je hebt geen toegang tot deze reis.");
-        accessRole = agencyMembership.role === "finance" ? "finance" : "advisor";
-        const { data: roleSettings, error: roleSettingsError } = await db.from("agency_role_permissions").select("permissions").eq("workspace_uuid", workspace.workspace_uuid).eq("role", agencyMembership.role).maybeSingle();
-        if (roleSettingsError) throw new Error("Agency-rechten konden niet worden gecontroleerd.");
-        agencyPermissions = effectiveAgencyPermissions(agencyMembership.role, roleSettings?.permissions, agencyMembership.permission_overrides);
-        if (!agencyPermissions.trips_view) throw new Error("Je hebt geen toegang tot deze reis.");
+      const [{ data: membership, error: membershipError }, { data: workspace, error: workspaceError }] = await Promise.all([
+        db.from("trip_members").select("role").eq("trip_uuid", trip.id).eq("user_id", context.userId).eq("status", "active").maybeSingle(),
+        db.from("workspaces").select("plan").eq("workspace_uuid", storedTrip.workspace_uuid).maybeSingle(),
+      ]);
+      if (membershipError || workspaceError) throw new Error("Je hebt geen toegang tot deze reis.");
+      let agencyRole: "advisor" | "finance" | null = null;
+      if (workspace?.plan === "agency") {
+        const { data: agencyMembership, error: agencyMembershipError } = await db.from("workspace_members")
+          .select("role, permission_overrides").eq("workspace_uuid", storedTrip.workspace_uuid)
+          .eq("user_id", context.userId).eq("status", "active").in("role", ["advisor", "finance"]).maybeSingle();
+        if (agencyMembershipError) throw new Error("Agency-rechten konden niet worden gecontroleerd.");
+        if (agencyMembership) {
+          agencyRole = agencyMembership.role as "advisor" | "finance";
+          const { data: roleSettings, error: roleSettingsError } = await db.from("agency_role_permissions").select("permissions").eq("workspace_uuid", storedTrip.workspace_uuid).eq("role", agencyRole).maybeSingle();
+          if (roleSettingsError) throw new Error("Agency-rechten konden niet worden gecontroleerd.");
+          agencyPermissions = effectiveAgencyPermissions(agencyRole, roleSettings?.permissions, agencyMembership.permission_overrides);
+        }
       }
+      const effectiveAccess = resolveEffectiveTripAccess((membership?.role as TripMemberRole | undefined) ?? null, agencyRole, agencyPermissions);
+      if (!effectiveAccess) throw new Error("Je hebt geen toegang tot deze reis.");
+      accessRole = effectiveAccess.role;
+      agencyPermissions = effectiveAccess.agencyPermissions;
     }
     if (accessRole === "viewer" || accessRole === "client") {
       throw new Error("Je hebt alleen-lezen toegang tot deze reis.");
@@ -733,10 +737,16 @@ export const saveTrip = createServerFn({ method: "POST" })
 
 export const deleteTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { tripId: string; revision: string }) => input)
+  .validator((input: { tripId: string; revision: string }) => input)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
+    const { data: trip, error: tripError } = await db.from("trips")
+      .select("workspace_user_id, workspace_uuid")
+      .eq("trip_uuid", data.tripId).maybeSingle();
+    if (tripError || !trip || String(trip.workspace_user_id) !== context.userId) {
+      throw new Error("Alleen de eigenaar kan deze reis definitief verwijderen.");
+    }
     const { error } = await db.rpc("delete_trip_versioned", {
       p_workspace_user_id: context.userId,
       p_trip_id: data.tripId,
@@ -747,12 +757,19 @@ export const deleteTrip = createServerFn({ method: "POST" })
         "Reis kon niet worden verwijderd. Mogelijk is deze intussen gewijzigd. Herlaad de pagina voordat je opnieuw probeert.",
       );
     }
+    const { data: workspace } = await db.from("workspaces").select("plan")
+      .eq("workspace_uuid", trip.workspace_uuid).maybeSingle();
+    await recordTripManagementAudit(db, {
+      ownerId: context.userId,
+      workspaceId: String(trip.workspace_uuid),
+      isAgency: workspace?.plan === "agency",
+    }, context.userId, "trip.delete", "trip", data.tripId);
     return { deleted: true };
   });
 
 export const saveWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { data: unknown }) => input)
+  .validator((input: { data: unknown }) => input)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
@@ -778,7 +795,7 @@ export const saveWorkspace = createServerFn({ method: "POST" })
 
 export const updateSharing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { share_enabled: boolean }) => input)
+  .validator((input: { share_enabled: boolean }) => input)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase

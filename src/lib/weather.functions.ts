@@ -120,7 +120,7 @@ async function fetchWeatherForecast(lat: number, lon: number): Promise<Weather> 
 
 export const getWeather = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { lat: number; lon: number }) => input)
+  .validator((input: { lat: number; lon: number }) => input)
   .handler(async ({ data, context }) => {
     if (
       !Number.isFinite(data.lat) ||
@@ -144,7 +144,7 @@ export const getWeather = createServerFn({ method: "GET" })
   });
 
 export const getPublicWeather = createServerFn({ method: "POST" })
-  .inputValidator((input: { token: string; tripId: string; pin?: string; lat: number; lon: number }) => input)
+  .validator((input: { token: string; tripId: string; pin?: string; lat: number; lon: number }) => input)
   .handler(async ({ data }) => {
     if (!Number.isFinite(data.lat) || !Number.isFinite(data.lon)) throw new Error("INVALID_COORDINATES");
     const { createPublicDatabaseClient, hashPin } = await import("@/lib/public.functions");
