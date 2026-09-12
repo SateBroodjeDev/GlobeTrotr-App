@@ -50,6 +50,7 @@ import { TripBookings } from "@/components/TripBookings";
 import { TripMembers } from "@/components/TripMembers";
 import { TripTimeline } from "@/components/TripTimeline";
 import { TripBrandingSettings } from "@/components/TripBrandingSettings";
+import { TripNotificationPreferences } from "@/components/TripNotificationPreferences";
 import { TripDocuments } from "@/components/TripDocuments";
 import { TripTemplateApply } from "@/components/TripTemplateApply";
 import { useAuth } from "@/lib/auth";
@@ -929,6 +930,8 @@ function TripDetail() {
               </form>
             </CardContent>
           </Card>
+
+          <TripNotificationPreferences tripId={trip.id} />
 
           {state.plan === "agency" && (
             <><TripTemplateApply trip={trip} editable={editable} save={(fn)=>saveTripNow(trip.id,fn)} /><TripBrandingSettings tripId={trip.id} agencyBranding={state.branding} onSaved={setExportBrandingOverride} /></>

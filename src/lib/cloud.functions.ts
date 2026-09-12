@@ -701,8 +701,9 @@ export const saveTrip = createServerFn({ method: "POST" })
       trip = agencyPermissions ? protectAgencyTripUpdate(current, trip, agencyPermissions) : protectTripUpdate(current, trip, accessRole);
       trip = normalizeTripForPersistence(trip);
     }
-    const { data: saved, error } = await db.rpc("save_trip_snapshot_versioned", {
+    const { data: saved, error } = await db.rpc("save_trip_snapshot_versioned_as", {
       p_workspace_user_id: ownerId,
+      p_actor_user_id: context.userId,
       p_trip: trip,
     });
     if (error) {

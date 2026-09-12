@@ -95,7 +95,7 @@ export const exportAccountData = createServerFn({ method: "GET" })
       }),
     );
     const authUser = authData.user;
-    return {
+    const result = {
       format: "GlobeTrotr account export",
       formatVersion: 1,
       exportedAt: new Date().toISOString(),
@@ -119,6 +119,20 @@ export const exportAccountData = createServerFn({ method: "GET" })
         note: "Uploaded files are not embedded. Their metadata and storage paths are included in the exported records.",
       },
     };
+    const { error: notificationError } = await db.from("notifications").upsert(
+      {
+        user_id: context.userId,
+        kind: "account",
+        title: "Gegevensexport gereed / Data export ready",
+        body: "export|ready",
+        event_key: "account-export",
+        created_at: new Date().toISOString(),
+        dismissed_at: null,
+      },
+      { onConflict: "user_id,event_key" },
+    );
+    if (notificationError) throw notificationError;
+    return result;
   });
 
 export const deleteAccount = createServerFn({ method: "POST" })

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Plus, Users, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Plus, Send, Users, X } from "lucide-react";
 import { balances, participantsOf, settle, type FinancialParticipant } from "@/lib/settle";
 import { formatMoney, type Rates } from "@/lib/services";
 import type { Trip } from "@/lib/types";
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocale } from "@/lib/locale";
+import { publishTripSettlement } from "@/lib/settlement.functions";
+import { toast } from "sonner";
 
 export function Settlement({
   trip,
@@ -29,6 +31,7 @@ export function Settlement({
 }) {
   const { text } = useLocale();
   const [name, setName] = useState("");
+  const [settlementBusy,setSettlementBusy]=useState<"request"|"complete"|null>(null);
   const participants = useMemo(() => participantsOf(trip, owner), [trip, owner]);
   const people = participants.map((participant) => participant.name);
   const list = useMemo(
@@ -36,6 +39,14 @@ export function Settlement({
     [trip, participants, base, rates],
   );
   const transfers = useMemo(() => settle(list), [list]);
+  async function publish(action:"request"|"complete"){
+    setSettlementBusy(action);
+    try {
+      const result=await publishTripSettlement({data:{tripId:trip.id,action,currency:base,transfers}});
+      toast.success(action==="complete"?text("De verrekening is afgerond.","The settlement was completed."):result.count?text(`${result.count} betaalverzoek(en) verstuurd.`,`${result.count} payment request(s) sent.`):text("Er zijn geen gekoppelde accounts om een betaalverzoek aan te sturen.","There are no linked accounts to receive a payment request."));
+    } catch { toast.error(text("De verrekening kon niet worden gepubliceerd.","The settlement could not be published.")); }
+    finally { setSettlementBusy(null); }
+  }
 
   return (
     <Card className="surface">
@@ -187,6 +198,7 @@ export function Settlement({
               ))}
             </ul>
           )}
+          {editable&&<div className="flex flex-wrap gap-2 pt-2"><Button type="button" disabled={settlementBusy!==null||transfers.length===0} onClick={()=>void publish("request")}><Send className="size-4"/>{settlementBusy==="request"&&<Loader2 className="size-4 animate-spin"/>}{text("Betaalverzoeken versturen","Send payment requests")}</Button><Button type="button" variant="outline" disabled={settlementBusy!==null} onClick={()=>void publish("complete")}><CheckCircle2 className="size-4"/>{settlementBusy==="complete"&&<Loader2 className="size-4 animate-spin"/>}{text("Verrekening afronden","Complete settlement")}</Button></div>}
         </div>
       </CardContent>
     </Card>

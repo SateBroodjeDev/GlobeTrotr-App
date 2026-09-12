@@ -6,6 +6,7 @@ import {
   normalizeExpenseParticipants,
   ownerParticipantId,
   participantsOf,
+  settle,
 } from "./settle.ts";
 import type { Trip } from "./types.ts";
 
@@ -90,4 +91,12 @@ test("oude naamwaarden worden bij bewerken naar een vaste sleutel omgezet", () =
 
   assert.equal(normalized.paidBy, memberParticipantId("member-1"));
   assert.deepEqual(normalized.splitWith, [memberParticipantId("member-1")]);
+});
+
+test("betaalverzoeken behouden de vaste deelnemerssleutels", () => {
+  const result = settle([
+    { id: "member:debtor", name: "Alex", paid: 0, owes: 25, net: -25 },
+    { id: "owner:owner-1", name: "Sam", paid: 25, owes: 0, net: 25 },
+  ]);
+  assert.deepEqual(result, [{ from: "Alex", fromId: "member:debtor", to: "Sam", toId: "owner:owner-1", amount: 25 }]);
 });

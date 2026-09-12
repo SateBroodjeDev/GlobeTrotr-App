@@ -51,7 +51,7 @@ const KIND = {
   },
 } satisfies Record<PublicChangeKind, { label: [string, string]; icon: typeof Rocket; className: string }>;
 
-function ChangelogPage() {
+export function ChangelogPage() {
   const { locale, text } = useLocale();
   return (
     <div className="mx-auto max-w-4xl space-y-10">

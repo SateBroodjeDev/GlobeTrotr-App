@@ -32,7 +32,7 @@ function AgencyAdminPage() {
 
   async function invite() {
     setBusy("invite");
-    try { const result = await createAgencyInvitation({ data: { email, role } }); await navigator.clipboard.writeText(`${window.location.origin}/agency-uitnodiging/${result.token}`); toast.success(text("Uitnodigingslink is gekopieerd.", "Invitation link copied.")); setEmail(""); setInviteOpen(false); await team.refetch(); }
+    try { const result = await createAgencyInvitation({ data: { email, role } }); await navigator.clipboard.writeText(`${window.location.origin}/agency-invite/${result.token}`); toast.success(text("Uitnodigingslink is gekopieerd.", "Invitation link copied.")); setEmail(""); setInviteOpen(false); await team.refetch(); }
     catch (error) { toast.error(String(error).includes("INVITATION_EXISTS") ? text("Voor dit adres staat al een uitnodiging open.", "An invitation is already open for this address.") : text("Uitnodiging kon niet worden gemaakt.", "Invitation could not be created.")); }
     finally { setBusy(""); }
   }
@@ -42,7 +42,7 @@ function AgencyAdminPage() {
   }
   async function invitationAction(id: string, action: "renew"|"revoke") {
     if (action === "revoke" && !window.confirm(text("Deze uitnodigingslink direct ongeldig maken?", "Invalidate this invitation link now?"))) return;
-    setBusy(`${id}:${action}`); try { const result = await manageAgencyInvitation({ data: { invitationId: id, action } }); if (result.token) { await navigator.clipboard.writeText(`${window.location.origin}/agency-uitnodiging/${result.token}`); toast.success(text("Nieuwe link is gekopieerd.", "New link copied.")); } else toast.success(text("Uitnodiging ingetrokken.", "Invitation revoked.")); await team.refetch(); } catch { toast.error(text("Uitnodiging kon niet worden bijgewerkt.", "Invitation could not be updated.")); } finally { setBusy(""); }
+    setBusy(`${id}:${action}`); try { const result = await manageAgencyInvitation({ data: { invitationId: id, action } }); if (result.token) { await navigator.clipboard.writeText(`${window.location.origin}/agency-invite/${result.token}`); toast.success(text("Nieuwe link is gekopieerd.", "New link copied.")); } else toast.success(text("Uitnodiging ingetrokken.", "Invitation revoked.")); await team.refetch(); } catch { toast.error(text("Uitnodiging kon niet worden bijgewerkt.", "Invitation could not be updated.")); } finally { setBusy(""); }
   }
 
   return <div className="space-y-6">

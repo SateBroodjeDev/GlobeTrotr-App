@@ -48,7 +48,7 @@ export const Route = createFileRoute("/reis/$token/$tripId")({
   component: PublicTrip,
 });
 
-function PublicTrip() {
+export function PublicTrip() {
   const { locale, text } = useLocale();
   const { user, loading: authLoading } = useAuth();
   const { token, tripId } = Route.useParams();

@@ -1,0 +1,29 @@
+-- Herbruikbare leveranciers voor één Agency-workspace.
+-- Uitvoeren na 20260908061000_trip_notification_preferences.sql.
+BEGIN;
+CREATE TABLE public.agency_suppliers(
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(),workspace_uuid UUID NOT NULL REFERENCES public.workspaces(workspace_uuid) ON DELETE CASCADE,
+ supplier_type TEXT NOT NULL CHECK(supplier_type IN('accommodation','transport','activity')),
+ name TEXT NOT NULL CHECK(char_length(name) BETWEEN 1 AND 120),contact_name TEXT CHECK(char_length(contact_name)<=100),
+ email TEXT CHECK(email IS NULL OR char_length(email)<=254),phone TEXT CHECK(phone IS NULL OR char_length(phone)<=40),
+ website TEXT CHECK(website IS NULL OR char_length(website)<=300),booking_terms TEXT CHECK(booking_terms IS NULL OR char_length(booking_terms)<=2000),
+ commission_percent NUMERIC(5,2) CHECK(commission_percent BETWEEN 0 AND 100),notes TEXT CHECK(notes IS NULL OR char_length(notes)<=2000),
+ status TEXT NOT NULL DEFAULT 'active' CHECK(status IN('active','archived')),created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+ updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT now(),updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX agency_suppliers_workspace_idx ON public.agency_suppliers(workspace_uuid,status,name);
+CREATE TABLE public.agency_supplier_trips(supplier_id UUID NOT NULL REFERENCES public.agency_suppliers(id) ON DELETE CASCADE,trip_uuid UUID NOT NULL REFERENCES public.trips(trip_uuid) ON DELETE CASCADE,linked_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,linked_at TIMESTAMPTZ NOT NULL DEFAULT now(),PRIMARY KEY(supplier_id,trip_uuid));
+CREATE OR REPLACE FUNCTION private.validate_agency_supplier_trip() RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ BEGIN IF NOT EXISTS(SELECT 1 FROM public.agency_suppliers s JOIN public.trips t ON t.trip_uuid=NEW.trip_uuid WHERE s.id=NEW.supplier_id AND s.workspace_uuid=t.workspace_uuid) THEN RAISE EXCEPTION USING ERRCODE='23503',MESSAGE='SUPPLIER_TRIP_WORKSPACE_MISMATCH';END IF;RETURN NEW;END $$;
+CREATE TRIGGER validate_agency_supplier_trip BEFORE INSERT OR UPDATE ON public.agency_supplier_trips FOR EACH ROW EXECUTE FUNCTION private.validate_agency_supplier_trip();
+CREATE OR REPLACE FUNCTION public.save_agency_supplier(p_actor_id UUID,p_workspace_uuid UUID,p_supplier_id UUID,p_supplier JSONB,p_trip_ids UUID[]) RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_id UUID;v_trip UUID;BEGIN
+ IF NOT private.agency_actor_has_permission(p_workspace_uuid,p_actor_id,'trips_plan') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='AGENCY_PERMISSION_REQUIRED';END IF;
+ IF p_supplier->>'type' NOT IN('accommodation','transport','activity') OR NULLIF(btrim(p_supplier->>'name'),'') IS NULL THEN RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='INVALID_SUPPLIER';END IF;
+ IF p_supplier_id IS NULL THEN INSERT INTO public.agency_suppliers(workspace_uuid,supplier_type,name,contact_name,email,phone,website,booking_terms,commission_percent,notes,created_by,updated_by) VALUES(p_workspace_uuid,p_supplier->>'type',btrim(p_supplier->>'name'),NULLIF(btrim(p_supplier->>'contactName'),''),NULLIF(lower(btrim(p_supplier->>'email')),''),NULLIF(btrim(p_supplier->>'phone'),''),NULLIF(btrim(p_supplier->>'website'),''),NULLIF(btrim(p_supplier->>'bookingTerms'),''),NULLIF(p_supplier->>'commissionPercent','')::NUMERIC,NULLIF(btrim(p_supplier->>'notes'),''),p_actor_id,p_actor_id) RETURNING id INTO v_id;
+ ELSE UPDATE public.agency_suppliers SET supplier_type=p_supplier->>'type',name=btrim(p_supplier->>'name'),contact_name=NULLIF(btrim(p_supplier->>'contactName'),''),email=NULLIF(lower(btrim(p_supplier->>'email')),''),phone=NULLIF(btrim(p_supplier->>'phone'),''),website=NULLIF(btrim(p_supplier->>'website'),''),booking_terms=NULLIF(btrim(p_supplier->>'bookingTerms'),''),commission_percent=NULLIF(p_supplier->>'commissionPercent','')::NUMERIC,notes=NULLIF(btrim(p_supplier->>'notes'),''),updated_by=p_actor_id,updated_at=now() WHERE id=p_supplier_id AND workspace_uuid=p_workspace_uuid RETURNING id INTO v_id;IF v_id IS NULL THEN RAISE EXCEPTION USING ERRCODE='P0002',MESSAGE='SUPPLIER_NOT_FOUND';END IF;END IF;
+ DELETE FROM public.agency_supplier_trips WHERE supplier_id=v_id;FOREACH v_trip IN ARRAY COALESCE(p_trip_ids,ARRAY[]::UUID[]) LOOP INSERT INTO public.agency_supplier_trips VALUES(v_id,v_trip,p_actor_id,now());END LOOP;RETURN v_id;END $$;
+CREATE OR REPLACE FUNCTION public.set_agency_supplier_archived(p_actor_id UUID,p_workspace_uuid UUID,p_supplier_id UUID,p_archived BOOLEAN) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ BEGIN IF NOT private.agency_actor_has_permission(p_workspace_uuid,p_actor_id,'trips_plan') THEN RAISE EXCEPTION USING ERRCODE='42501',MESSAGE='AGENCY_PERMISSION_REQUIRED';END IF;UPDATE public.agency_suppliers SET status=CASE WHEN p_archived THEN 'archived' ELSE 'active' END,updated_by=p_actor_id,updated_at=now() WHERE id=p_supplier_id AND workspace_uuid=p_workspace_uuid;IF NOT FOUND THEN RAISE EXCEPTION USING ERRCODE='P0002',MESSAGE='SUPPLIER_NOT_FOUND';END IF;RETURN true;END $$;
+ALTER TABLE public.agency_suppliers ENABLE ROW LEVEL SECURITY;ALTER TABLE public.agency_supplier_trips ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.agency_suppliers,public.agency_supplier_trips FROM PUBLIC,anon,authenticated;GRANT ALL ON public.agency_suppliers,public.agency_supplier_trips TO service_role;
+REVOKE ALL ON FUNCTION private.validate_agency_supplier_trip(),public.save_agency_supplier(UUID,UUID,UUID,JSONB,UUID[]),public.set_agency_supplier_archived(UUID,UUID,UUID,BOOLEAN) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.save_agency_supplier(UUID,UUID,UUID,JSONB,UUID[]),public.set_agency_supplier_archived(UUID,UUID,UUID,BOOLEAN) TO service_role;NOTIFY pgrst,'reload schema';COMMIT;

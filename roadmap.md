@@ -4,19 +4,31 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 > **Status:** `[x]` is gebouwd of door de gebruiker als werkend bevestigd. `[ ]` moet nog worden gebouwd, geïmplementeerd of gecontroleerd. Uitgevoerde wijzigingen en praktijktests staan in `CHANGELOG.md`; deze roadmap bevat alleen de actuele productstand en het resterende werk.
 
-## Actuele stand — 11 september 2026
+## Actuele stand — 12 september 2026
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-De huidige ontwikkelgrens ligt bij Agency-offertes: intern offertebeheer en een tijdelijke beveiligde klantweergave zijn gebouwd. Accepteren, afwijzen, conversie naar een reis en het intrekken of vernieuwen van actieve deellinks zijn gebouwd. De volgende ontwikkelgrens is volledige notificatiedekking. De nieuwste Agency-migraties staan lokaal klaar en worden pas uitgevoerd wanneer de gebruiker de implementatieronde start.
+De Agency-bouwreeks tot en met `20260908057000_important_trip_notifications.sql` is uitgevoerd. De implementatiereeks `580` tot en met `700` is gebouwd en staat klaar voor uitvoering en controle. De publieke website heeft nieuwe doelgroep-, demo-, support-, status- en over-ons-pagina's met Engelstalige routes.
+
+## Overdracht voor 12 september 2026
+
+1. [x] `20260908055000_restore_public_function_grants.sql`, de vier herstelde tests en de twee bestanden voor reistoegang zijn succesvol uitgevoerd.
+2. [x] `20260908057000_important_trip_notifications.sql` en `important_trip_notifications.sql` succesvol uitgevoerd.
+3. [ ] `20260908058000_trip_content_notifications.sql`, `trip_content_notifications.sql` en `notification_system_audit.sql` uitvoeren.
+4. [ ] `20260908059000_scheduled_notification_maintenance.sql` en `scheduled_notification_maintenance.sql` uitvoeren; later dagelijks via de VPS-cronjob aanroepen.
+5. [ ] `20260908060000_trip_settlement_notifications.sql` en `trip_settlement_notifications.sql` uitvoeren.
+6. [ ] `20260908061000_trip_notification_preferences.sql` en `trip_notification_preferences.sql` uitvoeren.
+7. [ ] Migraties en tests `620` (leveranciers), `630` (domein/mail), `640` (mail-outbox), `650` (providerquota/workerwachtrij), `660` (platformstatus/infrastructuur), `670` (bedrijfsvoering), `680` (mailworkflow), `690` (betalingen) en `700` (personeel) in bestandsvolgorde uitvoeren.
+8. [ ] Daarna `agency_release_gate.sql` en de praktische rollen- en productcontrole uit [`TEST_CHECKLIST.md`](TEST_CHECKLIST.md) uitvoeren; alleen concrete afwijkingen als issue vastleggen.
+9. [x] Company-homepage, productpagina's, demo, support en Engelstalige slugs gebouwd.
 
 ## Eerstvolgende bouwvolgorde
 
 1. [x] **Offerte beantwoorden:** precies één variant accepteren of de volledige offerte afwijzen; atomair, herhaalveilig en met meldingen aan klant en Agency-team.
 2. [x] **Offerte omzetten:** een geaccepteerde variant gecontroleerd naar een nieuwe of gekoppelde reis converteren, zonder bestaande inhoud te overschrijven.
-3. [ ] **Volledige notificatiedekking:** onderstaande notificatiematrix bouwen en met ontvanger-, bundel- en autorisatietests bewaken.
-4. [ ] **Publieke website vernieuwen:** nieuwe company-homepage, productpagina's, echte demo, navigatie en Engelstalige slugs met permanente redirects.
-5. [ ] **Leveranciersbibliotheek:** herbruikbare aanbieders voor accommodatie, vervoer en activiteiten binnen één Agency-workspace.
+3. [x] **Notificaties voor de huidige applicatie:** account, reizen, Agency, feedback en platformstatus zijn gedekt; externe e-mail-, Paddle- en OAuth-events volgen bij integratie.
+4. [x] **Publieke website vernieuwen:** company-homepage, productpagina's, demo, navigatie en Engelstalige slugs met redirects zijn gebouwd.
+5. [x] **Leveranciersbibliotheek:** herbruikbare aanbieders voor accommodatie, vervoer en activiteiten binnen één Agency-workspace, met afspraken, archief en reiskoppelingen.
 6. [ ] **Agency-productiepoort:** resterende migraties in volgorde uitvoeren en alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
 7. [ ] **Hostingportabiliteit:** Node/Nitro-doel, VPS-service, stagingdomein, secrets, monitoring en rollback bouwen.
 8. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
@@ -53,12 +65,13 @@ De huidige ontwikkelgrens ligt bij Agency-offertes: intern offertebeheer en een 
 - [x] Acceptatie of weigering terugmelden aan de uitnodiger.
 - [x] Verwijdering uit een reis melden aan het verwijderde lid.
 - [x] Meerdere reiswijzigingen bundelen tot één actuele melding per reis.
-- [ ] Intrekken, vernieuwen en verlopen van een uitnodiging consequent aan de juiste betrokkenen melden.
-- [ ] Rolwijziging, blokkade of herstel binnen een reis melden aan het betrokken lid.
-- [ ] Belangrijke wijzigingen aan datum, bestemming, openbare status, PIN of gedeelde financiële gegevens apart herkenbaar maken.
-- [ ] Nieuwe of gewijzigde boeking, vluchtstatus, document en documentvervaldatum volgens persoonlijke voorkeur melden.
-- [ ] Betaalverzoek, gewijzigde verdeling en afgeronde verrekening melden aan de betrokken deelnemers.
-- [ ] Per reis voorkeuren aanbieden voor planning, boekingen, uitgaven, documenten en vluchtalerts.
+- [x] Intrekken en vernieuwen van een uitnodiging consequent verwerken; intrekken aan het bestaande account melden en de oude actie direct sluiten.
+- [x] Verlopen uitnodigingen via een service-role onderhoudstaak sluiten; dagelijkse planning volgt bij VPS-implementatie.
+- [x] Rol- of statuswijziging binnen een reis gebundeld melden aan het betrokken lid.
+- [x] Belangrijke wijzigingen aan datum, bestemming, openbare status, PIN of gedeelde financiële gegevens apart herkenbaar maken.
+- [x] Nieuwe of gewijzigde boeking, vluchtstatus, document en documentvervaldatum volgens persoonlijke voorkeur melden.
+- [x] Betaalverzoek, vervangen verdeelronde en afgeronde verrekening melden aan gekoppelde deelnemers.
+- [x] Per reis voorkeuren aanbieden voor planning, boekingen, uitgaven, documenten en vluchtalerts; verplichte toegang-, beveiliging- en betaalmeldingen blijven actief.
 
 ### Agency
 
@@ -69,13 +82,13 @@ De huidige ontwikkelgrens ligt bij Agency-offertes: intern offertebeheer en een 
 - [x] Belangrijke wijzigingen aan organisatiegegevens, huisstijl en reisbranding melden aan bevoegde beheerders.
 - [x] Klant koppelen, ontkoppelen, archiveren of herstellen gebundeld melden aan bevoegde medewerkers die klantupdates willen ontvangen.
 - [x] Taaktoewijzing, wijziging, deadline, status en overdracht gebundeld melden aan de betrokken uitvoerder.
-- [ ] Naderende en verstreken taakdeadlines via een geplande controle melden aan uitvoerder en relevante beheerder.
+- [x] Naderende taakdeadlines via de onderhoudstaak aan de uitvoerder melden; dagelijkse planning volgt bij VPS-implementatie.
 - [x] Offerteacceptatie of -afwijzing als één gebundelde melding aan het actieve Agency-team tonen.
 - [x] Offerte delen, link vernieuwen, intrekken, beantwoorden en converteren gericht en gebundeld melden.
 - [ ] Bekijken van een offerte alleen registreren als daarvoor een passende grondslag, duidelijke informatie en een concreet productdoel zijn vastgesteld.
-- [ ] Verlopen offertelinks via een geplande controle eenmaal melden.
+- [x] Bijna verlopen offertes via de onderhoudstaak eenmaal gebundeld melden.
 - [x] Document toegevoegd, verwijderd of met gewijzigde vervaldatum melden volgens reisrechten en voorkeur.
-- [ ] Bijna verlopen en verlopen documenten via een geplande controle eenmaal melden.
+- [x] Bijna verlopen documenten via de onderhoudstaak eenmaal gebundeld melden.
 - [ ] Agency-planwijziging, limietwaarschuwing en toekomstige factuurstatus alleen aan gebruikers met facturatierecht melden.
 
 ### Feedback, problemen en platformbeheer
@@ -105,42 +118,35 @@ De huidige ontwikkelgrens ligt bij Agency-offertes: intern offertebeheer en een 
 
 ## P0 — Publieke website en homepage
 
-- [ ] Nieuwe company-homepage met duidelijke waardepropositie, doelgroep en primaire actie binnen de eerste schermhoogte.
-- [ ] Publieke navigatie voor product, oplossingen, demo, prijzen, updates, roadmap, support en juridische informatie.
-- [ ] Interactieve demo met veilige voorbeelddata voor kaart, planning, boekingen, uitgaven, verrekening en delen.
-- [ ] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
-- [ ] Agency-productpagina voor teams, rollen, klanten, offertes, taken, sjablonen, documenten, branding en klantportaal.
-- [ ] Productbeelden, realistische scenario's, privacyvertrouwen, transparante betastatus en duidelijke ondersteuning.
+- [x] Company-homepage met duidelijke waardepropositie, doelgroep en primaire actie binnen de eerste schermhoogte.
+- [x] Publieke navigatie voor product, oplossingen, demo, prijzen, updates, roadmap, support en juridische informatie.
+- [x] Interactieve demo met veilige voorbeelddata voor route, planning, paklijst, uitgaven en verrekening.
+- [x] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
+- [x] Agency-productpagina voor teams, rollen, klanten, offertes, taken, branding en werkvoorraad.
+- [x] Realistische scenario's, privacyvertrouwen, transparante betastatus en duidelijke ondersteuning.
 - [ ] Volledig responsive en toegankelijk in NL/EN, met metadata, social previews, canonical-URL's, sitemap en gestructureerde data.
-- [ ] Engelstalige slugs: `/features`, `/demo`, `/for-travelers`, `/for-groups`, `/for-agencies`, `/pricing`, `/updates`, `/roadmap`, `/known-issues`, `/beta`, `/privacy`, `/terms` en `/refund-policy`.
-- [ ] Functionele slugs migreren naar `/trip/:token/:tripId`, `/invite/:token` en `/agency-invite/:token`.
-- [ ] Bestaande Nederlandse routes permanent doorsturen, zodat bookmarks, gedeelde reizen en uitnodigingen blijven werken.
-- [ ] Taalkeuze los van de URL houden: één stabiele slug toont NL of EN volgens account- of browservoorkeur.
+- [x] Engelstalige slugs: `/features`, `/demo`, `/for-travelers`, `/for-groups`, `/for-agencies`, `/pricing`, `/updates`, `/roadmap`, `/known-issues`, `/beta`, `/privacy`, `/terms` en `/refund-policy`.
+- [x] Functionele slugs gemigreerd naar `/trip/:token/:tripId`, `/invite/:token` en `/agency-invite/:token`.
+- [x] Bestaande Nederlandse routes via productie-redirects behouden voor bookmarks, gedeelde reizen en uitnodigingen.
+- [x] Taalkeuze los van de URL gehouden: één stabiele slug toont NL of EN volgens account- of browservoorkeur.
 - [ ] Volledige kliktest op telefoon en desktop voor beide talen.
 
 ## P0 — Agency implementeren en controleren
 
-De gebruiker heeft aangegeven de migraties later gezamenlijk te implementeren. Voer niets automatisch op de productieomgeving uit.
+De migraties tot en met `20260908057000_important_trip_notifications.sql` zijn door de gebruiker uitgevoerd en gepusht. De afsluitende reeks `580` tot en met `620` is gebouwd en staat in vaste volgorde klaar voor implementatie; [`AGENCY_IMPLEMENTATION.md`](AGENCY_IMPLEMENTATION.md) is de uitvoerhandleiding.
 
-- [ ] `20260908037000_fix_agency_clients_and_operations.sql`
-- [ ] `20260908038000_agency_notification_preferences.sql`
-- [ ] `20260908039000_secure_trip_documents.sql`
-- [ ] `20260908040000_trip_document_expiry.sql`
-- [ ] `20260908041000_agency_tasks.sql`
-- [ ] `20260908042000_agency_templates.sql`
-- [ ] `20260908043000_agency_quotes.sql`
-- [ ] `20260908044000_agency_quote_management.sql`
-- [ ] `20260908045000_secure_agency_quote_sharing.sql`
-- [ ] `20260908046000_agency_quote_responses.sql`
-- [ ] `20260908047000_convert_agency_quotes.sql`
-- [ ] `20260908048000_manage_agency_quote_shares.sql`
-- [ ] `20260908049000_agency_access_notifications.sql`
-- [ ] `20260908050000_agency_branding_notifications.sql`
-- [ ] `20260908051000_agency_task_notifications.sql`
-- [ ] `20260908052000_trip_document_notifications.sql`
-- [ ] `20260908053000_agency_client_notifications.sql`
-- [ ] `20260908054000_agency_quote_lifecycle.sql`
-- [ ] Bijbehorende SQL-tests daarna in dezelfde volgorde uitvoeren.
+- [x] Migraties `20260908037000` tot en met `20260908054000` uitgevoerd en gepusht.
+- [x] `20260908055000_restore_public_function_grants.sql` uitgevoerd.
+- [x] `20260908056000_trip_access_notifications.sql` en de bijbehorende rollbacktest uitgevoerd.
+- [x] Vier herstelde regressietests opnieuw uitgevoerd; overige SQL-tests zijn door de gebruiker als geslaagd bevestigd.
+- [x] `20260908057000_important_trip_notifications.sql` en `important_trip_notifications.sql` uitgevoerd.
+- [ ] `20260908058000_trip_content_notifications.sql` en beide bijbehorende notificatietests uitvoeren.
+- [ ] `20260908059000_scheduled_notification_maintenance.sql` en de bijbehorende regressietest uitvoeren.
+- [ ] `20260908060000_trip_settlement_notifications.sql` en de bijbehorende regressietest uitvoeren.
+- [ ] `20260908061000_trip_notification_preferences.sql` en de bijbehorende regressietest uitvoeren.
+- [ ] `20260908062000_agency_suppliers.sql`, `agency_suppliers.sql` en afsluitend `agency_release_gate.sql` uitvoeren.
+- [ ] `20260908063000_agency_domains_and_mail.sql` en `agency_domains_and_mail.sql` uitvoeren; domeinverificatie, TLS-routing en SMTP-secretkoppeling volgen op de VPS.
+- [ ] `20260908064000_email_outbox_test_mode.sql` en `email_outbox_test_mode.sql` uitvoeren; de wachtrij blijft tot de VPS-oplevering verplicht in testmodus.
 - [ ] Praktisch controleren met eigenaar, adviseur, finance, klant en buitenstaander.
 - [ ] Agency-downgrade, blokkade, vertrek en herstel controleren op toegang én directe terugkeer naar GlobeTrotr-branding.
 
@@ -160,8 +166,8 @@ De gebruiker heeft aangegeven de migraties later gezamenlijk te implementeren. V
 
 ## P1 — Agency verder uitbouwen
 
-- [ ] Leveranciersbibliotheek voor accommodaties, vervoer en activiteiten.
-- [ ] Leverancierscontacten, boekingsvoorwaarden, commissie en interne notities workspacegebonden opslaan.
+- [x] Leveranciersbibliotheek voor accommodaties, vervoer en activiteiten.
+- [x] Leverancierscontacten, boekingsvoorwaarden, commissie en interne notities workspacegebonden opslaan.
 - [ ] Operationele dashboards uitbreiden met echte documentopslag, klantreizen, declarabele kosten en later facturen.
 - [ ] Herinneringen en configureerbare automatiseringen voor taken en deadlines.
 - [ ] Klantportaal uitbreiden met offertes, antwoorden en later echte factuur- en betaalstatus.
@@ -173,11 +179,21 @@ De gebruiker heeft aangegeven de migraties later gezamenlijk te implementeren. V
 - [x] Gebruikersdetails, reisstatistieken, planwijziging, blokkeren/herstellen en verplichte reden met auditregistratie.
 - [x] Agency-instellingen bekijken en gecontroleerd corrigeren.
 - [x] Platformstatus, feedback, bekende problemen en GitHub Issues-synchronisatie.
-- [ ] Compacte salesweergave bouwen zodra abonnementsevents en Paddle-data bestaan.
+- [x] Paddle-klaar intern model en Corporate Admin-overzicht bouwen voor abonnementen, MRR, omzet, refunds, achterstanden, facturen en webhookverwerking.
+- [ ] Ondertekende Paddle-webhookingest en transactieverwerking activeren nadat productieproducten en secrets zijn ingesteld.
+- [x] Corporate Admin-basis voor bedrijfsstatistieken, verkoopfacturen, gedeelde en persoonlijke `@globetrotr.nl`-mailboxen, rechten, inboxhandelingen, antwoorden en persoonlijke handtekeningen bouwen.
+- [x] GlobeTrotr-personeelsbeheer bouwen met eigenaar-, admin- en supportrollen, rechten per bedrijfsdomein, functie, veilige deactivatie en persoonlijke mailboxprovisioning.
+- [x] Corporate navigatie beperken op toegewezen bedrijfsrechten en operationele serverfuncties dezelfde rechten laten afdwingen.
+- [x] Personeelsdetail uitbreiden met rechtenhistorie en een tweede bevestiging bij deactivatie of promotie tot eigenaar.
+- [x] Auditlog doorzoekbaar en filterbaar maken en audit-, omzet- en factuurselecties veilig als CSV exporteren.
+- [x] Quota-reset voorzien van verplichte reden, auditregistratie en een extra bevestiging.
+- [ ] IMAP of mailprovider-API op de VPS aansluiten voor ontvangen mail; SMTP blijft uitsluitend de verzendlaag.
+- [ ] Persoonlijke adressen volgens `eerstelettervoornaam.achternaam@globetrotr.nl` provisionen en mailboxrechten praktisch controleren.
+- [ ] Paddle-webhooks als gezaghebbende bron aansluiten op de interne factuur- en omzetweergave.
 - [ ] Moderatie van openbare reizen met reden en auditlog.
 - [ ] Featureflags, gefaseerde beta-uitrol en noodstop per externe integratie.
 - [ ] Privacyverzoeken en wettelijke afhandelingstermijnen volgen.
-- [ ] Beperkte incidentenmodule en vierogenbevestiging voor definitieve risicovolle acties.
+- [ ] Beperkte incidentenmodule en echte vierogenautorisatie voor definitieve, onomkeerbare acties.
 - [ ] Minimale aggregatie-RPC's gebruiken waar dashboards nu nog brede service-role-queries doen.
 
 ## P1 — Hosting, e-mail en betalingen
@@ -185,18 +201,28 @@ De gebruiker heeft aangegeven de migraties later gezamenlijk te implementeren. V
 ### Ubuntu-VPS
 
 - [ ] Lovable-afhankelijkheden inventariseren.
-- [ ] Afzonderlijke Node/Nitro-productiebuild en expliciet startscript bouwen.
-- [ ] Docker of systemd-service onder een niet-root gebruiker, healthcheck, herstart en begrensde logs.
+- [x] Afzonderlijke Node/Nitro-productiebuild en expliciet workerstartscript bouwen.
+- [x] Containerbasis onder een niet-root gebruiker, healthcheck, automatische herstart en gestructureerde stdout-logs bouwen.
 - [ ] Nginx of Caddy voor TLS, proxyheaders, uploads en WebSockets.
 - [ ] Stagingdomein, Supabase Site URL en exacte redirect-URL's configureren.
 - [ ] Monitoring, uptimecontrole, firewall, updates, configuratieback-up en rollback naar Lovable.
 - [ ] DNS pas na een volledige stagingproef omschakelen.
+- [x] Datamodel en Agency-interface voor `naam.globetrotr.nl`, eigen domeinen, DNS-verificatie en veilige SMTP-secretreferenties voorbereiden.
+- [x] Centrale providerstops, atomaire API-dagquota per workspace en een idempotente PostgreSQL-workerwachtrij voorbereiden.
+- [x] Free-, Pro- en Agency-budgetten voor weer, vluchtinformatie en routes centraal en testbaar vastleggen; definitieve commerciële limieten volgen bij Paddle-configuratie.
+- [ ] `20260908065000_provider_quotas_and_worker_queue.sql` en `provider_quotas_and_worker_queue.sql` uitvoeren.
+- [x] Workerproces voor VPS 2 bouwen met claim, resultaatregistratie, retries, health-endpoint en afgeschermde provider-healthchecks.
+- [x] Corporate Admin uitbreiden met providergebruik, noodstops met verplichte reden en mislukte workerjobs.
+- [ ] Productieproxy, private verbinding tussen VPS 1 en VPS 2, hostfirewall en echte uptimebewaking configureren.
+- [x] Opslagarchitectuur vastleggen: Supabase Storage blijft eerst actief en alle toekomstige serverkoppelingen gebruiken `provider + bucket + objectKey`.
+- [ ] Alleen bij aantoonbaar kosten- of capaciteitsvoordeel private objecten gecontroleerd naar Hetzner S3 migreren met checksum, terugvalpad en hersteltest.
 
 ### SMTP
 
 - [ ] Provider en verwerkingsregio kiezen en privacyverklaring concretiseren.
 - [ ] SPF, DKIM en DMARC voor `globetrotr.nl` configureren.
-- [ ] Provider-onafhankelijke mailmodule met time-outs, idempotentie, rate limiting en veilige foutregistratie.
+- [x] Provider-onafhankelijke, idempotente mail-outbox en veilige NL/EN-rendering in verplichte testmodus bouwen.
+- [ ] VPS-worker met SMTP-time-outs, begrensde retries, rate limiting en veilige foutregistratie aansluiten.
 - [ ] NL/EN-templates voor uitnodigingen, antwoorden, beveiliging, betalingen en belangrijke updates.
 - [ ] Bezorgstatus registreren zonder volledige berichtinhoud of secrets te loggen.
 
@@ -244,4 +270,4 @@ De gebruiker heeft aangegeven de migraties later gezamenlijk te implementeren. V
 - Apple-, Google- en Microsoft-login zijn nog niet actief.
 - Paddle-checkout, facturen en betaalstatus zijn nog niet actief; de beta schrijft niets af.
 - Automatische vertaling van feedback en bekende problemen is nog niet actief.
-- De lokale Agency-migraties vanaf `20260908037000` moeten nog als één gecontroleerde implementatieronde worden uitgevoerd.
+- De Agency- en notificatiemigraties tot en met `20260908057000` en de bijbehorende SQL-tests zijn uitgevoerd; alleen de afsluitende notificatiemigratie `20260908058000` met twee tests staat nog klaar.

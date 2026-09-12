@@ -3,7 +3,7 @@ import type { Expense, Trip } from "./types.ts";
 
 export type FinancialParticipant = { id: string; name: string };
 export type Balance = { id: string; name: string; paid: number; owes: number; net: number };
-export type Transfer = { from: string; to: string; amount: number };
+export type Transfer = { from: string; fromId: string; to: string; toId: string; amount: number };
 
 export const ownerParticipantId = (ownerId?: string) => `owner:${ownerId || "legacy"}`;
 export const memberParticipantId = (memberId: string) => `member:${memberId}`;
@@ -97,11 +97,11 @@ export function balances(
 export function settle(list: Balance[]): Transfer[] {
   const debtors = list
     .filter((balance) => balance.net < -0.01)
-    .map((balance) => ({ name: balance.name, amount: -balance.net }))
+    .map((balance) => ({ id: balance.id, name: balance.name, amount: -balance.net }))
     .sort((a, b) => b.amount - a.amount);
   const creditors = list
     .filter((balance) => balance.net > 0.01)
-    .map((balance) => ({ name: balance.name, amount: balance.net }))
+    .map((balance) => ({ id: balance.id, name: balance.name, amount: balance.net }))
     .sort((a, b) => b.amount - a.amount);
 
   const out: Transfer[] = [];
@@ -111,7 +111,7 @@ export function settle(list: Balance[]): Transfer[] {
     const debtor = debtors[i]!;
     const creditor = creditors[j]!;
     const amount = Math.min(debtor.amount, creditor.amount);
-    if (amount > 0.01) out.push({ from: debtor.name, to: creditor.name, amount });
+    if (amount > 0.01) out.push({ from: debtor.name, fromId: debtor.id, to: creditor.name, toId: creditor.id, amount });
     debtor.amount -= amount;
     creditor.amount -= amount;
     if (debtor.amount <= 0.01) i++;

@@ -69,6 +69,26 @@ const styles = {
     label: "Agency-klant",
     color: "border-lime-300 bg-lime-50 text-lime-950 dark:border-lime-800 dark:bg-lime-950/50 dark:text-lime-100",
   },
+  trip_access: {
+    emoji: "🔑",
+    label: "Reistoegang",
+    color: "border-rose-300 bg-rose-50 text-rose-950 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-100",
+  },
+  trip_booking: {
+    emoji: "🧾",
+    label: "Boeking",
+    color: "border-purple-300 bg-purple-50 text-purple-950 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-100",
+  },
+  trip_expense: {
+    emoji: "💶",
+    label: "Uitgave",
+    color: "border-green-300 bg-green-50 text-green-950 dark:border-green-800 dark:bg-green-950/50 dark:text-green-100",
+  },
+  trip_settlement: {
+    emoji: "💸",
+    label: "Verrekening",
+    color: "border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-100",
+  },
 } as const;
 
 export function NotificationPanel({ userId }: { userId: string }) {
@@ -254,18 +274,75 @@ export function NotificationPanel({ userId }: { userId: string }) {
             const taskParts = notification.kind === "agency_task" ? notification.body.split("|") : [];
             const documentParts = notification.kind === "trip_document" ? notification.body.split("|") : [];
             const clientParts = notification.kind === "agency_client" ? notification.body.split("|") : [];
+            const tripAccessParts = notification.kind === "trip_access" ? notification.body.split("|") : [];
+            const importantTripParts =
+              notification.kind === "trip_change" &&
+              notification.event_key.startsWith("trip-important:")
+                ? notification.body.split("|")
+                : [];
+            const tripContentParts =
+              notification.kind === "trip_booking" || notification.kind === "trip_expense"
+                ? notification.body.split("|")
+                : [];
+            const accountParts = notification.kind === "account" ? notification.body.split("|") : [];
+            const settlementParts = notification.kind === "trip_settlement" ? notification.body.split("|") : [];
+            const isTripInvitation =
+              notification.kind === "invitation" && notification.event_key.startsWith("invitation:");
+            const isAgencyInvitation =
+              notification.kind === "invitation" && notification.event_key.startsWith("workspace-invitation:");
+            const invitationTripName = notification.body.startsWith("trip|")
+              ? notification.body.slice(5)
+              : notification.body.replace(/^Je bent uitgenodigd voor\s+/i, "").replace(/\.$/, "");
+            const invitationAgencyName = notification.body.startsWith("agency|")
+              ? notification.body.slice(7)
+              : notification.body
+                  .replace(/^Je bent uitgenodigd voor het team van\s+/i, "")
+                  .replace(/\.$/, "");
             const accessRole = accessParts[2] === "finance" ? text("financieel medewerker", "finance member") : text("adviseur", "adviser");
             const feedbackStatus = ({ reviewing: text("Wordt bekeken", "Under review"), planned: text("Gepland", "Planned"), resolved: text("Opgelost", "Resolved"), closed: text("Gesloten", "Closed"), new: text("Ontvangen", "Received") } as Record<string,string>)[feedbackParts[0] ?? ""];
-            const notificationTitle = notification.kind === "agency_client"
+            const contentAction = ({
+              added: text("toegevoegd", "added"),
+              updated: text("gewijzigd", "updated"),
+              removed: text("verwijderd", "removed"),
+              multiple: text("meerdere wijzigingen", "multiple changes"),
+            } as Record<string, string>)[tripContentParts[0] ?? ""];
+            const notificationTitle = isTripInvitation
+              ? text("Reisuitnodiging", "Trip invitation")
+              : isAgencyInvitation
+                ? text("Agency-uitnodiging", "Agency invitation")
+              : notification.kind === "account" && accountParts[0] === "access"
+              ? accountParts[1] === "blocked"
+                ? text("Je account is geblokkeerd", "Your account has been blocked")
+                : text("Je account is hersteld", "Your account has been restored")
+              : notification.kind === "account" && accountParts[0] === "export"
+                ? text("Gegevensexport gereed", "Data export ready")
+              : notification.kind === "account" && accountParts[0] === "profile"
+                ? text("Account bijgewerkt", "Account updated")
+              : notification.kind === "account" && accountParts[0] === "plan"
+                ? text("Abonnement gewijzigd", "Subscription changed")
+              : settlementParts.length
+                ? settlementParts[0] === "completed" ? text("Verrekening afgerond", "Settlement completed") : text("Betaalverzoek", "Payment request")
+              : tripContentParts.length
+              ? notification.kind === "trip_expense"
+                ? text("Reisuitgaven gewijzigd", "Trip expenses changed")
+                : text("Boekingen gewijzigd", "Bookings changed")
+              : importantTripParts.length
+              ? importantTripParts[0] === "destinations"
+                ? text("Bestemmingen gewijzigd", "Destinations changed")
+                : text("Belangrijke reisinstellingen gewijzigd", "Important trip settings changed")
+              : notification.kind === "trip_access"
+              ? tripAccessParts[0] === "revoked" ? text("Reisuitnodiging ingetrokken", "Trip invitation revoked") : tripAccessParts[0] === "role" ? text("Je reisrol is gewijzigd", "Your trip role changed") : text("Je reistoegang is gewijzigd", "Your trip access changed")
+              : notification.kind === "agency_client"
               ? clientParts[0] === "created" ? text("Klant toegevoegd", "Client added") : clientParts[0] === "linked" ? text("Klant aan reis gekoppeld", "Client linked to trip") : clientParts[0] === "unlinked" ? text("Klant van reis ontkoppeld", "Client unlinked from trip") : clientParts[0] === "archived" ? text("Klant gearchiveerd", "Client archived") : clientParts[0] === "restored" ? text("Klant hersteld", "Client restored") : clientParts[0] === "removed" ? text("Klant verwijderd", "Client removed") : text("Klant bijgewerkt", "Client updated")
               : notification.kind === "trip_document"
-              ? documentParts[0] === "added" ? text("Reisdocument toegevoegd", "Trip document added") : documentParts[0] === "removed" ? text("Reisdocument verwijderd", "Trip document removed") : documentParts[0] === "expiry" ? text("Vervaldatum gewijzigd", "Expiry date changed") : text("Reisdocument bijgewerkt", "Trip document updated")
+              ? documentParts[0] === "expires" ? text("Document verloopt binnenkort", "Document expires soon") : documentParts[0] === "added" ? text("Reisdocument toegevoegd", "Trip document added") : documentParts[0] === "removed" ? text("Reisdocument verwijderd", "Trip document removed") : documentParts[0] === "expiry" ? text("Vervaldatum gewijzigd", "Expiry date changed") : text("Reisdocument bijgewerkt", "Trip document updated")
               : notification.kind === "agency_task"
-              ? taskParts[0] === "assigned" ? text("Nieuwe taak toegewezen", "New task assigned") : taskParts[0] === "unassigned" ? text("Taak overgedragen", "Task reassigned") : taskParts[0] === "deadline" ? text("Deadline gewijzigd", "Deadline changed") : taskParts[0] === "status" ? text("Taakstatus gewijzigd", "Task status changed") : text("Taak bijgewerkt", "Task updated")
+              ? taskParts[0] === "due" ? text("Deadline nadert", "Deadline approaching") : taskParts[0] === "assigned" ? text("Nieuwe taak toegewezen", "New task assigned") : taskParts[0] === "unassigned" ? text("Taak overgedragen", "Task reassigned") : taskParts[0] === "deadline" ? text("Deadline gewijzigd", "Deadline changed") : taskParts[0] === "status" ? text("Taakstatus gewijzigd", "Task status changed") : text("Taak bijgewerkt", "Task updated")
               : notification.kind === "agency_access"
               ? accessParts[0] === "role" ? text("Je Agency-rol is gewijzigd", "Your Agency role changed") : accessParts[0] === "member_permissions" ? text("Je persoonlijke rechten zijn gewijzigd", "Your personal permissions changed") : accessParts[0] === "branding" ? text("Agency-huisstijl gewijzigd", "Agency branding changed") : accessParts[0] === "trip_branding" ? text("Reishuisstijl gewijzigd", "Trip branding changed") : text("De rechten van je Agency-rol zijn gewijzigd", "Your Agency role permissions changed")
               : notification.kind === "agency_quote"
-              ? quoteParts[0] === "accept" ? text("Offerte geaccepteerd", "Quote accepted")
+              ? quoteParts[0] === "expiry" ? text("Offerte verloopt binnenkort", "Quote expires soon")
+                : quoteParts[0] === "accept" ? text("Offerte geaccepteerd", "Quote accepted")
                 : quoteParts[0] === "converted" ? text("Offerte omgezet", "Quote converted")
                 : quoteParts[0] === "shared" ? text("Offerte gedeeld", "Quote shared")
                 : quoteParts[0] === "renewed" ? text("Offertelink vernieuwd", "Quote link renewed")
@@ -282,7 +359,80 @@ export function NotificationPanel({ userId }: { userId: string }) {
                 ? text("Uitnodiging geaccepteerd", "Invitation accepted")
                 : text("Uitnodiging geweigerd", "Invitation declined")
               : notification.title;
-            const notificationBody = notification.kind === "agency_client"
+            const tripRole = ({traveler:text("reiziger","traveller"),viewer:text("lezer","viewer"),advisor:text("adviseur","adviser"),finance:text("financieel beheerder","finance manager"),client:text("klant","client")} as Record<string,string>)[tripAccessParts[2] ?? ""] ?? tripAccessParts[2];
+            const importantTripDetails = (importantTripParts[2] ?? "")
+              .split(",")
+              .filter(Boolean)
+              .map((detail) => ({
+                dates: text("reisdata", "travel dates"),
+                public: text("openbare status", "public visibility"),
+                pin: text("toegangscode", "access code"),
+                financials: text("gedeelde financiën", "shared financials"),
+              })[detail] ?? detail)
+              .join(", ");
+            const notificationBody = isTripInvitation
+              ? text(
+                  `Je bent uitgenodigd voor ${invitationTripName}.`,
+                  `You have been invited to ${invitationTripName}.`,
+                )
+              : isAgencyInvitation
+                ? text(
+                    `Je bent uitgenodigd voor het team van ${invitationAgencyName}.`,
+                    `You have been invited to join the team at ${invitationAgencyName}.`,
+                  )
+              : settlementParts.length
+                ? settlementParts[0] === "completed"
+                  ? text(`De verrekening van ${settlementParts[1]} is afgerond.`, `The settlement for ${settlementParts[1]} was completed.`)
+                  : text(`Betaal ${settlementParts[3]} ${settlementParts[4]} aan ${settlementParts[2]} voor ${settlementParts[1]}.`, `Pay ${settlementParts[3]} ${settlementParts[4]} to ${settlementParts[2]} for ${settlementParts[1]}.`)
+              : notification.kind === "account" && accountParts[0] === "access"
+              ? accountParts[1] === "blocked"
+                ? text(
+                    "Je account is door GlobeTrotr geblokkeerd. Neem voor hulp contact op via info@globetrotr.nl.",
+                    "Your account has been blocked by GlobeTrotr. Contact info@globetrotr.nl for assistance.",
+                  )
+                : text(
+                    "Je account is hersteld en je kunt GlobeTrotr weer gebruiken.",
+                    "Your account has been restored and you can use GlobeTrotr again.",
+                  )
+              : notification.kind === "account" && accountParts[0] === "export"
+                ? text(
+                    "Je gegevensexport is veilig aangemaakt en naar dit apparaat gedownload.",
+                    "Your data export was created securely and downloaded to this device.",
+                  )
+              : notification.kind === "account" && accountParts[0] === "profile"
+                ? text("Je profielgegevens zijn gewijzigd.", "Your profile details changed.")
+              : notification.kind === "account" && accountParts[0] === "plan"
+                ? text(
+                    `Je huidige abonnement is ${accountParts[1] ?? ""}.`,
+                    `Your current subscription is ${accountParts[1] ?? ""}.`,
+                  )
+              : tripContentParts.length
+              ? notification.kind === "trip_expense"
+                ? text(
+                    `Uitgaven van ${tripContentParts[1]}: ${contentAction}.`,
+                    `Expenses for ${tripContentParts[1]}: ${contentAction}.`,
+                  )
+                : text(
+                    `Boekingen van ${tripContentParts[1]}: ${contentAction}.`,
+                    `Bookings for ${tripContentParts[1]}: ${contentAction}.`,
+                  )
+              : importantTripParts.length
+              ? importantTripParts[0] === "destinations"
+                ? text(
+                    `De bestemmingen van ${importantTripParts[1]} zijn gewijzigd.`,
+                    `The destinations for ${importantTripParts[1]} changed.`,
+                  )
+                : text(
+                    `Belangrijke instellingen van ${importantTripParts[1]} zijn gewijzigd${importantTripDetails ? `: ${importantTripDetails}` : ""}.`,
+                    `Important settings for ${importantTripParts[1]} changed${importantTripDetails ? `: ${importantTripDetails}` : ""}.`,
+                  )
+              : notification.kind === "trip_access"
+              ? tripAccessParts[0] === "revoked"
+                ? text(`De uitnodiging voor ${tripAccessParts[1]} is ingetrokken.`, `The invitation for ${tripAccessParts[1]} was revoked.`)
+                : tripAccessParts[0] === "role"
+                  ? text(`Je bent nu ${tripRole} binnen ${tripAccessParts[1]}.`, `You are now a ${tripRole} for ${tripAccessParts[1]}.`)
+                  : text(`Je toegang tot ${tripAccessParts[1]} is gewijzigd.`, `Your access to ${tripAccessParts[1]} changed.`)
+              : notification.kind === "agency_client"
               ? clientParts[2]
                 ? text(`${clientParts[1]} · reis: ${clientParts[2]}`, `${clientParts[1]} · trip: ${clientParts[2]}`)
                 : clientParts[1]
@@ -293,7 +443,9 @@ export function NotificationPanel({ userId }: { userId: string }) {
               : notification.kind === "agency_access"
               ? accessParts[0] === "role" ? text(`Je bent nu ${accessRole} binnen ${accessParts[1]}.`, `You are now a ${accessRole} within ${accessParts[1]}.`) : accessParts[0] === "branding" ? text(`De huisstijl van ${accessParts[1]} is bijgewerkt.`, `The branding of ${accessParts[1]} was updated.`) : accessParts[0] === "trip_branding" ? text(`De huisstijl van ${accessParts[2]} binnen ${accessParts[1]} is bijgewerkt.`, `The branding of ${accessParts[2]} within ${accessParts[1]} was updated.`) : text(`Je toegang binnen ${accessParts[1]} is bijgewerkt.`, `Your access within ${accessParts[1]} has been updated.`)
               : notification.kind === "agency_quote"
-              ? quoteParts[0] === "accept"
+              ? quoteParts[0] === "expiry"
+                ? text(`${quoteParts[1]} is geldig tot ${quoteParts[2]}.`, `${quoteParts[1]} is valid until ${quoteParts[2]}.`)
+                : quoteParts[0] === "accept"
                 ? text(`${quoteParts[1]} accepteerde ${quoteParts[3]} voor ${quoteParts[2]}.`, `${quoteParts[1]} accepted ${quoteParts[3]} for ${quoteParts[2]}.`)
                 : quoteParts[0] === "converted"
                   ? text(`${quoteParts[2]} voor ${quoteParts[1]} is omgezet naar ${quoteParts[3]}.`, `${quoteParts[2]} for ${quoteParts[1]} was converted into ${quoteParts[3]}.`)
@@ -359,6 +511,14 @@ export function NotificationPanel({ userId }: { userId: string }) {
                                       ? "Trip document"
                                     : notification.kind === "agency_client"
                                       ? "Agency client"
+                                    : notification.kind === "trip_access"
+                                      ? "Trip access"
+                                    : notification.kind === "trip_booking"
+                                      ? "Booking"
+                                    : notification.kind === "trip_expense"
+                                      ? "Expense"
+                                    : notification.kind === "trip_settlement"
+                                      ? "Settlement"
                                     : "GlobeTrotr",
                       )}
                     </p>
@@ -384,7 +544,12 @@ export function NotificationPanel({ userId }: { userId: string }) {
                         {text("Naar account", "View account")}
                       </Link>
                     )}
-                    {notification.kind === "trip_change" && notification.trip_uuid && (
+                    {(notification.kind === "trip_change" ||
+                      notification.kind === "trip_booking" ||
+                      notification.kind === "trip_expense" ||
+                      notification.kind === "trip_settlement" ||
+                      (notification.kind === "trip_access" && tripAccessParts[0] !== "revoked")) &&
+                      notification.trip_uuid && (
                       <Link
                         to="/trips/$tripId"
                         params={{ tripId: notification.trip_uuid }}

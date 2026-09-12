@@ -23,7 +23,7 @@ De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord 
 - TanStack Router, Start en React Query
 - Vite 8 en Nitro met Cloudflare-build
 - Tailwind CSS en Radix UI-componenten
-- Supabase Auth, PostgreSQL, Row Level Security en Storage
+- Supabase Auth, PostgreSQL, Row Level Security en voorlopig Supabase Storage
 - Leaflet en OpenStreetMap
 
 Gevoelige databasebewerkingen lopen via geauthenticeerde serverfuncties en service-role-only RPC's. Publieke reisroutes gebruiken afzonderlijke RPC's die uitsluitend geselecteerde openbare velden teruggeven.
@@ -57,20 +57,17 @@ npm run check
 
 Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Iedere test draait in een transactie en eindigt met `ROLLBACK`.
 
+Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`TEST_CHECKLIST.md`](TEST_CHECKLIST.md).
+
 ## Databasewijzigingen
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-De nog te implementeren Agency-uitbreidingen worden strikt in deze volgorde toegepast:
+De Agency-basis tot en met `20260908057000_important_trip_notifications.sql` is toegepast. De laatste implementatiereeks (`580` tot en met `700`), bijbehorende tests en releasepoort staan in [`AGENCY_IMPLEMENTATION.md`](AGENCY_IMPLEMENTATION.md).
 
-1. `20260908030000_agency_workspace_members.sql` t/m `20260908034000_trip_branding_overrides.sql`;
-2. `20260908035000_agency_clients.sql`;
-3. `20260908036000_agency_audit_log.sql`;
-4. `20260908037000_fix_agency_clients_and_operations.sql`;
-5. `20260908038000_agency_notification_preferences.sql`;
-6. `20260908039000_secure_trip_documents.sql` en `20260908040000_trip_document_expiry.sql`;
-7. `20260908041000_agency_tasks.sql` en `20260908042000_agency_templates.sql`;
-8. `20260908043000_agency_quotes.sql`, `20260908044000_agency_quote_management.sql`, `20260908045000_secure_agency_quote_sharing.sql`, `20260908046000_agency_quote_responses.sql`, `20260908047000_convert_agency_quotes.sql`, `20260908048000_manage_agency_quote_shares.sql`, `20260908049000_agency_access_notifications.sql`, `20260908050000_agency_branding_notifications.sql`, `20260908051000_agency_task_notifications.sql`, `20260908052000_trip_document_notifications.sql`, `20260908053000_agency_client_notifications.sql` en `20260908054000_agency_quote_lifecycle.sql`.
+De beoogde productieopzet gebruikt één Hetzner-VPS voor de webapp en proxy en een tweede voor workers, geplande taken en e-mail. Supabase blijft aanvankelijk de beheerde database, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft hoe bestanden later zonder publieke buckets of padgebonden autorisatie naar Hetzner Object Storage kunnen worden verplaatst.
+
+De eerste productiecontainer staat in `Dockerfile`; `compose.production.yml` definieert afzonderlijke web- en workerservices. De workerhandleiding en vereiste omgevingsvariabelen staan in [`worker/README.md`](worker/README.md). De worker blijft vóór de VPS-implementatie buiten gebruik en e-mail blijft standaard vastgehouden in testmodus.
 
 De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke migratie eerst vereist is.
 
@@ -80,6 +77,7 @@ De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke mig
 - `/agency-admin/settings`: organisatiegegevens, standaardtaal, valuta, tijdzone, domein, accentkleur en logo.
 - `/agency-admin/permissions`: standaardrechten per rol en persoonlijke uitzonderingen.
 - `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Een bestaand account met hetzelfde e-mailadres krijgt automatisch de rol `client` op die reizen; archiveren trekt deze automatische toegang in en herstellen bouwt haar opnieuw op. Voor een nieuw account blijft een uitnodiging nodig.
+- `/agency-admin/suppliers`: herbruikbare accommodaties, vervoerders en activiteiten met contactgegevens, afspraken, commissie, archief en reiskoppelingen.
 - `/agency-admin/operations`: portfolio, kosten en concrete aandachtspunten uit relationele reisdata.
 - `/agency-admin/quotes`: interne offertes met klant, optionele reis, geldigheid en meerdere prijsvarianten.
 - `/agency-admin/quotes/:quoteId/convert`: controlepagina om een geaccepteerde offerte aan een bestaande reis te koppelen of als nieuwe privéreis aan te maken.
@@ -97,6 +95,7 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 ## Projectdocumentatie
 
 - `roadmap.md`: interne technische roadmap en migratiestatus.
+- `AGENCY_IMPLEMENTATION.md`: vaste uitvoervolgorde en releasepoort voor de Agency-implementatie.
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.
 - `/changelog`: publieke release notes.

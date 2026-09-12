@@ -8,7 +8,7 @@ import { useLocale } from "@/lib/locale";
 import { issueCategoryLabel } from "@/lib/issue-categories";
 
 export const Route = createFileRoute("/bekende-problemen")({ component: KnownIssuesPage });
-function KnownIssuesPage() {
+export function KnownIssuesPage() {
   const { text, language } = useLocale();
   const statusLabel=(value:string)=>({investigating:text("In onderzoek","Investigating"),planned:text("Gepland","Planned"),monitoring:text("Wordt gemonitord","Monitoring"),resolved:text("Opgelost","Resolved")}[value]??value);
   const query = useQuery({ queryKey:["known-issues"], queryFn: async()=>{ const {data,error}=await (supabase as any).from("known_issues").select("*").eq("public",true).is("archived_at",null).order("created_at",{ascending:false}); if(error) throw error; return data as any[]; }});

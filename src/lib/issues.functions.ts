@@ -318,6 +318,25 @@ export const setPlatformUserBlocked = createServerFn({ method: "POST" })
       "success",
       { reason },
     );
+    const { error: notificationError } = await db.from("notifications").upsert(
+      {
+        user_id: data.userId,
+        kind: "account",
+        title: data.blocked
+          ? "Account geblokkeerd / Account blocked"
+          : "Account hersteld / Account restored",
+        body: `access|${data.blocked ? "blocked" : "restored"}`,
+        event_key: "account-access",
+        created_at: new Date().toISOString(),
+        dismissed_at: null,
+      },
+      { onConflict: "user_id,event_key" },
+    );
+    if (notificationError) {
+      await audit(db, context.userId, "user.notification", "user", data.userId, "failure", {
+        action: data.blocked ? "blocked" : "restored",
+      });
+    }
     return { ok: true, blocked: data.blocked };
   });
 
@@ -406,6 +425,46 @@ async function reachable(url: string, headers?: Record<string, string>) {
   }
 }
 
+const providerNames = ["weather", "flight_lookup", "routing", "email", "domain_verification", "object_storage"] as const;
+
+export const getPlatformOperations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await adminDb(context.userId);
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const [controls, usage, failedJobs] = await Promise.all([
+      db.from("platform_provider_controls").select("provider,enabled,reason,updated_at").order("provider"),
+      db.from("external_api_usage").select("usage_date,provider,calls").gte("usage_date", since),
+      db.from("worker_jobs").select("id,provider,job_type,status,attempts,last_error_code,available_at,updated_at")
+        .in("status", ["failed", "cancelled"]).order("updated_at", { ascending: false }).limit(25),
+    ]);
+    if (controls.error || usage.error || failedJobs.error) throw new Error("PLATFORM_OPERATIONS_UNAVAILABLE");
+    const totals = new Map<string, number>();
+    for (const row of usage.data ?? []) totals.set(row.provider, (totals.get(row.provider) ?? 0) + row.calls);
+    await audit(db, context.userId, "platform.operations.view", "platform", null, "success");
+    return {
+      providers: (controls.data ?? []).map((row: any) => ({ ...row, calls7d: totals.get(row.provider) ?? 0 })),
+      failedJobs: failedJobs.data ?? [],
+    };
+  });
+
+export const setPlatformProviderEnabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { provider: string; enabled: boolean; reason: string }) => input)
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    if (!providerNames.includes(data.provider as typeof providerNames[number])) throw new Error("INVALID_PROVIDER");
+    const reason = data.reason.trim();
+    if (!data.enabled && reason.length < 5) throw new Error("PROVIDER_REASON_REQUIRED");
+    const { data: updated, error } = await db.from("platform_provider_controls").update({
+      enabled: data.enabled, reason: data.enabled ? null : reason.slice(0, 240),
+      updated_by: context.userId, updated_at: new Date().toISOString(),
+    }).eq("provider", data.provider).select("provider").maybeSingle();
+    await audit(db, context.userId, data.enabled ? "platform.provider.enable" : "platform.provider.disable", "provider", data.provider, error || !updated ? "failure" : "success", { reason: data.enabled ? "restored" : reason });
+    if (error || !updated) throw new Error("PROVIDER_UPDATE_FAILED");
+    return { ok: true };
+  });
+
 export const runPlatformHealthChecks = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -443,7 +502,16 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
         Boolean(githubToken && githubRepository),
       ),
       timedCheck("flights", async () => true, Boolean(process.env["SKYLINK_API_KEY"]?.trim())),
+      timedCheck("worker", () => reachable(process.env["WORKER_HEALTH_URL"]!), Boolean(process.env["WORKER_HEALTH_URL"]?.trim())),
     ]);
+    const publicKeys: Record<string,string> = { database:"database", storage:"storage", weather:"weather", rates:"rates", flights:"flights", worker:"worker" };
+    await Promise.all(checks.filter((check) => publicKeys[check.name]).map((check) => db.from("platform_status_components").update({
+      status: check.status === "not_configured" ? "unknown" : check.status,
+      response_ms: check.durationMs,
+      checked_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq("component_key", publicKeys[check.name])));
+    await db.from("platform_status_components").update({ status:"operational", checked_at:new Date().toISOString(), updated_at:new Date().toISOString() }).eq("component_key","web");
     await audit(db, context.userId, "platform.health_check", "platform", null, "success", {
       overall_status: checks.some((check) => check.status === "degraded")
         ? "degraded"

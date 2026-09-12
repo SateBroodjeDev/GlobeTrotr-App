@@ -9,7 +9,7 @@ import { PUBLIC_BETA_STATUS } from "@/lib/public-changelog";
 
 export const Route = createFileRoute("/beta-voorwaarden")({ head: () => ({ meta: [{ title: "Internationale beta — GlobeTrotr" }, { name: "description", content: "Alles over testen en deelnemen aan de GlobeTrotr-beta." }] }), component: BetaPage });
 
-function BetaPage() {
+export function BetaPage() {
   const { user } = useAuth();
   const { text } = useLocale();
   const journey = [
@@ -30,7 +30,7 @@ function BetaPage() {
       <Badge variant="secondary" className="mb-4 gap-1.5"><Beaker className="size-3.5" /> {text("Internationale beta", "International beta")}</Badge>
       <h1 className="max-w-3xl font-display text-3xl font-semibold sm:text-5xl">{text("Help de reisplanner te bouwen die je zelf wilt meenemen", "Help build the trip planner you want to take with you")}</h1>
       <p className="mt-4 max-w-2xl text-sm leading-relaxed opacity-90 sm:text-base">{text("Test echte reissituaties, ontdek wat goed werkt en vertel ons waar je vastloopt. Je feedback bepaalt wat als volgende wordt verbeterd.", "Test real travel situations, discover what works well and tell us where you get stuck. Your feedback shapes what improves next.")}</p>
-      <div className="mt-7 flex flex-wrap gap-3"><Button asChild size="lg"><Link to={user ? "/dashboard" : "/auth"}><Rocket className="size-4" /> {user ? text("Start met testen", "Start testing") : text("Beta-account maken", "Create beta account")}</Link></Button><Button asChild size="lg" variant="outline"><Link to="/changelog">{text("Bekijk updates", "View updates")}</Link></Button></div>
+      <div className="mt-7 flex flex-wrap gap-3"><Button asChild size="lg"><Link to={user ? "/dashboard" : "/auth"}><Rocket className="size-4" /> {user ? text("Start met testen", "Start testing") : text("Beta-account maken", "Create beta account")}</Link></Button><Button asChild size="lg" variant="outline"><Link to="/updates">{text("Bekijk updates", "View updates")}</Link></Button></div>
     </header>
 
     <section><h2 className="font-display text-2xl font-semibold">{text("Een goede testronde in drie stappen", "A useful test round in three steps")}</h2><div className="mt-4 grid gap-4 md:grid-cols-3">{journey.map(([Icon,title,body])=><Card key={title} className="surface"><CardContent className="p-5"><span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5" /></span><h3 className="mt-4 font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></CardContent></Card>)}</div></section>

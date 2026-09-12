@@ -1,0 +1,116 @@
+# GlobeTrotr beta-testlijst
+
+Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar, een Agency-medewerker en een klant. Test belangrijke schermen eenmaal op telefoon en eenmaal op desktop.
+
+## Account
+
+- [ ] Account maken, inloggen, uitloggen en wachtwoord herstellen.
+- [ ] Taal NL/EN en licht/donker wijzigen; vernieuwen geeft geen lichtflits.
+- [ ] Profiel wijzigen en controleren dat de wijziging direct zichtbaar is.
+- [ ] Volledige gegevens-export downloaden en veilig opnieuw importeren.
+- [ ] Testaccount verwijderen en controleren dat opnieuw inloggen niet meer kan.
+
+## Reizen
+
+- [ ] Reis maken, wijzigen, archiveren, herstellen en verwijderen.
+- [ ] Reisnaam stopt bij 30 tekens en omschrijving bij 375 tekens.
+- [ ] Bestemmingen, route, planning en paklijst toevoegen en wijzigen.
+- [ ] Vlucht, accommodatie, huurauto, vervoer en activiteit toevoegen en wijzigen.
+- [ ] Auto, openbaar vervoer, fiets en lopen kiezen; brandstofprognose klopt alleen waar passend.
+- [ ] Reisback-up vanuit reisinstellingen downloaden en via accountinstellingen importeren.
+
+## Uitgaven en verrekening
+
+- [ ] Uitgave toevoegen, wijzigen en verwijderen.
+- [ ] Bon toevoegen en alleen met het juiste abonnement en recht openen.
+- [ ] Betaler en deelnemers wijzigen; totalen en slimme verrekening blijven correct.
+- [ ] Lange namen en het saldo blijven volledig binnen het telefoonscherm.
+- [ ] CSV/PDF-export opent correct en tekst die met `=`, `+`, `-` of `@` begint wordt geen formule.
+
+## Samenwerken
+
+- [ ] Bestaand account uitnodigen via melding en accepteren of weigeren.
+- [ ] Nieuw account uitnodigen via link, account maken en deelnemen.
+- [ ] Uitnodiging wijzigen, vernieuwen en intrekken.
+- [ ] Na acceptatie verschijnt één reisgenoot en de reis direct op het andere dashboard.
+- [ ] Reisgenoot verwijderen; toegang verdwijnt en het verwijderde lid krijgt een melding.
+- [ ] Reisrol wijzigen en controleren wat die gebruiker kan bekijken en aanpassen.
+
+## Openbare reis
+
+- [ ] Openbare reis zonder PIN openen terwijl je uitgelogd bent.
+- [ ] PIN-reis weigert een onjuiste PIN en accepteert de juiste PIN.
+- [ ] Kaart, reisomschrijving, gedeelde boekingen, weer en afteller tonen goed in NL/EN.
+- [ ] Niet-gedeelde financiën, boekingsreferenties, notities en documenten zijn nergens zichtbaar.
+- [ ] Agency-reis toont bedrijfsnaam, logo en reisbranding; gewone reis toont GlobeTrotr-branding.
+
+## Agency-team en rechten
+
+- [ ] Eigenaar nodigt adviseur en finance uit; accepteren en weigeren werken.
+- [ ] Standaardrol en persoonlijke rechten beperken elk scherm en iedere schrijfhandeling correct.
+- [ ] Teamlid blokkeren, herstellen en verwijderen; toegang en branding veranderen direct.
+- [ ] Organisatienaam, tagline, kleuren en logo wijzigen; lege waarden vallen veilig terug.
+- [ ] Per-reisbranding instellen, uitschakelen en terug laten vallen op de Agency-huisstijl.
+- [ ] Beschikbaar Agency-subdomein opslaan; gereserveerde of reeds gebruikte naam wordt geweigerd.
+- [ ] Eigen domein en mailafzender opslaan zonder dat een SMTP-wachtwoord in browser- of databasegegevens verschijnt.
+
+## Agency-klanten en operatie
+
+- [ ] Klant maken, wijzigen, aan reis koppelen en ontkoppelen.
+- [ ] Bestaand klantaccount ziet een gekoppelde reis direct in het klantportaal.
+- [ ] Klant archiveren trekt automatische reistoegang in; herstellen geeft die terug.
+- [ ] Werkvoorraad laadt en toont aankomende reizen, documenten en declarabele kosten.
+- [ ] Taak maken, toewijzen, overdragen, afronden en verwijderen.
+- [ ] Sjabloon maken en toepassen zonder bestaande reisinhoud onverwacht te overschrijven.
+- [ ] Reisdocument uploaden, categoriseren, vervaldatum wijzigen, openen en verwijderen.
+- [ ] Leverancier voor accommodatie, vervoer en activiteit maken, zoeken, wijzigen, archiveren en herstellen.
+- [ ] Leverancier aan meerdere eigen reizen koppelen; een gebruiker zonder planningsrecht kan niets opslaan.
+
+## Agency-offertes
+
+- [ ] Offerte met meerdere varianten maken en wijzigen.
+- [ ] Klantlink maken, vernieuwen en intrekken; oude links werken daarna niet meer.
+- [ ] Klant accepteert precies één variant of wijst de offerte af.
+- [ ] Geaccepteerde offerte koppelen aan een bestaande reis of omzetten naar één nieuwe reis.
+- [ ] Dubbel klikken of vernieuwen maakt geen tweede reis of tweede antwoord.
+- [ ] Auditlog toont aanmaak, wijziging, delen, antwoord, intrekken en conversie met de juiste uitvoerder.
+
+## Meldingen
+
+- [ ] Uitnodigingen, reacties, verwijdering, rollen en blokkades geven de juiste melding.
+- [ ] Agency-klanten, taken, huisstijl, documenten en offertelinks geven de juiste NL/EN-melding.
+- [ ] Reisdata, bestemmingen, boekingen, vluchtstatus en uitgaven geven één gerichte NL/EN-melding aan de juiste rollen.
+- [ ] Profiel-, abonnements-, export- en Corporate blokkade/herstelmeldingen zijn in beide talen begrijpelijk.
+- [ ] De uitvoerder krijgt geen overbodige eigen melding.
+- [ ] Meerdere wijzigingen aan hetzelfde onderwerp blijven één actuele melding.
+- [ ] Uitgeschakelde informatieve voorkeuren worden gerespecteerd; beveiligingsmeldingen blijven actief.
+- [ ] Melding wegklikken blijft na vernieuwen bewaard.
+
+## Corporate Admin
+
+- [ ] Alleen Corporate Admin kan gebruikers, Agencies, auditlog en platformbeheer openen.
+- [ ] Gebruiker bekijken, plan wijzigen, blokkeren en herstellen met verplichte reden.
+- [ ] Agency-instellingen bekijken en gecontroleerd aanpassen.
+- [ ] Feedback bijwerken, archiveren en verwijderen; gebruiker ontvangt statusupdates.
+- [ ] Bekend probleem maken, wijzigen, oplossen, archiveren en met GitHub synchroniseren.
+- [ ] Platformstoring publiceren, bijwerken en oplossen; banner verschijnt en verdwijnt correct.
+- [ ] Auditlog vermeldt wie iedere beheeractie uitvoerde.
+- [ ] Medewerker zonder financieel of operationeel recht ziet die navigatie niet en kan de bijbehorende serveractie evenmin uitvoeren.
+- [ ] Deactiveren, promoveren tot eigenaar en quota resetten vragen een tweede bevestiging.
+- [ ] Zoeken en resultaatfilter in de auditlog werken; audit, omzet en facturen downloaden als leesbare CSV zonder formule-uitvoering.
+- [ ] Medewerkerdetail toont de recente wijzigingen aan rol en rechten.
+
+## Publieke en juridische pagina's
+
+- [ ] Homepage, mogelijkheden, demo, prijzen, updates, roadmap en bekende problemen openen op telefoon en desktop.
+- [ ] Privacyverklaring, voorwaarden, betavoorwaarden en terugbetalingsbeleid openen in NL/EN.
+- [ ] Cookiekeuze werkt, wordt onthouden en kan later worden gewijzigd.
+- [ ] Feedbackknop blijft bereikbaar zonder inhoud te bedekken.
+
+## Technische eindcontrole
+
+- [ ] `npm test` slaagt.
+- [ ] `npm run build` slaagt.
+- [ ] Alle SQL-tests eindigen zonder fout en rollen hun testdata terug.
+- [ ] `agency_release_gate.sql` meldt geen ontbrekende tabel, functie, RLS of onveilige browsergrant.
+- [ ] Browserconsole en serverlogs bevatten tijdens de praktijktest geen onverwachte fouten.

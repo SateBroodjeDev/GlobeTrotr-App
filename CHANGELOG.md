@@ -4,6 +4,116 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-12 12:52 CEST — Platformstatus, infrastructuurbeheer en releasecontrole
+
+- `/status` toont publiek alleen veilige componentstatussen en reactietijden; interne adressen en beheerdata blijven afgeschermd.
+- `/about` vertelt het oprichtersverhaal in Nederlands en Engels met de geoptimaliseerde aangeleverde foto.
+- Corporate Admin beheert de twee VPS-records, publieke SSH-sleutels en host-key-fingerprints, maar weigert private sleutels.
+- Weer-, vlucht- en routequota kunnen met verplichte reden per workspace of gebruiker worden gereset en iedere actie komt in de auditlog.
+- Een persistente releasechecklist ondersteunt de volledige implementatie- en praktijktest; migratie `20260908066000_platform_operations_and_release_checklist.sql` en de bijbehorende SQL-test staan klaar.
+- `npm test` slaagt met 34 tests en `npm run build` levert de volledige client- en serverbuild zonder fouten op.
+- Corporate Admin bevat nu ook de bedrijfsbasis voor statistieken, verkoopfacturen en gedeelde of persoonlijke `@globetrotr.nl`-mailboxen met eigen handtekeningen.
+- De database bewaart uitsluitend verwijzingen naar IMAP- en SMTP-secrets; daadwerkelijke wachtwoorden blijven op de VPS. Inboxsync en Paddle-facturen worden pas na providerconfiguratie actief.
+- Medewerkers krijgen een eigen mailboxscherm met gedeelde of persoonlijke inboxen, lees- en antwoordrechten, berichtdetail, archiveren, beantwoorden en een afgeschermde uitgaande testwachtrij.
+- De Node-worker claimt bedrijfsberichten uitsluitend in live-modus, verzendt via de afgeschermde relay, registreert een verzonden kopie en verwerkt fouten met begrensde retries zonder berichtinhoud te loggen.
+- De financiële bedrijfslaag bevat een afgeschermd Paddle-klaar model voor klanten, abonnementen, transacties en idempotente webhookevents, plus MRR, netto-omzet, refunds, achterstanden en factuurdetail in Corporate Admin.
+- Corporate Admin beheert GlobeTrotr-medewerkers met functie, eigenaar-, admin- of supportrol en afzonderlijke rechten voor gebruikers, Agencies, financiën, mail, operatie en issues; persoonlijke adressen volgen `eersteletter.achternaam@globetrotr.nl`.
+- Een beheerder kan zichzelf of de laatste actieve eigenaar niet uitschakelen; rol- en mailboxwijzigingen vereisen een reden, actualiseren de Auth-claim en worden geaudit.
+- De Corporate Admin-navigatie volgt nu de afzonderlijke bedrijfsrechten; infrastructuur- en quotafuncties dwingen het operationele recht ook server-side af.
+- Medewerkers tonen hun recente rechtenhistorie. Deactivatie, promotie tot eigenaar en quota-reset vragen een extra bevestiging.
+- Auditregels zijn doorzoekbaar en filterbaar; het gefilterde auditresultaat, omzetreeksen en factuuroverzichten kunnen formuleveilig als CSV worden geëxporteerd.
+- De geplande-meldingen-test voegt de automatisch geregistreerde workspace-eigenaar niet langer dubbel toe. De securitytest erkent de doelbewust openbare platformstatus-RPC voor anonieme en ingelogde bezoekers.
+
+## 2026-09-12 12:10 CEST — Providerquota, workerwachtrij en draagbare opslag
+
+- Free, Pro en Agency hebben centrale, testbare dagbudgetten voor weer-, vlucht- en routeaanvragen; betaalde plannen krijgen aantoonbaar meer ruimte.
+- Een service-role-only providerstop kan een externe dienst direct uitschakelen zonder nieuwe applicatiebuild.
+- De PostgreSQL-workerwachtrij voorkomt dubbele opdrachten, ondersteunt meerdere workers met `SKIP LOCKED` en plant mislukte opdrachten met begrensde back-off opnieuw in.
+- Het opslagbesluit en migratiepad zijn vastgelegd: private bestanden blijven eerst in Supabase Storage, terwijl nieuwe servercode provider, bucket en objectsleutel gescheiden behandelt voor een latere overstap naar Hetzner S3.
+- `20260908065000_provider_quotas_and_worker_queue.sql` en `provider_quotas_and_worker_queue.sql` staan klaar voor latere uitvoering.
+- Ingelogde weer- en vluchtverzoeken gebruiken het planbudget uit deze centrale laag; het bestaande striktere uurquotum voor vluchtinformatie blijft daarnaast actief.
+- De eerste Node 24-worker, containerbuild en tweeservice-Compose-configuratie zijn toegevoegd met healthcheck, veilige technische logging en een afgeschermde mail-relaygrens.
+- Corporate Admin toont providergebruik, mislukte workerjobs en providerstops met verplichte reden en volledige auditregistratie.
+
+## 2026-09-12 12:30 CEST — E-mailwachtrij in veilige testmodus
+
+- Transactionele account-, toegang-, uitnodigings-, platform- en verrekeningsmeldingen worden idempotent als compacte mailopdracht klaargezet.
+- De standaardmodus `test` houdt iedere opdracht vast; de claimfunctie levert pas werk nadat productiebeheer expliciet `live` activeert.
+- Browserrollen hebben geen toegang tot de wachtrij of workerfunctie en e-mailinhoud wordt bij rendering tegen HTML-injectie beschermd.
+- De daadwerkelijke SMTP-adapter, secretkoppeling en verzending worden pas op de Ubuntu-VPS geactiveerd.
+
+## 2026-09-12 12:15 CEST — Agency-domeinen en mail voorbereid
+
+- Agency-eigenaren kunnen een gereserveerd subdomein, optioneel eigen domein en mailafzender configureren.
+- Unieke claims, gereserveerde platformnamen, verificatietokens en statussen worden in de database bewaakt.
+- SMTP-wachtwoorden worden bewust niet opgeslagen; de database bevat later uitsluitend een verwijzing naar een versleuteld VPS-secret.
+- Wildcard-routing, DNS-verificatie, TLS-uitgifte en daadwerkelijke SMTP-connectiviteit worden tijdens de VPS-implementatie geactiveerd.
+
+## 2026-09-12 11:55 CEST — Agency-leveranciersbibliotheek
+
+- Agencies kunnen accommodaties, vervoerders en activiteiten centraal opslaan, zoeken, wijzigen, archiveren en herstellen.
+- Contactpersoon, website, boekingsvoorwaarden, commissie en interne notities blijven strikt aan de Agency-workspace gebonden.
+- Leveranciers kunnen aan meerdere reizen uit dezelfde workspace worden gekoppeld; een databasetrigger blokkeert koppelingen over workspacegrenzen.
+- Alleen Agency-gebruikers met planningsrecht kunnen wijzigen. Lezen vereist reis-inzagerecht en alle wijzigingen verschijnen in de Agency-auditlog.
+- `20260908062000_agency_suppliers.sql` en `agency_suppliers.sql` staan klaar voor uitvoering.
+
+## 2026-09-12 11:45 CEST — Meldingsvoorkeuren per reis
+
+- Iedere deelnemer kan in de reisinstellingen afzonderlijk kiezen voor meldingen over planning, boekingen, uitgaven, documenten en toekomstige vluchtalerts.
+- De database past deze voorkeuren toe bij het aanmaken en bijwerken van meldingen; bestaande openstaande meldingen uit een uitgeschakelde categorie worden direct gesloten.
+- Uitnodigingen, toegangs- en beveiligingswijzigingen, platformmeldingen en betaalverzoeken blijven verplicht en kunnen niet via deze voorkeuren worden uitgeschakeld.
+- De RPC controleert dat de gebruiker werkelijk eigenaar, actief reislid of actief Agency-teamlid van de reis is. Browserrollen hebben geen directe toegang tot de voorkeurentabel.
+- `20260908061000_trip_notification_preferences.sql` en `trip_notification_preferences.sql` staan klaar voor uitvoering.
+
+## 2026-09-12 11:40 CEST — Persistente verrekeningsrondes
+
+- De slimme verrekening kan berekende overboekingen nu als betaalverzoeken publiceren en de volledige ronde expliciet afronden.
+- `trip_settlement_requests` bewaart uitsluitend gekoppelde accountpartijen, begrensde namen, bedrag, valuta en status; browserrollen krijgen geen directe tabeltoegang.
+- De servicefunctie controleert reis- of Agency-financerechten, sluit oudere open verzoeken en maakt gerichte, tweetalige meldingen.
+- Nieuwe serveractie en knoppen zijn toegevoegd aan de bestaande verrekeningskaart.
+- `20260908060000_trip_settlement_notifications.sql` en `trip_settlement_notifications.sql` staan klaar voor uitvoering.
+
+## 2026-09-12 09:55 CEST — Publieke website en geplande meldingen
+
+- Nieuwe publieke pagina's voor demo, reizigers, groepen, Agencies en support, met vaste Engelstalige routes voor features, pricing, updates, bekende problemen, beta en juridische informatie.
+- De publieke header en footer leiden nu naar de nieuwe structuur. Bestaande Nederlandse URL's en oude deel- en uitnodigingslinks krijgen productie-redirects; `sitemap.xml` en de robots-verwijzing zijn toegevoegd.
+- `20260908059000_scheduled_notification_maintenance.sql` sluit verlopen uitnodigingsacties en maakt gebundelde herinneringen voor taken, documenten en offertes. De functie is alleen uitvoerbaar met de service-role en klaar voor een dagelijkse cronjob.
+- `scheduled_notification_maintenance.sql` controleert verlopen uitnodigingen, taakdeadlines en documentverval in een teruggedraaide testtransactie.
+- Productiebuild is succesvol uitgevoerd. Migraties `20260908058000` en `20260908059000` met hun tests moeten nog in Supabase worden uitgevoerd.
+
+## 2026-09-12 09:44 CEST — Notificaties integraal afgerond en gecontroleerd
+
+- Boekingen, vluchtstatus en uitgaven krijgen afzonderlijke, vertaalde en per reis gebundelde meldingen; alleen rollen die de betreffende inhoud mogen zien worden ontvanger.
+- Snapshotopslag vergelijkt de werkelijke inhoud vóór en na opslag. De interne verwijder- en herplaatsstappen veroorzaken geen losse meldingen en documenten leveren niet langer tegelijk een algemene reisupdate op.
+- Profielwijzigingen, abonnementswijzigingen, gegevensexports en Corporate accountblokkade of herstel hebben nu herkenbare NL/EN-meldingen met stabiele deduplicatiesleutels.
+- Nieuwe reisuitnodigingen zijn ook voor Engelstalige accounts volledig vertaald en bevatten alleen de begrensde reisnaam, zonder e-mailadres of uitnodigingstoken.
+- `notification_system_audit.sql` controleert RLS, browserrechten, alle meldingstypen, verplichte triggers en de service-role-only actorbewuste opslagfunctie in één laatste structurele audit.
+- `20260908057000_important_trip_notifications.sql` en de bijbehorende test zijn door de beheerder succesvol uitgevoerd. `20260908058000_trip_content_notifications.sql`, `trip_content_notifications.sql` en `notification_system_audit.sql` staan klaar voor uitvoering.
+
+## 2026-09-12 09:34 CEST — Belangrijke reiswijzigingen herkenbaar gemeld
+
+- Wijzigingen aan reisdata, bestemmingen, openbare status, toegangscode en gedeelde financiën krijgen één afzonderlijke, vertaalde melding per reis.
+- De server geeft de werkelijk ingelogde uitvoerder door aan de database, zodat ook wijzigingen door een bevoegd Agency-teamlid niet ten onrechte aan de eigenaar worden toegeschreven.
+- De uitvoerder wordt overgeslagen, persoonlijke Agency-voorkeuren blijven gelden en algemene reisupdates worden bij deze gebeurtenissen niet dubbel aangemaakt.
+- `20260908055000_restore_public_function_grants.sql`, de vier herstelde regressietests, `20260908056000_trip_access_notifications.sql` en `trip_access_notifications.sql` zijn door de beheerder succesvol uitgevoerd.
+- Migratie `20260908057000_important_trip_notifications.sql` en rollbacktest `important_trip_notifications.sql` zijn op 12 september 2026 succesvol uitgevoerd.
+
+## 2026-09-12 09:30 CEST — Reisrollen en ingetrokken uitnodigingen gemeld
+
+- Een gekoppeld reisaccount krijgt een eigen vertaalde melding wanneer de reisrol of deelnamestatus verandert.
+- Bij intrekken wordt de oude uitnodigingsactie direct gesloten en krijgt een bestaand account een duidelijke melding dat de uitnodiging niet meer geldig is.
+- Vernieuwen roteert de link en heropent precies één bestaande uitnodigingsmelding met de nieuwe geldigheidsduur.
+- Meldingsteksten bevatten alleen de begrensde reisnaam en de nieuwe rol of status; uitnodigingstokens en e-mailadressen worden niet opgenomen.
+- Migratie `20260908056000_trip_access_notifications.sql` en rollbacktest `trip_access_notifications.sql` zijn op 12 september 2026 succesvol uitgevoerd.
+
+## 2026-09-12 09:26 CEST — Implementatiestatus en regressietests hersteld
+
+- De Agency-reeks tot en met `20260908054000_agency_quote_lifecycle.sql` is als uitgevoerd en gepusht vastgelegd; `TEST_CHECKLIST.md` bevat één praktische controlelijst voor de volledige beta.
+- Drie regressietests gebruiken nu uitsluitend hun eigen tijdelijke workspace of herkenbare testregels en blijven daardoor correct wanneer productie al auditregels, workspaceleden of bekende problemen bevat.
+- `security_hardening.sql` rapporteert voortaan de exacte onverwacht uitvoerbare functie in plaats van alleen een algemene foutmelding.
+- Migratie `20260908055000_restore_public_function_grants.sql` trekt opnieuw toegekende `authenticated`-rechten op de publieke reis- en branding-RPC in; de server blijft deze routes met de anonieme publicatieclient gebruiken.
+- Deze aanvullende migratie en de vier herstelde tests zijn op 12 september 2026 succesvol uitgevoerd.
+
 ## 2026-09-12 00:14 CEST — Offertecyclus gemeld en geaudit
 
 - Delen, vernieuwen en intrekken van een offertelink informeren andere bevoegde teamleden met één actuele, vertaalde offertemelding.

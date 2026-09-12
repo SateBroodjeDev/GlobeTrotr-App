@@ -1,7 +1,7 @@
 export const PUBLIC_TODAY = {
-  date: ["11 september 2026", "11 September 2026"],
-  title: ["Agency-beheer van klant tot offerte", "Agency management from client to quote"],
-  description: ["Agency-teams beheren hun organisatie, klanten, rechten, reiswerkvoorraad, sjablonen en interne offertes vanuit één samenhangende omgeving.", "Agency teams now manage their organisation, clients, permissions, trip work queue, templates and internal quotes from one connected area."],
+  date: ["12 september 2026", "12 September 2026"],
+  title: ["Een complete website met gerichte meldingen", "A complete website with targeted notifications"],
+  description: ["Nieuwe publieke pagina's leggen GlobeTrotr helder uit, terwijl reisupdates, deadlines en uitnodigingen bij de juiste gebruiker terechtkomen.", "New public pages clearly explain GlobeTrotr while trip updates, deadlines and invitations reach the right user."],
   completed: [
     ["Eigen Agency Admin-navigatie voor organisatie, klanten, operatie en activiteit", "Dedicated Agency Admin navigation for organisation, clients, operations and activity"],
     ["Klantprofielen met contactgegevens, taal, notities en gekoppelde reizen", "Client profiles with contact details, language, notes and linked trips"],
@@ -37,16 +37,26 @@ export const PUBLIC_TODAY = {
     ["Taaktoewijzing, overdracht, status en deadline gericht en gebundeld melden", "Send targeted, grouped notifications for task assignment, reassignment, status and deadlines"],
     ["Agency-klanten bij koppelen, ontkoppelen, archiveren en herstellen gericht melden", "Send targeted notifications when Agency clients are linked, unlinked, archived or restored"],
     ["Offertelinks delen, vernieuwen en intrekken melden en de volledige offertecyclus vastleggen", "Notify quote link sharing, renewal and revocation and record the complete quote lifecycle"],
+    ["Gewijzigde reisrollen en ingetrokken uitnodigingen duidelijk aan betrokken reizigers melden", "Clearly notify affected travellers about changed trip roles and revoked invitations"],
     ["Reisleden veilig informeren wanneer een document of vervaldatum verandert", "Safely notify trip members when a document or expiry date changes"],
+    ["Belangrijke wijzigingen aan reisdata, bestemmingen en delen herkenbaar melden", "Clearly notify travellers about important changes to dates, destinations and sharing"],
+    ["Boekingen, vluchtstatus en uitgaven gericht en zonder duplicaten melden", "Send targeted notifications for bookings, flight status and expenses without duplicates"],
+    ["Aparte publieke pagina's voor reizigers, groepen, Agencies, demo en support", "Dedicated public pages for travellers, groups, agencies, demo and support"],
+    ["Stabiele Engelstalige URL's met behoud van bestaande links", "Stable English URLs while preserving existing links"],
+    ["Herinneringen voor taakdeadlines, documenten, offertes en verlopen uitnodigingen", "Reminders for task deadlines, documents, quotes and expired invitations"],
+    ["Betaalverzoeken en afgeronde verrekeningen gericht aan reisgenoten melden", "Send targeted payment requests and completed settlement notifications to travellers"],
+    ["Persoonlijke meldingsvoorkeuren per reis en onderwerp", "Personal notification preferences per trip and topic"],
+    ["Herbruikbare Agency-leveranciers met afspraken en reiskoppelingen", "Reusable Agency suppliers with agreements and trip links"],
+    ["Centrale gebruiksgrenzen en betrouwbare achtergrondverwerking voorbereiden", "Prepare central usage limits and reliable background processing"],
   ],
 } as const;
 
 export const PUBLIC_ROADMAP = [
   { status: "now", title: ["Internationale beta verbeteren", "Improve the international beta"], description: ["Feedback verwerken, bekende problemen oplossen en de ervaring op telefoon verder aanscherpen.", "Process feedback, resolve known issues and further refine the mobile experience."], items: [
-    ["Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren", "Practically verify Agency downgrade and return to GlobeTrotr"], ["Belangrijke wijzigingen overal met gerichte, gebundelde meldingen ondersteunen", "Support important changes throughout the platform with targeted, grouped notifications"], ["De homepage en publieke website volledig vernieuwen", "Completely redesign the homepage and public website"], ["Engelstalige URL's met werkende redirects invoeren", "Introduce English URLs with working redirects"], ["Betere feedback- en probleemopvolging", "Better feedback and issue follow-up"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"],
+    ["Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren", "Practically verify Agency downgrade and return to GlobeTrotr"], ["De vernieuwde publieke website op telefoon en desktop controleren", "Review the renewed public website on mobile and desktop"], ["Betere feedback- en probleemopvolging", "Better feedback and issue follow-up"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"],
   ]},
   { status: "next", title: ["Samenwerking en communicatie", "Collaboration and communication"], description: ["Uitnodigingen en updates eenvoudiger bij alle reizigers krijgen.", "Make invitations and updates easier to reach every traveller."], items: [
-    ["Automatische reisuitnodigingen en updates via e-mail", "Automated trip invitations and updates by email"], ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"], ["Meldingsvoorkeuren per reis en onderwerp", "Notification preferences per trip and topic"],
+    ["Automatische reisuitnodigingen en updates via e-mail", "Automated trip invitations and updates by email"], ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"],
   ]},
   { status: "later", title: ["Slimmere reisassistentie", "Smarter travel assistance"], description: ["Meer handwerk wegnemen zonder controle over je reis over te nemen.", "Remove more manual work while keeping you in control of your trip."], items: [
     ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Agency-facturen en betaalstatus zodra Paddle is aangesloten", "Agency invoices and payment status once Paddle is connected"], ["Automatische taakherinneringen en werkstromen", "Automated task reminders and workflows"],

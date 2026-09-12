@@ -39,6 +39,14 @@ export const lookupFlight = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }): Promise<FlightLookup> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: workspace, error: workspaceError } = await supabaseAdmin
+      .from("workspaces")
+      .select("workspace_uuid,plan")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (workspaceError || !workspace) throw new Error("WORKSPACE_NOT_FOUND");
+    const { consumeProviderQuota } = await import("@/lib/provider-quota.server");
+    await consumeProviderQuota(supabaseAdmin, workspace.workspace_uuid, context.userId, workspace.plan, "flight_lookup");
     const { data: allowed, error: quotaError } = await supabaseAdmin.rpc(
       "consume_flight_lookup_quota" as never,
       { p_user_id: context.userId, p_limit: 20 } as never,

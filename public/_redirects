@@ -1,0 +1,10 @@
+/mogelijkheden /features 301
+/prijzen /pricing 301
+/changelog /updates 301
+/bekende-problemen /known-issues 301
+/beta-voorwaarden /beta 301
+/algemene-voorwaarden /terms 301
+/terugbetalingsbeleid /refund-policy 301
+/reis/:token/:tripId /trip/:token/:tripId 301
+/uitnodiging/:token /invite/:token 301
+/agency-uitnodiging/:token /agency-invite/:token 301

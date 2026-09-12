@@ -16,6 +16,12 @@ INSERT INTO public.known_issues(title_nl,title_en,description_nl,description_en,
 VALUES ('Openbaar probleem','Public issue','Beschrijving','Description',true),
 ('Intern probleem','Internal issue','Beschrijving','Description',false);
 SET LOCAL ROLE anon;
-DO $$ BEGIN IF (SELECT count(*) FROM public.known_issues) <> 1 THEN RAISE EXCEPTION 'Anon ziet niet exact de openbare problemen'; END IF; END $$;
+DO $$ BEGIN
+  IF (SELECT count(*) FROM public.known_issues
+      WHERE title_nl IN ('Openbaar probleem','Intern probleem')) <> 1
+    OR NOT EXISTS(SELECT 1 FROM public.known_issues WHERE title_nl='Openbaar probleem')
+    OR EXISTS(SELECT 1 FROM public.known_issues WHERE title_nl='Intern probleem')
+  THEN RAISE EXCEPTION 'Anon ziet de testproblemen niet volgens hun openbare status'; END IF;
+END $$;
 RESET ROLE;
 ROLLBACK;

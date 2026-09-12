@@ -12,7 +12,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
-          kind: "account" | "trip_change" | "invitation" | "membership" | "feedback" | "platform";
+          kind: "account" | "trip_change" | "invitation" | "membership" | "feedback" | "platform" | "agency_task" | "agency_quote" | "agency_access" | "trip_document" | "agency_client" | "trip_access" | "trip_booking" | "trip_expense" | "trip_settlement";
           title: string;
           body: string;
           trip_uuid: string | null;
@@ -23,7 +23,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
-          kind: "account" | "trip_change" | "invitation" | "membership" | "feedback" | "platform";
+          kind: "account" | "trip_change" | "invitation" | "membership" | "feedback" | "platform" | "agency_task" | "agency_quote" | "agency_access" | "trip_document" | "agency_client" | "trip_access" | "trip_booking" | "trip_expense" | "trip_settlement";
           title: string;
           body: string;
           trip_uuid?: string | null;

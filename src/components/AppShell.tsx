@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+﻿import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   BarChart3,
@@ -23,6 +23,11 @@ import {
   Tags,
   Scale,
   RotateCcw,
+  Sparkles,
+  LifeBuoy,
+  Activity,
+  HeartHandshake,
+  Mail,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
@@ -52,7 +57,13 @@ const AGENCY_NAV = [
   { to: "/agency-admin", label: "Agency Admin", icon: Building2 },
 ] as const;
 const CLIENT_NAV = [{ to: "/client-portal", label: "Klantportaal", icon: BriefcaseBusiness }] as const;
-const PUBLIC_NAV = [{ to: "/", label: "Home", icon: Map }] as const;
+const PUBLIC_NAV = [
+  { to: "/", label: "Home", icon: Map },
+  { to: "/features", label: "Features", icon: Compass },
+  { to: "/demo", label: "Demo", icon: Sparkles },
+  { to: "/for-agencies", label: "Agency", icon: Building2 },
+  { to: "/pricing", label: "Pricing", icon: Tags },
+] as const;
 type ThemePreference = "system" | "light" | "dark";
 const THEME_STORAGE_KEY = "globetrotr.theme";
 const asTheme = (value: unknown): ThemePreference =>
@@ -121,7 +132,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
     ? profileQuery.data === undefined ? cachedTheme() : asTheme(profileQuery.data?.theme)
     : guestTheme;
   const navItems = user
-    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
+    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
     : PUBLIC_NAV;
   const displayName =
     profileQuery.data?.display_name ||
@@ -248,7 +259,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 activeProps={{ className: "bg-accent text-accent-foreground" }}
               >
                 <item.icon className="size-4" />
-                {item.to === "/dashboard" ? text("Reizen", "Trips") : item.to === "/client-portal" ? text("Klantportaal", "Client portal") : item.label}
+                {item.to === "/dashboard" ? text("Reizen", "Trips") : item.to === "/client-portal" ? text("Klantportaal", "Client portal") : item.to === "/features" ? text("Mogelijkheden", "Features") : item.to === "/pricing" ? text("Prijzen", "Pricing") : item.label}
               </Link>
             ))}
           </nav>
@@ -256,7 +267,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
             {user && <NotificationPanel key={user.id} userId={user.id} />}
             {user && cloud === "saving" && (
               <span className="mr-2 hidden text-xs text-muted-foreground sm:block">
-                {text("Opslaan…", "Saving…")}
+                {text("Opslaanâ€¦", "Savingâ€¦")}
               </span>
             )}
             {!user && (
@@ -351,27 +362,34 @@ function AppShellContent({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-4 pb-10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {state.branding.brandName} — {localizeTagline(state.branding.tagline, locale)}
+          {state.branding.brandName} â€” {localizeTagline(state.branding.tagline, locale)}
         </p>
         <nav
           aria-label={text("Voetnavigatie", "Footer navigation")}
           className="flex flex-wrap items-center gap-x-4 gap-y-2"
         >
           <FooterMenu label={text("Ontdek", "Explore")}>
-            <DropdownMenuItem asChild><Link to="/mogelijkheden"><Map className="size-4"/>{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/prijzen"><Tags className="size-4"/>{text("Prijzen", "Pricing")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/features"><Map className="size-4"/>{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/demo"><Sparkles className="size-4"/>Demo</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/for-travelers"><UserRound className="size-4"/>{text("Voor reizigers", "For travellers")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/for-groups"><Users className="size-4"/>{text("Voor groepen", "For groups")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/for-agencies"><Building2 className="size-4"/>{text("Voor agencies", "For agencies")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/pricing"><Tags className="size-4"/>{text("Prijzen", "Pricing")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/roadmap"><Compass className="size-4"/>Roadmap</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/changelog"><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/bekende-problemen"><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/updates"><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/known-issues"><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/support"><LifeBuoy className="size-4"/>Support</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/status"><Activity className="size-4"/>Status</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/about"><HeartHandshake className="size-4"/>{text("Over GlobeTrotr", "About GlobeTrotr")}</Link></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
             <DropdownMenuItem asChild><Link to="/privacy">{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/algemene-voorwaarden"><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/terugbetalingsbeleid"><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/terms"><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/refund-policy"><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</Link></DropdownMenuItem>
             {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
-            <DropdownMenuItem asChild><Link to="/beta-voorwaarden">{text("Beta-voorwaarden", "Beta terms")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/beta">{text("Beta en voorwaarden", "Beta and terms")}</Link></DropdownMenuItem>
           </FooterMenu>
-          <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo/MET Norway · Frankfurter/ECB</span>
+          <span>{text("Data via", "Data by")} OpenStreetMap Â· Open-Meteo/MET Norway Â· Frankfurter/ECB</span>
         </nav>
       </footer>
     </div>

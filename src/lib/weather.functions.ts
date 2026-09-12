@@ -134,12 +134,15 @@ export const getWeather = createServerFn({ method: "GET" })
     }
     const { data: workspace, error: workspaceError } = await context.supabase
       .from("workspaces")
-      .select("plan")
+      .select("workspace_uuid,plan")
       .eq("user_id", context.userId)
       .maybeSingle();
     if (workspaceError || !workspace || workspace.plan === "free") {
       throw new Error("WEATHER_PLAN_REQUIRED");
     }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { consumeProviderQuota } = await import("@/lib/provider-quota.server");
+    await consumeProviderQuota(supabaseAdmin, workspace.workspace_uuid, context.userId, workspace.plan, "weather");
     return fetchWeatherForecast(data.lat, data.lon);
   });
 

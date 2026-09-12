@@ -13,7 +13,7 @@ import type { TripMemberRole } from "@/lib/types";
 
 export const Route = createFileRoute("/uitnodiging/$token")({ component: InvitationPage });
 
-function InvitationPage() {
+export function InvitationPage() {
   const { token } = Route.useParams();
   const { user } = useAuth();
   const { text } = useLocale();
@@ -24,7 +24,7 @@ function InvitationPage() {
     retry: false,
   });
   const invitation = query.data;
-  const returnPath = `/uitnodiging/${token}`;
+  const returnPath = `/invite/${token}`;
 
   async function respond(response: "accept" | "decline") {
     setResponding(true);

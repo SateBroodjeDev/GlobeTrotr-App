@@ -5,8 +5,9 @@ INSERT INTO auth.users(id,email,email_confirmed_at) SELECT owner_id,'notificatio
 UNION ALL SELECT member_id,'notification-member@example.invalid',now() FROM agency_notification_ids
 UNION ALL SELECT outsider_id,'notification-outsider@example.invalid',now() FROM agency_notification_ids;
 INSERT INTO public.workspaces(user_id,workspace_uuid,plan,data) SELECT owner_id,workspace_id,'agency','{}'::JSONB FROM agency_notification_ids;
-INSERT INTO public.workspace_members(workspace_uuid,user_id,role,status) SELECT workspace_id,owner_id,'owner','active' FROM agency_notification_ids
-UNION ALL SELECT workspace_id,member_id,'advisor','active' FROM agency_notification_ids;
+-- De workspaces-trigger maakt de eigenaar al aan als workspace-lid.
+INSERT INTO public.workspace_members(workspace_uuid,user_id,role,status)
+SELECT workspace_id,member_id,'advisor','active' FROM agency_notification_ids;
 INSERT INTO public.trips(workspace_user_id,workspace_uuid,id,trip_uuid,name)
 SELECT owner_id,workspace_id,trip_id::TEXT,trip_id,'Meldingenreis' FROM agency_notification_ids;
 DO $$ DECLARE ids RECORD; prefs JSONB; BEGIN

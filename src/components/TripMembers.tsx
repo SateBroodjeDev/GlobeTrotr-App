@@ -128,7 +128,7 @@ export function TripMembers({
     if (!saved) return;
     try {
       const invitation = await createTripInvitation({ data: { tripId, email: email.trim().toLowerCase(), role } });
-      setInviteLink(`${window.location.origin}/uitnodiging/${invitation.token}`);
+      setInviteLink(`${window.location.origin}/invite/${invitation.token}`);
       await queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations", tripId] });
       toast.success(text("Uitnodiging aangemaakt. Kopieer de link om hem zelf te delen.", "Invitation created. Copy the link to share it yourself."));
     } catch {
@@ -147,7 +147,7 @@ export function TripMembers({
     try {
       const result = await manageTripInvitation({ data: { tripId, invitationId, action } });
       if (action === "renew" && result.token) {
-        setInviteLink(`${window.location.origin}/uitnodiging/${result.token}`);
+        setInviteLink(`${window.location.origin}/invite/${result.token}`);
         toast.success(text("Nieuwe uitnodigingslink gemaakt. Deel alleen deze nieuwe link.", "A new invitation link was created. Share only this new link."));
       } else {
         await onChange(members.filter((member) => member.email.trim().toLowerCase() !== invitationEmail.toLowerCase()));
