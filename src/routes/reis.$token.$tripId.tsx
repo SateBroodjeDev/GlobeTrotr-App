@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -51,7 +51,9 @@ export const Route = createFileRoute("/reis/$token/$tripId")({
 export function PublicTrip() {
   const { locale, text } = useLocale();
   const { user, loading: authLoading } = useAuth();
-  const { token, tripId } = Route.useParams();
+  // Deze component wordt ook door de Engelstalige /trip-route gebruikt.
+  // Een niet-strikte param-read voorkomt dat hij aan de Nederlandse alias vastzit.
+  const { token, tripId } = useParams({ strict: false }) as { token: string; tripId: string };
   const [pin, setPin] = useState("");
   const [submittedPin, setSubmittedPin] = useState<string | undefined>();
   const [activeStopId, setActiveStopId] = useState<string>();

@@ -22,6 +22,7 @@ import {
 } from "./cloud.functions";
 import { useAuth } from "./auth";
 import { TEMPLATES, type PlanId, type Trip, type TripTemplate, type WorkspaceState } from "./types";
+import { GLOBETROTR_BRANDING } from "./branding";
 
 const STORAGE_KEY = "globetrotr.workspace.v1";
 const LEGACY_STORAGE_KEY = "atlasledger.workspace.v1";
@@ -343,7 +344,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       if (!user) return false;
 
       const previous = stateRef.current;
-      const next = { ...previous, plan };
+      const next = {
+        ...previous,
+        plan,
+        ...(plan === "agency" ? {} : { branding: { ...GLOBETROTR_BRANDING } }),
+      };
       stateRef.current = next;
       setState(next);
       setCloud("saving");

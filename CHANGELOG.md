@@ -4,6 +4,19 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-13 22:27 CEST — Stabiliteit, presentatie en beheer
+
+- De Engelstalige en Nederlandse openbare reisroutes lezen hun parameters nu route-onafhankelijk; onvolledige oudere RPC-resultaten krijgen veilige lege standaardwaarden.
+- Relationele reizen zijn ook bij een lege lijst de bron van waarheid, waardoor verwijderde oude JSON-reizen niet meer uit lokale of workspacecache terugkeren.
+- Een wijziging van Agency naar Pro of Free zet de zichtbare branding direct terug naar GlobeTrotr.
+- De Agency-navigatie bevat Leveranciers eenmaal. Corporate Admin gebruikt op desktop een vaste zijbalk en op mobiel een ombrekend raster zonder lange horizontale scrollbar.
+- De OpenStreetMap-laag wordt in dark mode gedempt, terwijl markeringen en routekleuren helder blijven.
+- De homepage bevat concrete praktijkvoorbeelden en het oprichtersverhaal met foto; bestaande productfuncties blijven direct via de interactieve demo bereikbaar.
+- Privacyverklaring, privacykeuzes en betavoorwaarden hebben herkenbare pictogrammen en Over GlobeTrotr staat in de primaire publieke navigatie.
+- De zichtbare bronbestanden zijn gecontroleerd op kapotte UTF-8-sequenties en zijn opgeschoond.
+- De productieconfiguratie documenteert nu ook SUPABASE_PUBLISHABLE_KEY, nodig voor openbare database-RPC’s op de VPS.
+- De projecttests en productiebuild slagen.
+
 ## 2026-09-12 12:52 CEST — Platformstatus, infrastructuurbeheer en releasecontrole
 
 - `/status` toont publiek alleen veilige componentstatussen en reactietijden; interne adressen en beheerdata blijven afgeschermd.

@@ -557,25 +557,19 @@ export const loadWorkspace = createServerFn({ method: "GET" })
         if(!workspaceId){const {data:ownedWorkspace}=await admin.from("workspaces").select("workspace_uuid").eq("user_id",userId).maybeSingle();workspaceId=ownedWorkspace?.workspace_uuid;}
         if(workspaceId){const {data:settings}=await admin.from("agency_settings").select("system_name,domain,accent,tagline,logo_path").eq("workspace_uuid",workspaceId).maybeSingle();agencyBranding=settings;}
       }
-      if (relationalTrips.length || !jsonWorkspace?.trips?.length) {
-        return {
-          ...data,
-          data: {
-            ...jsonWorkspace,
-            plan: data.plan ?? jsonWorkspace.plan,
-            baseCurrency: data.base_currency ?? jsonWorkspace.baseCurrency,
-            branding: resolveBranding(data.plan ?? jsonWorkspace.plan, agencyBranding, data.branding ?? jsonWorkspace.branding),
-            ...(workspaceRole ? { role: workspaceRole } : {}),
-            trips: relationalTrips,
-          },
-        };
-      }
-      const { data: trips, error: tripsError } = await db
-        .from("trips")
-        .select("id, trip_uuid")
-        .eq("workspace_user_id", userId);
-      if (tripsError) throw tripsError;
-      return { ...data, data: withDatabaseTripIds(data.data, (trips ?? []) as StoredTrip[]) };
+      // De relationele tabellen zijn vanaf de UUID-migratie de enige bron voor
+      // reizen. Een lege tabel moet dus ook een oude JSON-cache leegmaken.
+      return {
+        ...data,
+        data: {
+          ...jsonWorkspace,
+          plan: data.plan ?? jsonWorkspace.plan,
+          baseCurrency: data.base_currency ?? jsonWorkspace.baseCurrency,
+          branding: resolveBranding(data.plan ?? jsonWorkspace.plan, agencyBranding, data.branding ?? jsonWorkspace.branding),
+          ...(workspaceRole ? { role: workspaceRole } : {}),
+          trips: relationalTrips,
+        },
+      };
     } catch {
       // De eerste UUID-migratie kan nog niet uitgevoerd zijn; JSON is dan de
       // compatibele bron tot de relationele tabellen beschikbaar zijn.

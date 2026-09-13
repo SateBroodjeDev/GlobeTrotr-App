@@ -63,6 +63,7 @@ const PUBLIC_NAV = [
   { to: "/demo", label: "Demo", icon: Sparkles },
   { to: "/for-agencies", label: "Agency", icon: Building2 },
   { to: "/pricing", label: "Pricing", icon: Tags },
+  { to: "/about", label: "About", icon: HeartHandshake },
 ] as const;
 type ThemePreference = "system" | "light" | "dark";
 const THEME_STORAGE_KEY = "globetrotr.theme";
@@ -267,7 +268,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
             {user && <NotificationPanel key={user.id} userId={user.id} />}
             {user && cloud === "saving" && (
               <span className="mr-2 hidden text-xs text-muted-foreground sm:block">
-                {text("Opslaanâ€¦", "Savingâ€¦")}
+                {text("Opslaan…", "Saving…")}
               </span>
             )}
             {!user && (
@@ -362,7 +363,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-4 pb-10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {state.branding.brandName} â€” {localizeTagline(state.branding.tagline, locale)}
+          {state.branding.brandName} — {localizeTagline(state.branding.tagline, locale)}
         </p>
         <nav
           aria-label={text("Voetnavigatie", "Footer navigation")}
@@ -383,13 +384,13 @@ function AppShellContent({ children }: { children: ReactNode }) {
             <DropdownMenuItem asChild><Link to="/about"><HeartHandshake className="size-4"/>{text("Over GlobeTrotr", "About GlobeTrotr")}</Link></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
-            <DropdownMenuItem asChild><Link to="/privacy">{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/privacy"><Shield className="size-4"/>{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/terms"><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/refund-policy"><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</Link></DropdownMenuItem>
-            {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
-            <DropdownMenuItem asChild><Link to="/beta">{text("Beta en voorwaarden", "Beta and terms")}</Link></DropdownMenuItem>
+            {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}><Palette className="size-4"/>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
+            <DropdownMenuItem asChild><Link to="/beta"><Sparkles className="size-4"/>{text("Beta en voorwaarden", "Beta and terms")}</Link></DropdownMenuItem>
           </FooterMenu>
-          <span>{text("Data via", "Data by")} OpenStreetMap Â· Open-Meteo/MET Norway Â· Frankfurter/ECB</span>
+          <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo/MET Norway · Frankfurter/ECB</span>
         </nav>
       </footer>
     </div>

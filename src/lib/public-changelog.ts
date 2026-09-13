@@ -41,6 +41,22 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-13-stability-and-presentation",
+    version: "Beta 0.31",
+    publishedAt: "2026-09-13T22:27:00+02:00",
+    title: "Een duidelijker verhaal en stabielere reiservaring",
+    titleEn: "A clearer story and a more stable trip experience",
+    summary: "De website laat concreter zien hoe GlobeTrotr reischaos oplost, terwijl gedeelde reizen, oude data, branding en navigatie betrouwbaarder werken.",
+    summaryEn: "The website now shows more clearly how GlobeTrotr solves travel chaos, while shared trips, old data, branding and navigation work more reliably.",
+    changes: [
+      { kind: "new", title: "GlobeTrotr in de praktijk", titleEn: "GlobeTrotr in practice", description: "De homepage toont herkenbare groepsreis-, roadtrip- en Agency-scenario’s en vertelt het persoonlijke oprichtersverhaal.", descriptionEn: "The homepage shows recognisable group trip, road trip and agency scenarios and shares the founder’s personal story." },
+      { kind: "fixed", title: "Gedeelde reislinks hersteld", titleEn: "Shared trip links restored", description: "Nederlandse en Engelstalige openbare reislinks gebruiken nu dezelfde veilige pagina en ontbrekende optionele gegevens veroorzaken geen fout meer.", descriptionEn: "Dutch and English public trip links now use the same secure page and missing optional data no longer causes an error." },
+      { kind: "fixed", title: "Actuele reizen en huisstijl", titleEn: "Current trips and branding", description: "Verwijderde oude reisdata keert niet terug uit een verouderde cache en na een downgrade verschijnt GlobeTrotr direct weer als huisstijl.", descriptionEn: "Deleted legacy trip data no longer returns from an outdated cache and GlobeTrotr branding returns immediately after a downgrade." },
+      { kind: "improved", title: "Rustiger beheer en routekaart", titleEn: "Calmer administration and route map", description: "Corporate Admin gebruikt een compacte zijbalk, dubbele leveranciersnavigatie is verwijderd en de kaart sluit in donkere modus beter aan op de interface.", descriptionEn: "Corporate Admin uses a compact sidebar, duplicate supplier navigation is removed and the map better matches the dark interface." },
+      { kind: "fixed", title: "Leesbare interface", titleEn: "Readable interface", description: "Resterende fout gecodeerde leestekens zijn uit de zichtbare interface en release-informatie verwijderd.", descriptionEn: "Remaining incorrectly encoded punctuation has been removed from the visible interface and release information." },
+    ],
+  },
+  {
     id: "2026-09-12-production-readiness",
     version: "Beta 0.30",
     publishedAt: "2026-09-12T12:52:00+02:00",
@@ -61,10 +77,10 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-12T11:55:00+02:00",
     title: "Een complete werkplek voor reisprofessionals",
     titleEn: "A complete workspace for travel professionals",
-    summary: "Agency-teams beheren klanten, leveranciers, offertes, taken, documenten en reizen vanuit Ã©Ã©n beveiligde werkomgeving.",
+    summary: "Agency-teams beheren klanten, leveranciers, offertes, taken, documenten en reizen vanuit één beveiligde werkomgeving.",
     summaryEn: "Agency teams manage clients, suppliers, quotes, tasks, documents and trips from one secure workspace.",
     changes: [
-      { kind: "new", title: "Van klant tot reis", titleEn: "From client to trip", description: "Klantprofielen, offertes met prijsvarianten en gecontroleerde omzetting naar een reis vormen Ã©Ã©n doorlopende workflow.", descriptionEn: "Client profiles, quotes with pricing options and controlled conversion into a trip form one continuous workflow." },
+      { kind: "new", title: "Van klant tot reis", titleEn: "From client to trip", description: "Klantprofielen, offertes met prijsvarianten en gecontroleerde omzetting naar een reis vormen één doorlopende workflow.", descriptionEn: "Client profiles, quotes with pricing options and controlled conversion into a trip form one continuous workflow." },
       { kind: "new", title: "Leveranciers, taken en documenten", titleEn: "Suppliers, tasks and documents", description: "Teams hergebruiken aanbieders, verdelen deadlines en bewaren reisdocumenten veilig bij de juiste reis.", descriptionEn: "Teams reuse providers, assign deadlines and securely keep travel documents with the correct trip." },
       { kind: "improved", title: "Rollen en huisstijl", titleEn: "Roles and branding", description: "Persoonlijke rechten, Agency-brede toegang, auditgeschiedenis en huisstijl per organisatie of reis werken samen.", descriptionEn: "Personal permissions, agency-wide access, audit history and branding per organisation or trip work together." },
       { kind: "secure", title: "Voorbereid op betrouwbare groei", titleEn: "Prepared for reliable growth", description: "Centrale gebruiksgrenzen, providerstops en gecontroleerde achtergrondtaken bereiden GlobeTrotr voor op de productieomgeving.", descriptionEn: "Central usage limits, provider controls and managed background tasks prepare GlobeTrotr for its production environment." },
@@ -79,7 +95,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     summary: "Uitnodigingen, toegang, reiswijzigingen, deadlines en verrekeningen bereiken gericht de juiste personen zonder onnodige herhaling.",
     summaryEn: "Invitations, access, trip changes, deadlines and settlements reach the right people without unnecessary repetition.",
     changes: [
-      { kind: "improved", title: "EÃ©n actuele melding", titleEn: "One current notification", description: "Herhaalde wijzigingen aan reizen, boekingen, uitgaven, documenten en Agency-werk worden overzichtelijk gebundeld.", descriptionEn: "Repeated changes to trips, bookings, expenses, documents and agency work are grouped clearly." },
+      { kind: "improved", title: "Eén actuele melding", titleEn: "One current notification", description: "Herhaalde wijzigingen aan reizen, boekingen, uitgaven, documenten en Agency-werk worden overzichtelijk gebundeld.", descriptionEn: "Repeated changes to trips, bookings, expenses, documents and agency work are grouped clearly." },
       { kind: "new", title: "Voorkeuren per reis", titleEn: "Preferences per trip", description: "Iedere deelnemer kiest informatieve updates per onderwerp; toegang, beveiliging en betaalverzoeken blijven altijd actief.", descriptionEn: "Each participant chooses informational updates by topic; access, security and payment requests always remain enabled." },
       { kind: "new", title: "Betaalverzoeken en deadlines", titleEn: "Payment requests and deadlines", description: "Slimme verrekeningen kunnen worden gedeeld en afgerond, terwijl geplande herinneringen verlopen acties netjes sluiten.", descriptionEn: "Smart settlements can be shared and completed while scheduled reminders neatly close expired actions." },
     ],
@@ -93,8 +109,8 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     summary: "De vernieuwde publieke website laat reizigers, groepen en reisprofessionals zien wat GlobeTrotr voor hen kan betekenen.",
     summaryEn: "The renewed public website shows travellers, groups and travel professionals what GlobeTrotr can do for them.",
     changes: [
-      { kind: "new", title: "Productpaginaâ€™s en interactieve demo", titleEn: "Product pages and interactive demo", description: "Iedere doelgroep heeft een eigen pagina, met een veilige demo, support en duidelijke navigatie in Nederlands en Engels.", descriptionEn: "Each audience has its own page with a safe demo, support and clear navigation in Dutch and English." },
-      { kind: "improved", title: "Stabiele internationale routes", titleEn: "Stable international routes", description: "Engelstalige URLâ€™s, redirects, metadata, sitemap en bestaande gedeelde links vormen Ã©Ã©n consistente websitestructuur.", descriptionEn: "English URLs, redirects, metadata, sitemap and existing shared links form one consistent website structure." },
+      { kind: "new", title: "Productpagina’s en interactieve demo", titleEn: "Product pages and interactive demo", description: "Iedere doelgroep heeft een eigen pagina, met een veilige demo, support en duidelijke navigatie in Nederlands en Engels.", descriptionEn: "Each audience has its own page with a safe demo, support and clear navigation in Dutch and English." },
+      { kind: "improved", title: "Stabiele internationale routes", titleEn: "Stable international routes", description: "Engelstalige URL’s, redirects, metadata, sitemap en bestaande gedeelde links vormen één consistente websitestructuur.", descriptionEn: "English URLs, redirects, metadata, sitemap and existing shared links form one consistent website structure." },
       { kind: "secure", title: "Privacy en accountcontrole", titleEn: "Privacy and account control", description: "Cookiekeuzes, gegevensdownload, accountverwijdering en juridische informatie zijn bereikbaar vanuit een duidelijke account- en websitestructuur.", descriptionEn: "Cookie choices, data download, account deletion and legal information are available through a clear account and website structure." },
     ],
   },  {

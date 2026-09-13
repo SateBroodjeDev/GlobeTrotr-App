@@ -158,6 +158,12 @@
   border-radius: var(--radius-2xl);
 }
 
+/* OpenStreetMap heeft geen eigen donker thema. Deze rustige correctie houdt
+ * wegen en labels leesbaar zonder een fel vlak in de donkere interface. */
+.dark .trip-map .leaflet-tile-pane {
+  filter: brightness(0.62) contrast(1.08) saturate(0.72);
+}
+
 @utility aurora {
   background: var(--gradient-aurora);
   color: var(--color-foreground);

@@ -119,6 +119,7 @@ De Agency-bouwreeks tot en met `20260908057000_important_trip_notifications.sql`
 ## P0 — Publieke website en homepage
 
 - [x] Company-homepage met duidelijke waardepropositie, doelgroep en primaire actie binnen de eerste schermhoogte.
+- [x] Homepage uitbreiden met concrete groepsreis-, roadtrip- en Agency-praktijkvoorbeelden en het oprichtersverhaal met foto.
 - [x] Publieke navigatie voor product, oplossingen, demo, prijzen, updates, roadmap, support en juridische informatie.
 - [x] Interactieve demo met veilige voorbeelddata voor route, planning, paklijst, uitgaven en verrekening.
 - [x] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
@@ -148,7 +149,7 @@ De migraties tot en met `20260908057000_important_trip_notifications.sql` zijn d
 - [ ] `20260908063000_agency_domains_and_mail.sql` en `agency_domains_and_mail.sql` uitvoeren; domeinverificatie, TLS-routing en SMTP-secretkoppeling volgen op de VPS.
 - [ ] `20260908064000_email_outbox_test_mode.sql` en `email_outbox_test_mode.sql` uitvoeren; de wachtrij blijft tot de VPS-oplevering verplicht in testmodus.
 - [ ] Praktisch controleren met eigenaar, adviseur, finance, klant en buitenstaander.
-- [ ] Agency-downgrade, blokkade, vertrek en herstel controleren op toegang én directe terugkeer naar GlobeTrotr-branding.
+- [x] Technische Agency-downgrade direct laten terugvallen op GlobeTrotr-branding; praktische controle blijft onderdeel van de implementatietest.
 
 ## P0 — Finale deep securityscan vóór productie
 

@@ -322,6 +322,10 @@ export const getPublicTrip = createServerFn({ method: "GET" })
     if (!publicError && publicResult && typeof publicResult === "object") {
       const result = publicResult as unknown as PublicTripResult;
       if (result.status === "ok") {
+        result.trip.stops = Array.isArray(result.trip.stops) ? result.trip.stops : [];
+        result.trip.itinerary = Array.isArray(result.trip.itinerary) ? result.trip.itinerary : [];
+        result.trip.travelItems = Array.isArray(result.trip.travelItems) ? result.trip.travelItems : [];
+        result.trip.weatherEnabled = Boolean(result.trip.weatherEnabled);
         const { data: branding } = await publicDb.rpc("get_public_trip_branding" as never, { p_token: input.token, p_trip_id: input.tripId } as never);
         if (branding && typeof branding === "object") {
           result.trip.branding = branding as PublicTripDetail["branding"];

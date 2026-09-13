@@ -15,7 +15,6 @@ const items=[
  {to:"/agency-admin/permissions",nl:"Rollen en rechten",en:"Roles and permissions",icon:ShieldCheck,ownerOnly:true},
  {to:"/agency-admin/clients",nl:"Klanten",en:"Clients",icon:Users,permission:"members_manage"},
  {to:"/agency-admin/suppliers",nl:"Leveranciers",en:"Suppliers",icon:Truck,permission:"trips_view"},
- {to:"/agency-admin/suppliers",nl:"Leveranciers",en:"Suppliers",icon:Truck,permission:"trips_view"},
  {to:"/agency-admin/operations",nl:"Operatie",en:"Operations",icon:BarChart3,permission:"analytics_view"},
  {to:"/agency-admin/tasks",nl:"Taken",en:"Tasks",icon:ListTodo,permission:"trips_view"},
  {to:"/agency-admin/templates",nl:"Sjablonen",en:"Templates",icon:BookTemplate,permission:"trips_view"},
