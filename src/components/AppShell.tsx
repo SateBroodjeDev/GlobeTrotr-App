@@ -372,16 +372,17 @@ function AppShellContent({ children }: { children: ReactNode }) {
           <FooterMenu label={text("Ontdek", "Explore")}>
             <DropdownMenuItem asChild><Link to="/features"><Map className="size-4"/>{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/demo"><Sparkles className="size-4"/>Demo</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/for-travelers"><UserRound className="size-4"/>{text("Voor reizigers", "For travellers")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/for-groups"><Users className="size-4"/>{text("Voor groepen", "For groups")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/for-agencies"><Building2 className="size-4"/>{text("Voor agencies", "For agencies")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/pricing"><Tags className="size-4"/>{text("Prijzen", "Pricing")}</Link></DropdownMenuItem>
+          </FooterMenu>
+          <FooterMenu label={text("Bedrijf", "Company")}>
+            <DropdownMenuItem asChild><Link to="/about"><HeartHandshake className="size-4"/>{text("Over GlobeTrotr", "About GlobeTrotr")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link to="/contact"><Mail className="size-4"/>{text("Contact", "Contact")}</Link></DropdownMenuItem>
+          </FooterMenu>
+          <FooterMenu label={text("Transparantie", "Transparency")}>
             <DropdownMenuItem asChild><Link to="/roadmap"><Compass className="size-4"/>Roadmap</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/updates"><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/known-issues"><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/support"><LifeBuoy className="size-4"/>Support</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link to="/status"><Activity className="size-4"/>Status</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/about"><HeartHandshake className="size-4"/>{text("Over GlobeTrotr", "About GlobeTrotr")}</Link></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
             <DropdownMenuItem asChild><Link to="/privacy"><Shield className="size-4"/>{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>

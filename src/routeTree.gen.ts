@@ -18,6 +18,7 @@ import { Route as BekendeProblemenRouteImport } from './routes/bekende-problemen
 import { Route as BetaRouteImport } from './routes/beta'
 import { Route as BetaVoorwaardenRouteImport } from './routes/beta-voorwaarden'
 import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as ForAgenciesRouteImport } from './routes/for-agencies'
@@ -75,6 +76,7 @@ import { Route as AuthenticatedCorporateAdminNotificationsRouteImport } from './
 import { Route as AuthenticatedCorporateAdminReleaseChecklistRouteImport } from './routes/_authenticated/corporate-admin.release-checklist'
 import { Route as AuthenticatedCorporateAdminStaffRouteImport } from './routes/_authenticated/corporate-admin.staff'
 import { Route as AuthenticatedCorporateAdminStatusRouteImport } from './routes/_authenticated/corporate-admin.status'
+import { Route as AuthenticatedCorporateAdminTestimonialsRouteImport } from './routes/_authenticated/corporate-admin.testimonials'
 import { Route as AuthenticatedCorporateAdminUsersRouteImport } from './routes/_authenticated/corporate-admin.users'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
 import { Route as ReisTokenTripIdRouteImport } from './routes/reis.$token.$tripId'
@@ -124,6 +126,11 @@ const BetaVoorwaardenRoute = BetaVoorwaardenRouteImport.update({
 const ChangelogRoute = ChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -440,6 +447,12 @@ const AuthenticatedCorporateAdminStatusRoute =
     path: '/status',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
+const AuthenticatedCorporateAdminTestimonialsRoute =
+  AuthenticatedCorporateAdminTestimonialsRouteImport.update({
+    id: '/testimonials',
+    path: '/testimonials',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 const AuthenticatedCorporateAdminUsersRoute =
   AuthenticatedCorporateAdminUsersRouteImport.update({
     id: '/users',
@@ -484,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/beta': typeof BetaRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
   '/demo': typeof DemoRoute
   '/features': typeof FeaturesRoute
   '/for-agencies': typeof ForAgenciesRoute
@@ -539,6 +553,7 @@ export interface FileRoutesByFullPath {
   '/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   '/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
@@ -557,6 +572,7 @@ export interface FileRoutesByTo {
   '/beta': typeof BetaRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
   '/demo': typeof DemoRoute
   '/features': typeof FeaturesRoute
   '/for-agencies': typeof ForAgenciesRoute
@@ -610,6 +626,7 @@ export interface FileRoutesByTo {
   '/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   '/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
@@ -630,6 +647,7 @@ export interface FileRoutesById {
   '/beta': typeof BetaRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
   '/demo': typeof DemoRoute
   '/features': typeof FeaturesRoute
   '/for-agencies': typeof ForAgenciesRoute
@@ -685,6 +703,7 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   '/_authenticated/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
   '/_authenticated/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/_authenticated/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
   '/_authenticated/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
@@ -705,6 +724,7 @@ export interface FileRouteTypes {
     | '/beta'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/contact'
     | '/demo'
     | '/features'
     | '/for-agencies'
@@ -760,6 +780,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/release-checklist'
     | '/corporate-admin/staff'
     | '/corporate-admin/status'
+    | '/corporate-admin/testimonials'
     | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
@@ -778,6 +799,7 @@ export interface FileRouteTypes {
     | '/beta'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/contact'
     | '/demo'
     | '/features'
     | '/for-agencies'
@@ -831,6 +853,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/release-checklist'
     | '/corporate-admin/staff'
     | '/corporate-admin/status'
+    | '/corporate-admin/testimonials'
     | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
@@ -850,6 +873,7 @@ export interface FileRouteTypes {
     | '/beta'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/contact'
     | '/demo'
     | '/features'
     | '/for-agencies'
@@ -905,6 +929,7 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin/release-checklist'
     | '/_authenticated/corporate-admin/staff'
     | '/_authenticated/corporate-admin/status'
+    | '/_authenticated/corporate-admin/testimonials'
     | '/_authenticated/corporate-admin/users'
     | '/_authenticated/trips/$tripId'
     | '/reis/$token/$tripId'
@@ -925,6 +950,7 @@ export interface RootRouteChildren {
   BetaRoute: typeof BetaRoute
   BetaVoorwaardenRoute: typeof BetaVoorwaardenRoute
   ChangelogRoute: typeof ChangelogRoute
+  ContactRoute: typeof ContactRoute
   DemoRoute: typeof DemoRoute
   FeaturesRoute: typeof FeaturesRoute
   ForAgenciesRoute: typeof ForAgenciesRoute
@@ -1014,6 +1040,13 @@ declare module '@tanstack/react-router' {
       path: '/changelog'
       fullPath: '/changelog'
       preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -1415,6 +1448,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCorporateAdminStatusRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
+    '/_authenticated/corporate-admin/testimonials': {
+      id: '/_authenticated/corporate-admin/testimonials'
+      path: '/testimonials'
+      fullPath: '/corporate-admin/testimonials'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminTestimonialsRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
     '/_authenticated/corporate-admin/users': {
       id: '/_authenticated/corporate-admin/users'
       path: '/users'
@@ -1534,6 +1574,7 @@ interface AuthenticatedCorporateAdminRouteChildren {
   AuthenticatedCorporateAdminReleaseChecklistRoute: typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   AuthenticatedCorporateAdminStaffRoute: typeof AuthenticatedCorporateAdminStaffRoute
   AuthenticatedCorporateAdminStatusRoute: typeof AuthenticatedCorporateAdminStatusRoute
+  AuthenticatedCorporateAdminTestimonialsRoute: typeof AuthenticatedCorporateAdminTestimonialsRoute
   AuthenticatedCorporateAdminUsersRoute: typeof AuthenticatedCorporateAdminUsersRoute
   AuthenticatedCorporateAdminIndexRoute: typeof AuthenticatedCorporateAdminIndexRoute
   AuthenticatedCorporateAdminUserUserIdRoute: typeof AuthenticatedCorporateAdminUserUserIdRoute
@@ -1562,6 +1603,8 @@ const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRoute
       AuthenticatedCorporateAdminStaffRoute,
     AuthenticatedCorporateAdminStatusRoute:
       AuthenticatedCorporateAdminStatusRoute,
+    AuthenticatedCorporateAdminTestimonialsRoute:
+      AuthenticatedCorporateAdminTestimonialsRoute,
     AuthenticatedCorporateAdminUsersRoute:
       AuthenticatedCorporateAdminUsersRoute,
     AuthenticatedCorporateAdminIndexRoute:
@@ -1617,6 +1660,7 @@ const rootRouteChildren: RootRouteChildren = {
   BetaRoute: BetaRoute,
   BetaVoorwaardenRoute: BetaVoorwaardenRoute,
   ChangelogRoute: ChangelogRoute,
+  ContactRoute: ContactRoute,
   DemoRoute: DemoRoute,
   FeaturesRoute: FeaturesRoute,
   ForAgenciesRoute: ForAgenciesRoute,

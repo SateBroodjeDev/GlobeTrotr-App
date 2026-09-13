@@ -4,23 +4,19 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 > **Status:** `[x]` is gebouwd of door de gebruiker als werkend bevestigd. `[ ]` moet nog worden gebouwd, geïmplementeerd of gecontroleerd. Uitgevoerde wijzigingen en praktijktests staan in `CHANGELOG.md`; deze roadmap bevat alleen de actuele productstand en het resterende werk.
 
-## Actuele stand — 12 september 2026
+## Actuele stand — 13 september 2026
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-De Agency-bouwreeks tot en met `20260908057000_important_trip_notifications.sql` is uitgevoerd. De implementatiereeks `580` tot en met `700` is gebouwd en staat klaar voor uitvoering en controle. De publieke website heeft nieuwe doelgroep-, demo-, support-, status- en over-ons-pagina's met Engelstalige routes.
+Alle databasemigraties en SQL-regressietests tot en met `20260908072000_update_release_checklist.sql` zijn uitgevoerd. De beta is met een schone dataset, een nieuw eigenaaraccount en werkende Corporate Admin-toegang opnieuw gestart. De handmatige productcontrole in Corporate Admin blijft open.
 
-## Overdracht voor 12 september 2026
+## Eerstvolgende controle
 
-1. [x] `20260908055000_restore_public_function_grants.sql`, de vier herstelde tests en de twee bestanden voor reistoegang zijn succesvol uitgevoerd.
-2. [x] `20260908057000_important_trip_notifications.sql` en `important_trip_notifications.sql` succesvol uitgevoerd.
-3. [ ] `20260908058000_trip_content_notifications.sql`, `trip_content_notifications.sql` en `notification_system_audit.sql` uitvoeren.
-4. [ ] `20260908059000_scheduled_notification_maintenance.sql` en `scheduled_notification_maintenance.sql` uitvoeren; later dagelijks via de VPS-cronjob aanroepen.
-5. [ ] `20260908060000_trip_settlement_notifications.sql` en `trip_settlement_notifications.sql` uitvoeren.
-6. [ ] `20260908061000_trip_notification_preferences.sql` en `trip_notification_preferences.sql` uitvoeren.
-7. [ ] Migraties en tests `620` (leveranciers), `630` (domein/mail), `640` (mail-outbox), `650` (providerquota/workerwachtrij), `660` (platformstatus/infrastructuur), `670` (bedrijfsvoering), `680` (mailworkflow), `690` (betalingen) en `700` (personeel) in bestandsvolgorde uitvoeren.
-8. [ ] Daarna `agency_release_gate.sql` en de praktische rollen- en productcontrole uit [`TEST_CHECKLIST.md`](TEST_CHECKLIST.md) uitvoeren; alleen concrete afwijkingen als issue vastleggen.
-9. [x] Company-homepage, productpagina's, demo, support en Engelstalige slugs gebouwd.
+1. [x] Database opnieuw opgebouwd, SQL-regressietests uitgevoerd en schone accounts gecontroleerd.
+2. [x] Reisback-up teruggezet en samenwerking met een tweede account praktisch bevestigd.
+3. [ ] De vernieuwde homepage en productrondleiding op telefoon en desktop in NL en EN controleren.
+4. [ ] Rollen, Agency-workflows, meldingen, openbare links, providers en Corporate Admin via de blijvende releasechecklist controleren.
+5. [ ] Alleen reproduceerbare afwijkingen als bekend probleem registreren en waar passend met GitHub synchroniseren.
 
 ## Eerstvolgende bouwvolgorde
 
@@ -29,7 +25,7 @@ De Agency-bouwreeks tot en met `20260908057000_important_trip_notifications.sql`
 3. [x] **Notificaties voor de huidige applicatie:** account, reizen, Agency, feedback en platformstatus zijn gedekt; externe e-mail-, Paddle- en OAuth-events volgen bij integratie.
 4. [x] **Publieke website vernieuwen:** company-homepage, productpagina's, demo, navigatie en Engelstalige slugs met redirects zijn gebouwd.
 5. [x] **Leveranciersbibliotheek:** herbruikbare aanbieders voor accommodatie, vervoer en activiteiten binnen één Agency-workspace, met afspraken, archief en reiskoppelingen.
-6. [ ] **Agency-productiepoort:** resterende migraties in volgorde uitvoeren en alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
+6. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
 7. [ ] **Hostingportabiliteit:** Node/Nitro-doel, VPS-service, stagingdomein, secrets, monitoring en rollback bouwen.
 8. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
 9. [ ] **OAuth:** Apple, Google en Microsoft activeren zodra de productie-infrastructuur en providerconfiguratie gereed zijn.
@@ -122,6 +118,7 @@ De Agency-bouwreeks tot en met `20260908057000_important_trip_notifications.sql`
 - [x] Homepage uitbreiden met concrete groepsreis-, roadtrip- en Agency-praktijkvoorbeelden en het oprichtersverhaal met foto.
 - [x] Publieke navigatie voor product, oplossingen, demo, prijzen, updates, roadmap, support en juridische informatie.
 - [x] Interactieve demo met veilige voorbeelddata voor route, planning, paklijst, uitgaven en verrekening.
+- [x] Beheerbare recensies in Corporate Admin; alleen expliciet gepubliceerde recensies verschijnen op de homepage.
 - [x] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
 - [x] Agency-productpagina voor teams, rollen, klanten, offertes, taken, branding en werkvoorraad.
 - [x] Realistische scenario's, privacyvertrouwen, transparante betastatus en duidelijke ondersteuning.
@@ -132,22 +129,14 @@ De Agency-bouwreeks tot en met `20260908057000_important_trip_notifications.sql`
 - [x] Taalkeuze los van de URL gehouden: één stabiele slug toont NL of EN volgens account- of browservoorkeur.
 - [ ] Volledige kliktest op telefoon en desktop voor beide talen.
 
-## P0 — Agency implementeren en controleren
+## P0 — Agency praktisch controleren
 
-De migraties tot en met `20260908057000_important_trip_notifications.sql` zijn door de gebruiker uitgevoerd en gepusht. De afsluitende reeks `580` tot en met `620` is gebouwd en staat in vaste volgorde klaar voor implementatie; [`AGENCY_IMPLEMENTATION.md`](AGENCY_IMPLEMENTATION.md) is de uitvoerhandleiding.
+De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_update_release_checklist.sql zijn uitgevoerd. [AGENCY_IMPLEMENTATION.md](AGENCY_IMPLEMENTATION.md) blijft de naslag voor de latere productieconfiguratie.
 
-- [x] Migraties `20260908037000` tot en met `20260908054000` uitgevoerd en gepusht.
-- [x] `20260908055000_restore_public_function_grants.sql` uitgevoerd.
-- [x] `20260908056000_trip_access_notifications.sql` en de bijbehorende rollbacktest uitgevoerd.
-- [x] Vier herstelde regressietests opnieuw uitgevoerd; overige SQL-tests zijn door de gebruiker als geslaagd bevestigd.
-- [x] `20260908057000_important_trip_notifications.sql` en `important_trip_notifications.sql` uitgevoerd.
-- [ ] `20260908058000_trip_content_notifications.sql` en beide bijbehorende notificatietests uitvoeren.
-- [ ] `20260908059000_scheduled_notification_maintenance.sql` en de bijbehorende regressietest uitvoeren.
-- [ ] `20260908060000_trip_settlement_notifications.sql` en de bijbehorende regressietest uitvoeren.
-- [ ] `20260908061000_trip_notification_preferences.sql` en de bijbehorende regressietest uitvoeren.
-- [ ] `20260908062000_agency_suppliers.sql`, `agency_suppliers.sql` en afsluitend `agency_release_gate.sql` uitvoeren.
-- [ ] `20260908063000_agency_domains_and_mail.sql` en `agency_domains_and_mail.sql` uitvoeren; domeinverificatie, TLS-routing en SMTP-secretkoppeling volgen op de VPS.
-- [ ] `20260908064000_email_outbox_test_mode.sql` en `email_outbox_test_mode.sql` uitvoeren; de wachtrij blijft tot de VPS-oplevering verplicht in testmodus.
+- [x] Agency-, notificatie-, leveranciers-, domein-, mail-outbox-, quota-, worker-, bedrijfsbeheer- en releasechecklistmigraties uitgevoerd.
+- [x] Beschikbare rollback- en regressietests zonder fouten uitgevoerd.
+- [x] Schone beta-dataset gemaakt en eigenaar- en Corporate Admin-toegang opnieuw gecontroleerd.
+- [ ] Domeinverificatie, TLS-routing en SMTP-secretkoppeling op de VPS activeren; de uitgaande wachtrij blijft tot die tijd in testmodus.
 - [ ] Praktisch controleren met eigenaar, adviseur, finance, klant en buitenstaander.
 - [x] Technische Agency-downgrade direct laten terugvallen op GlobeTrotr-branding; praktische controle blijft onderdeel van de implementatietest.
 
@@ -211,7 +200,7 @@ De migraties tot en met `20260908057000_important_trip_notifications.sql` zijn d
 - [x] Datamodel en Agency-interface voor `naam.globetrotr.nl`, eigen domeinen, DNS-verificatie en veilige SMTP-secretreferenties voorbereiden.
 - [x] Centrale providerstops, atomaire API-dagquota per workspace en een idempotente PostgreSQL-workerwachtrij voorbereiden.
 - [x] Free-, Pro- en Agency-budgetten voor weer, vluchtinformatie en routes centraal en testbaar vastleggen; definitieve commerciële limieten volgen bij Paddle-configuratie.
-- [ ] `20260908065000_provider_quotas_and_worker_queue.sql` en `provider_quotas_and_worker_queue.sql` uitvoeren.
+- [x] `20260908065000_provider_quotas_and_worker_queue.sql` en `provider_quotas_and_worker_queue.sql` uitgevoerd.
 - [x] Workerproces voor VPS 2 bouwen met claim, resultaatregistratie, retries, health-endpoint en afgeschermde provider-healthchecks.
 - [x] Corporate Admin uitbreiden met providergebruik, noodstops met verplichte reden en mislukte workerjobs.
 - [ ] Productieproxy, private verbinding tussen VPS 1 en VPS 2, hostfirewall en echte uptimebewaking configureren.
@@ -245,6 +234,7 @@ De migraties tot en met `20260908057000_important_trip_notifications.sql` zijn d
 - [ ] Verdere mobiele, toegankelijkheids- en performancecontrole.
 - [ ] Grote bundles splitsen waar dit de gemeten laadtijd werkelijk verbetert.
 - [ ] Automatische vertaling van feedback en bekende problemen pas na keuze van een veilige provider en bewaarbeleid.
+- [ ] Automatische vertaalconcepten voor statusberichten, bekende problemen en publieke communicatie bouwen, met verplichte menselijke controle vóór publicatie.
 
 ## P2 — Latere groei
 
@@ -271,4 +261,4 @@ De migraties tot en met `20260908057000_important_trip_notifications.sql` zijn d
 - Apple-, Google- en Microsoft-login zijn nog niet actief.
 - Paddle-checkout, facturen en betaalstatus zijn nog niet actief; de beta schrijft niets af.
 - Automatische vertaling van feedback en bekende problemen is nog niet actief.
-- De Agency- en notificatiemigraties tot en met `20260908057000` en de bijbehorende SQL-tests zijn uitgevoerd; alleen de afsluitende notificatiemigratie `20260908058000` met twee tests staat nog klaar.
+- Eigen Agency-domeinen, echte mailboxsynchronisatie en providerverzending worden pas tijdens de VPS-productieconfiguratie geactiveerd.

@@ -1,7 +1,7 @@
 export const PUBLIC_TODAY = {
-  date: ["12 september 2026", "12 September 2026"],
-  title: ["Een complete website met gerichte meldingen", "A complete website with targeted notifications"],
-  description: ["Nieuwe publieke pagina's leggen GlobeTrotr helder uit, terwijl reisupdates, deadlines en uitnodigingen bij de juiste gebruiker terechtkomen.", "New public pages clearly explain GlobeTrotr while trip updates, deadlines and invitations reach the right user."],
+  date: ["13 september 2026", "13 September 2026"],
+  title: ["Een duidelijkere productreis", "A clearer product journey"],
+  description: ["De website en interactieve demo laten nu aan de hand van één echte reis zien hoe route, boekingen, planning en kosten samenkomen.", "The website and interactive demo now use one realistic trip to show how routes, bookings, itineraries and expenses come together."],
   completed: [
     ["Eigen Agency Admin-navigatie voor organisatie, klanten, operatie en activiteit", "Dedicated Agency Admin navigation for organisation, clients, operations and activity"],
     ["Klantprofielen met contactgegevens, taal, notities en gekoppelde reizen", "Client profiles with contact details, language, notes and linked trips"],
@@ -48,12 +48,15 @@ export const PUBLIC_TODAY = {
     ["Persoonlijke meldingsvoorkeuren per reis en onderwerp", "Personal notification preferences per trip and topic"],
     ["Herbruikbare Agency-leveranciers met afspraken en reiskoppelingen", "Reusable Agency suppliers with agreements and trip links"],
     ["Centrale gebruiksgrenzen en betrouwbare achtergrondverwerking voorbereiden", "Prepare central usage limits and reliable background processing"],
+    ["Schone beta-dataset en technische releasechecklist vastleggen", "Record the clean beta dataset and technical release checklist"],
+    ["Interactieve productrondleiding van route tot verrekening", "Interactive product tour from route to settlement"],
+    ["Beheerbare en expliciet gepubliceerde recensies op de homepage", "Managed and explicitly published testimonials on the homepage"],
   ],
 } as const;
 
 export const PUBLIC_ROADMAP = [
   { status: "now", title: ["Internationale beta verbeteren", "Improve the international beta"], description: ["Feedback verwerken, bekende problemen oplossen en de ervaring op telefoon verder aanscherpen.", "Process feedback, resolve known issues and further refine the mobile experience."], items: [
-    ["Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren", "Practically verify Agency downgrade and return to GlobeTrotr"], ["De vernieuwde publieke website op telefoon en desktop controleren", "Review the renewed public website on mobile and desktop"], ["Betere feedback- en probleemopvolging", "Better feedback and issue follow-up"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"],
+    ["Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren", "Practically verify Agency downgrade and return to GlobeTrotr"], ["De vernieuwde homepage en productrondleiding op telefoon en desktop controleren", "Review the renewed homepage and product tour on mobile and desktop"], ["Actuele beta-beperkingen transparant opvolgen", "Transparently track current beta limitations"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"],
   ]},
   { status: "next", title: ["Samenwerking en communicatie", "Collaboration and communication"], description: ["Uitnodigingen en updates eenvoudiger bij alle reizigers krijgen.", "Make invitations and updates easier to reach every traveller."], items: [
     ["Automatische reisuitnodigingen en updates via e-mail", "Automated trip invitations and updates by email"], ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"],

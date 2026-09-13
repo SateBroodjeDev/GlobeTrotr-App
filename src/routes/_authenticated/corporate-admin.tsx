@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, Building2, ClipboardCheck, Gauge, Inbox, Landmark, MessageSquare, Server, ShieldCheck, TriangleAlert, UserCog, Users } from "lucide-react";
+import { Activity, Building2, ClipboardCheck, Gauge, Inbox, Landmark, MessageSquare, Server, ShieldCheck, Star, TriangleAlert, UserCog, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getMyCorporateCapabilities } from "@/lib/corporate-business.functions";
 import { useLocale } from "@/lib/locale";
@@ -30,6 +30,7 @@ function Layout() {
     { to: "/corporate-admin/notifications", label: text("Berichten", "Messages"), icon: MessageSquare, show: permissions?.operations },
     { to: "/corporate-admin/issues", label: text("Problemen", "Issues"), icon: TriangleAlert, show: permissions?.issues },
     { to: "/corporate-admin/feedback", label: "Feedback", icon: MessageSquare, show: permissions?.issues },
+    { to: "/corporate-admin/testimonials", label: text("Recensies", "Testimonials"), icon: Star, show: permissions?.issues },
     { to: "/corporate-admin/audit", label: "Auditlog", icon: ShieldCheck, show: permissions?.operations || access.data?.role === "owner" },
   ] as const;
   const visible = links.filter((item) => item.show);

@@ -60,7 +60,7 @@ BEGIN
     WHERE p.prosecdef AND n.nspname = 'public'
       AND has_function_privilege('authenticated', p.oid, 'EXECUTE')
       -- Deze RPC geeft uitsluitend de bewust openbare platformstatus terug.
-      AND p.proname NOT IN ('get_public_platform_status');
+      AND p.proname NOT IN ('get_public_platform_status','list_public_testimonials');
   IF v_unsafe IS NOT NULL THEN
     RAISE EXCEPTION 'Authenticated kan nog publieke SECURITY DEFINER-functies uitvoeren: %',v_unsafe;
   END IF;
@@ -68,7 +68,7 @@ BEGIN
   INTO v_unsafe FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE p.prosecdef AND n.nspname = 'public'
       AND has_function_privilege('anon', p.oid, 'EXECUTE')
-      AND p.proname NOT IN ('list_public_trip_cards','get_public_trip','get_public_trip_branding','get_public_platform_status');
+      AND p.proname NOT IN ('list_public_trip_cards','get_public_trip','get_public_trip_branding','get_public_platform_status','list_public_testimonials');
   IF v_unsafe IS NOT NULL THEN
     RAISE EXCEPTION 'Anon kan niet-goedgekeurde SECURITY DEFINER-functies uitvoeren: %',v_unsafe;
   END IF;

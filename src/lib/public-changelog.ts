@@ -35,11 +35,34 @@ export const PUBLIC_BETA_STATUS = {
       nl: "Automatische app-e-mails en reisuitnodigingen per e-mail",
       en: "Automated app emails and trip invitations by email",
     },
+    {
+      nl: "Online afrekenen en abonnementsverwerking via Paddle",
+      en: "Online checkout and subscription processing through Paddle",
+    },
+    {
+      nl: "Eigen Agency-domeinen en automatische e-mailbezorging",
+      en: "Custom Agency domains and automated email delivery",
+    },
   ],
 } as const;
 
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-13-guided-product-story",
+    version: "Beta 0.32",
+    publishedAt: "2026-09-13T23:06:00+02:00",
+    title: "Van losse demo naar een echte productreis",
+    titleEn: "From disconnected demo to a real product journey",
+    summary: "De homepage en demo vertellen rustiger en concreter hoe één reis van route en boekingen naar planning en verrekening groeit.",
+    summaryEn: "The homepage and demo now show more clearly how one trip grows from route and bookings into an itinerary and settlement.",
+    changes: [
+      { kind: "improved", title: "Interactieve Scandinavië-reis", titleEn: "Interactive Scandinavian trip", description: "De productrondleiding bevat vier werkende stappen met route, boekingen, dagplanning, paklijst en een verrekenactie die direct reageert.", descriptionEn: "The product tour contains four working steps covering route, bookings, itinerary, packing and an immediately responsive settlement action." },
+      { kind: "new", title: "Echte recensies", titleEn: "Real testimonials", description: "Beheerders kunnen ervaringen toevoegen en bewust publiceren; de homepage toont uitsluitend goedgekeurde recensies.", descriptionEn: "Administrators can add and deliberately publish experiences; the homepage only shows approved testimonials." },
+      { kind: "improved", title: "Eerlijkere beta-status", titleEn: "More transparent beta status", description: "Verouderde problemen verdwijnen uit de actieve lijst en nog ontbrekende e-mail-, OAuth-, betaal- en domeinkoppelingen blijven zichtbaar.", descriptionEn: "Outdated issues leave the active list while pending email, OAuth, payment and domain integrations remain visible." },
+      { kind: "improved", title: "Actuele releasechecklist", titleEn: "Current release checklist", description: "Uitgevoerde migraties en SQL-controles staan apart van de handmatige producttests die nog moeten worden gedaan.", descriptionEn: "Completed migrations and SQL checks are separated from the manual product tests that still need to be performed." },
+    ],
+  },
   {
     id: "2026-09-13-stability-and-presentation",
     version: "Beta 0.31",

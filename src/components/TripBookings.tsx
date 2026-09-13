@@ -824,7 +824,7 @@ export function TripBookings({
               onChange={(e) => setDraft((current) => ({ ...current, notes: e.target.value }))}
             />
           </Field>
-          <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/25 p-3 text-sm">
+          <label className="mt-3 flex items-start gap-3 rounded-xl border border-border bg-muted/25 p-3 text-sm">
             <input
               type="checkbox"
               className="mt-0.5"

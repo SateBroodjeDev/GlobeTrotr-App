@@ -4,6 +4,19 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-13 23:06 CEST — Duidelijke productreis en actuele beta-informatie
+
+- De lange publieke linklijst is verdeeld over Product, Bedrijf, Transparantie en juridische informatie.
+- Een contactpagina bewaart berichten server-side en vereist in productie een geldige Turnstile-configuratie; een verborgen spamveld biedt aanvullende filtering.
+- De voorwaarden zijn voorbereid op een publieke beta met Free- en betalende abonnementen en verwijzen voor betaling, belasting, bewijs en terugbetaling naar Paddle als Merchant of Record.
+- De Corporate Admin-releasechecklist bevat afzonderlijke controles voor navigatie, recensies, commerciële pagina's, contact en gecontroleerde vertaalconcepten.
+- De homepage is teruggebracht tot één heldere productbelofte met een logische route van plannen naar boekingen en kostenverdeling; herhaalde featureblokken en de statische voorbeeldkaart zijn verwijderd.
+- De homepage en aparte demopagina gebruiken dezelfde interactieve Scandinavië-reis met werkende route-, boekings-, dagplanning-, paklijst- en verrekenacties.
+- Het oprichtersverhaal en de ingangen voor groepsreizen en Agencies blijven onderdeel van de korte kooproute zonder verzonnen recensies of gebruikscijfers.
+- Corporate Admin bevat recensiebeheer met NL/EN-tekst, optionele waardering, publicatie, volgorde en archief; de homepage toont uitsluitend expliciet gepubliceerde recensies.
+- De openbare beta-status en bekende-problemenmigratie noemen de werkelijk ontbrekende OAuth-, automatische e-mail-, Paddle- en Agency-domeinkoppelingen; de opgeloste uitnodigingsbeperking wordt gearchiveerd.
+- De interne en publieke roadmap onderscheiden uitgevoerde migraties en SQL-tests voortaan van de nog openstaande praktische productcontrole.
+
 ## 2026-09-13 22:27 CEST — Stabiliteit, presentatie en beheer
 
 - De Engelstalige en Nederlandse openbare reisroutes lezen hun parameters nu route-onafhankelijk; onvolledige oudere RPC-resultaten krijgen veilige lege standaardwaarden.
