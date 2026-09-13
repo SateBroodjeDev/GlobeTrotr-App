@@ -8,6 +8,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 
 - De lange publieke linklijst is verdeeld over Product, Bedrijf, Transparantie en juridische informatie.
 - Een contactpagina bewaart berichten server-side en vereist in productie een geldige Turnstile-configuratie; een verborgen spamveld biedt aanvullende filtering.
+- Corporate Admin bevat een afgeschermde contactinbox met zoeken, statusfilters, berichtdetail, beantwoordsnelkoppeling en geaudite statuswijzigingen.
 - De voorwaarden zijn voorbereid op een publieke beta met Free- en betalende abonnementen en verwijzen voor betaling, belasting, bewijs en terugbetaling naar Paddle als Merchant of Record.
 - De Corporate Admin-releasechecklist bevat afzonderlijke controles voor navigatie, recensies, commerciële pagina's, contact en gecontroleerde vertaalconcepten.
 - De homepage is teruggebracht tot één heldere productbelofte met een logische route van plannen naar boekingen en kostenverdeling; herhaalde featureblokken en de statische voorbeeldkaart zijn verwijderd.

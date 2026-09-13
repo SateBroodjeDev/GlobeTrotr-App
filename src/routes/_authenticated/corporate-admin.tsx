@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, Building2, ClipboardCheck, Gauge, Inbox, Landmark, MessageSquare, Server, ShieldCheck, Star, TriangleAlert, UserCog, Users } from "lucide-react";
+import { Activity, Building2, ClipboardCheck, Gauge, Inbox, Landmark, Mail, MessageSquare, Server, ShieldCheck, Star, TriangleAlert, UserCog, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getMyCorporateCapabilities } from "@/lib/corporate-business.functions";
 import { useLocale } from "@/lib/locale";
@@ -24,6 +24,7 @@ function Layout() {
     { to: "/corporate-admin/agencies", label: "Agencies", icon: Building2, show: permissions?.agencies },
     { to: "/corporate-admin/finance", label: text("Financiën", "Finance"), icon: Landmark, show: permissions?.finance },
     { to: "/corporate-admin/mail", label: text("Bedrijfsmail", "Company mail"), icon: Inbox, show: permissions?.mail },
+    { to: "/corporate-admin/contact", label: text("Contact", "Contact"), icon: Mail, show: permissions?.mail },
     { to: "/corporate-admin/status", label: "Status", icon: Activity, show: permissions?.operations },
     { to: "/corporate-admin/infrastructure", label: text("Infrastructuur", "Infrastructure"), icon: Server, show: permissions?.operations },
     { to: "/corporate-admin/release-checklist", label: text("Releasecheck", "Release check"), icon: ClipboardCheck, show: permissions?.operations },

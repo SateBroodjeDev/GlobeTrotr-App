@@ -119,6 +119,7 @@ Alle databasemigraties en SQL-regressietests tot en met `20260908072000_update_r
 - [x] Publieke navigatie voor product, oplossingen, demo, prijzen, updates, roadmap, support en juridische informatie.
 - [x] Interactieve demo met veilige voorbeelddata voor route, planning, paklijst, uitgaven en verrekening.
 - [x] Beheerbare recensies in Corporate Admin; alleen expliciet gepubliceerde recensies verschijnen op de homepage.
+- [x] Publiek contactformulier met Turnstile, afgeschermde opslag en een doorzoekbare Corporate Admin-inbox met statussen en auditlog.
 - [x] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
 - [x] Agency-productpagina voor teams, rollen, klanten, offertes, taken, branding en werkvoorraad.
 - [x] Realistische scenario's, privacyvertrouwen, transparante betastatus en duidelijke ondersteuning.

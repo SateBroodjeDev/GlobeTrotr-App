@@ -67,6 +67,7 @@ import { Route as AuthenticatedAgencyAdminTemplatesRouteImport } from './routes/
 import { Route as AuthenticatedCorporateAdminIndexRouteImport } from './routes/_authenticated/corporate-admin.index'
 import { Route as AuthenticatedCorporateAdminAgenciesRouteImport } from './routes/_authenticated/corporate-admin.agencies'
 import { Route as AuthenticatedCorporateAdminAuditRouteImport } from './routes/_authenticated/corporate-admin.audit'
+import { Route as AuthenticatedCorporateAdminContactRouteImport } from './routes/_authenticated/corporate-admin.contact'
 import { Route as AuthenticatedCorporateAdminFeedbackRouteImport } from './routes/_authenticated/corporate-admin.feedback'
 import { Route as AuthenticatedCorporateAdminFinanceRouteImport } from './routes/_authenticated/corporate-admin.finance'
 import { Route as AuthenticatedCorporateAdminInfrastructureRouteImport } from './routes/_authenticated/corporate-admin.infrastructure'
@@ -393,6 +394,12 @@ const AuthenticatedCorporateAdminAuditRoute =
     path: '/audit',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
+const AuthenticatedCorporateAdminContactRoute =
+  AuthenticatedCorporateAdminContactRouteImport.update({
+    id: '/contact',
+    path: '/contact',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 const AuthenticatedCorporateAdminFeedbackRoute =
   AuthenticatedCorporateAdminFeedbackRouteImport.update({
     id: '/feedback',
@@ -544,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/agency-admin/templates': typeof AuthenticatedAgencyAdminTemplatesRoute
   '/corporate-admin/agencies': typeof AuthenticatedCorporateAdminAgenciesRoute
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
   '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
@@ -617,6 +625,7 @@ export interface FileRoutesByTo {
   '/agency-admin/templates': typeof AuthenticatedAgencyAdminTemplatesRoute
   '/corporate-admin/agencies': typeof AuthenticatedCorporateAdminAgenciesRoute
   '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
   '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
@@ -694,6 +703,7 @@ export interface FileRoutesById {
   '/_authenticated/agency-admin/templates': typeof AuthenticatedAgencyAdminTemplatesRoute
   '/_authenticated/corporate-admin/agencies': typeof AuthenticatedCorporateAdminAgenciesRoute
   '/_authenticated/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/_authenticated/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
   '/_authenticated/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/_authenticated/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
   '/_authenticated/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
@@ -771,6 +781,7 @@ export interface FileRouteTypes {
     | '/agency-admin/templates'
     | '/corporate-admin/agencies'
     | '/corporate-admin/audit'
+    | '/corporate-admin/contact'
     | '/corporate-admin/feedback'
     | '/corporate-admin/finance'
     | '/corporate-admin/infrastructure'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/agency-admin/templates'
     | '/corporate-admin/agencies'
     | '/corporate-admin/audit'
+    | '/corporate-admin/contact'
     | '/corporate-admin/feedback'
     | '/corporate-admin/finance'
     | '/corporate-admin/infrastructure'
@@ -920,6 +932,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agency-admin/templates'
     | '/_authenticated/corporate-admin/agencies'
     | '/_authenticated/corporate-admin/audit'
+    | '/_authenticated/corporate-admin/contact'
     | '/_authenticated/corporate-admin/feedback'
     | '/_authenticated/corporate-admin/finance'
     | '/_authenticated/corporate-admin/infrastructure'
@@ -1385,6 +1398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCorporateAdminAuditRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
+    '/_authenticated/corporate-admin/contact': {
+      id: '/_authenticated/corporate-admin/contact'
+      path: '/contact'
+      fullPath: '/corporate-admin/contact'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminContactRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
     '/_authenticated/corporate-admin/feedback': {
       id: '/_authenticated/corporate-admin/feedback'
       path: '/feedback'
@@ -1565,6 +1585,7 @@ const AuthenticatedAgencyAdminRouteWithChildren =
 interface AuthenticatedCorporateAdminRouteChildren {
   AuthenticatedCorporateAdminAgenciesRoute: typeof AuthenticatedCorporateAdminAgenciesRoute
   AuthenticatedCorporateAdminAuditRoute: typeof AuthenticatedCorporateAdminAuditRoute
+  AuthenticatedCorporateAdminContactRoute: typeof AuthenticatedCorporateAdminContactRoute
   AuthenticatedCorporateAdminFeedbackRoute: typeof AuthenticatedCorporateAdminFeedbackRoute
   AuthenticatedCorporateAdminFinanceRoute: typeof AuthenticatedCorporateAdminFinanceRoute
   AuthenticatedCorporateAdminInfrastructureRoute: typeof AuthenticatedCorporateAdminInfrastructureRoute
@@ -1586,6 +1607,8 @@ const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRoute
       AuthenticatedCorporateAdminAgenciesRoute,
     AuthenticatedCorporateAdminAuditRoute:
       AuthenticatedCorporateAdminAuditRoute,
+    AuthenticatedCorporateAdminContactRoute:
+      AuthenticatedCorporateAdminContactRoute,
     AuthenticatedCorporateAdminFeedbackRoute:
       AuthenticatedCorporateAdminFeedbackRoute,
     AuthenticatedCorporateAdminFinanceRoute:

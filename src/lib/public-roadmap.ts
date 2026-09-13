@@ -51,6 +51,7 @@ export const PUBLIC_TODAY = {
     ["Schone beta-dataset en technische releasechecklist vastleggen", "Record the clean beta dataset and technical release checklist"],
     ["Interactieve productrondleiding van route tot verrekening", "Interactive product tour from route to settlement"],
     ["Beheerbare en expliciet gepubliceerde recensies op de homepage", "Managed and explicitly published testimonials on the homepage"],
+    ["Veilig contactformulier met spamcontrole en beheerinbox", "Secure contact form with spam protection and management inbox"],
   ],
 } as const;
 

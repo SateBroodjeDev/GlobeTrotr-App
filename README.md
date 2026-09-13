@@ -78,6 +78,7 @@ De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke mig
 - `/agency-admin/permissions`: standaardrechten per rol en persoonlijke uitzonderingen.
 - `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Een bestaand account met hetzelfde e-mailadres krijgt automatisch de rol `client` op die reizen; archiveren trekt deze automatische toegang in en herstellen bouwt haar opnieuw op. Voor een nieuw account blijft een uitnodiging nodig.
 - `/agency-admin/suppliers`: herbruikbare accommodaties, vervoerders en activiteiten met contactgegevens, afspraken, commissie, archief en reiskoppelingen.
+- `/contact`: publiek contactformulier met Cloudflare Turnstile; bevoegde medewerkers behandelen berichten via `/corporate-admin/contact`.
 - `/agency-admin/operations`: portfolio, kosten en concrete aandachtspunten uit relationele reisdata.
 - `/agency-admin/quotes`: interne offertes met klant, optionele reis, geldigheid en meerdere prijsvarianten.
 - `/agency-admin/quotes/:quoteId/convert`: controlepagina om een geaccepteerde offerte aan een bestaande reis te koppelen of als nieuwe privéreis aan te maken.
