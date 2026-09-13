@@ -19,7 +19,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LandingDemo } from "@/components/LandingDemo";
 import { useAuth } from "@/lib/auth";
 import { useLocale } from "@/lib/locale";
 
@@ -48,14 +47,13 @@ export function FeaturesPage() {
   return (
     <div className="space-y-16 pb-8">
       <header className="aurora overflow-hidden rounded-[2rem] px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_.95fr]">
+        <div className="max-w-4xl">
           <div>
             <Badge variant="secondary" className="mb-5 gap-1.5"><Globe2 className="size-3.5" /> {text("Van plannen tot thuiskomen", "From planning to coming home")}</Badge>
             <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">{text("Alles wat je reis nodig heeft. Eindelijk bij elkaar.", "Everything your trip needs. Finally together.")}</h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed opacity-90">{text("GlobeTrotr vervangt de losse spreadsheet, chatberichten en screenshots door één levend reisoverzicht voor de hele groep.", "GlobeTrotr replaces scattered spreadsheets, chat messages and screenshots with one living trip overview for the whole group.")}</p>
             <Button asChild size="lg" className="mt-7"><Link to={user ? "/dashboard" : "/auth"}>{user ? text("Open mijn reizen", "Open my trips") : text("Probeer GlobeTrotr gratis", "Try GlobeTrotr free")}<ArrowRight className="size-4" /></Link></Button>
           </div>
-          <LandingDemo />
         </div>
       </header>
 

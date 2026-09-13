@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BriefcaseBusiness, Check, Route as RouteIcon, ShieldCheck, Sparkles, Users, WalletCards } from "lucide-react";
-import { LandingDemo } from "@/components/LandingDemo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,7 +44,11 @@ function Landing() {
           <div className="mt-8 flex flex-wrap gap-3"><Button asChild size="lg"><Link to={user ? "/dashboard" : "/auth"}>{startLabel}<ArrowRight className="size-4" /></Link></Button><Button asChild size="lg" variant="outline"><Link to="/demo">{text("Probeer de interactieve demo", "Try the interactive demo")}</Link></Button></div>
           <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs opacity-80">{[text("Gratis beta-account", "Free beta account"), text("Privé als standaard", "Private by default"), text("Nederlands en Engels", "Dutch and English")].map(item => <span key={item} className="flex items-center gap-1.5"><Check className="size-3.5" />{item}</span>)}</div>
         </div>
-        <LandingDemo />
+        <div className="relative rounded-[1.75rem] border border-primary/20 bg-background p-5 shadow-2xl shadow-primary/10">
+          <div className="flex items-start justify-between border-b pb-4"><div><p className="text-xs font-semibold uppercase tracking-widest text-primary">{text("Jullie reisoverzicht","Your trip overview")}</p><h2 className="mt-1 font-display text-2xl font-semibold">{text("Scandinavië 2026","Scandinavia 2026")}</h2></div><Badge variant="outline">{text("4 reizigers","4 travellers")}</Badge></div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2"><Card className="bg-primary/5"><CardContent className="p-4"><RouteIcon className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Volgende stop","Next stop")}</p><p className="font-semibold">Stockholm · 8 dec</p></CardContent></Card><Card><CardContent className="p-4"><BriefcaseBusiness className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Boekingen compleet","Bookings complete")}</p><p className="font-semibold">7 van 8</p></CardContent></Card><Card><CardContent className="p-4"><WalletCards className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Budget gebruikt","Budget used")}</p><p className="font-semibold">€3.482 van €5.250</p></CardContent></Card><Card><CardContent className="p-4"><Users className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Nog te doen","Still to do")}</p><p className="font-semibold">{text("3 gezamenlijke taken","3 shared tasks")}</p></CardContent></Card></div>
+          <Button asChild variant="outline" className="mt-4 w-full"><Link to="/demo">{text("Open de klikbare voorbeeldreis","Open the interactive sample trip")}<ArrowRight className="size-4"/></Link></Button>
+        </div>
       </div>
     </section>
 
