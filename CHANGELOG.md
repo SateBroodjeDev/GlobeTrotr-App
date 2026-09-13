@@ -22,6 +22,7 @@ Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovena
 - Corporate Admin bevat recensiebeheer met NL/EN-tekst, optionele waardering, publicatie, volgorde en archief; de homepage toont uitsluitend expliciet gepubliceerde recensies.
 - De openbare beta-status en bekende-problemenmigratie noemen de werkelijk ontbrekende OAuth-, automatische e-mail-, Paddle- en Agency-domeinkoppelingen; de opgeloste uitnodigingsbeperking wordt gearchiveerd.
 - De interne en publieke roadmap onderscheiden uitgevoerde migraties en SQL-tests voortaan van de nog openstaande praktische productcontrole.
+- De blijvende Corporate Admin-releasecheck is opgesplitst in concrete scenario's en gegroepeerd per productonderdeel, met voortgang per categorie en over de volledige acceptatietest.
 
 ## 2026-09-13 22:27 CEST — Stabiliteit, presentatie en beheer
 

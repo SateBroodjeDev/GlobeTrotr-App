@@ -8,15 +8,15 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-Alle databasemigraties en SQL-regressietests tot en met `20260908072000_update_release_checklist.sql` zijn uitgevoerd. De beta is met een schone dataset, een nieuw eigenaaraccount en werkende Corporate Admin-toegang opnieuw gestart. De handmatige productcontrole in Corporate Admin blijft open.
+Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 750 zijn uitgevoerd. Migraties 760 en 770 ronden contactbeheer en de uitgebreide acceptatiechecklist af. De beta is met een schone dataset, een nieuw eigenaaraccount en werkende Corporate Admin-toegang opnieuw gestart.
 
 ## Eerstvolgende controle
 
 1. [x] Database opnieuw opgebouwd, SQL-regressietests uitgevoerd en schone accounts gecontroleerd.
 2. [x] Reisback-up teruggezet en samenwerking met een tweede account praktisch bevestigd.
-3. [ ] De vernieuwde homepage en productrondleiding op telefoon en desktop in NL en EN controleren.
-4. [ ] Rollen, Agency-workflows, meldingen, openbare links, providers en Corporate Admin via de blijvende releasechecklist controleren.
-5. [ ] Alleen reproduceerbare afwijkingen als bekend probleem registreren en waar passend met GitHub synchroniseren.
+3. [ ] Migraties 760 en 770 plus `contact_messages.sql` en `expanded_release_checklist.sql` uitvoeren.
+4. [ ] De concrete scenario's per categorie in Corporate Admin → Releasecheck praktisch uitvoeren.
+5. [ ] Afwijkingen tijdens de acceptatietest direct als feedback of bekend probleem vastleggen en waar passend met GitHub synchroniseren.
 
 ## Eerstvolgende bouwvolgorde
 
@@ -133,6 +133,14 @@ Alle databasemigraties en SQL-regressietests tot en met `20260908072000_update_r
 - [x] Bestaande Nederlandse routes via productie-redirects behouden voor bookmarks, gedeelde reizen en uitnodigingen.
 - [x] Taalkeuze los van de URL gehouden: één stabiele slug toont NL of EN volgens account- of browservoorkeur.
 - [ ] Volledige kliktest op telefoon en desktop voor beide talen.
+
+## P0 — Gebundelde acceptatietest
+
+- [x] Brede testregels vervangen door concrete scenario's voor publieke website, betaling, contact, accounts, reizen, Agency, Corporate Admin, meldingen, hosting en beveiliging.
+- [x] Releasecheck in Corporate Admin groeperen per onderdeel met voortgang per categorie en totaal.
+- [ ] Migratie `20260908077000_expand_release_acceptance_checklist.sql` en de bijbehorende SQL-controle uitvoeren.
+- [ ] Alle openstaande productscenario's handmatig testen na de volledige implementatie.
+- [ ] Bevindingen oplossen, opnieuw testen en alleen werkelijk gecontroleerde regels afvinken.
 
 ## P0 — Agency praktisch controleren
 
