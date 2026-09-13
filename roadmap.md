@@ -4,19 +4,20 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 > **Status:** `[x]` is gebouwd of door de gebruiker als werkend bevestigd. `[ ]` moet nog worden gebouwd, geïmplementeerd of gecontroleerd. Uitgevoerde wijzigingen en praktijktests staan in `CHANGELOG.md`; deze roadmap bevat alleen de actuele productstand en het resterende werk.
 
-## Actuele stand — 13 september 2026
+## Actuele stand — 14 september 2026
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 750 zijn uitgevoerd. Migraties 760 en 770 ronden contactbeheer en de uitgebreide acceptatiechecklist af. De beta is met een schone dataset, een nieuw eigenaaraccount en werkende Corporate Admin-toegang opnieuw gestart.
+Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 770 zijn uitgevoerd. Migraties 780 tot en met 820 voor governance, Agency-rapportage, configureerbare herinneringen, offerte-isolatie en aangescherpte functierechten staan klaar voor uitvoering. De beta is met een schone dataset, een nieuw eigenaaraccount en werkende Corporate Admin-toegang opnieuw gestart.
 
 ## Eerstvolgende controle
 
 1. [x] Database opnieuw opgebouwd, SQL-regressietests uitgevoerd en schone accounts gecontroleerd.
 2. [x] Reisback-up teruggezet en samenwerking met een tweede account praktisch bevestigd.
-3. [ ] Migraties 760 en 770 plus `contact_messages.sql` en `expanded_release_checklist.sql` uitvoeren.
-4. [ ] De concrete scenario's per categorie in Corporate Admin → Releasecheck praktisch uitvoeren.
-5. [ ] Afwijkingen tijdens de acceptatietest direct als feedback of bekend probleem vastleggen en waar passend met GitHub synchroniseren.
+3. [x] Migraties 760 en 770 plus `contact_messages.sql` en `expanded_release_checklist.sql` uitgevoerd.
+4. [ ] Migraties 780, 790, 800, 810 en 820 met hun SQL-tests in volgorde uitvoeren.
+5. [ ] De concrete scenario's per categorie in Corporate Admin → Releasecheck praktisch uitvoeren.
+6. [ ] Afwijkingen tijdens de acceptatietest direct als feedback of bekend probleem vastleggen en waar passend met GitHub synchroniseren.
 
 ## Eerstvolgende bouwvolgorde
 
@@ -25,11 +26,13 @@ Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 750 
 3. [x] **Notificaties voor de huidige applicatie:** account, reizen, Agency, feedback en platformstatus zijn gedekt; externe e-mail-, Paddle- en OAuth-events volgen bij integratie.
 4. [x] **Publieke website vernieuwen:** company-homepage, productpagina's, demo, navigatie en Engelstalige slugs met redirects zijn gebouwd.
 5. [x] **Leveranciersbibliotheek:** herbruikbare aanbieders voor accommodatie, vervoer en activiteiten binnen één Agency-workspace, met afspraken, archief en reiskoppelingen.
-6. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
-7. [ ] **Hostingportabiliteit:** Node/Nitro-doel, VPS-service, stagingdomein, secrets, monitoring en rollback bouwen.
-8. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
-9. [ ] **OAuth:** Apple, Google en Microsoft activeren zodra de productie-infrastructuur en providerconfiguratie gereed zijn.
-10. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
+6. [x] **Gebruiksvriendelijkheid lange reizen:** reisinstellingen zijn verdeeld in onderwerpen, planning in boekingen en dagplanning, en uitgaven zijn doorzoekbaar en filterbaar.
+7. [x] **Publieke dynamiek en privacyverhaal:** actuele openbare reizen staan op de homepage, Contact staat in de hoofdnavigatie en de Europese opslag en privacykeuzes worden helder uitgelegd.
+8. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
+9. [ ] **Hostingportabiliteit:** Node/Nitro-doel, VPS-service, stagingdomein, secrets, monitoring en rollback bouwen.
+10. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
+11. [ ] **OAuth:** Apple, Google en Microsoft activeren zodra de productie-infrastructuur en providerconfiguratie gereed zijn.
+12. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
 
 ## P0 — Volledige notificatiedekking
 
@@ -127,7 +130,7 @@ Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 750 
 - [x] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
 - [x] Agency-productpagina voor teams, rollen, klanten, offertes, taken, branding en werkvoorraad.
 - [x] Realistische scenario's, privacyvertrouwen, transparante betastatus en duidelijke ondersteuning.
-- [ ] Volledig responsive en toegankelijk in NL/EN, met metadata, social previews, canonical-URL's, sitemap en gestructureerde data.
+- [ ] Volledig responsive en toegankelijk in NL/EN; algemene metadata, `robots.txt` en sitemap zijn gebouwd, correcte routespecifieke canonical-URL's, social previews en gestructureerde data volgen.
 - [x] Engelstalige slugs: `/features`, `/demo`, `/for-travelers`, `/for-groups`, `/for-agencies`, `/pricing`, `/updates`, `/roadmap`, `/known-issues`, `/beta`, `/privacy`, `/terms` en `/refund-policy`.
 - [x] Functionele slugs gemigreerd naar `/trip/:token/:tripId`, `/invite/:token` en `/agency-invite/:token`.
 - [x] Bestaande Nederlandse routes via productie-redirects behouden voor bookmarks, gedeelde reizen en uitnodigingen.
@@ -138,7 +141,7 @@ Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 750 
 
 - [x] Brede testregels vervangen door concrete scenario's voor publieke website, betaling, contact, accounts, reizen, Agency, Corporate Admin, meldingen, hosting en beveiliging.
 - [x] Releasecheck in Corporate Admin groeperen per onderdeel met voortgang per categorie en totaal.
-- [ ] Migratie `20260908077000_expand_release_acceptance_checklist.sql` en de bijbehorende SQL-controle uitvoeren.
+- [x] Migratie `20260908077000_expand_release_acceptance_checklist.sql` en de bijbehorende SQL-controle uitgevoerd.
 - [ ] Alle openstaande productscenario's handmatig testen na de volledige implementatie.
 - [ ] Bevindingen oplossen, opnieuw testen en alleen werkelijk gecontroleerde regels afvinken.
 
@@ -171,10 +174,11 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 
 - [x] Leveranciersbibliotheek voor accommodaties, vervoer en activiteiten.
 - [x] Leverancierscontacten, boekingsvoorwaarden, commissie en interne notities workspacegebonden opslaan.
-- [ ] Operationele dashboards uitbreiden met echte documentopslag, klantreizen, declarabele kosten en later facturen.
-- [ ] Herinneringen en configureerbare automatiseringen voor taken en deadlines.
+- [x] Operationele dashboards uitgebreid met documentopslag, klantreizen, declarabele kosten, offerteconversie en werkvoorraad.
+- [x] Configureerbare herinneringen voor taakdeadlines, offertes en documenten gebouwd; dagelijkse uitvoering volgt bij VPS-implementatie.
 - [ ] Klantportaal uitbreiden met offertes, antwoorden en later echte factuur- en betaalstatus.
-- [ ] Rapportages voor offerteconversie, omzet, marge, commissie en klanttevredenheid zodra betrouwbare events bestaan.
+- [x] Basisrapportage voor klanten, reizen, offerteconversie, geaccepteerde waarde, taken en declarabele kosten.
+- [ ] Rapportages voor gerealiseerde omzet, marge, commissie en klanttevredenheid zodra betrouwbare betaal- en tevredenheidsevents bestaan.
 
 ## P1 — Corporate Admin verder uitbouwen
 
@@ -194,9 +198,10 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] Persoonlijke adressen volgens `eerstelettervoornaam.achternaam@globetrotr.nl` provisionen en mailboxrechten praktisch controleren.
 - [ ] Paddle-webhooks als gezaghebbende bron aansluiten op de interne factuur- en omzetweergave.
 - [ ] Moderatie van openbare reizen met reden en auditlog.
-- [ ] Featureflags, gefaseerde beta-uitrol en noodstop per externe integratie.
-- [ ] Privacyverzoeken en wettelijke afhandelingstermijnen volgen.
-- [ ] Beperkte incidentenmodule en echte vierogenautorisatie voor definitieve, onomkeerbare acties.
+- [x] Featureflags met interne, beta- of publieke doelgroep, verplichte reden en auditlog.
+- [x] Privacyverzoeken en wettelijke afhandelingstermijnen registreren en volgen.
+- [x] Beperkte interne incidentenmodule met ernst, status en auditregistratie.
+- [ ] Echte vierogenautorisatie voor definitieve, onomkeerbare acties.
 - [ ] Minimale aggregatie-RPC's gebruiken waar dashboards nu nog brede service-role-queries doen.
 
 ## P1 — Hosting, e-mail en betalingen

@@ -49,6 +49,37 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-14-privacy-and-trip-clarity",
+    version: "Beta 0.34",
+    publishedAt: "2026-09-14T00:08:00+02:00",
+    title: "Meer overzicht en sterkere privacy",
+    titleEn: "More clarity and stronger privacy",
+    summary: "De publieke site leeft meer door actuele reizen, lange reisschermen zijn rustiger en gegevens tussen reisbedrijven zijn strikter geïsoleerd.",
+    summaryEn: "The public site feels more alive with current trips, long trip screens are calmer and data is more strictly isolated between travel businesses.",
+    changes: [
+      {kind:"secure",title:"Offerteprijzen per Agency afgeschermd",titleEn:"Quote pricing isolated per agency",description:"Prijsvarianten zijn alleen zichtbaar binnen de bijbehorende Agency-workspace met het juiste inzagerecht.",descriptionEn:"Pricing variants are only visible inside the matching agency workspace with the correct viewing permission."},
+      {kind:"new",title:"Actuele reizen op de homepage",titleEn:"Current trips on the homepage",description:"Bezoekers ontdekken rechtstreeks vanaf de homepage echte openbaar gedeelde reizen.",descriptionEn:"Visitors can discover real publicly shared trips directly from the homepage."},
+      {kind:"improved",title:"Europese privacy helder uitgelegd",titleEn:"European privacy clearly explained",description:"De website beschrijft primaire opslag in de EU, applicatieservers in Duitsland en controle over optionele koppelingen.",descriptionEn:"The website explains primary EU storage, application servers in Germany and control over optional connections."},
+      {kind:"improved",title:"Rustigere reisschermen",titleEn:"Calmer trip screens",description:"Instellingen en planning zijn per onderwerp verdeeld en lange uitgavenlijsten kunnen worden gezocht en gefilterd.",descriptionEn:"Settings and planning are divided by topic, while long expense lists can be searched and filtered."},
+      {kind:"new",title:"Vertalen met menselijke controle",titleEn:"Translation with human review",description:"Corporate Admin kan een Engels concept laten maken en controleert dit zelf voordat het wordt gepubliceerd.",descriptionEn:"Corporate Admin can create an English draft and reviews it before publication."},
+    ],
+  },
+  {
+    id: "2026-09-13-governance-and-agency-insight",
+    version: "Beta 0.33",
+    publishedAt: "2026-09-13T23:52:00+02:00",
+    title: "Meer grip voor reisbedrijven en GlobeTrotr",
+    titleEn: "More control for travel businesses and GlobeTrotr",
+    summary: "Agency-teams krijgen concreet inzicht in offertes en werk, terwijl het platform privacydeadlines, uitrol en incidenten beter bewaakt.",
+    summaryEn: "Agency teams gain practical insight into quotes and work while the platform improves oversight of privacy deadlines, rollout and incidents.",
+    changes: [
+      {kind:"new",title:"Agency-rapportage",titleEn:"Agency reporting",description:"Klanten, actieve reizen, offerteconversie, taken en declarabele kosten staan samen in één rustig overzicht.",descriptionEn:"Clients, active trips, quote conversion, tasks and billable expenses come together in one focused overview."},
+      {kind:"new",title:"Instelbare herinneringen",titleEn:"Configurable reminders",description:"Reisbedrijven bepalen zelf hoeveel dagen vooraf taken, offertes en documenten onder de aandacht komen.",descriptionEn:"Travel businesses choose how many days in advance tasks, quotes and documents should receive attention."},
+      {kind:"secure",title:"Privacy en incidenten onder controle",titleEn:"Privacy and incidents under control",description:"Privacyverzoeken krijgen een deadline en platformincidenten en gecontroleerde uitrol worden centraal en met auditregistratie beheerd.",descriptionEn:"Privacy requests receive a deadline, while platform incidents and controlled rollouts are managed centrally with audit records."},
+      {kind:"improved",title:"Beter vindbare publieke site",titleEn:"More discoverable public site",description:"Een sitemap en zoekmachine-instructies bereiden de website voor op het eigen GlobeTrotr-domein.",descriptionEn:"A sitemap and search engine instructions prepare the website for the GlobeTrotr domain."},
+    ],
+  },
+  {
     id: "2026-09-13-guided-product-story",
     version: "Beta 0.32",
     publishedAt: "2026-09-13T23:06:00+02:00",

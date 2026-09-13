@@ -58,6 +58,7 @@ import { Route as AuthenticatedAgencyAdminNotificationsRouteImport } from './rou
 import { Route as AuthenticatedAgencyAdminOperationsRouteImport } from './routes/_authenticated/agency-admin.operations'
 import { Route as AuthenticatedAgencyAdminPermissionsRouteImport } from './routes/_authenticated/agency-admin.permissions'
 import { Route as AuthenticatedAgencyAdminQuotesRouteImport } from './routes/_authenticated/agency-admin.quotes'
+import { Route as AuthenticatedAgencyAdminReportsRouteImport } from './routes/_authenticated/agency-admin.reports'
 import { Route as AuthenticatedAgencyAdminSecurityRouteImport } from './routes/_authenticated/agency-admin.security'
 import { Route as AuthenticatedAgencyAdminSettingsRouteImport } from './routes/_authenticated/agency-admin.settings'
 import { Route as AuthenticatedAgencyAdminSubscriptionRouteImport } from './routes/_authenticated/agency-admin.subscription'
@@ -70,6 +71,7 @@ import { Route as AuthenticatedCorporateAdminAuditRouteImport } from './routes/_
 import { Route as AuthenticatedCorporateAdminContactRouteImport } from './routes/_authenticated/corporate-admin.contact'
 import { Route as AuthenticatedCorporateAdminFeedbackRouteImport } from './routes/_authenticated/corporate-admin.feedback'
 import { Route as AuthenticatedCorporateAdminFinanceRouteImport } from './routes/_authenticated/corporate-admin.finance'
+import { Route as AuthenticatedCorporateAdminGovernanceRouteImport } from './routes/_authenticated/corporate-admin.governance'
 import { Route as AuthenticatedCorporateAdminInfrastructureRouteImport } from './routes/_authenticated/corporate-admin.infrastructure'
 import { Route as AuthenticatedCorporateAdminIssuesRouteImport } from './routes/_authenticated/corporate-admin.issues'
 import { Route as AuthenticatedCorporateAdminMailRouteImport } from './routes/_authenticated/corporate-admin.mail'
@@ -340,6 +342,12 @@ const AuthenticatedAgencyAdminQuotesRoute =
     path: '/quotes',
     getParentRoute: () => AuthenticatedAgencyAdminRoute,
   } as any)
+const AuthenticatedAgencyAdminReportsRoute =
+  AuthenticatedAgencyAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
 const AuthenticatedAgencyAdminSecurityRoute =
   AuthenticatedAgencyAdminSecurityRouteImport.update({
     id: '/security',
@@ -410,6 +418,12 @@ const AuthenticatedCorporateAdminFinanceRoute =
   AuthenticatedCorporateAdminFinanceRouteImport.update({
     id: '/finance',
     path: '/finance',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminGovernanceRoute =
+  AuthenticatedCorporateAdminGovernanceRouteImport.update({
+    id: '/governance',
+    path: '/governance',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
 const AuthenticatedCorporateAdminInfrastructureRoute =
@@ -543,6 +557,7 @@ export interface FileRoutesByFullPath {
   '/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
   '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
   '/agency-admin/quotes': typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  '/agency-admin/reports': typeof AuthenticatedAgencyAdminReportsRoute
   '/agency-admin/security': typeof AuthenticatedAgencyAdminSecurityRoute
   '/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
   '/agency-admin/subscription': typeof AuthenticatedAgencyAdminSubscriptionRoute
@@ -554,6 +569,7 @@ export interface FileRoutesByFullPath {
   '/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
+  '/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
   '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
   '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
@@ -617,6 +633,7 @@ export interface FileRoutesByTo {
   '/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
   '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
   '/agency-admin/quotes': typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  '/agency-admin/reports': typeof AuthenticatedAgencyAdminReportsRoute
   '/agency-admin/security': typeof AuthenticatedAgencyAdminSecurityRoute
   '/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
   '/agency-admin/subscription': typeof AuthenticatedAgencyAdminSubscriptionRoute
@@ -628,6 +645,7 @@ export interface FileRoutesByTo {
   '/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
   '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
+  '/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
   '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
   '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
@@ -695,6 +713,7 @@ export interface FileRoutesById {
   '/_authenticated/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
   '/_authenticated/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
   '/_authenticated/agency-admin/quotes': typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  '/_authenticated/agency-admin/reports': typeof AuthenticatedAgencyAdminReportsRoute
   '/_authenticated/agency-admin/security': typeof AuthenticatedAgencyAdminSecurityRoute
   '/_authenticated/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
   '/_authenticated/agency-admin/subscription': typeof AuthenticatedAgencyAdminSubscriptionRoute
@@ -706,6 +725,7 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
   '/_authenticated/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
   '/_authenticated/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
+  '/_authenticated/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
   '/_authenticated/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
   '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
   '/_authenticated/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
@@ -773,6 +793,7 @@ export interface FileRouteTypes {
     | '/agency-admin/operations'
     | '/agency-admin/permissions'
     | '/agency-admin/quotes'
+    | '/agency-admin/reports'
     | '/agency-admin/security'
     | '/agency-admin/settings'
     | '/agency-admin/subscription'
@@ -784,6 +805,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/contact'
     | '/corporate-admin/feedback'
     | '/corporate-admin/finance'
+    | '/corporate-admin/governance'
     | '/corporate-admin/infrastructure'
     | '/corporate-admin/issues'
     | '/corporate-admin/mail'
@@ -847,6 +869,7 @@ export interface FileRouteTypes {
     | '/agency-admin/operations'
     | '/agency-admin/permissions'
     | '/agency-admin/quotes'
+    | '/agency-admin/reports'
     | '/agency-admin/security'
     | '/agency-admin/settings'
     | '/agency-admin/subscription'
@@ -858,6 +881,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/contact'
     | '/corporate-admin/feedback'
     | '/corporate-admin/finance'
+    | '/corporate-admin/governance'
     | '/corporate-admin/infrastructure'
     | '/corporate-admin/issues'
     | '/corporate-admin/mail'
@@ -924,6 +948,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agency-admin/operations'
     | '/_authenticated/agency-admin/permissions'
     | '/_authenticated/agency-admin/quotes'
+    | '/_authenticated/agency-admin/reports'
     | '/_authenticated/agency-admin/security'
     | '/_authenticated/agency-admin/settings'
     | '/_authenticated/agency-admin/subscription'
@@ -935,6 +960,7 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin/contact'
     | '/_authenticated/corporate-admin/feedback'
     | '/_authenticated/corporate-admin/finance'
+    | '/_authenticated/corporate-admin/governance'
     | '/_authenticated/corporate-admin/infrastructure'
     | '/_authenticated/corporate-admin/issues'
     | '/_authenticated/corporate-admin/mail'
@@ -1335,6 +1361,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgencyAdminQuotesRouteImport
       parentRoute: typeof AuthenticatedAgencyAdminRoute
     }
+    '/_authenticated/agency-admin/reports': {
+      id: '/_authenticated/agency-admin/reports'
+      path: '/reports'
+      fullPath: '/agency-admin/reports'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
     '/_authenticated/agency-admin/security': {
       id: '/_authenticated/agency-admin/security'
       path: '/security'
@@ -1417,6 +1450,13 @@ declare module '@tanstack/react-router' {
       path: '/finance'
       fullPath: '/corporate-admin/finance'
       preLoaderRoute: typeof AuthenticatedCorporateAdminFinanceRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/governance': {
+      id: '/_authenticated/corporate-admin/governance'
+      path: '/governance'
+      fullPath: '/corporate-admin/governance'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminGovernanceRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
     '/_authenticated/corporate-admin/infrastructure': {
@@ -1542,6 +1582,7 @@ interface AuthenticatedAgencyAdminRouteChildren {
   AuthenticatedAgencyAdminOperationsRoute: typeof AuthenticatedAgencyAdminOperationsRoute
   AuthenticatedAgencyAdminPermissionsRoute: typeof AuthenticatedAgencyAdminPermissionsRoute
   AuthenticatedAgencyAdminQuotesRoute: typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  AuthenticatedAgencyAdminReportsRoute: typeof AuthenticatedAgencyAdminReportsRoute
   AuthenticatedAgencyAdminSecurityRoute: typeof AuthenticatedAgencyAdminSecurityRoute
   AuthenticatedAgencyAdminSettingsRoute: typeof AuthenticatedAgencyAdminSettingsRoute
   AuthenticatedAgencyAdminSubscriptionRoute: typeof AuthenticatedAgencyAdminSubscriptionRoute
@@ -1563,6 +1604,7 @@ const AuthenticatedAgencyAdminRouteChildren: AuthenticatedAgencyAdminRouteChildr
       AuthenticatedAgencyAdminPermissionsRoute,
     AuthenticatedAgencyAdminQuotesRoute:
       AuthenticatedAgencyAdminQuotesRouteWithChildren,
+    AuthenticatedAgencyAdminReportsRoute: AuthenticatedAgencyAdminReportsRoute,
     AuthenticatedAgencyAdminSecurityRoute:
       AuthenticatedAgencyAdminSecurityRoute,
     AuthenticatedAgencyAdminSettingsRoute:
@@ -1588,6 +1630,7 @@ interface AuthenticatedCorporateAdminRouteChildren {
   AuthenticatedCorporateAdminContactRoute: typeof AuthenticatedCorporateAdminContactRoute
   AuthenticatedCorporateAdminFeedbackRoute: typeof AuthenticatedCorporateAdminFeedbackRoute
   AuthenticatedCorporateAdminFinanceRoute: typeof AuthenticatedCorporateAdminFinanceRoute
+  AuthenticatedCorporateAdminGovernanceRoute: typeof AuthenticatedCorporateAdminGovernanceRoute
   AuthenticatedCorporateAdminInfrastructureRoute: typeof AuthenticatedCorporateAdminInfrastructureRoute
   AuthenticatedCorporateAdminIssuesRoute: typeof AuthenticatedCorporateAdminIssuesRoute
   AuthenticatedCorporateAdminMailRoute: typeof AuthenticatedCorporateAdminMailRoute
@@ -1613,6 +1656,8 @@ const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRoute
       AuthenticatedCorporateAdminFeedbackRoute,
     AuthenticatedCorporateAdminFinanceRoute:
       AuthenticatedCorporateAdminFinanceRoute,
+    AuthenticatedCorporateAdminGovernanceRoute:
+      AuthenticatedCorporateAdminGovernanceRoute,
     AuthenticatedCorporateAdminInfrastructureRoute:
       AuthenticatedCorporateAdminInfrastructureRoute,
     AuthenticatedCorporateAdminIssuesRoute:

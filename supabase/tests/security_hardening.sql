@@ -55,12 +55,14 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Authenticated kan het vluchtquotum rechtstreeks omzeilen';
   END IF;
+  IF has_column_privilege('authenticated','public.trip_members','email','SELECT') THEN
+    RAISE EXCEPTION 'Authenticated heeft nog direct kolomrecht op leden-e-mails';
+  END IF;
   SELECT string_agg(p.oid::regprocedure::TEXT,', ' ORDER BY p.oid::regprocedure::TEXT)
   INTO v_unsafe FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE p.prosecdef AND n.nspname = 'public'
       AND has_function_privilege('authenticated', p.oid, 'EXECUTE')
-      -- Deze RPC geeft uitsluitend de bewust openbare platformstatus terug.
-      AND p.proname NOT IN ('get_public_platform_status','list_public_testimonials');
+      ;
   IF v_unsafe IS NOT NULL THEN
     RAISE EXCEPTION 'Authenticated kan nog publieke SECURITY DEFINER-functies uitvoeren: %',v_unsafe;
   END IF;

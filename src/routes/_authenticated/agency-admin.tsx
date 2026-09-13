@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Bell, BookTemplate, Building2, CreditCard, FileText, History, LayoutDashboard, ListTodo, Settings2, ShieldAlert, ShieldCheck, Truck, Users } from "lucide-react";
+import { BarChart3, Bell, BookTemplate, Building2, CreditCard, FileText, History, LayoutDashboard, ListTodo, Settings2, ShieldAlert, ShieldCheck, TrendingUp, Truck, Users } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { useLocale } from "@/lib/locale";
 import { getMyAgencyAccess } from "@/lib/agency.functions";
@@ -16,6 +16,7 @@ const items=[
  {to:"/agency-admin/clients",nl:"Klanten",en:"Clients",icon:Users,permission:"members_manage"},
  {to:"/agency-admin/suppliers",nl:"Leveranciers",en:"Suppliers",icon:Truck,permission:"trips_view"},
  {to:"/agency-admin/operations",nl:"Operatie",en:"Operations",icon:BarChart3,permission:"analytics_view"},
+ {to:"/agency-admin/reports",nl:"Rapportage",en:"Reporting",icon:TrendingUp,permission:"analytics_view"},
  {to:"/agency-admin/tasks",nl:"Taken",en:"Tasks",icon:ListTodo,permission:"trips_view"},
  {to:"/agency-admin/templates",nl:"Sjablonen",en:"Templates",icon:BookTemplate,permission:"trips_view"},
  {to:"/agency-admin/quotes",nl:"Offertes",en:"Quotes",icon:FileText,permission:"trips_view"},

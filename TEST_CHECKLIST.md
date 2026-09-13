@@ -26,6 +26,7 @@ Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar
 - [ ] Betaler en deelnemers wijzigen; totalen en slimme verrekening blijven correct.
 - [ ] Lange namen en het saldo blijven volledig binnen het telefoonscherm.
 - [ ] CSV/PDF-export opent correct en tekst die met `=`, `+`, `-` of `@` begint wordt geen formule.
+- [ ] Zoek en filter een lange uitgavenlijst op tekst, categorie en betaler, ook op telefoon.
 
 ## Samenwerken
 
@@ -74,6 +75,16 @@ Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar
 - [ ] Geaccepteerde offerte koppelen aan een bestaande reis of omzetten naar één nieuwe reis.
 - [ ] Dubbel klikken of vernieuwen maakt geen tweede reis of tweede antwoord.
 - [ ] Auditlog toont aanmaak, wijziging, delen, antwoord, intrekken en conversie met de juiste uitvoerder.
+- [ ] Een ingelogde gebruiker uit een andere Agency kan geen prijsvarianten uitlezen.
+
+## Publieke website en communicatie
+
+- [ ] Homepage toont actuele openbare reizen en links openen de juiste veilige reispagina.
+- [ ] Hoofdnavigatie bevat Contact en blijft op telefoon overzichtelijk.
+- [ ] Over GlobeTrotr toont het oprichtersverhaal, feiten en eerlijke productstatussen in NL en EN.
+- [ ] Privacy legt Europese primaire opslag, Duitse applicatieservers en optionele externe koppelingen correct uit.
+- [ ] Corporate Admin maakt vanuit Nederlandse issue- en platformtekst een Engels concept; controle en wijzig dit voor opslaan of publiceren.
+- [ ] Reisinstellingen en reisschema tonen slechts één gekozen onderwerp tegelijk op desktop en telefoon.
 
 ## Meldingen
 

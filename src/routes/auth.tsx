@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -8,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocale } from "@/lib/locale";
+import { getPublicFeatureFlags } from "@/lib/corporate-governance.functions";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -44,6 +46,12 @@ function AuthPage() {
   const { redirect } = Route.useSearch();
   const { text } = useLocale();
   const navigate = useNavigate();
+  const flags = useQuery({ queryKey: ["public-feature-flags"], queryFn: () => getPublicFeatureFlags(), retry: false });
+  const registrationEnabled = flags.data?.["public.registration"] !== false;
+
+  useEffect(() => {
+    if (!registrationEnabled && mode === "signup") setMode("signin");
+  }, [registrationEnabled, mode]);
 
   useEffect(() => {
     if (!session) return;
@@ -168,7 +176,7 @@ function AuthPage() {
             </form>
           )}
 
-          <button
+          {registrationEnabled ? <button
             type="button"
             onClick={() => {
               setMode(mode === "signin" ? "signup" : "signin");
@@ -179,7 +187,7 @@ function AuthPage() {
             {mode === "signin"
               ? text("Nog geen account? Registreer gratis", "No account yet? Create one for free")
               : text("Al een account? Log in", "Already have an account? Sign in")}
-          </button>
+          </button> : <p className="mt-4 text-center text-sm text-muted-foreground">{text("Nieuwe registraties zijn tijdelijk gepauzeerd. Bestaande gebruikers kunnen gewoon inloggen.","New registrations are temporarily paused. Existing users can still sign in.")}</p>}
         </CardContent>
       </Card>
     </div>

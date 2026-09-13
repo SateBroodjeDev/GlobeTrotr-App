@@ -222,6 +222,9 @@ function TripDetail() {
   const [editingExpenseId, setEditingExpenseId] = useState<string>();
   const [fuelTravelItemId, setFuelTravelItemId] = useState<string>();
   const [expenseSaving, setExpenseSaving] = useState(false);
+  const [expenseSearch, setExpenseSearch] = useState("");
+  const [expenseCategoryFilter, setExpenseCategoryFilter] = useState<"all"|ExpenseCategory>("all");
+  const [expensePayerFilter, setExpensePayerFilter] = useState("all");
   const [uploadingReceiptId, setUploadingReceiptId] = useState<string>();
   const [sharePin, setSharePin] = useState("");
   const [sharingSaving, setSharingSaving] = useState(false);
@@ -230,6 +233,11 @@ function TripDetail() {
   const [showAllStops, setShowAllStops] = useState(false);
   const [activeStopId, setActiveStopId] = useState<string>();
   const visibleStops = showAllStops ? trip.stops : trip.stops.slice(0, 4);
+  const visibleExpenses = trip.expenses.filter((expense) =>
+    (expenseCategoryFilter === "all" || expense.category === expenseCategoryFilter) &&
+    (expensePayerFilter === "all" || resolveParticipantId(expense.paidBy, financialParticipants) === expensePayerFilter) &&
+    (!expenseSearch.trim() || `${expense.title} ${expense.notes ?? ""}`.toLocaleLowerCase(locale).includes(expenseSearch.trim().toLocaleLowerCase(locale)))
+  );
   const selectStop = useCallback((id: string) => setActiveStopId(id), []);
 
   useEffect(() => {
@@ -810,7 +818,8 @@ function TripDetail() {
         </TabsList>
 
         <TabsContent value="settings" className="space-y-4">
-          <Card className="surface">
+          <Tabs defaultValue="general"><TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="general">{text("Algemeen","General")}</TabsTrigger><TabsTrigger value="notifications">{text("Meldingen","Notifications")}</TabsTrigger>{state.plan==="agency"&&<TabsTrigger value="branding">{text("Huisstijl","Branding")}</TabsTrigger>}<TabsTrigger value="sharing">{text("Delen","Sharing")}</TabsTrigger><TabsTrigger value="members">{text("Reisgenoten","Travellers")}</TabsTrigger><TabsTrigger value="danger">{text("Beheer","Management")}</TabsTrigger></TabsList>
+          <TabsContent value="general" className="mt-4"><Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Settings2 className="size-4" /> {text("Reisinstellingen", "Trip settings")}
@@ -929,15 +938,15 @@ function TripDetail() {
                 </div>
               </form>
             </CardContent>
-          </Card>
+          </Card></TabsContent>
 
-          <TripNotificationPreferences tripId={trip.id} />
+          <TabsContent value="notifications" className="mt-4"><TripNotificationPreferences tripId={trip.id} /></TabsContent>
 
           {state.plan === "agency" && (
-            <><TripTemplateApply trip={trip} editable={editable} save={(fn)=>saveTripNow(trip.id,fn)} /><TripBrandingSettings tripId={trip.id} agencyBranding={state.branding} onSaved={setExportBrandingOverride} /></>
+            <TabsContent value="branding" className="mt-4 space-y-4"><TripTemplateApply trip={trip} editable={editable} save={(fn)=>saveTripNow(trip.id,fn)} /><TripBrandingSettings tripId={trip.id} agencyBranding={state.branding} onSaved={setExportBrandingOverride} /></TabsContent>
           )}
 
-          <Card className="surface">
+          <TabsContent value="sharing" className="mt-4"><Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Globe2 className="size-4" /> {text("Openbaar delen", "Public sharing")}
@@ -1032,9 +1041,9 @@ function TripDetail() {
                 </>
               )}
             </CardContent>
-          </Card>
+          </Card></TabsContent>
 
-          <TripMembers
+          <TabsContent value="members" className="mt-4"><TripMembers
             members={trip.members ?? []}
             tripId={trip.id}
             plan={state.plan}
@@ -1051,9 +1060,9 @@ function TripDetail() {
                 travelers: [ownerName, ...members.map((member) => member.name)],
               }))
             }
-          />
+          /></TabsContent>
 
-          <Card className="border-destructive/40 surface">
+          <TabsContent value="danger" className="mt-4"><Card className="border-destructive/40 surface">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">Gevarenzone</CardTitle>
             </CardHeader>
@@ -1118,7 +1127,8 @@ function TripDetail() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Card></TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="packing">
@@ -1272,14 +1282,16 @@ function TripDetail() {
                 "Add or edit bookings and your own itinerary items. The overview is available under Itinerary.",
               )}
             </p>
-            <TripBookings
+            <Tabs defaultValue="bookings">
+              <TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="bookings">{text("Geboekte onderdelen","Booked items")}</TabsTrigger><TabsTrigger value="days">{text("Dagplanning","Day planning")}</TabsTrigger></TabsList>
+              <TabsContent value="bookings" className="mt-4"><TripBookings
               trip={trip}
               editable={editable}
               payers={financialParticipants}
               onSave={saveTravelItem}
               onRemove={removeTravelItem}
-            />
-            <TripTimeline
+              /></TabsContent>
+              <TabsContent value="days" className="mt-4"><TripTimeline
               trip={trip}
               baseCurrency={base}
               editable={editable}
@@ -1325,7 +1337,8 @@ function TripDetail() {
                   throw error;
                 }
               }}
-            />
+              /></TabsContent>
+            </Tabs>
           </TabsContent>
         )}
 
@@ -1533,6 +1546,13 @@ function TripDetail() {
             </CardContent>
           </Card>
 
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Input value={expenseSearch} onChange={(event)=>setExpenseSearch(event.target.value)} placeholder={text("Zoek in uitgaven…","Search expenses…")} aria-label={text("Uitgaven zoeken","Search expenses")}/>
+            <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={expenseCategoryFilter} onChange={(event)=>setExpenseCategoryFilter(event.target.value as "all"|ExpenseCategory)} aria-label={text("Filter op categorie","Filter by category")}><option value="all">{text("Alle categorieën","All categories")}</option>{CATEGORIES.map(category=><option key={category.id} value={category.id}>{expenseCategoryLabel(category.id,category.label,text)}</option>)}</select>
+            <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={expensePayerFilter} onChange={(event)=>setExpensePayerFilter(event.target.value)} aria-label={text("Filter op betaler","Filter by payer")}><option value="all">{text("Alle betalers","All payers")}</option>{financialParticipants.map(person=><option key={person.id} value={person.id}>{person.name}</option>)}</select>
+          </div>
+          <p className="text-xs text-muted-foreground">{text(`${visibleExpenses.length} van ${trip.expenses.length} uitgaven`,`${visibleExpenses.length} of ${trip.expenses.length} expenses`)}</p>
+
           <Card className="surface min-w-0 overflow-hidden">
             <CardContent
               className="overflow-x-auto p-0"
@@ -1553,7 +1573,7 @@ function TripDetail() {
                   </tr>
                 </thead>
                 <tbody>
-                  {trip.expenses.map((e) => (
+                  {visibleExpenses.map((e) => (
                     <tr key={e.id} className="border-t border-border">
                       <td className="p-3 whitespace-nowrap">{e.date}</td>
                       <td className="p-3">

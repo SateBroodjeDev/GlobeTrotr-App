@@ -85,19 +85,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GlobeTrotr — Multi-Trip & Expense Planner" },
+      { title: "GlobeTrotr — Samen reizen plannen zonder chaos" },
       {
         name: "description",
         content:
           "Wereldwijde reisplanner voor vriendengroepen met routekaart, gedeelde uitgaven, live weer en paklijsten.",
       },
-      { property: "og:title", content: "GlobeTrotr — Multi-Trip & Expense Planner" },
+      { property: "og:title", content: "GlobeTrotr — Samen reizen plannen zonder chaos" },
       {
         property: "og:description",
         content: "Plan elke reis ter wereld en verantwoord elke euro.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "GlobeTrotr" },
+      { property: "og:locale", content: "nl_NL" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#0f766e" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

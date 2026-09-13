@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Archive, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, Languages, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
   syncUnsyncedKnownIssues,
 } from "@/lib/issues.functions";
 import { useLocale } from "@/lib/locale";
+import { createTranslationDraft } from "@/lib/translation.functions";
 export const Route = createFileRoute("/_authenticated/corporate-admin/issues")({
   component: IssuesPage,
 });
@@ -43,6 +44,20 @@ function IssuesPage() {
   const [syncing, setSyncing] = useState(false);
   const [search, setSearch] = useState("");
   const [archived, setArchived] = useState(false);
+  async function translateToEnglish() {
+    if (!form.titleNl.trim() || !form.descriptionNl.trim()) return;
+    setSaving(true);
+    try {
+      const [title,description]=await Promise.all([
+        createTranslationDraft({data:{text:form.titleNl,source:"nl",target:"en"}}),
+        createTranslationDraft({data:{text:form.descriptionNl,source:"nl",target:"en"}}),
+      ]);
+      setForm(current=>({...current,titleEn:title.translated,descriptionEn:description.translated}));
+      toast.success(text("Engels concept gemaakt. Controleer het voor opslaan.","English draft created. Review it before saving."));
+    } catch(error) {
+      toast.error(String(error).includes("TRANSLATION_NOT_CONFIGURED")?text("De vertaalprovider is nog niet ingesteld.","The translation provider is not configured yet."):text("Vertaalconcept kon niet worden gemaakt.","Translation draft could not be created."));
+    } finally { setSaving(false); }
+  }
   async function save() {
     setSaving(true);
     try {
@@ -197,6 +212,9 @@ function IssuesPage() {
             {text("Openbaar", "Public")}
           </label>
           <div className="flex gap-2">
+            <Button type="button" variant="outline" disabled={saving||!form.titleNl.trim()||!form.descriptionNl.trim()} onClick={()=>void translateToEnglish()}>
+              <Languages className="size-4"/>{text("Maak Engels concept","Create English draft")}
+            </Button>
             <Button
               disabled={
                 saving ||

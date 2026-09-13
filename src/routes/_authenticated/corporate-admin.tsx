@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, Building2, ClipboardCheck, Gauge, Inbox, Landmark, Mail, MessageSquare, Server, ShieldCheck, Star, TriangleAlert, UserCog, Users } from "lucide-react";
+import { Activity, Building2, ClipboardCheck, Gauge, Inbox, Landmark, Mail, MessageSquare, Scale, Server, ShieldCheck, Star, TriangleAlert, UserCog, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getMyCorporateCapabilities } from "@/lib/corporate-business.functions";
 import { useLocale } from "@/lib/locale";
@@ -28,6 +28,7 @@ function Layout() {
     { to: "/corporate-admin/status", label: "Status", icon: Activity, show: permissions?.operations },
     { to: "/corporate-admin/infrastructure", label: text("Infrastructuur", "Infrastructure"), icon: Server, show: permissions?.operations },
     { to: "/corporate-admin/release-checklist", label: text("Releasecheck", "Release check"), icon: ClipboardCheck, show: permissions?.operations },
+    { to: "/corporate-admin/governance", label: text("Governance", "Governance"), icon: Scale, show: permissions?.operations },
     { to: "/corporate-admin/notifications", label: text("Berichten", "Messages"), icon: MessageSquare, show: permissions?.operations },
     { to: "/corporate-admin/issues", label: text("Problemen", "Issues"), icon: TriangleAlert, show: permissions?.issues },
     { to: "/corporate-admin/feedback", label: "Feedback", icon: MessageSquare, show: permissions?.issues },

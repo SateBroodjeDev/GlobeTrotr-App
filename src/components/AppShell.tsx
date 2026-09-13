@@ -63,6 +63,7 @@ const PUBLIC_NAV = [
   { to: "/demo", label: "Demo", icon: Sparkles },
   { to: "/for-agencies", label: "Agency", icon: Building2 },
   { to: "/pricing", label: "Pricing", icon: Tags },
+  { to: "/contact", label: "Contact", icon: Mail },
   { to: "/about", label: "About", icon: HeartHandshake },
 ] as const;
 type ThemePreference = "system" | "light" | "dark";

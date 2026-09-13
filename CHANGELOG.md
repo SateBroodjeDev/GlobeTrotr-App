@@ -4,6 +4,28 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 
+## 2026-09-14 00:08 CEST — Privacy, dynamische website en rustigere reisschermen
+
+- De kritieke cross-workspace RLS-fout bij Agency-offertevarianten is gesloten; alleen leden met `trips_view` binnen de juiste workspace kunnen prijzen lezen.
+- Onnodige `authenticated`-rechten op openbare `SECURITY DEFINER`-RPC's zijn ingetrokken. De bewust anonieme, veldbeperkte publieksfuncties blijven met een expliciete allowlist en regressietest bewaakt.
+- Bestaande bescherming tegen spreadsheetformules, ingelogde vluchtquota en directe inzage in leden-e-mails is opnieuw in de securitytest vastgelegd.
+- De homepage toont actuele openbare reizen en legt de Europese opslag, Duitse applicatieservers en persoonlijke privacycontrole concreet uit. Contact staat in de hoofdnavigatie.
+- De Over-pagina combineert het oprichtersverhaal met controleerbare feiten en productstatussen zonder verzonnen percentages.
+- Reisinstellingen zijn opgesplitst per onderwerp, de planningseditor scheidt boekingen van dagplanning en uitgaven kunnen op tekst, categorie en betaler worden gefilterd.
+- Corporate Admin kan via een provider-neutrale serverkoppeling een Engels vertaalconcept maken; publicatie blijft een bewuste handmatige actie.
+- Migraties `20260908078000` tot en met `20260908082000` en hun nieuwe SQL-regressietests staan klaar voor uitvoering.
+- Alle 34 applicatietests en de client- en serverproductiebuild slagen.
+
+## 2026-09-13 23:52 CEST — Governance, Agency-inzicht en publieke vindbaarheid
+
+- De publieke site bevat een sitemap, zoekmachine-instructies en uitgebreidere algemene metadata; routespecifieke canonical-URL's, previews en structured data blijven onderdeel van de laatste webcontrole.
+- Corporate Admin krijgt één governancepagina voor gecontroleerde featureflags, privacyverzoeken met wettelijke deadline en interne incidentregistratie.
+- Wijzigingen aan featureflags, privacyverzoeken en incidenten worden met actor en context in de bestaande auditlog vastgelegd; de nieuwe tabellen zijn uitsluitend via de serverlaag bereikbaar.
+- Agency Admin krijgt rapportage voor klanten, reizen, offerteconversie, geaccepteerde offertewaarde, werkvoorraad en declarabele kosten.
+- Bevoegde Agency-planners kunnen afzonderlijke herinneringstermijnen instellen voor taken, offertes en documenten. De bestaande onderhoudstaak past deze instellingen toe zodra de dagelijkse VPS-planning actief is.
+- Migraties `20260908078000_corporate_governance.sql`, `20260908079000_agency_reporting_and_automation.sql` en `20260908080000_apply_agency_automation_settings.sql` plus drie rollbacktests staan klaar voor uitvoering.
+- De 34 applicatietests en de client- en serverproductiebuild slagen.
+
 ## 2026-09-13 23:06 CEST — Duidelijke productreis en actuele beta-informatie
 
 - De lange publieke linklijst is verdeeld over Product, Bedrijf, Transparantie en juridische informatie.

@@ -1,7 +1,7 @@
 export const PUBLIC_TODAY = {
-  date: ["13 september 2026", "13 September 2026"],
-  title: ["Een duidelijkere productreis", "A clearer product journey"],
-  description: ["De website en interactieve demo laten nu aan de hand van één echte reis zien hoe route, boekingen, planning en kosten samenkomen.", "The website and interactive demo now use one realistic trip to show how routes, bookings, itineraries and expenses come together."],
+  date: ["14 september 2026", "14 September 2026"],
+  title: ["Meer overzicht en sterkere privacy", "More clarity and stronger privacy"],
+  description: ["Openbare reizen maken de homepage levendiger, lange reisschermen zijn opgedeeld en Agency-offerteprijzen zijn strikter afgeschermd.", "Public trips make the homepage more dynamic, long trip screens are divided into focused sections and agency quote pricing is more strictly protected."],
   completed: [
     ["Eigen Agency Admin-navigatie voor organisatie, klanten, operatie en activiteit", "Dedicated Agency Admin navigation for organisation, clients, operations and activity"],
     ["Klantprofielen met contactgegevens, taal, notities en gekoppelde reizen", "Client profiles with contact details, language, notes and linked trips"],
@@ -52,6 +52,15 @@ export const PUBLIC_TODAY = {
     ["Interactieve productrondleiding van route tot verrekening", "Interactive product tour from route to settlement"],
     ["Beheerbare en expliciet gepubliceerde recensies op de homepage", "Managed and explicitly published testimonials on the homepage"],
     ["Veilig contactformulier met spamcontrole en beheerinbox", "Secure contact form with spam protection and management inbox"],
+    ["Agency-rapportage voor offertes, taken en declarabele kosten", "Agency reporting for quotes, tasks and billable expenses"],
+    ["Instelbare herinneringen voor taken, offertes en documenten", "Configurable reminders for tasks, quotes and documents"],
+    ["Privacydeadlines, featureflags en incidentenbeheer voor GlobeTrotr", "Privacy deadlines, feature flags and incident management for GlobeTrotr"],
+    ["Publieke sitemap en zoekmachine-instructies", "Public sitemap and search engine instructions"],
+    ["Actuele openbare reizen rechtstreeks op de homepage", "Current public trips directly on the homepage"],
+    ["Europese gegevensopslag en privacykeuzes helder uitgelegd", "Clearly explain European data storage and privacy choices"],
+    ["Offerteprijzen strikt isoleren tussen Agency-workspaces", "Strictly isolate quote pricing between agency workspaces"],
+    ["Reisinstellingen, planning en lange uitgavenlijsten overzichtelijk opdelen", "Organise trip settings, planning and long expense lists into focused views"],
+    ["Controleerbare automatische vertaalconcepten voorbereiden", "Prepare reviewable automatic translation drafts"],
   ],
 } as const;
 
@@ -60,9 +69,9 @@ export const PUBLIC_ROADMAP = [
     ["Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren", "Practically verify Agency downgrade and return to GlobeTrotr"], ["De vernieuwde homepage en productrondleiding op telefoon en desktop controleren", "Review the renewed homepage and product tour on mobile and desktop"], ["Actuele beta-beperkingen transparant opvolgen", "Transparently track current beta limitations"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"],
   ]},
   { status: "next", title: ["Samenwerking en communicatie", "Collaboration and communication"], description: ["Uitnodigingen en updates eenvoudiger bij alle reizigers krijgen.", "Make invitations and updates easier to reach every traveller."], items: [
-    ["Automatische reisuitnodigingen en updates via e-mail", "Automated trip invitations and updates by email"], ["Veilige automatische vertaling van feedback", "Safe automatic feedback translation"],
+    ["Automatische reisuitnodigingen en updates via e-mail", "Automated trip invitations and updates by email"], ["Zelf gehoste EU-vertaalprovider aansluiten op de voorbereide vertaalconcepten", "Connect a self-hosted EU translation provider to the prepared translation drafts"],
   ]},
   { status: "later", title: ["Slimmere reisassistentie", "Smarter travel assistance"], description: ["Meer handwerk wegnemen zonder controle over je reis over te nemen.", "Remove more manual work while keeping you in control of your trip."], items: [
-    ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Agency-facturen en betaalstatus zodra Paddle is aangesloten", "Agency invoices and payment status once Paddle is connected"], ["Automatische taakherinneringen en werkstromen", "Automated task reminders and workflows"],
+    ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Agency-facturen en betaalstatus zodra Paddle is aangesloten", "Agency invoices and payment status once Paddle is connected"], ["Uitgebreidere Agency-werkstromen met meerdere acties", "Expanded Agency workflows with multiple actions"],
   ]},
 ] as const;
