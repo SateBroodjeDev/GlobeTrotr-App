@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, Building2, ClipboardCheck, Eye, Gauge, Inbox, Landmark, Mail, MessageSquare, Scale, Server, ShieldCheck, Star, TriangleAlert, UserCog, Users } from "lucide-react";
+import { Activity, Building2, ChevronDown, ClipboardCheck, Eye, Gauge, Inbox, Landmark, Mail, MessageSquare, Scale, Server, ShieldCheck, Star, TriangleAlert, UserCog, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getMyCorporateCapabilities } from "@/lib/corporate-business.functions";
 import { useLocale } from "@/lib/locale";
@@ -41,8 +41,20 @@ function Layout() {
     <header><h1 className="font-display text-3xl font-semibold">Corporate Admin</h1><p className="mt-2 text-sm text-muted-foreground">{text("Beheer GlobeTrotr binnen jouw toegewezen bedrijfsrechten.", "Manage GlobeTrotr within your assigned company permissions.")}</p></header>
     {access.isError ? <p className="rounded-xl border border-destructive/30 p-4 text-sm text-destructive">{text("Je bedrijfsrechten konden niet worden geladen.", "Your company permissions could not be loaded.")}</p> :
       <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
-        <aside className="h-fit lg:sticky lg:top-24">
-          <nav className="grid grid-cols-2 gap-1 rounded-xl border bg-background p-2 sm:grid-cols-3 lg:grid-cols-1" aria-label="Corporate Admin">
+        <details className="group rounded-xl border bg-background lg:hidden">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 px-4 py-3 font-medium">
+            <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+            {visible.find((item) => item.exact ? path === "/corporate-admin" || path === "/corporate-admin/" : path.startsWith(item.to))?.label ?? text("Beheermenu", "Admin menu")}
+          </summary>
+          <nav className="grid grid-cols-2 gap-1 border-t p-2 sm:grid-cols-3" aria-label="Corporate Admin">
+            {visible.map(({ to, label, icon: Icon, exact }) => {
+              const active = exact ? path === "/corporate-admin" || path === "/corporate-admin/" : path.startsWith(to);
+              return <Button key={to} asChild size="sm" variant={active ? "secondary" : "ghost"} className="min-h-10 min-w-0 justify-start"><Link to={to}><Icon className="size-4 shrink-0"/><span className="truncate">{label}</span></Link></Button>;
+            })}
+          </nav>
+        </details>
+        <aside className="hidden h-fit lg:sticky lg:top-24 lg:block">
+          <nav className="grid gap-1 rounded-xl border bg-background p-2" aria-label="Corporate Admin">
             {visible.map(({ to, label, icon: Icon, exact }) => {
               const active = exact ? path === "/corporate-admin" || path === "/corporate-admin/" : path.startsWith(to);
               return <Button key={to} asChild size="sm" variant={active ? "secondary" : "ghost"} className="min-w-0 justify-start"><Link to={to}><Icon className="size-4 shrink-0"/><span className="truncate">{label}</span></Link></Button>;

@@ -74,6 +74,7 @@ export const PUBLIC_TODAY = {
     ["Rustig dagoverzicht voor onderweg", "Calm daily overview while travelling"],
     ["Plaatsgebonden boekingen en gekoppelde uitgaven op de routekaart", "Location-based bookings and linked expenses on the route map"],
     ["Private omslagfoto's voor reizen en dashboardkaarten", "Private cover photos for trips and dashboard cards"],
+    ["Mobiele navigatie, aanraakbediening en productiegerichte teksten aanscherpen", "Refine mobile navigation, touch controls and production copy"],
   ],
 } as const;
 

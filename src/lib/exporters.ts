@@ -198,7 +198,7 @@ export function openPdf(
 <tfoot><tr><td colspan="4">${en ? "Total" : "Totaal"}</td><td>${formatMoney(total, base)}</td><td>${formatMoney(billable, base)}</td></tr></tfoot>
 </table>
 <p class="muted">${en ? "Budget" : "Budget"}: ${formatMoney(trip.budget, base)} · ${en ? "Remaining" : "Restant"}: ${formatMoney(trip.budget - total, base)}</p>
-<script>window.onload=()=>window.print()<\/script>
+<script>window.onload=()=>window.print()</script>
 </body></html>`;
 
   const w = window.open("", "_blank");
@@ -297,7 +297,7 @@ ${
     trip.budget - total,
     base,
   )}</p>
-<script>window.onload=()=>window.print()<\/script>
+<script>window.onload=()=>window.print()</script>
 </body></html>`;
 
   const w = window.open("", "_blank");

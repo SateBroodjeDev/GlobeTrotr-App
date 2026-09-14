@@ -148,6 +148,9 @@ Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar
 
 ## Technische eindcontrole
 
+- [ ] Test de publieke site, reisomgeving, Agency en Corporate Admin op 320, 375, 768 en 1440 pixels zonder overlap of onbereikbare bediening.
+- [ ] Controleer alle icoonknoppen op voldoende aanraakruimte, focusweergave en een begrijpelijk toegankelijk label.
+- [ ] Doorloop Nederlands en Engels op prijzen, betaling, juridische pagina's en alle zichtbare laad-, fout- en lege statussen.
 - [x] Migraties 870–960, alle gelijknamige SQL-tests en afsluitend `pre_vps_release_gate.sql` zijn uitgevoerd.
 - [ ] Open Corporate Admin → Releasecheck, doorloop iedere open productcontrole en registreer iedere afwijking als feedback of bekend probleem.
 - [ ] Maak als eigenaar een reistaak met verantwoordelijke en deadline, rond hem af en verwijder hem.

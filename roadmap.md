@@ -8,7 +8,7 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-Alle databasemigraties en SQL-regressietests tot en met migratie 960 zijn uitgevoerd. De nieuwe reisfuncties en de afsluitende pre-VPS-releasepoort zijn daarmee technisch toegepast; de praktische productacceptatie blijft open.
+Alle databasemigraties en SQL-regressietests tot en met migratie 960 zijn uitgevoerd. De nieuwe reisfuncties en de afsluitende pre-VPS-releasepoort zijn daarmee technisch toegepast. Migratie 970 voegt de laatste productie-UI-controles toe en staat klaar voor uitvoering; de praktische productacceptatie blijft open.
 
 ## Eerstvolgende controle
 
@@ -268,6 +268,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Rustig dagoverzicht voor onderweg met uitsluitend vandaag: planning, adressen, boekingen, documenten, weer en openstaande taken.
 - [ ] Later optionele tweerichtings-agendasynchronisatie onderzoeken.
 - [ ] Verdere mobiele, toegankelijkheids- en performancecontrole.
+- [x] Corporate Admin-navigatie op kleine schermen inklapbaar maken, icoonknoppen vergroten en productiegerichte foutteksten gebruiken.
 - [ ] Grote bundles splitsen waar dit de gemeten laadtijd werkelijk verbetert.
 - [ ] Automatische vertaling van feedback en bekende problemen pas na keuze van een veilige provider en bewaarbeleid.
 - [ ] Automatische vertaalconcepten voor statusberichten, bekende problemen en publieke communicatie bouwen, met verplichte menselijke controle vóór publicatie.

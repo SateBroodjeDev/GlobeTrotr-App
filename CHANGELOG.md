@@ -5,6 +5,9 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 ## 2026-09-14 12:00 CEST — Onderhoud, privacyverzoeken en laatste acceptatievoorbereiding
 
+- Een productie-UI-audit heeft de mobiele Corporate Admin-navigatie ingeklapt, icoonknoppen vergroot, Engelse prijsvoordelen hersteld en verouderde migratiemeldingen vervangen door bruikbare foutteksten.
+- Recensies sluiten weer met het juiste aanhalingsteken en de Engelse Corporate Admin-releasecheck toont nu werkelijk de Engelse labels en datumopmaak.
+- Migratie `20260908097000_production_ui_acceptance.sql` en `production_ui_acceptance.sql` voegen de definitieve breedte-, touch- en NL/EN-tekstcontrole aan Corporate Admin toe.
 - Migratie `20260908096000_pre_vps_release_gate.sql` en `pre_vps_release_gate.sql` zijn op 14 september 2026 zonder fouten uitgevoerd; de afsluitende controle bewaakt alle nieuwe checklistonderdelen, taak-RLS en de private omslagbucket.
 - De printbare reisgids neemt de eigen omslagfoto mee wanneer die veilig voor de ingelogde gebruiker is geladen.
 - Een reis heeft nu een gezamenlijke takenlijst met verantwoordelijke, deadline, afronden en verwijderen. Lezen en wijzigen worden in de serverlaag tegen het reis- of Agency-recht gecontroleerd.

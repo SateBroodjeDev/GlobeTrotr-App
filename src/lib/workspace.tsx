@@ -270,17 +270,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       let id = user ? crypto.randomUUID() : uid();
       let revision: string | undefined;
       if (user) {
-        try {
-          const created = await createTripInDatabase({
-            data: { tripId: id, name, template, start: today, budget: 1500 },
-          });
-          id = created.tripId;
-          revision = created.revision;
-        } catch (error) {
-          // Vóór de UUID-migratie kan de database deze reis nog niet maken.
-          // De bestaande JSON-opslag blijft dan compatibel werken.
-          throw error;
-        }
+        const created = await createTripInDatabase({
+          data: { tripId: id, name, template, start: today, budget: 1500 },
+        });
+        id = created.tripId;
+        revision = created.revision;
       }
       const current = stateRef.current;
       const next = {
