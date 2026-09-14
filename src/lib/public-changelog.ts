@@ -45,6 +45,17 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-15-account-and-mail-control", version: "Beta 0.42", publishedAt: "2026-09-15T00:25:00+02:00",
+    title: "Meer grip op toegang en betrouwbare mail", titleEn: "More control over access and reliable email",
+    summary: "Beheer gekoppelde inlogmethoden en volg, herstel of pauzeer de bezorging van belangrijke e-mail.", summaryEn: "Manage linked sign-in methods and track, recover or pause important email delivery.",
+    changes: [
+      {kind:"new",title:"Gekoppelde inlogmethoden",titleEn:"Linked sign-in methods",description:"Koppel Google, Facebook en Discord aan hetzelfde account en verwijder een extra methode veilig.",descriptionEn:"Link Google, Facebook and Discord to the same account and safely remove an additional method."},
+      {kind:"improved",title:"Zichtbare uitnodigingsbezorging",titleEn:"Visible invitation delivery",description:"Beheerders zien of een uitnodigingsmail klaarstaat, wordt verzonden, is aangekomen of aandacht nodig heeft.",descriptionEn:"Administrators can see whether an invitation email is queued, sending, delivered or needs attention."},
+      {kind:"improved",title:"Gecontroleerde bezorging",titleEn:"Controlled delivery",description:"Servicemail kan tijdens onderhoud veilig wachten en na een beheercontrole worden vrijgegeven.",descriptionEn:"Service email can wait safely during maintenance and be released after an administrative check."},
+      {kind:"fixed",title:"Geen vastgelopen verzending",titleEn:"No stuck delivery",description:"Een verlopen verzendpoging wordt opnieuw aangeboden en stopt na een begrensd aantal pogingen.",descriptionEn:"An expired delivery attempt is retried and stops after a limited number of attempts."},
+    ],
+  },
+  {
     id: "2026-09-14-passwordless-entry", version: "Beta 0.41", publishedAt: "2026-09-14T23:45:00+02:00",
     title: "Makkelijker weer toegang tot je account", titleEn: "Easier account access",
     summary: "Vraag vanaf het inlogscherm veilig een herstelmail of een eenmalige inloglink aan.", summaryEn: "Securely request account recovery or a single-use sign-in link from the sign-in screen.",

@@ -1,5 +1,16 @@
 # GlobeTrotr changelog
 
+## 2026-09-15 00:25 CEST — Accountkoppelingen en betrouwbare mailbezorging
+
+- Account koppelt en ontkoppelt de ondersteunde Google-, Facebook- en Discord-identiteiten veilig.
+- Reis- en Agency-uitnodigingen worden aan hun actuele mailbezorgstatus gekoppeld zonder geheime uitnodigingslinks op te slaan.
+- Corporate Admin toont de laatste servicemails en kan een mislukte verzending gecontroleerd opnieuw aanbieden.
+- OAuth-profielnamen worden uit meerdere veilige providergegevens genormaliseerd.
+- Corporate Admin kan servicemail met een verplichte reden pauzeren of activeren; vastgehouden berichten worden daarbij atomair verwerkt en de wijziging wordt geaudit.
+- Verlopen claims uit de service-, bedrijfs- en algemene workerwachtrij herstellen automatisch en stoppen na tien mislukte pogingen.
+- SMTP-antwoorden leveren een bruikbare, begrensde foutcode op zonder ontvanger, inhoud of geheimen in de foutcode te verwerken.
+- Migraties 1050–1070, regressietests, Corporate Admin-checks en een volledige implementatiehandleiding zijn toegevoegd.
+
 ## 2026-09-14 23:45 CEST — Herstel en inloggen zonder wachtwoord
 
 - Het inlogscherm kan nu rechtstreeks een wachtwoordherstelmail of een eenmalige magic link aanvragen.

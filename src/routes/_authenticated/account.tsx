@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Trash2,
   Upload,
+  Link2,
   Unlink,
   UserRound,
 } from "lucide-react";
@@ -67,9 +68,9 @@ const DEFAULT_COMMUNICATION = { invitations: true, tripUpdates: true, payments: 
 
 type ThemePreference = "system" | "light" | "dark";
 const OAUTH_PROVIDERS = [
-  { id: "apple", label: "Apple" },
   { id: "google", label: "Google" },
-  { id: "azure", label: "Microsoft" },
+  { id: "facebook", label: "Facebook" },
+  { id: "discord", label: "Discord" },
 ] as const;
 
 const LANGUAGES = [
@@ -337,6 +338,20 @@ function AccountPage() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Provider ontkoppelen lukte niet.");
     } finally {
+      setOauthAction(undefined);
+    }
+  }
+
+  async function linkOAuth(provider: (typeof OAUTH_PROVIDERS)[number]["id"]) {
+    setOauthAction(`link-${provider}`);
+    try {
+      const { error } = await supabase.auth.linkIdentity({
+        provider,
+        options: { redirectTo: `${window.location.origin}/account` },
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : text("Inlogmethode koppelen lukte niet.", "Could not link sign-in method."));
       setOauthAction(undefined);
     }
   }
@@ -620,6 +635,23 @@ function AccountPage() {
                     </span>
                   </div>
                 ))}
+              {OAUTH_PROVIDERS.filter(
+                (provider) => !identities.some((identity) => identity.provider === provider.id),
+              ).map((provider) => (
+                <div key={provider.id} className="flex items-center justify-between gap-3 rounded-lg border border-dashed px-3 py-2">
+                  <span>{provider.label}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={Boolean(oauthAction)}
+                    onClick={() => void linkOAuth(provider.id)}
+                  >
+                    <Link2 className="size-4" />
+                    {text("Koppelen", "Link")}
+                  </Button>
+                </div>
+              ))}
             </div>
             <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-medium">Passkeys</p><p className="mt-1 text-xs text-muted-foreground">{text("Log veilig in met biometrie, een pincode of beveiligingssleutel.","Sign in securely with biometrics, a PIN or a security key.")}</p></div><Button type="button" variant="outline" onClick={()=>void addPasskey()}><KeyRound className="size-4"/>{text("Passkey toevoegen","Add passkey")}</Button></div>{passkeys.data?.map((passkey)=><div key={passkey.id} className="flex items-center justify-between gap-3 rounded-lg bg-background px-3 py-2"><span className="min-w-0"><strong className="block truncate text-sm">{passkey.friendly_name||text("Passkey","Passkey")}</strong><span className="text-xs text-muted-foreground">{new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date(passkey.created_at))}</span></span><Button type="button" size="sm" variant="ghost" onClick={()=>void removePasskey(passkey.id)}>{text("Verwijderen","Delete")}</Button></div>)}</div>
             <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">

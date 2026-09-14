@@ -252,6 +252,10 @@ export function TripMembers({
                         ? text("Verlopen", "Expired")
                         : `${text("Geldig tot", "Valid until")} ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(invitation.expiresAt))}`}
                     </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {text("E-mail", "Email")}: {invitation.emailStatus ? emailDeliveryLabel(invitation.emailStatus, text) : text("Niet klaargezet", "Not queued")}
+                      {invitation.emailError ? ` · ${invitation.emailError}` : ""}
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <Button type="button" size="sm" variant="outline" disabled={saving} onClick={() => void manageInvitation(invitation.id, invitation.email, "renew")}>
@@ -295,6 +299,8 @@ export function TripMembers({
     </Card>
   );
 }
+
+function emailDeliveryLabel(status:string,text:(nl:string,en:string)=>string){return({held:text("vastgehouden","held"),pending:text("in wachtrij","queued"),processing:text("wordt verzonden","sending"),sent:text("verzonden","sent"),failed:text("mislukt","failed"),cancelled:text("geannuleerd","cancelled")} as Record<string,string>)[status]??status}
 
 function MemberRow({
   name,

@@ -88,8 +88,8 @@ function TeamPage() {
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             {text(
-              "Reisgenoten voeg je toe in Reisinstellingen → Reisgenoten. E-mailuitnodigingen volgen zodra de SMTP-provider is geactiveerd; deze pagina toont daarom geen verzendbevestiging.",
-              "Add travellers under Trip settings → Travellers. Email invitations will follow once the SMTP provider is enabled; this page therefore shows no delivery confirmation.",
+              "Reisgenoten voeg je toe in Reisinstellingen → Reisgenoten. GlobeTrotr verstuurt de uitnodiging per e-mail; de actuele bezorgstatus staat bij de openstaande uitnodiging.",
+              "Add travellers under Trip settings → Travellers. GlobeTrotr sends the invitation by email; its current delivery status appears with the pending invitation.",
             )}
           </p>
           {trips.length ? (

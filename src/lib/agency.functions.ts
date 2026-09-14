@@ -5,7 +5,7 @@ import { AGENCY_PERMISSIONS, effectiveAgencyPermissions, type AgencyPermission, 
 
 export type AgencyRole = "owner" | "advisor" | "finance";
 export type AgencyTeamMember = { userId: string; name: string; email: string; role: AgencyRole; status: "active" | "suspended"; joinedAt: string | null };
-export type AgencyInvitation = { id: string; email: string; role: Exclude<AgencyRole, "owner">; createdAt: string; expiresAt: string; status: "pending" | "expired" };
+export type AgencyInvitation = { id: string; email: string; role: Exclude<AgencyRole, "owner">; createdAt: string; expiresAt: string; status: "pending" | "expired"; emailStatus:"held"|"pending"|"processing"|"sent"|"failed"|"cancelled"|null; emailError:string|null };
 export type AgencySettings = { workspaceId: string; systemName: string; senderName: string; contactEmail: string; defaultLocale: "nl" | "en"; timezone: string; currency: string; domain: string; tagline: string; accent: number; logoPath: string | null };
 export type AgencyPermissionSettings = { roles: Record<"advisor"|"finance",AgencyPermissionMap>; members: {userId:string;role:"advisor"|"finance";overrides:AgencyPermissionOverrides}[] };
 export type MyAgencyAccess = { workspaceId: string; role: AgencyRole; permissions: AgencyPermissionMap };
@@ -292,6 +292,10 @@ export const getAgencyTeam = createServerFn({ method: "GET" })
       db.from("workspace_invitations").select("id, email, role, created_at, expires_at").eq("workspace_uuid", workspaceId).is("accepted_at", null).is("declined_at", null).is("revoked_at", null).order("created_at", { ascending: false }),
     ]);
     if (memberError || invitationError) throw memberError ?? invitationError;
+    const invitationIds=(invitations??[]).map((item:any)=>item.id);
+    const deliveryResult=invitationIds.length?await db.from("email_outbox").select("invitation_id,status,last_error_code,created_at").eq("invitation_type","agency").in("invitation_id",invitationIds).order("created_at",{ascending:false}):{data:[]};
+    if(deliveryResult.error)throw deliveryResult.error;
+    const latestDelivery=new Map<string,any>();for(const delivery of deliveryResult.data??[])if(!latestDelivery.has(delivery.invitation_id))latestDelivery.set(delivery.invitation_id,delivery);
     const detailed = await Promise.all((members ?? []).map(async (member: any) => {
       const [{ data: profile }, authResult] = await Promise.all([
         db.from("profiles").select("display_name").eq("id", member.user_id).maybeSingle(),
@@ -301,7 +305,7 @@ export const getAgencyTeam = createServerFn({ method: "GET" })
       return { userId: member.user_id, name: profile?.display_name || email || "Team member", email, role: member.role, status: member.status, joinedAt: member.joined_at } as AgencyTeamMember;
     }));
     const now = Date.now();
-    return { members: detailed, invitations: (invitations ?? []).map((item: any) => ({ id: item.id, email: item.email, role: item.role, createdAt: item.created_at, expiresAt: item.expires_at, status: Date.parse(item.expires_at) <= now ? "expired" : "pending" })) as AgencyInvitation[] };
+    return { members: detailed, invitations: (invitations ?? []).map((item: any) => ({ id: item.id, email: item.email, role: item.role, createdAt: item.created_at, expiresAt: item.expires_at, status: Date.parse(item.expires_at) <= now ? "expired" : "pending",emailStatus:latestDelivery.get(item.id)?.status??null,emailError:latestDelivery.get(item.id)?.last_error_code??null })) as AgencyInvitation[] };
   });
 
 export const createAgencyInvitation = createServerFn({ method: "POST" })
@@ -318,7 +322,7 @@ export const createAgencyInvitation = createServerFn({ method: "POST" })
     await agencyAudit(db,workspaceId,context.userId,"invitation.create","invitation",invitation.id,{role:data.role});
     const [{data:settings},{data:recipient}]=await Promise.all([db.from("agency_settings").select("system_name").eq("workspace_uuid",workspaceId).maybeSingle(),db.from("profiles").select("id,locale").ilike("email",email).maybeSingle()]);
     const agencyName=settings?.system_name??"GlobeTrotr Agency";
-    await queueInvitationEmail(db,{recipient:email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je bent uitgenodigd voor het Agency-team van ${agencyName}. / You have been invited to the Agency team at ${agencyName}.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`});
+    await queueInvitationEmail(db,{recipient:email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je bent uitgenodigd voor het Agency-team van ${agencyName}. / You have been invited to the Agency team at ${agencyName}.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`,invitationType:"agency",invitationId:invitation.id});
     return { id: invitation.id as string, token: rawToken, expiresAt: invitation.expires_at as string };
   });
 
@@ -337,7 +341,7 @@ export const manageAgencyInvitation = createServerFn({ method: "POST" })
       const [{data:invitation},{data:settings}]=await Promise.all([db.from("workspace_invitations").select("email").eq("id",data.invitationId).single(),db.from("agency_settings").select("system_name").eq("workspace_uuid",access.workspaceId).maybeSingle()]);
       const {data:recipient}=await db.from("profiles").select("id,locale").ilike("email",invitation?.email??"").maybeSingle();
       const agencyName=settings?.system_name??"GlobeTrotr Agency";
-      if(invitation?.email) await queueInvitationEmail(db,{recipient:invitation.email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je vernieuwde uitnodiging voor ${agencyName} staat klaar. / Your renewed invitation to ${agencyName} is ready.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`});
+      if(invitation?.email) await queueInvitationEmail(db,{recipient:invitation.email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je vernieuwde uitnodiging voor ${agencyName} staat klaar. / Your renewed invitation to ${agencyName} is ready.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`,invitationType:"agency",invitationId:data.invitationId});
     }
     return { ...result, token: rawToken || undefined } as { status: "renewed" | "revoked"; token?: string; expiresAt?: string };
   });

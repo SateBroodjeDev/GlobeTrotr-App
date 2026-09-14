@@ -4,6 +4,15 @@
 
 ## Nieuwe praktische acceptatiecontroles
 
+- [ ] Voer `20260908105000_identity_and_mail_delivery_management.sql` en daarna `identity_and_mail_delivery_management.sql` uit.
+- [ ] Voer `20260908106000_mail_delivery_mode_acceptance.sql` en daarna `mail_delivery_mode_acceptance.sql` uit.
+- [ ] Voer `20260908107000_worker_claim_recovery.sql` en daarna `worker_claim_recovery.sql` uit.
+- [ ] Controleer op Node-02 herstel van een claim ouder dan tien minuten, begrenzing na tien pogingen en een herkenbare maar privacyveilige SMTP-foutcode.
+- [ ] Pauzeer en hervat servicemail vanuit Corporate Admin met een reden; controleer auditlog en het gecontroleerd vrijgeven van vastgehouden mail.
+- [ ] Koppel in Account Google, Facebook en Discord en controleer dat de laatste inlogmethode nooit kan worden verwijderd.
+- [ ] Open Corporate Admin → Bedrijfsmail; controleer status, pogingen en foutcode en bied één mislukt testbericht opnieuw aan.
+- [ ] Maak en verleng een reis- en Agency-uitnodiging; controleer de actuele bezorgstatus bij de uitnodiging en in het centrale overzicht.
+- [ ] Registreer via iedere OAuth-provider en controleer één netjes gevuld profiel en één workspace.
 - [ ] Voer `20260908100000_account_communication_preferences.sql` en daarna `account_communication_preferences.sql` uit.
 - [ ] Voer `20260908101000_direct_invitation_email.sql` en daarna `direct_invitation_email.sql` uit.
 - [ ] Voer `20260908102000_email_template_acceptance.sql` en daarna `email_template_acceptance.sql` uit.

@@ -8,7 +8,7 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd. Productie-Auth heeft eigen registratie- en tokenroutes, Passkeys, Google-, Facebook- en Discord-aanmelding en accountbrede communicatievoorkeuren; de externe providerconfiguratie en praktische acceptatietests staan nog open.
 
-Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitgevoerd. Migraties 1010 tot en met 1040 en hun gerichte acceptatietests moeten nog worden toegepast of bevestigd; de praktische productacceptatie blijft open.
+Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitgevoerd. Migraties 1010 tot en met 1070 en hun gerichte acceptatietests moeten nog worden toegepast of bevestigd; de praktische productacceptatie blijft open.
 
 ## Eerstvolgende controle
 
@@ -37,6 +37,9 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitge
 11. [ ] **Communicatie en betaling:** de SMTP-relay, uniforme templates, herstel- en magic-linkaanvraag en accountvoorkeuren zijn gebouwd; end-to-end Auth-mail en later Paddle moeten nog volledig worden geaccepteerd.
 12. [ ] **OAuth:** de interface en veilige terugkeer voor Google, Facebook en Discord zijn gebouwd; providerapps aanmaken, in Supabase activeren en met nieuwe en bestaande accounts testen.
 13. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
+14. [x] **Inlogmethoden en mailbezorging beheren:** gebruikers koppelen Google, Facebook en Discord vanuit Account; Corporate Admin volgt bezorging en kan mislukte servicemail opnieuw aanbieden.
+15. [x] **Veilige bezorgschakelaar:** Corporate Admin kan servicemail met verplichte reden pauzeren en na een relaycontrole vastgehouden berichten gecontroleerd vrijgeven.
+16. [x] **Zelfherstellende workerclaims:** vastgelopen mail- en achtergrondtaken worden na een verlopen claim opnieuw aangeboden en stoppen begrensd na tien pogingen.
 
 ## P0 — Volledige notificatiedekking
 

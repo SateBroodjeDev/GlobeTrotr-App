@@ -16,6 +16,13 @@ async function rpc(name, body = {}) {
   if (!response.ok) { const error = new Error(`RPC_${name}_${response.status}`); error.code = `RPC_${response.status}`; throw error; }
   return response.status === 204 ? null : response.json();
 }
+async function relayFailure(response) {
+  let detail = {};
+  try { detail = await response.json(); } catch {}
+  const relayCode = String(detail?.error ?? "").replace(/[^A-Z0-9_]/gi, "_").slice(0, 40);
+  const smtpCode = Number.isInteger(detail?.smtpResponseCode) ? `SMTP_${detail.smtpResponseCode}` : `HTTP_${response.status}`;
+  return Object.assign(new Error("MAIL_RELAY_FAILED"), { code: relayCode ? `${smtpCode}_${relayCode}`.slice(0, 80) : smtpCode });
+}
 
 async function handleJob(job) {
   if (job.job_type === "notification.maintenance") { await rpc("run_notification_maintenance", { p_now: new Date().toISOString() }); return; }
@@ -46,7 +53,7 @@ async function pollMail() {
   for (const message of messages ?? []) {
     try {
       const response = await fetch(relayUrl, { method: "POST", headers: { Authorization: `Bearer ${relayToken}`, "Content-Type": "application/json", "Idempotency-Key": message.id }, body: JSON.stringify({ id: message.id, to: message.recipient_email, locale: message.locale, templateKey: message.template_key, payload: message.payload }), signal: AbortSignal.timeout(20_000) });
-      if (!response.ok) throw Object.assign(new Error("MAIL_RELAY_FAILED"), { code: `HTTP_${response.status}` });
+      if (!response.ok) throw await relayFailure(response);
       await updateOutbox(message.id, "sent", null);
       log("info", "mail.sent", { messageId: message.id, templateKey: message.template_key });
     } catch (error) { const code = String(error?.code ?? "MAIL_RELAY_FAILED").slice(0, 80); await updateOutbox(message.id, "failed", code); log("error", "mail.failed", { messageId: message.id, templateKey: message.template_key, errorCode: code }); }
@@ -62,7 +69,7 @@ async function pollCorporateMail() {
       const mailbox = await restSingle(`corporate_mailboxes?id=eq.${encodeURIComponent(message.mailbox_id)}&select=address,display_name`);
       if (!mailbox?.address) throw Object.assign(new Error("MAILBOX_NOT_FOUND"), { code: "MAILBOX_NOT_FOUND" });
       const response = await fetch(relayUrl, { method: "POST", headers: { Authorization: `Bearer ${relayToken}`, "Content-Type": "application/json", "Idempotency-Key": message.id }, body: JSON.stringify({ id: message.id, from: { address: mailbox.address, name: mailbox.display_name }, to: message.recipient_addresses, cc: message.cc_addresses, subject: message.subject, text: message.body_text }), signal: AbortSignal.timeout(20_000) });
-      if (!response.ok) throw Object.assign(new Error("MAIL_RELAY_FAILED"), { code: `HTTP_${response.status}` });
+      if (!response.ok) throw await relayFailure(response);
       await updateCorporateOutbox(message, mailbox.address, "sent", null);
       log("info", "corporate_mail.sent", { messageId: message.id, mailboxId: message.mailbox_id, recipientCount: message.recipient_addresses.length });
     } catch (error) { const code = String(error?.code ?? "MAIL_RELAY_FAILED").slice(0, 80); await updateCorporateOutbox(message, null, "failed", code); log("error", "corporate_mail.failed", { messageId: message.id, mailboxId: message.mailbox_id, errorCode: code }); }

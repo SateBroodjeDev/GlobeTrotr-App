@@ -17,6 +17,8 @@ export type PendingTripInvitation = {
   createdAt: string;
   expiresAt: string;
   status: "pending" | "expired";
+  emailStatus: "held" | "pending" | "processing" | "sent" | "failed" | "cancelled" | null;
+  emailError: string | null;
 };
 
 async function adminClient() {
@@ -67,7 +69,7 @@ export const createTripInvitation = createServerFn({ method: "POST" })
       db.from("trips").select("name").eq("trip_uuid", data.tripId).single(),
       db.from("profiles").select("id,locale").ilike("email", email).maybeSingle(),
     ]);
-    await queueInvitationEmail(db,{recipient:email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${trip?.name??"een reis"} / Invitation to ${trip?.name??"a trip"}`,body:`Je bent uitgenodigd om mee te werken aan ${trip?.name??"een reis"}. / You have been invited to collaborate on ${trip?.name??"a trip"}.`,actionUrl:`https://globetrotr.nl/invite/${token}`});
+    await queueInvitationEmail(db,{recipient:email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${trip?.name??"een reis"} / Invitation to ${trip?.name??"a trip"}`,body:`Je bent uitgenodigd om mee te werken aan ${trip?.name??"een reis"}. / You have been invited to collaborate on ${trip?.name??"a trip"}.`,actionUrl:`https://globetrotr.nl/invite/${token}`,invitationType:"trip",invitationId:invitation.id});
     return { id: invitation.id as string, token, expiresAt: invitation.expires_at as string };
   });
 
@@ -87,6 +89,13 @@ export const listPendingTripInvitations = createServerFn({ method: "GET" })
       .is("revoked_at", null)
       .order("created_at", { ascending: false });
     if (error) throw error;
+    const invitationIds=(invitations??[]).map((item:any)=>item.id);
+    const {data:deliveries,error:deliveryError}=invitationIds.length
+      ? await db.from("email_outbox").select("invitation_id,status,last_error_code,created_at").eq("invitation_type","trip").in("invitation_id",invitationIds).order("created_at",{ascending:false})
+      : {data:[],error:null};
+    if(deliveryError)throw deliveryError;
+    const latestDelivery=new Map<string,any>();
+    for(const delivery of deliveries??[])if(!latestDelivery.has(delivery.invitation_id))latestDelivery.set(delivery.invitation_id,delivery);
     const now = Date.now();
     return (invitations ?? []).map((invitation: any) => ({
       id: invitation.id as string,
@@ -95,6 +104,8 @@ export const listPendingTripInvitations = createServerFn({ method: "GET" })
       createdAt: invitation.created_at as string,
       expiresAt: invitation.expires_at as string,
       status: Date.parse(invitation.expires_at) <= now ? "expired" : "pending",
+      emailStatus: latestDelivery.get(invitation.id)?.status ?? null,
+      emailError: latestDelivery.get(invitation.id)?.last_error_code ?? null,
     })) as PendingTripInvitation[];
   });
 
@@ -134,7 +145,7 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
         db.from("trips").select("name").eq("trip_uuid", data.tripId).single(),
         db.from("profiles").select("id,locale").ilike("email", invitation?.email ?? "").maybeSingle(),
       ]);
-      if (invitation?.email) await queueInvitationEmail(db,{recipient:invitation.email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${trip?.name??"een reis"} / Invitation to ${trip?.name??"a trip"}`,body:`Je vernieuwde uitnodiging voor ${trip?.name??"een reis"} staat klaar. / Your renewed invitation to ${trip?.name??"a trip"} is ready.`,actionUrl:`https://globetrotr.nl/invite/${token}`});
+      if (invitation?.email) await queueInvitationEmail(db,{recipient:invitation.email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${trip?.name??"een reis"} / Invitation to ${trip?.name??"a trip"}`,body:`Je vernieuwde uitnodiging voor ${trip?.name??"een reis"} staat klaar. / Your renewed invitation to ${trip?.name??"a trip"} is ready.`,actionUrl:`https://globetrotr.nl/invite/${token}`,invitationType:"trip",invitationId:data.invitationId});
     }
     return {
       status: result.status as "revoked" | "renewed",
