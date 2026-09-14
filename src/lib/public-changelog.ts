@@ -49,6 +49,19 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-14-production-hosting-preparation",
+    version: "Beta 0.36",
+    publishedAt: "2026-09-14T15:00:00+02:00",
+    title: "De productieomgeving staat klaar",
+    titleEn: "Production hosting is prepared",
+    summary: "De website en achtergrondverwerking zijn voorbereid voor een gescheiden Europese serveropstelling.",
+    summaryEn: "The website and background processing are prepared for a separated European server setup.",
+    changes: [
+      { kind: "secure", title: "Gescheiden web en verwerking", titleEn: "Separated web and processing", description: "De publieke website en achtergrondtaken krijgen elk een eigen serverrol, healthcheck en begrensde netwerktoegang.", descriptionEn: "The public website and background jobs each get a dedicated server role, health check and restricted network access." },
+      { kind: "improved", title: "Veilige updates en herstel", titleEn: "Safer updates and recovery", description: "De productieprocedure bevat vaste stappen voor HTTPS, configuratiecontrole, updates en terugzetten bij problemen.", descriptionEn: "The production procedure includes defined steps for HTTPS, configuration checks, updates and recovery when problems occur." },
+    ],
+  },
+  {
     id: "2026-09-14-release-control-and-privacy",
     version: "Beta 0.35",
     publishedAt: "2026-09-14T12:00:00+02:00",

@@ -4,6 +4,12 @@
 
 ## Nieuwe praktische acceptatiecontroles
 
+- [ ] Start Node-01 met `deploy/web.compose.yml`; controleer containerhealth, HTTPS, HTTP-redirect en het TLS-certificaat.
+- [ ] Start Node-02 met `deploy/worker.compose.yml`; controleer een succesvolle pollcyclus en `http://127.0.0.1:9091/health` zonder poort 9091 publiek open te stellen.
+- [ ] Controleer dat uitsluitend Node-01 poorten 80/443 aanbiedt, SSH op beide nodes met sleutels werkt en `.env.production` rechten `600` heeft.
+- [ ] Voer één nieuwe release uit en herstel daarna proefmatig de vorige commit volgens `VPS_DEPLOYMENT.md`.
+- [ ] Controleer dat onbekende Host-headers en niet-geverifieerde Agency-domeinen nooit Agency-branding of tenantdata tonen.
+- [ ] Koppel een testdomein via CNAME en TXT-verificatie; controleer TLS, juiste Agency-branding, onbekende hosts en automatische intrekking na blokkade of abonnementswijziging.
 - [ ] Maak een nieuw Supabase-productieproject in een EU-regio en controleer dat lokale en VPS-productieconfiguratie naar de juiste projectreferentie wijzen.
 - [ ] Controleer vóór registratie dat `auth.users`, `public.profiles` en `public.workspaces` leeg zijn; registreer via GlobeTrotr en controleer daarna dezelfde gebruikers-UUID in Auth, profiel en workspace.
 - [ ] Voer `npx supabase db push` uit en controleer dat alle migraties tot en met 990 geregistreerd en zonder fout toegepast zijn.

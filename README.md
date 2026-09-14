@@ -76,6 +76,10 @@ De beoogde productieopzet gebruikt één Hetzner-VPS voor de webapp en proxy en 
 
 De eerste productiecontainer staat in `Dockerfile`; `compose.production.yml` definieert afzonderlijke web- en workerservices. De workerhandleiding en vereiste omgevingsvariabelen staan in [`worker/README.md`](worker/README.md). De worker blijft vóór de VPS-implementatie buiten gebruik en e-mail blijft standaard vastgehouden in testmodus.
 
+De concrete installatie voor `GBT-Node-01` en `GBT-Node-02`, inclusief Caddy,
+HTTPS, omgevingsvariabelen, healthchecks en rollback, staat in
+[`VPS_DEPLOYMENT.md`](VPS_DEPLOYMENT.md).
+
 De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke migratie eerst vereist is.
 
 ### Agency Admin

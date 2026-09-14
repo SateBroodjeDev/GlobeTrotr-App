@@ -33,7 +33,7 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 970 zijn uitgev
 7. [x] **Publieke dynamiek en privacyverhaal:** actuele openbare reizen staan op de homepage, Contact staat in de hoofdnavigatie en de Europese opslag en privacykeuzes worden helder uitgelegd.
 8. [x] **Onderhoud en privacy-inbox:** Corporate Admin kan een onderhoudsvenster beheren; gebruikers zien een countdown en kunnen vanuit hun account een privacyverzoek indienen en de actuele status volgen.
 9. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
-10. [ ] **Hostingportabiliteit:** Node/Nitro-doel, VPS-service, stagingdomein, secrets, monitoring en rollback bouwen.
+10. [x] **Hostingportabiliteit:** afzonderlijke Node/Nitro-web- en workerimages, Caddy/TLS, secrets, healthchecks en rollback zijn voorbereid; installatie en externe monitoring volgen tijdens de VPS-uitrol.
 11. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
 12. [ ] **OAuth:** Apple, Google en Microsoft activeren zodra de productie-infrastructuur en providerconfiguratie gereed zijn.
 13. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
@@ -231,7 +231,10 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] `20260908065000_provider_quotas_and_worker_queue.sql` en `provider_quotas_and_worker_queue.sql` uitgevoerd.
 - [x] Workerproces voor VPS 2 bouwen met claim, resultaatregistratie, retries, health-endpoint en afgeschermde provider-healthchecks.
 - [x] Corporate Admin uitbreiden met providergebruik, noodstops met verplichte reden en mislukte workerjobs.
-- [ ] Productieproxy, private verbinding tussen VPS 1 en VPS 2, hostfirewall en echte uptimebewaking configureren.
+- [x] Productieproxy, gescheiden Compose-services, lokale worker-healthcheck en firewallregels als uitvoerbare configuratie en handleiding voorbereiden.
+- [ ] DNS, Caddy-certificaat, hostfirewall, private Hetzner-netwerk en externe uptimebewaking op de echte servers activeren en controleren.
+- [ ] Inkomende hostnames veilig aan uitsluitend geverifieerde actieve Agencies koppelen, met wildcard TLS voor subdomeinen en begrensde on-demand TLS voor eigen domeinen.
+- [ ] Voor eigen Agency-domeinen CNAME naar `dashboard.globetrotr.nl`, een afzonderlijk TXT-verificatierecord, veilige hostselectie en automatische intrekking bij blokkade of abonnementswijziging bouwen.
 - [x] Opslagarchitectuur vastleggen: Supabase Storage blijft eerst actief en alle toekomstige serverkoppelingen gebruiken `provider + bucket + objectKey`.
 - [ ] Alleen bij aantoonbaar kosten- of capaciteitsvoordeel private objecten gecontroleerd naar Hetzner S3 migreren met checksum, terugvalpad en hersteltest.
 

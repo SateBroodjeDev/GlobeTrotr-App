@@ -1,5 +1,14 @@
 # GlobeTrotr changelog
 
+## 2026-09-14 15:00 CEST — Productie-uitrol over twee servers voorbereid
+
+- De webapp en achtergrondworker hebben afzonderlijke Docker Compose-configuraties gekregen.
+- Node-01 serveert de webapp via Caddy met automatische HTTPS; Node-02 draait uitsluitend de worker en publiceert zijn health-endpoint alleen op localhost.
+- De Dockerfile bouwt afzonderlijke web- en worker-images en ontvangt publieke Vite-waarden expliciet tijdens de webbuild.
+- `VPS_DEPLOYMENT.md` beschrijft DNS, secrets, firewall, installatie, healthchecks, updates en rollback voor beide Hetzner-nodes.
+- De productiebuild is zonder fouten uitgevoerd. Compose-validatie volgt op een systeem waarop Docker beschikbaar is.
+- De deploymentdocumentatie begrenst de eerste livegang tot het hoofddomein en beschrijft de veilige vervolgstappen voor Agency-subdomeinen en eigen domeinen via CNAME, TXT-verificatie en begrensde certificaatuitgifte.
+
 Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikersgerichte versie staat op `/changelog`.
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
