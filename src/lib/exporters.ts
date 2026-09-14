@@ -138,7 +138,9 @@ export function downloadTripGpx(trip: Trip) {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = `${safeFileName(trip.name)}.gpx`;
+  document.body.appendChild(anchor);
   anchor.click();
+  anchor.remove();
   URL.revokeObjectURL(url);
 }
 
@@ -233,6 +235,7 @@ export function openGuide(
   rates: Rates,
   brand: { brandName: string; domain: string },
   locale: AppLocale,
+  coverUrl?: string | null,
 ) {
   const en = locale === "en-GB";
   const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
@@ -300,10 +303,15 @@ ${
 <script>window.onload=()=>window.print()</script>
 </body></html>`;
 
-  const w = window.open("", "_blank");
-  if (!w) return false;
-  w.document.write(html);
-  w.document.close();
+  const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${safeFileName(trip.name)}-${en ? "trip-guide" : "reisgids"}.html`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
   return true;
 }
 

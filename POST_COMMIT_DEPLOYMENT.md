@@ -16,17 +16,9 @@ De branch hoort `lovable` te zijn. `.env` mag niet in `git status` of de commit 
 
 ## 2. Controleren welke SQL nog ontbreekt
 
-Open Supabase Dashboard → **Database → Migrations**. Controleer welke versies vanaf `20260908100000` al geregistreerd zijn. Voer alleen ontbrekende migraties uit, altijd in deze volgorde:
+De eigenaar heeft migraties en tests tot en met `20260908112000` al uitgevoerd. Voer na deze commit alleen dit nieuwe bestand uit:
 
-1. `supabase/migrations/20260908100000_account_communication_preferences.sql`
-2. `supabase/migrations/20260908101000_direct_invitation_email.sql`
-3. `supabase/migrations/20260908102000_email_template_acceptance.sql`
-4. `supabase/migrations/20260908103000_social_login_acceptance.sql`
-5. `supabase/migrations/20260908104000_passwordless_auth_acceptance.sql`
-6. `supabase/migrations/20260908105000_identity_and_mail_delivery_management.sql`
-7. `supabase/migrations/20260908106000_mail_delivery_mode_acceptance.sql`
-8. `supabase/migrations/20260908107000_worker_claim_recovery.sql`
-9. `supabase/migrations/20260908108000_production_privacy_acceptance.sql`
+1. `supabase/migrations/20260908113000_branded_corporate_signatures.sql`
 
 Gebruik bij handmatige uitvoering voor ieder bestand afzonderlijk Supabase Dashboard → **SQL Editor → New query**:
 
@@ -36,17 +28,9 @@ Gebruik bij handmatige uitvoering voor ieder bestand afzonderlijk Supabase Dashb
 4. Kies **Run**.
 5. Ga alleen verder wanneer er geen foutmelding staat.
 
-Voer daarna op dezelfde manier deze tests uit. Ze wijzigen geen blijvende testdata:
+Voer daarna op dezelfde manier deze test uit. Deze wijzigt geen blijvende testdata:
 
-1. `supabase/tests/account_communication_preferences.sql`
-2. `supabase/tests/direct_invitation_email.sql`
-3. `supabase/tests/email_template_acceptance.sql`
-4. `supabase/tests/social_login_acceptance.sql`
-5. `supabase/tests/passwordless_auth_acceptance.sql`
-6. `supabase/tests/identity_and_mail_delivery_management.sql`
-7. `supabase/tests/mail_delivery_mode_acceptance.sql`
-8. `supabase/tests/worker_claim_recovery.sql`
-9. `supabase/tests/production_privacy_acceptance.sql`
+1. `supabase/tests/branded_corporate_signatures.sql`
 
 Stop bij een SQL-fout en bewaar de volledige foutmelding. Zet de bezorgmodus nog niet op live voordat Node-02 opnieuw is gebouwd en de relaytest HTTP `202` geeft.
 
@@ -60,10 +44,10 @@ Controleer in Supabase Dashboard → **Authentication → URL Configuration**:
 
 Controleer daarna:
 
-- Custom SMTP en de templates uit `supabase/templates`.
-- Google, Facebook en Discord volgens `OAUTH_SETUP.md`.
-- Handmatig koppelen van identiteiten, zodat een ingelogde gebruiker providers vanuit Account kan koppelen.
+- Custom SMTP en alle templates uit `supabase/templates`, inclusief `invite.html` bij **Invite user**.
+- Google en Discord blijven actief zoals reeds werkend bevestigd.
 - Passkeys ingeschakeld voor het productieproject.
+- TOTP MFA ingeschakeld; handmatig koppelen van identiteiten blijft uitgeschakeld.
 
 ## 4. Node-01 bijwerken
 
@@ -104,7 +88,30 @@ docker compose --env-file .env.production -f deploy/worker.compose.yml logs --ta
 curl -fsS http://127.0.0.1:9091/health
 ```
 
-Beide containers moeten `healthy` zijn. Poorten `9091` en `9092` mogen niet publiek bereikbaar zijn.
+Vul vóór de herbouw op Node-02 ook de IMAP-instellingen in `.env.production` in:
+
+```dotenv
+IMAP_HOST=mail.globetrotr.nl
+IMAP_PORT=993
+IMAP_SECURE=true
+IMAP_REJECT_UNAUTHORIZED=true
+IMAP_USER=info@globetrotr.nl
+IMAP_PASSWORD=VUL_HET_IMAP_WACHTWOORD_IN
+IMAP_MAILBOX=INBOX
+IMAP_SYNC_INTERVAL_MS=60000
+IMAP_INITIAL_LOOKBACK_DAYS=14
+```
+
+`IMAP_USER` moet een bestaand postvak of centraal catch-all-postvak zijn dat de berichten voor de aangemaakte GlobeTrotr-adressen werkelijk ontvangt. GlobeTrotr maakt de administratieve mailbox in het portaal aan; het fysieke postvak of alias moet ook in ZXCS bestaan zolang ZXCS geen provisioning-API aan het portaal aanbiedt.
+
+Controleer na het starten ook de inboxworker:
+
+```bash
+docker compose --env-file .env.production -f deploy/worker.compose.yml ps
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 imap-sync
+```
+
+De containers `worker`, `mail-relay` en `imap-sync` moeten draaien. Poorten `9091` en `9092` mogen niet publiek bereikbaar zijn.
 
 Voer daarna de eerder gebruikte relaytest naar een bestaand testadres uit. Ga alleen verder wanneer deze HTTP `202` geeft en het bericht precies eenmaal aankomt.
 
@@ -120,11 +127,29 @@ Voer daarna de eerder gebruikte relaytest naar een bestaand testadres uit. Ga al
 
 Test ook één mislukte verzending naar een bewust ongeldig testadres. Corporate Admin moet een begrensde foutcode tonen, bijvoorbeeld `SMTP_550_EENVELOPE`. Kies daarna **Opnieuw** met een geldige ontvanger of maak een nieuwe geldige uitnodiging.
 
+## SMTP 550, DNS en serverklok controleren
+
+`SMTP_550_EENVELOPE` met `No such recipient here` ontstaat tijdens `RCPT TO`: de mailserver weigert dat ontvangstadres voordat de inhoud wordt verzonden. Dit is geen SPF- of DKIM-fout. Test met een bestaand extern postvak en laat ZXCS authenticated relay voor de gebruikte SMTP-gebruiker toestaan.
+
+```bash
+dig +short MX globetrotr.nl
+dig +short TXT globetrotr.nl
+dig +short TXT _dmarc.globetrotr.nl
+# vervang default door de selector uit het ZXCS-mailpaneel
+dig +short TXT default._domainkey.globetrotr.nl
+
+sudo timedatectl set-timezone Europe/Amsterdam
+sudo timedatectl set-ntp true
+timedatectl status
+```
+
+Controleer in Supabase onder **Authentication > SMTP Settings** dat host, poort 587, volledige gebruikersnaam, wachtwoord, afzenderadres en afzendernaam exact bij hetzelfde werkende ZXCS-postvak horen. Herstelmail en magic link gebruiken deze Supabase-instelling, niet de relaycontainer op Node-02. De systeemklok moet `System clock synchronized: yes` tonen. Applicatielogs mogen intern UTC gebruiken; de website toont de accounttijdzone.
+
 ## 7. Praktische acceptatie
 
 Doorloop in **Corporate Admin → Releasecheck** minstens deze nieuwe groepen:
 
-- Google, Facebook en Discord koppelen en veilig ontkoppelen.
+- Google en Discord koppelen en veilig ontkoppelen.
 - OAuth-registratie levert één profiel en één workspace op.
 - Reis- en Agency-uitnodigingen tonen hun e-mailbezorgstatus.
 - Servicemail bekijken, pauzeren, hervatten en opnieuw aanbieden.
@@ -152,5 +177,5 @@ Controleer daarna registratie, tokenlinks, wachtwoordherstel, magic link, OAuth,
 
 - Paddle na commerciële goedkeuring en domeincontrole.
 - Geautomatiseerde CNAME/TXT-onboarding en begrensde certificaatuitgifte voor eigen Agency-domeinen.
-- Inkomende bedrijfsmail via IMAP of een mailprovider-API; SMTP verzorgt nu alleen verzending.
+- Automatische aanleg van fysieke ZXCS-postvakken en aliassen; dit vereist een provisioning-API van de mailprovider.
 - Externe monitoring, volledige back-upherstelproef en de finale securityscan.

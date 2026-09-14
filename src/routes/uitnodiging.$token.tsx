@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { Check, Clock3, LogIn, Mail, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
@@ -14,7 +14,7 @@ import type { TripMemberRole } from "@/lib/types";
 export const Route = createFileRoute("/uitnodiging/$token")({ component: InvitationPage });
 
 export function InvitationPage() {
-  const { token } = Route.useParams();
+  const { token } = useParams({ strict: false }) as { token: string };
   const { user } = useAuth();
   const { text } = useLocale();
   const [responding, setResponding] = useState(false);

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/token/$tokenHash")({
-  validateSearch: (search: Record<string, unknown>) => ({ type: search["type"] === "recovery" || search["type"] === "email_change" ? search["type"] : "email" as const }),
+  validateSearch: (search: Record<string, unknown>) => ({ type: search["type"] === "recovery" || search["type"] === "email_change" || search["type"] === "invite" ? search["type"] : "email" as const }),
   component: TokenPage,
 });
 

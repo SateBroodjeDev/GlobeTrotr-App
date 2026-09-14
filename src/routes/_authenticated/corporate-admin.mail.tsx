@@ -149,8 +149,8 @@ function Page() {
             <CardContent className="space-y-4">
               <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
                 {text(
-                  "SMTP-verzending loopt via de beveiligde relay op Node-02. IMAP-inboxsync wordt apart geactiveerd.",
-                  "SMTP delivery runs through the protected relay on Node-02. IMAP inbox sync is activated separately.",
+                  "SMTP verzendt via de beveiligde relay en de IMAP-worker leest ontvangen berichten in. Maak hetzelfde adres ook als postvak of alias aan bij ZXCS.",
+                  "SMTP sends through the protected relay and the IMAP worker imports received messages. Create the same address as a mailbox or alias in ZXCS as well.",
                 )}
               </p>
               <div className="grid gap-4 sm:grid-cols-2">

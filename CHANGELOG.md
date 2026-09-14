@@ -1,16 +1,43 @@
 # GlobeTrotr changelog
 
+## 2026-09-15 — Volwaardige bedrijfsmail
+
+- Alle migraties en SQL-tests tot en met 1120 zijn door de eigenaar uitgevoerd en als voltooid vastgelegd.
+- Persoonlijke en gedeelde mailboxen krijgen standaard een herkenbare handtekening met naam, GlobeTrotr, tagline, website en contactlink.
+- Uitgaande bedrijfsmail gebruikt een responsieve HTML-opmaak met het GlobeTrotr-logo, een duidelijke CTA en een veilige platte-tekstvariant.
+- Volledige uitgaande berichten worden voortaan ook in de verzonden conversatie opgeslagen.
+- De losse OAuth-installatiehandleiding is verwijderd omdat Google en Discord volledig zijn ingesteld en werkend bevestigd.
+
+## 2026-09-15 — Bedrijfsmail en productieacceptatie
+
+- Bedrijfsmail leest ontvangen berichten via een afzonderlijke IMAP-worker op Node-02 en toont de volledige berichttekst in het portaal.
+- Corporate Admin kan een medewerker per e-mail uitnodigen, een persoonlijke mailbox aanmaken en toegang tot gedeelde mailboxen beheren.
+- Nieuwe mailboxen krijgen automatisch een GlobeTrotr-handtekening; bestaande aangepaste handtekeningen blijven behouden bij latere rechtenwijzigingen.
+- De implementatiehandleiding is na uitvoering van migraties 1090–1120 doorgeschoven naar de eerstvolgende wijziging.
+
+## 2026-09-14 23:55 CEST ? Productietoegang, mail en privacy
+
+- Google en Discord zijn de enige externe inlogproviders; passkeys en TOTP zijn vanuit Account te beheren.
+- `/register` en beide uitnodigingslinks werken rechtstreeks door route-onafhankelijke parameters.
+- De statuspagina werkt voor gasten en ingelogde gebruikers en toont Engelse componentnamen bij regionale Engelse taalinstellingen.
+- Corporate Admin kan privacyverzoeken openen, bijwerken, beantwoorden en het gekoppelde gebruikersaccount openen; het antwoord verschijnt veilig in Account.
+- Contactantwoorden openen de interne bedrijfsmailcomposer. Nieuwe gedeelde en persoonlijke mailboxen krijgen een standaardhandtekening.
+- GPX-download, reisgidsdownload en kaartbegrenzing zijn robuuster; betaalverzoeken zijn gericht op gekoppelde reisaccounts.
+- Agency-uitnodigingen nemen organisatienaam en accentkleur mee binnen de GlobeTrotr-mailstijl.
+- De privacy- en cookie-informatie beschrijft de actieve Europese infrastructuur, ZXCS-mail, Turnstile, Google Search Console en browseropslag.
+- Migraties 1090?1110 voegen de bijbehorende Corporate Admin-acceptatiecontroles toe.
+
 ## 2026-09-15 00:40 CEST — Privacy- en cookie-informatie voor productie
 
 - De privacyverklaring beschrijft de actieve productieomgeving bij Hetzner, Europese Supabase-opslag en de mailbox- en SMTP-infrastructuur van ZXCS.
-- Cloudflare Turnstile, Google, Facebook en Discord zijn met hun minimale gegevensverwerking en mogelijke externe browseropslag opgenomen.
+- Cloudflare Turnstile, Google en Discord zijn met hun minimale gegevensverwerking en mogelijke externe browseropslag opgenomen.
 - De browseropslaginventaris vermeldt nu ook de functionele `sidebar_state`-cookie van zeven dagen en noodzakelijke Turnstile-beveiligingsgegevens.
 - Verouderde tekst over een toekomstige hosting- en SMTP-omschakeling is vervangen door de huidige live situatie.
 - Een afzonderlijke Corporate Admin-controle en SQL-acceptatietest dekken de uiteindelijke juridische productiecontrole.
 
 ## 2026-09-15 00:25 CEST — Accountkoppelingen en betrouwbare mailbezorging
 
-- Account koppelt en ontkoppelt de ondersteunde Google-, Facebook- en Discord-identiteiten veilig.
+- Account beheert de ondersteunde Google- en Discord-identiteiten; Facebook is uit het product en de actuele documentatie verwijderd.
 - Reis- en Agency-uitnodigingen worden aan hun actuele mailbezorgstatus gekoppeld zonder geheime uitnodigingslinks op te slaan.
 - Corporate Admin toont de laatste servicemails en kan een mislukte verzending gecontroleerd opnieuw aanbieden.
 - OAuth-profielnamen worden uit meerdere veilige providergegevens genormaliseerd.
@@ -26,9 +53,9 @@
 - Een actuele implementatielijst groepeert resterend werk voor database, Supabase Auth, beide VPS'en en productacceptatie.
 - Twee nieuwe Corporate Admin-controles dekken herstel en wachtwoordloos inloggen.
 
-## 2026-09-14 23:30 CEST — Inloggen met Google, Facebook en Discord
+## 2026-09-14 23:30 CEST — Inloggen met Google en Discord
 
-- Inloggen en registreren bieden nu Google, Facebook en Discord naast e-mail, wachtwoord en passkey.
+- Inloggen en registreren bieden nu Google en Discord naast e-mail, wachtwoord en passkey.
 - OAuth bewaart een veilige interne terugkeerroute, zodat aanmelden vanuit een uitnodiging de gebruiker terugbrengt naar die uitnodiging.
 - De privacyverklaring beschrijft welke minimale accountgegevens een gekozen loginprovider verwerkt en dat GlobeTrotr nooit het providerwachtwoord ontvangt.
 - Een providerhandleiding en vijf gerichte Corporate Admin-acceptatiecontroles begeleiden de externe configuratie en identiteitstest.

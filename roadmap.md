@@ -6,9 +6,9 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 ## Actuele stand — 14 september 2026
 
-De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd. Productie-Auth heeft eigen registratie- en tokenroutes, Passkeys, Google-, Facebook- en Discord-aanmelding en accountbrede communicatievoorkeuren; de externe providerconfiguratie en praktische acceptatietests staan nog open.
+De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd. Productie-Auth heeft eigen registratie- en tokenroutes, passkeys, TOTP, Google- en Discord-aanmelding en accountbrede communicatievoorkeuren; de praktische acceptatietests staan nog open.
 
-Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitgevoerd. Migraties 1010 tot en met 1070 en hun gerichte acceptatietests moeten nog worden toegepast of bevestigd; de praktische productacceptatie blijft open.
+Alle databasemigraties en SQL-regressietests tot en met migratie 1120 zijn door de eigenaar uitgevoerd. Alleen migratie 1130 en zijn gerichte acceptatietest horen bij de eerstvolgende implementatie; de praktische productacceptatie blijft open.
 
 ## Eerstvolgende controle
 
@@ -35,9 +35,9 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitge
 9. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
 10. [x] **Hostingportabiliteit:** afzonderlijke Node/Nitro-web- en workerimages, Caddy/TLS, secrets, healthchecks en rollback zijn voorbereid; installatie en externe monitoring volgen tijdens de VPS-uitrol.
 11. [ ] **Communicatie en betaling:** de SMTP-relay, uniforme templates, herstel- en magic-linkaanvraag en accountvoorkeuren zijn gebouwd en de productieprivacy noemt ZXCS; end-to-end Auth-mail en later Paddle moeten nog volledig worden geaccepteerd.
-12. [ ] **OAuth:** de interface en veilige terugkeer voor Google, Facebook en Discord zijn gebouwd; providerapps aanmaken, in Supabase activeren en met nieuwe en bestaande accounts testen.
+12. [x] **OAuth:** Google en Discord zijn in Supabase geactiveerd en praktisch werkend bevestigd.
 13. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
-14. [x] **Inlogmethoden en mailbezorging beheren:** gebruikers koppelen Google, Facebook en Discord vanuit Account; Corporate Admin volgt bezorging en kan mislukte servicemail opnieuw aanbieden.
+14. [x] **Inlogmethoden en mailbezorging beheren:** gebruikers koppelen Google en Discord vanuit Account; Corporate Admin volgt bezorging en kan mislukte servicemail opnieuw aanbieden.
 15. [x] **Veilige bezorgschakelaar:** Corporate Admin kan servicemail met verplichte reden pauzeren en na een relaycontrole vastgehouden berichten gecontroleerd vrijgeven.
 16. [x] **Zelfherstellende workerclaims:** vastgelopen mail- en achtergrondtaken worden na een verlopen claim opnieuw aangeboden en stoppen begrensd na tien pogingen.
 
@@ -207,7 +207,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Personeelsdetail uitbreiden met rechtenhistorie en een tweede bevestiging bij deactivatie of promotie tot eigenaar.
 - [x] Auditlog doorzoekbaar en filterbaar maken en audit-, omzet- en factuurselecties veilig als CSV exporteren.
 - [x] Quota-reset voorzien van verplichte reden, auditregistratie en een extra bevestiging.
-- [ ] IMAP of mailprovider-API op de VPS aansluiten voor ontvangen mail; SMTP blijft uitsluitend de verzendlaag.
+- [x] IMAP-worker voor ontvangen bedrijfsmail gebouwd; Node-02 en het centrale ZXCS-postvak moeten tijdens de uitrol worden geconfigureerd.
 - [ ] Persoonlijke adressen volgens `eerstelettervoornaam.achternaam@globetrotr.nl` provisionen en mailboxrechten praktisch controleren.
 - [ ] Paddle-webhooks als gezaghebbende bron aansluiten op de interne factuur- en omzetweergave.
 - [x] Moderatie van openbare reizen met verplichte reden, eigenaarsmelding en auditlog.

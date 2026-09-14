@@ -31,3 +31,14 @@ services:
       interval: 30s
       timeout: 8s
       retries: 4
+
+  imap-sync:
+    build:
+      context: ..
+      target: worker-runtime
+    command: ["node", "worker/imap-sync.mjs"]
+    restart: unless-stopped
+    env_file: ../.env.production
+    depends_on:
+      worker:
+        condition: service_healthy

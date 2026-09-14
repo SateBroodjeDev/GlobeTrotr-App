@@ -1,11 +1,30 @@
 # GlobeTrotr beta-testlijst
 
-> Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
+## Laatste productie-update (na migratie 1130)
+
+- [ ] Open `/register` rechtstreeks en maak een account aan; controleer bevestigingslink en juiste terugkeer naar GlobeTrotr.
+- [ ] Vraag op `/auth` een herstelmail en magic link aan in NL en EN; controleer opmaak, taal, tokenroute en eenmalig gebruik.
+- [ ] Log in met Google, Discord en een passkey; stel daarna TOTP in en controleer een nieuwe wachtwoordlogin met juiste en onjuiste code.
+- [ ] Open Status als gast en ingelogde gebruiker in NL en EN; alle componentnamen en statuslabels horen in dezelfde taal te staan.
+- [ ] Maak een reis- en Agency-uitnodiging; controleer werkende link, bezorgstatus en Agency-naam/accentkleur.
+- [ ] Dien vanuit Account een privacyverzoek in; open, wijzig en beantwoord het in Governance, open de gebruiker en controleer het antwoord in Account.
+- [ ] Beantwoord een contactbericht via Bedrijfsmail en controleer afzender, ontvanger, onderwerp, standaardhandtekening en bezorgstatus.
+- [ ] Maak een gedeelde en persoonlijke mailbox zonder handtekening; controleer de gegenereerde GlobeTrotr-handtekening en pas hem als beheerder aan.
+- [ ] Nodig vanuit Corporate Admin een nieuwe medewerker uit, wijs een persoonlijke mailbox toe en geef toegang tot een gedeelde mailbox.
+- [ ] Open de medewerkeruitnodiging uit de Supabase-template `invite.html`; controleer de eigen `/token/...?...type=invite`-route en de eerste login.
+- [ ] Laat een bestaand extern adres mail sturen naar een GlobeTrotr-postvak; controleer IMAP-inleesstatus, volledige inhoud en beantwoorden vanuit het portaal.
+- [ ] Verstuur vanuit een persoonlijke en gedeelde mailbox een bericht; controleer logo, afzendernaam, tagline, website, contactlink, CTA en de mailboxhandtekening in mobiel, desktop en donkere mailweergave.
+- [ ] Download GPX en reisgids, open beide bestanden en controleer routevolgorde, tekst, omslag en taal.
+- [ ] Verstuur een betaalverzoek in een reis met echt gekoppelde accounts; controleer melding bij de ontvanger en duidelijke uitleg wanneer alleen naamdeelnemers bestaan.
+- [ ] Controleer de routekaart op telefoon en desktop; de kaart mag niet buiten zijn kaartvak lopen.
+- [ ] Controleer beide serverklokken en voer een geldige en ongeldige SMTP-test uit; leg bij 550 de volledige serverrespons vast.
+
+> Alle databasemigraties en SQL-regressietests tot en met migratie 1120 zijn uitgevoerd. Alleen migratie 1130 en zijn SQL-test horen nog bij de volgende uitrol. De praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
 
 ## Nieuwe praktische acceptatiecontroles
 
 - [ ] Voer `20260908108000_production_privacy_acceptance.sql` en daarna `production_privacy_acceptance.sql` uit.
-- [ ] Controleer `/privacy` in Nederlands en Engels op de actuele rollen van Hetzner, Supabase, ZXCS, Cloudflare Turnstile, Google, Facebook en Discord.
+- [ ] Controleer `/privacy` in Nederlands en Engels op de actuele rollen van Hetzner, Supabase, ZXCS, Cloudflare Turnstile, Google en Discord.
 - [ ] Controleer dat de cookie- en opslaginventaris de Supabase-sessie, lokale reiscache, privacykeuze, thema, taal, `sidebar_state` en Turnstile-beveiliging correct vermeldt.
 - [ ] Open Privacykeuzes als gast en ingelogde gebruiker; weiger en accepteer de taalvoorkeur en controleer dat noodzakelijke sessie- en beveiligingsopslag beschikbaar blijft.
 - [ ] Voer `20260908105000_identity_and_mail_delivery_management.sql` en daarna `identity_and_mail_delivery_management.sql` uit.
@@ -13,7 +32,7 @@
 - [ ] Voer `20260908107000_worker_claim_recovery.sql` en daarna `worker_claim_recovery.sql` uit.
 - [ ] Controleer op Node-02 herstel van een claim ouder dan tien minuten, begrenzing na tien pogingen en een herkenbare maar privacyveilige SMTP-foutcode.
 - [ ] Pauzeer en hervat servicemail vanuit Corporate Admin met een reden; controleer auditlog en het gecontroleerd vrijgeven van vastgehouden mail.
-- [ ] Koppel in Account Google, Facebook en Discord en controleer dat de laatste inlogmethode nooit kan worden verwijderd.
+- [ ] Koppel in Account Google en Discord en controleer dat de laatste inlogmethode nooit kan worden verwijderd.
 - [ ] Open Corporate Admin → Bedrijfsmail; controleer status, pogingen en foutcode en bied één mislukt testbericht opnieuw aan.
 - [ ] Maak en verleng een reis- en Agency-uitnodiging; controleer de actuele bezorgstatus bij de uitnodiging en in het centrale overzicht.
 - [ ] Registreer via iedere OAuth-provider en controleer één netjes gevuld profiel en één workspace.
@@ -25,7 +44,7 @@
 - [ ] Registreer via `/register`; controleer aflevering, de eigen `/token/...`-bevestigingsroute en daarna inloggen.
 - [ ] Vraag op `/auth` wachtwoordherstel aan, open de mail en stel vanuit Account daadwerkelijk een nieuw wachtwoord in.
 - [ ] Vraag op `/auth` een magic link aan; controleer eenmalig gebruik, verlopen link en veilige terugkeer naar een uitnodiging.
-- [ ] Activeer Google, Facebook en Discord volgens `OAUTH_SETUP.md`; test iedere knop met een nieuw en bestaand account.
+- [x] Google en Discord zijn geactiveerd en werkend bevestigd.
 - [ ] Start OAuth vanaf een reis- en Agency-uitnodiging en controleer dat de veilige `redirect` na terugkeer behouden blijft.
 - [ ] Controleer in Supabase dat een bestaand e-mailadres geen dubbel profiel of lege workspace veroorzaakt.
 - [ ] Voeg in Account een passkey toe, log uit, log met die passkey in en verwijder hem daarna weer.

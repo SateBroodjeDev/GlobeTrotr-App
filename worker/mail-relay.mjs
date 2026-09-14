@@ -7,7 +7,12 @@ const token = required("MAIL_RELAY_TOKEN");
 const port = bounded(env.MAIL_RELAY_PORT, 9092, 1, 65535);
 const defaultAddress = required("SMTP_FROM_ADDRESS").toLowerCase();
 const defaultName = (env.SMTP_FROM_NAME || "GlobeTrotr").trim().slice(0, 100);
-const allowedDomains = new Set((env.SMTP_ALLOWED_FROM_DOMAINS || "globetrotr.nl").split(",").map(v => v.trim().toLowerCase()).filter(Boolean));
+const allowedDomains = new Set(
+  (env.SMTP_ALLOWED_FROM_DOMAINS || "globetrotr.nl")
+    .split(",")
+    .map((v) => v.trim().toLowerCase())
+    .filter(Boolean),
+);
 const transporter = nodemailer.createTransport({
   host: required("SMTP_HOST"),
   port: bounded(env.SMTP_PORT, 587, 1, 65535),
@@ -21,18 +26,50 @@ const transporter = nodemailer.createTransport({
   disableUrlAccess: true,
 });
 
-function required(name) { const value = env[name]?.trim(); if (!value) throw new Error(`Missing ${name}`); return value; }
-function bounded(value, fallback, min, max) { const parsed = Number(value); return Number.isFinite(parsed) ? Math.min(max, Math.max(min, Math.floor(parsed))) : fallback; }
-function equalSecret(value) { const a = Buffer.from(value || ""); const b = Buffer.from(token); return a.length === b.length && timingSafeEqual(a, b); }
-function validEmail(value) { return typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); }
-function addresses(value, maximum = 25) { const list = (Array.isArray(value) ? value : [value]).filter(Boolean); if (!list.length || list.length > maximum || !list.every(validEmail)) throw code("INVALID_RECIPIENTS"); return [...new Set(list.map(v => v.toLowerCase()))]; }
-function code(message) { return Object.assign(new Error(message), { code: message }); }
-function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]); }
+function required(name) {
+  const value = env[name]?.trim();
+  if (!value) throw new Error(`Missing ${name}`);
+  return value;
+}
+function bounded(value, fallback, min, max) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.min(max, Math.max(min, Math.floor(parsed))) : fallback;
+}
+function equalSecret(value) {
+  const a = Buffer.from(value || "");
+  const b = Buffer.from(token);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+function validEmail(value) {
+  return (
+    typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  );
+}
+function addresses(value, maximum = 25) {
+  const list = (Array.isArray(value) ? value : [value]).filter(Boolean);
+  if (!list.length || list.length > maximum || !list.every(validEmail))
+    throw code("INVALID_RECIPIENTS");
+  return [...new Set(list.map((v) => v.toLowerCase()))];
+}
+function code(message) {
+  return Object.assign(new Error(message), { code: message });
+}
+function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
+}
 function safeFrom(input) {
   const address = input?.address ? String(input.address).trim().toLowerCase() : defaultAddress;
   const domain = address.split("@")[1];
   if (!validEmail(address) || !allowedDomains.has(domain)) throw code("INVALID_SENDER");
-  return { address, name: String(input?.name || defaultName).trim().slice(0, 100) };
+  return {
+    address,
+    name: String(input?.name || defaultName)
+      .trim()
+      .slice(0, 100),
+  };
 }
 function notificationMessage(body) {
   const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
@@ -41,22 +78,72 @@ function notificationMessage(body) {
     return String((body.locale === "en" ? parts[1] : parts[0]) || parts[0]).trim();
   };
   const subject = localized(payload.title, "Nieuwe melding van GlobeTrotr").slice(0, 160);
-  const text = localized(payload.body, "Open GlobeTrotr om je nieuwe melding te bekijken.").slice(0, 5000);
-  const actionUrl = typeof payload.actionUrl === "string" && /^https:\/\/globetrotr\.nl\//.test(payload.actionUrl) ? payload.actionUrl : "https://globetrotr.nl";
-  const actionLabel = body.templateKey === "invitation" ? (body.locale === "en" ? "View invitation" : "Uitnodiging bekijken") : "Open GlobeTrotr";
+  const text = localized(payload.body, "Open GlobeTrotr om je nieuwe melding te bekijken.").slice(
+    0,
+    5000,
+  );
+  const actionUrl =
+    typeof payload.actionUrl === "string" && /^https:\/\/globetrotr\.nl\//.test(payload.actionUrl)
+      ? payload.actionUrl
+      : "https://globetrotr.nl";
+  const actionLabel =
+    body.templateKey === "invitation"
+      ? body.locale === "en"
+        ? "View invitation"
+        : "Uitnodiging bekijken"
+      : "Open GlobeTrotr";
   const supportLabel = body.locale === "en" ? "Contact GlobeTrotr" : "Contact met GlobeTrotr";
-  const serviceNote = body.locale === "en" ? "This is a service message from GlobeTrotr." : "Dit is een servicemelding van GlobeTrotr.";
-  return { subject, text: `${subject}\n\n${text}\n\n${actionUrl}\n\n${serviceNote}`, html: `<!doctype html><html lang="${body.locale === "en" ? "en" : "nl"}"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:40px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td align="center" style="padding:36px 40px 24px"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr"><div style="margin-top:13px;font-size:22px;font-weight:700">GlobeTrotr</div><div style="margin-top:5px;font-size:13px;color:#748078">Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:36px 40px 40px;border-top:1px solid #edf1ef"><h1 style="margin:0 0 18px;font-size:27px">${escapeHtml(subject)}</h1><p style="margin:0 0 28px;font-size:16px;line-height:25px;color:#52606b;white-space:pre-line">${escapeHtml(text)}</p><table role="presentation" cellspacing="0" cellpadding="0"><tr><td bgcolor="#168b78" style="border-radius:10px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:15px 26px;color:#fff;text-decoration:none;font-weight:600">${escapeHtml(actionLabel)}</a></td></tr></table><p style="margin:24px 0 0;font-size:13px;color:#77827c"><a href="https://globetrotr.nl/contact" style="color:#168b78;text-decoration:none;font-weight:600">${escapeHtml(supportLabel)}</a></p></td></tr><tr><td align="center" style="padding:24px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:11px;color:#99a39e">GlobeTrotr · Plan every trip. Track every euro.</td></tr></table></td></tr></table></body></html>` };
+  const serviceNote =
+    body.locale === "en"
+      ? "This is a service message from GlobeTrotr."
+      : "Dit is een servicemelding van GlobeTrotr.";
+  const brandName = String(payload.branding?.brandName || "GlobeTrotr")
+    .trim()
+    .slice(0, 100);
+  const hue = Number(payload.branding?.accentHue);
+  const accent = Number.isFinite(hue)
+    ? `hsl(${Math.min(360, Math.max(0, hue))} 70% 34%)`
+    : "#168b78";
+  return {
+    subject,
+    text: `${subject}\n\n${text}\n\n${actionUrl}\n\n${serviceNote}`,
+    html: `<!doctype html><html lang="${body.locale === "en" ? "en" : "nl"}"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:40px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td align="center" style="padding:36px 40px 24px"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr"><div style="margin-top:13px;font-size:22px;font-weight:700">${escapeHtml(brandName)}</div><div style="margin-top:5px;font-size:13px;color:#748078">Powered by GlobeTrotr · Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:36px 40px 40px;border-top:1px solid #edf1ef"><h1 style="margin:0 0 18px;font-size:27px">${escapeHtml(subject)}</h1><p style="margin:0 0 28px;font-size:16px;line-height:25px;color:#52606b;white-space:pre-line">${escapeHtml(text)}</p><table role="presentation" cellspacing="0" cellpadding="0"><tr><td bgcolor="${accent}" style="border-radius:10px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:15px 26px;color:#fff;text-decoration:none;font-weight:600">${escapeHtml(actionLabel)}</a></td></tr></table><p style="margin:24px 0 0;font-size:13px;color:#77827c"><a href="https://globetrotr.nl/contact" style="color:${accent};text-decoration:none;font-weight:600">${escapeHtml(supportLabel)}</a></p></td></tr><tr><td align="center" style="padding:24px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:11px;color:#99a39e">${escapeHtml(brandName)} · powered by GlobeTrotr</td></tr></table></td></tr></table></body></html>`,
+  };
+}
+function corporateMessage(body) {
+  const subject = body.subject.trim().slice(0, 160);
+  const text = body.text.trim().slice(0, 20_000);
+  const name = safeFrom(body.from).name;
+  return {
+    subject,
+    text,
+    html: `<!doctype html><html lang="en"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:32px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td style="padding:28px 36px;border-bottom:1px solid #edf1ef"><img src="https://globetrotr.nl/assets/email/logo.png" width="48" height="48" alt="GlobeTrotr" style="display:block"><div style="margin-top:12px;font-size:13px;color:#748078">Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:32px 36px"><h1 style="margin:0 0 22px;font-size:24px">${escapeHtml(subject)}</h1><div style="font-size:16px;line-height:25px;color:#3d4d58;white-space:pre-line">${escapeHtml(text)}</div><table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:30px"><tr><td bgcolor="#168b78" style="border-radius:10px"><a href="https://globetrotr.nl" style="display:inline-block;padding:13px 22px;color:#fff;text-decoration:none;font-weight:600">Open GlobeTrotr</a></td></tr></table></td></tr><tr><td style="padding:22px 36px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:12px;line-height:19px;color:#77827c"><strong style="color:#102039">${escapeHtml(name)}</strong><br>GlobeTrotr · Plan every trip. Track every euro.<br><a href="https://globetrotr.nl" style="color:#168b78;text-decoration:none">globetrotr.nl</a> · <a href="https://globetrotr.nl/contact" style="color:#168b78;text-decoration:none">Contact</a></td></tr></table></td></tr></table></body></html>`,
+  };
 }
 async function readJson(request) {
-  let size = 0; const chunks = [];
-  for await (const chunk of request) { size += chunk.length; if (size > 64 * 1024) throw code("BODY_TOO_LARGE"); chunks.push(chunk); }
-  try { return JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { throw code("INVALID_JSON"); }
+  let size = 0;
+  const chunks = [];
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > 64 * 1024) throw code("BODY_TOO_LARGE");
+    chunks.push(chunk);
+  }
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw code("INVALID_JSON");
+  }
 }
 async function send(body, idempotencyKey) {
-  if (!body || typeof body !== "object" || !/^[0-9a-f-]{36}$/i.test(String(body.id || "")) || idempotencyKey !== body.id) throw code("INVALID_MESSAGE_ID");
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !/^[0-9a-f-]{36}$/i.test(String(body.id || "")) ||
+    idempotencyKey !== body.id
+  )
+    throw code("INVALID_MESSAGE_ID");
   const corporate = typeof body.subject === "string" && typeof body.text === "string";
-  const content = corporate ? { subject: body.subject.trim().slice(0, 160), text: body.text.trim().slice(0, 20_000) } : notificationMessage(body);
+  const content = corporate ? corporateMessage(body) : notificationMessage(body);
   if (!content.subject || !content.text) throw code("INVALID_CONTENT");
   await transporter.sendMail({
     from: safeFrom(corporate ? body.from : undefined),
@@ -73,24 +160,51 @@ async function send(body, idempotencyKey) {
 const server = createServer(async (request, response) => {
   response.setHeader("Cache-Control", "no-store");
   if (request.method === "GET" && request.url === "/health") {
-    try { await transporter.verify(); response.writeHead(200, { "Content-Type": "application/json" }); response.end('{"status":"ok","smtp":"reachable"}'); }
-    catch { response.writeHead(503, { "Content-Type": "application/json" }); response.end('{"status":"degraded","smtp":"unreachable"}'); }
+    try {
+      await transporter.verify();
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end('{"status":"ok","smtp":"reachable"}');
+    } catch {
+      response.writeHead(503, { "Content-Type": "application/json" });
+      response.end('{"status":"degraded","smtp":"unreachable"}');
+    }
     return;
   }
-  if (request.method !== "POST" || request.url !== "/send") { response.writeHead(404).end(); return; }
-  if (!equalSecret(String(request.headers.authorization || "").replace(/^Bearer\s+/i, ""))) { response.writeHead(401).end(); return; }
-  try { await send(await readJson(request), String(request.headers["idempotency-key"] || "")); response.writeHead(202).end(); }
-  catch (error) {
+  if (request.method !== "POST" || request.url !== "/send") {
+    response.writeHead(404).end();
+    return;
+  }
+  if (!equalSecret(String(request.headers.authorization || "").replace(/^Bearer\s+/i, ""))) {
+    response.writeHead(401).end();
+    return;
+  }
+  try {
+    await send(await readJson(request), String(request.headers["idempotency-key"] || ""));
+    response.writeHead(202).end();
+  } catch (error) {
     const errorCode = String(error?.code || "MAIL_SEND_FAILED").slice(0, 80);
     const smtpResponseCode = Number.isInteger(error?.responseCode) ? error.responseCode : undefined;
     const smtpCommand = typeof error?.command === "string" ? error.command.slice(0, 40) : undefined;
-    process.stderr.write(`${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", event: "relay.send_failed", errorCode, smtpResponseCode, smtpCommand })}\n`);
-    response.writeHead(errorCode.startsWith("INVALID_") || errorCode === "BODY_TOO_LARGE" ? 400 : 502, { "Content-Type": "application/json" });
+    process.stderr.write(
+      `${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", event: "relay.send_failed", errorCode, smtpResponseCode, smtpCommand })}\n`,
+    );
+    response.writeHead(
+      errorCode.startsWith("INVALID_") || errorCode === "BODY_TOO_LARGE" ? 400 : 502,
+      { "Content-Type": "application/json" },
+    );
     response.end(JSON.stringify({ error: errorCode, smtpResponseCode }));
   }
 });
 
 server.listen(port, "0.0.0.0", async () => {
-  try { await transporter.verify(); process.stdout.write(`${JSON.stringify({ timestamp: new Date().toISOString(), level: "info", event: "relay.started", port, smtpVerified: true })}\n`); }
-  catch { process.stderr.write(`${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", event: "relay.smtp_unavailable", errorCode: "SMTP_VERIFY_FAILED" })}\n`); }
+  try {
+    await transporter.verify();
+    process.stdout.write(
+      `${JSON.stringify({ timestamp: new Date().toISOString(), level: "info", event: "relay.started", port, smtpVerified: true })}\n`,
+    );
+  } catch {
+    process.stderr.write(
+      `${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", event: "relay.smtp_unavailable", errorCode: "SMTP_VERIFY_FAILED" })}\n`,
+    );
+  }
 });

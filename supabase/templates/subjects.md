@@ -1,4 +1,5 @@
-- Confirm signup: `Confirm your GlobeTrotr account`
-- Reset password: `Reset your GlobeTrotr password`
-- Change email address: `Confirm your new GlobeTrotr email address`
-- Magic link: `Your secure GlobeTrotr sign-in link`
+﻿- Confirm signup: `Confirm your GlobeTrotr account / Bevestig je GlobeTrotr-account`
+- Reset password: `Reset your GlobeTrotr password / Stel je GlobeTrotr-wachtwoord opnieuw in`
+- Change email address: `Confirm your new GlobeTrotr email address / Bevestig je nieuwe GlobeTrotr-e-mailadres`
+- Magic link: `Your secure GlobeTrotr sign-in link / Je veilige GlobeTrotr-inloglink`
+- Invite user: `You are invited to GlobeTrotr / Je bent uitgenodigd voor GlobeTrotr`

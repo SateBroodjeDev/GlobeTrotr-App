@@ -45,70 +45,133 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
-    id: "2026-09-15-production-privacy", version: "Beta 0.43", publishedAt: "2026-09-15T00:40:00+02:00",
-    title: "Actuele privacy- en cookie-uitleg", titleEn: "Current privacy and cookie information",
-    summary: "De privacyverklaring sluit nu aan op de actieve Europese productieomgeving en gebruikte beveiligingsdiensten.", summaryEn: "The privacy notice now reflects the active European production environment and security services in use.",
+    id: "2026-09-14-production-access-mail-privacy",
+    version: "Beta 0.43",
+    publishedAt: "2026-09-14T23:55:00+02:00",
+    title: "Veilig aanmelden en betrouwbare communicatie",
+    titleEn: "Secure sign-in and reliable communication",
+    summary:
+      "Een gebundelde productie-update voor toegang, e-mail, uitnodigingen en actuele privacy-informatie.",
+    summaryEn:
+      "A consolidated production update covering access, email, invitations and current privacy information.",
     changes: [
-      {kind:"improved",title:"Actuele leveranciers",titleEn:"Current suppliers",description:"Hetzner, Supabase, ZXCS en Cloudflare Turnstile staan met hun rol duidelijk in de verklaring.",descriptionEn:"Hetzner, Supabase, ZXCS and Cloudflare Turnstile are clearly listed with their roles."},
-      {kind:"improved",title:"Complete opslaginventaris",titleEn:"Complete storage inventory",description:"Functionele navigatieopslag, formulierbeveiliging en opslag door vrijwillig gekozen loginproviders worden uitgelegd.",descriptionEn:"Functional navigation storage, form protection and storage used by voluntarily selected sign-in providers are explained."},
+      {
+        kind: "new",
+        title: "Google, Discord, passkeys en TOTP",
+        titleEn: "Google, Discord, passkeys and TOTP",
+        description: "Kies een passende inlogmethode en voeg een extra authenticatorcontrole toe.",
+        descriptionEn: "Choose a suitable sign-in method and add an extra authenticator check.",
+      },
+      {
+        kind: "improved",
+        title: "Betrouwbare servicemail",
+        titleEn: "Reliable service email",
+        description:
+          "Uitnodigingen en accountmail hebben veilige GlobeTrotr-links, zichtbare bezorging en begrensde herstelpogingen.",
+        descriptionEn:
+          "Invitations and account email use safe GlobeTrotr links, visible delivery and limited recovery attempts.",
+      },
+      {
+        kind: "improved",
+        title: "Agency-uitnodigingen in huisstijl",
+        titleEn: "Branded Agency invitations",
+        description:
+          "Agency-uitnodigingen gebruiken de organisatienaam en accentkleur binnen de herkenbare GlobeTrotr-mailopmaak.",
+        descriptionEn:
+          "Agency invitations use the organisation name and accent colour within the recognisable GlobeTrotr email design.",
+      },
+      {
+        kind: "improved",
+        title: "Actuele privacy en cookies",
+        titleEn: "Current privacy and cookies",
+        description:
+          "De verklaring vermeldt de actieve Europese infrastructuur, mail, formulierbeveiliging, loginproviders en browseropslag.",
+        descriptionEn:
+          "The notice covers active European infrastructure, email, form protection, sign-in providers and browser storage.",
+      },
+      {
+        kind: "fixed",
+        title: "Registratie, uitnodigingen en status",
+        titleEn: "Registration, invitations and status",
+        description:
+          "Rechtstreekse registratie- en uitnodigingslinks openen weer goed en de statuspagina werkt ook wanneer je bent ingelogd.",
+        descriptionEn:
+          "Direct registration and invitation links open correctly again, and the status page also works while signed in.",
+      },
+      {
+        kind: "improved",
+        title: "Betrouwbare reisexports",
+        titleEn: "Reliable trip exports",
+        description:
+          "GPX en de volledige reisgids worden als echte downloads aangeboden en de routekaart blijft binnen het scherm.",
+        descriptionEn:
+          "GPX and the full trip guide are delivered as proper downloads and the route map stays within its panel.",
+      },
+      {
+        kind: "new",
+        title: "Privacyverzoek volgen",
+        titleEn: "Track a privacy request",
+        description:
+          "Een privacyverzoek kan veilig vanuit Account worden ingediend en het antwoord van GlobeTrotr verschijnt bij hetzelfde verzoek.",
+        descriptionEn:
+          "A privacy request can be submitted securely from Account and GlobeTrotr's response appears with that request.",
+      },
+      {
+        kind: "new",
+        title: "Bedrijfsmail in het portaal",
+        titleEn: "Company email in the portal",
+        description:
+          "Bevoegde medewerkers kunnen gedeelde en persoonlijke mailboxen lezen, beantwoorden en met een eigen handtekening gebruiken.",
+        descriptionEn:
+          "Authorised staff can read and reply from shared and personal mailboxes using their own signature.",
+      },
+      {
+        kind: "improved",
+        title: "Herkenbare e-mailhandtekening",
+        titleEn: "Recognisable email signature",
+        description:
+          "Persoonlijke en gedeelde mailboxen gebruiken een verzorgde opmaak met logo, tagline, website en contactmogelijkheid.",
+        descriptionEn:
+          "Personal and shared mailboxes use a polished layout with logo, tagline, website and contact option.",
+      },
     ],
   },
   {
-    id: "2026-09-15-account-and-mail-control", version: "Beta 0.42", publishedAt: "2026-09-15T00:25:00+02:00",
-    title: "Meer grip op toegang en betrouwbare mail", titleEn: "More control over access and reliable email",
-    summary: "Beheer gekoppelde inlogmethoden en volg, herstel of pauzeer de bezorging van belangrijke e-mail.", summaryEn: "Manage linked sign-in methods and track, recover or pause important email delivery.",
+    id: "2026-09-14-production-auth-and-email",
+    version: "Beta 0.37",
+    publishedAt: "2026-09-14T19:00:00+02:00",
+    title: "Veiliger inloggen en gerichte communicatie",
+    titleEn: "Safer sign-in and focused communication",
+    summary:
+      "Registratie, accountbevestiging en e-mailvoorkeuren zijn klaargemaakt voor het eigen GlobeTrotr-domein.",
+    summaryEn:
+      "Registration, account confirmation and email preferences are prepared for GlobeTrotr's own domain.",
     changes: [
-      {kind:"new",title:"Gekoppelde inlogmethoden",titleEn:"Linked sign-in methods",description:"Koppel Google, Facebook en Discord aan hetzelfde account en verwijder een extra methode veilig.",descriptionEn:"Link Google, Facebook and Discord to the same account and safely remove an additional method."},
-      {kind:"improved",title:"Zichtbare uitnodigingsbezorging",titleEn:"Visible invitation delivery",description:"Beheerders zien of een uitnodigingsmail klaarstaat, wordt verzonden, is aangekomen of aandacht nodig heeft.",descriptionEn:"Administrators can see whether an invitation email is queued, sending, delivered or needs attention."},
-      {kind:"improved",title:"Gecontroleerde bezorging",titleEn:"Controlled delivery",description:"Servicemail kan tijdens onderhoud veilig wachten en na een beheercontrole worden vrijgegeven.",descriptionEn:"Service email can wait safely during maintenance and be released after an administrative check."},
-      {kind:"fixed",title:"Geen vastgelopen verzending",titleEn:"No stuck delivery",description:"Een verlopen verzendpoging wordt opnieuw aangeboden en stopt na een begrensd aantal pogingen.",descriptionEn:"An expired delivery attempt is retried and stops after a limited number of attempts."},
-    ],
-  },
-  {
-    id: "2026-09-14-passwordless-entry", version: "Beta 0.41", publishedAt: "2026-09-14T23:45:00+02:00",
-    title: "Makkelijker weer toegang tot je account", titleEn: "Easier account access",
-    summary: "Vraag vanaf het inlogscherm veilig een herstelmail of een eenmalige inloglink aan.", summaryEn: "Securely request account recovery or a single-use sign-in link from the sign-in screen.",
-    changes: [
-      {kind:"new",title:"Account herstellen",titleEn:"Account recovery",description:"De herstelmail leidt via GlobeTrotr naar het veilig vernieuwen van je inloggegevens.",descriptionEn:"The recovery email leads through GlobeTrotr to securely renewing your sign-in details."},
-      {kind:"new",title:"Inloglink per e-mail",titleEn:"Email sign-in link",description:"Log rechtstreeks in met een beveiligde link die maar één keer werkt.",descriptionEn:"Sign in directly using a protected link that works only once."},
-    ],
-  },
-  {
-    id: "2026-09-14-social-sign-in", version: "Beta 0.40", publishedAt: "2026-09-14T23:30:00+02:00",
-    title: "Sneller aanmelden met je bestaande account", titleEn: "Faster sign-in with your existing account",
-    summary: "GlobeTrotr is voorbereid op aanmelden via Google, Facebook en Discord, inclusief een veilige terugkeer naar uitnodigingen.", summaryEn: "GlobeTrotr is prepared for sign-in through Google, Facebook and Discord, including a safe return to invitations.",
-    changes: [
-      {kind:"new",title:"Drie extra inlogmogelijkheden",titleEn:"Three additional sign-in options",description:"Kies op het inlogscherm Google, Facebook of Discord zodra de provider beschikbaar is.",descriptionEn:"Choose Google, Facebook or Discord on the sign-in screen once the provider is available."},
-      {kind:"secure",title:"Veilige terugkeer na aanmelden",titleEn:"Safe return after sign-in",description:"Alleen interne GlobeTrotr-paden worden na het aanmelden als bestemming gebruikt.",descriptionEn:"Only internal GlobeTrotr paths are used as destinations after sign-in."},
-    ],
-  },
-  {
-    id: "2026-09-14-consistent-email-design", version: "Beta 0.39", publishedAt: "2026-09-14T23:00:00+02:00",
-    title: "Herkenbare e-mail van GlobeTrotr", titleEn: "Recognisable email from GlobeTrotr",
-    summary: "Accountbeveiliging, uitnodigingen en updates gebruiken voortaan dezelfde heldere GlobeTrotr-opmaak.", summaryEn: "Account security, invitations and updates now use the same clear GlobeTrotr design.",
-    changes: [
-      {kind:"improved",title:"Eén vertrouwde afzenderstijl",titleEn:"One trusted sender design",description:"Logo, afzender, actieknop en contactmogelijkheid zijn gelijk in belangrijke servicemails.",descriptionEn:"Logo, sender, action button and contact option are consistent across important service emails."},
-      {kind:"secure",title:"Links via GlobeTrotr",titleEn:"Links through GlobeTrotr",description:"Registratie, herstel en e-mailwijzigingen openen een beveiligde eenmalige route op globetrotr.nl.",descriptionEn:"Signup, recovery and email changes open a protected single-use route on globetrotr.nl."},
-    ],
-  },
-  {
-    id: "2026-09-14-independent-production-and-invitations", version: "Beta 0.38", publishedAt: "2026-09-14T22:00:00+02:00",
-    title: "Uitnodigingen rechtstreeks in je mailbox", titleEn: "Invitations delivered to your inbox",
-    summary: "GlobeTrotr draait zelfstandig op de eigen productieomgeving en verstuurt reis- en Agency-uitnodigingen via de beveiligde mailrelay.", summaryEn: "GlobeTrotr now runs independently on its own production environment and delivers trip and Agency invitations through its protected mail relay.",
-    changes: [
-      {kind:"new",title:"Uitnodigingen per e-mail",titleEn:"Email invitations",description:"Nieuwe en verlengde uitnodigingen bevatten een veilige directe acceptatielink en volgen je taal- en communicatievoorkeur.",descriptionEn:"New and renewed invitations include a secure direct acceptance link and follow your language and communication preference."},
-      {kind:"improved",title:"Complete merkbibliotheek",titleEn:"Complete brand library",description:"Logo's voor websites, donkere achtergronden en e-mail zijn via vaste openbare adressen beschikbaar.",descriptionEn:"Logos for websites, dark surfaces and email are available at stable public addresses."},
-      {kind:"secure",title:"Zelfstandige productieomgeving",titleEn:"Independent production runtime",description:"De webbuild, sessieopslag en foutafhandeling werken zonder een externe editor-runtime.",descriptionEn:"The web build, session storage and error handling work without an external editor runtime."},
-    ],
-  },
-  {
-    id: "2026-09-14-production-auth-and-email", version: "Beta 0.37", publishedAt: "2026-09-14T19:00:00+02:00",
-    title: "Veiliger inloggen en gerichte communicatie", titleEn: "Safer sign-in and focused communication",
-    summary: "Registratie, accountbevestiging en e-mailvoorkeuren zijn klaargemaakt voor het eigen GlobeTrotr-domein.", summaryEn: "Registration, account confirmation and email preferences are prepared for GlobeTrotr's own domain.",
-    changes: [
-      {kind:"new",title:"Inloggen met een passkey",titleEn:"Sign in with a passkey",description:"Voeg vanuit je account een passkey toe en log veilig in met je apparaat.",descriptionEn:"Add a passkey from your account and sign in securely with your device."},
-      {kind:"improved",title:"Communicatie naar jouw voorkeur",titleEn:"Communication on your terms",description:"Kies welke uitnodigingen, reisupdates en betaalberichten je per e-mail ontvangt.",descriptionEn:"Choose which invitations, trip updates and payment messages you receive by email."},
-      {kind:"fixed",title:"Duidelijke registratie en reisverhalen",titleEn:"Clearer registration and travel stories",description:"Registratie heeft een eigen route en openbare reizen tonen meer bestemmingen naast compactere boekingen.",descriptionEn:"Registration has its own route and public trips show more destinations beside more compact bookings."},
+      {
+        kind: "new",
+        title: "Inloggen met een passkey",
+        titleEn: "Sign in with a passkey",
+        description: "Voeg vanuit je account een passkey toe en log veilig in met je apparaat.",
+        descriptionEn: "Add a passkey from your account and sign in securely with your device.",
+      },
+      {
+        kind: "improved",
+        title: "Communicatie naar jouw voorkeur",
+        titleEn: "Communication on your terms",
+        description:
+          "Kies welke uitnodigingen, reisupdates en betaalberichten je per e-mail ontvangt.",
+        descriptionEn:
+          "Choose which invitations, trip updates and payment messages you receive by email.",
+      },
+      {
+        kind: "fixed",
+        title: "Duidelijke registratie en reisverhalen",
+        titleEn: "Clearer registration and travel stories",
+        description:
+          "Registratie heeft een eigen route en openbare reizen tonen meer bestemmingen naast compactere boekingen.",
+        descriptionEn:
+          "Registration has its own route and public trips show more destinations beside more compact bookings.",
+      },
     ],
   },
   {
@@ -117,12 +180,38 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-14T15:00:00+02:00",
     title: "De productieomgeving staat klaar",
     titleEn: "Production hosting is prepared",
-    summary: "De website en achtergrondverwerking zijn voorbereid voor een gescheiden Europese serveropstelling.",
-    summaryEn: "The website and background processing are prepared for a separated European server setup.",
+    summary:
+      "De website en achtergrondverwerking zijn voorbereid voor een gescheiden Europese serveropstelling.",
+    summaryEn:
+      "The website and background processing are prepared for a separated European server setup.",
     changes: [
-      { kind: "secure", title: "Gescheiden web en verwerking", titleEn: "Separated web and processing", description: "De publieke website en achtergrondtaken krijgen elk een eigen serverrol, healthcheck en begrensde netwerktoegang.", descriptionEn: "The public website and background jobs each get a dedicated server role, health check and restricted network access." },
-      { kind: "improved", title: "Veilige updates en herstel", titleEn: "Safer updates and recovery", description: "De productieprocedure bevat vaste stappen voor HTTPS, configuratiecontrole, updates en terugzetten bij problemen.", descriptionEn: "The production procedure includes defined steps for HTTPS, configuration checks, updates and recovery when problems occur." },
-      { kind: "secure", title: "E-mailbezorging voorbereid", titleEn: "Email delivery prepared", description: "Transactionele berichten kunnen via een afgeschermde Europese serverrelay worden bezorgd, met begrensde afzenders, ontvangers en veilige verbindingscontrole.", descriptionEn: "Transactional messages can be delivered through a protected European server relay with restricted senders, recipients and secure connection checks." },
+      {
+        kind: "secure",
+        title: "Gescheiden web en verwerking",
+        titleEn: "Separated web and processing",
+        description:
+          "De publieke website en achtergrondtaken krijgen elk een eigen serverrol, healthcheck en begrensde netwerktoegang.",
+        descriptionEn:
+          "The public website and background jobs each get a dedicated server role, health check and restricted network access.",
+      },
+      {
+        kind: "improved",
+        title: "Veilige updates en herstel",
+        titleEn: "Safer updates and recovery",
+        description:
+          "De productieprocedure bevat vaste stappen voor HTTPS, configuratiecontrole, updates en terugzetten bij problemen.",
+        descriptionEn:
+          "The production procedure includes defined steps for HTTPS, configuration checks, updates and recovery when problems occur.",
+      },
+      {
+        kind: "secure",
+        title: "E-mailbezorging voorbereid",
+        titleEn: "Email delivery prepared",
+        description:
+          "Transactionele berichten kunnen via een afgeschermde Europese serverrelay worden bezorgd, met begrensde afzenders, ontvangers en veilige verbindingscontrole.",
+        descriptionEn:
+          "Transactional messages can be delivered through a protected European server relay with restricted senders, recipients and secure connection checks.",
+      },
     ],
   },
   {
@@ -131,36 +220,253 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-14T12:00:00+02:00",
     title: "Meer controle tijdens de beta",
     titleEn: "More control during the beta",
-    summary: "Onderhoud, privacyverzoeken en beheer zijn samengebracht voor een veiligere en duidelijkere acceptatietest.",
-    summaryEn: "Maintenance, privacy requests and administration come together for a safer and clearer acceptance test.",
+    summary:
+      "Onderhoud, privacyverzoeken en beheer zijn samengebracht voor een veiligere en duidelijkere acceptatietest.",
+    summaryEn:
+      "Maintenance, privacy requests and administration come together for a safer and clearer acceptance test.",
     changes: [
-      { kind: "improved", title: "Productieomgeving voorbereid", titleEn: "Production environment prepared", description: "De database-opbouw, beheercontrole en scheiding tussen test- en productiegegevens zijn vastgelegd voor de verhuizing.", descriptionEn: "Database setup, administration checks and separation of test and production data are documented for the move." },
-      { kind: "improved", title: "Duidelijker proberen en instellen", titleEn: "Clearer to try and configure", description: "De demo gebruikt fictieve voorbeelddata, supportlinks zijn herkenbaarder en de reisomslag heeft een eigen plek met aanbevolen afmetingen.", descriptionEn: "The demo uses fictional sample data, support links are easier to recognise and the trip cover has its own place with recommended dimensions." },
-      { kind: "improved", title: "Rustiger op ieder scherm", titleEn: "Calmer on every screen", description: "Navigatie, aanraakknoppen, Engelse prijsteksten en foutmeldingen zijn aangescherpt voor telefoon, tablet en desktop.", descriptionEn: "Navigation, touch controls, English pricing copy and error messages have been refined for phone, tablet and desktop." },
-      { kind: "new", title: "Samen de reis afronden", titleEn: "Finish the trip together", description: "Houd per reis gezamenlijke taken bij met een verantwoordelijke en deadline, en vink ze af zodra ze klaar zijn.", descriptionEn: "Track shared tasks per trip with an assignee and due date, and check them off when they are done." },
-      { kind: "new", title: "Alles voor vandaag", titleEn: "Everything for today", description: "Bekijk onderweg één rustig overzicht met de planning, boekingen, bestemming, weer, documenten en taken van vandaag.", descriptionEn: "Use one calm on-the-go view for today's schedule, bookings, destination, weather, documents and tasks." },
-      { kind: "improved", title: "Meer op de kaart", titleEn: "More on the map", description: "Zie plaatsgebonden boekingen en gekoppelde uitgaven direct naast je route en bestemmingen.", descriptionEn: "See location-based bookings and linked expenses directly alongside your route and destinations." },
-      { kind: "new", title: "Een eigen reisomslag", titleEn: "Your own trip cover", description: "Geef iedere reis een eigen foto die veilig op de reis en dashboardkaart wordt getoond.", descriptionEn: "Give each trip its own photo, displayed securely on the trip and dashboard card." },
-      { kind: "improved", title: "Persoonlijkere reisgids", titleEn: "A more personal trip guide", description: "Je gekozen reisomslag verschijnt nu ook bovenaan de printbare reisgids.", descriptionEn: "Your selected trip cover now also appears at the top of the printable trip guide." },
-      { kind: "new", title: "Reizen naast elkaar", titleEn: "Trips side by side", description: "Vergelijk twee reizen op periode, bestemmingen, boekingen, budget, uitgaven en routevolgorde voordat je een variant kiest.", descriptionEn: "Compare two trips by dates, destinations, bookings, budget, expenses and route order before choosing a variant." },
-      { kind: "new", title: "Je route meenemen", titleEn: "Take your route with you", description: "Exporteer bestemmingen in hun huidige volgorde als GPX-bestand voor kaart- en navigatie-apps.", descriptionEn: "Export destinations in their current order as a GPX file for mapping and navigation apps." },
-      { kind: "new", title: "Route omkeren", titleEn: "Reverse your route", description: "Draai de volledige volgorde van je bestemmingen gecontroleerd om, met bevestiging voordat de wijziging wordt opgeslagen.", descriptionEn: "Reverse the complete order of your destinations in a controlled action, with confirmation before saving." },
-      { kind: "new", title: "Begin met een reisvariant", titleEn: "Start with a trip variant", description: "Dupliceer route, planning en paklijst naar een nieuwe privéreis. Deelnemers, uitgaven, boekingsreferenties en deelinstellingen blijven veilig achter.", descriptionEn: "Duplicate a route, itinerary and packing list into a new private trip. Members, expenses, booking references and sharing settings safely stay behind." },
-      { kind: "improved", title: "Rustiger navigeren", titleEn: "Calmer navigation", description: "De publieke hoofdnavigatie focust op de belangrijkste keuzes. Ingelogde reizigers vinden Contact en Status voortaan direct in hun menu.", descriptionEn: "The public navigation now focuses on the main choices. Signed-in travellers can access Contact and Status directly from their menu." },
-      { kind: "improved", title: "Een persoonlijker verhaal", titleEn: "A more personal story", description: "Over GlobeTrotr leest nu als één verhaal over de Zwedenreis die het platform begon, met minder losse blokken en meer context.", descriptionEn: "About GlobeTrotr now reads as one story about the Sweden trip that started the platform, with fewer separate blocks and more context." },
-      { kind: "improved", title: "Verzorgd tijdens onderhoud", titleEn: "Clearer during maintenance", description: "De onderhoudspagina toont een rustigere kop, de concrete reden, resterende tijd en wat er met je reisgegevens gebeurt.", descriptionEn: "The maintenance page shows a calmer heading, the specific reason, remaining time and what happens to your trip data." },
-      { kind: "new", title: "Inzicht in je reisbudget", titleEn: "Understand your trip budget", description: "Bekijk reisduur, bestemmingen, overnachtingen, uitgaven per categorie, daggemiddelde en een budgetprognose in één overzicht.", descriptionEn: "See trip length, destinations, nights, expenses by category, daily average and a budget forecast in one overview." },
-      { kind: "new", title: "Je reis in je agenda", titleEn: "Your trip in your calendar", description: "Exporteer dagplanning en boekingen als ICS-bestand naar Apple Calendar, Google Calendar, Outlook en andere agenda-apps.", descriptionEn: "Export itinerary items and bookings as an ICS file for Apple Calendar, Google Calendar, Outlook and other calendar apps." },
-      { kind: "secure", title: "Bevestiging bij accountwijzigingen", titleEn: "Sign-in change confirmations", description: "Een aangevraagde e-mailwijziging en een geslaagde wachtwoordwijziging verschijnen als blijvende beveiligingsmelding in je account.", descriptionEn: "A requested email change and an updated sign-in credential now appear as persistent security notifications in your account." },
-      { kind: "improved", title: "Gerichter platformbeheer", titleEn: "More focused platform management", description: "Beheerders kunnen feedback beantwoorden, urgente problemen volgen, openbare reizen modereren en de bezorging van in-appmeldingen overzien.", descriptionEn: "Administrators can reply to feedback, track urgent issues, moderate public trips and review in-app notification delivery." },
-      { kind: "improved", title: "Beter vindbare publieke pagina's", titleEn: "More discoverable public pages", description: "De belangrijkste pagina's hebben eigen social previews, canonical-links en gestructureerde productinformatie.", descriptionEn: "The main pages now have dedicated social previews, canonical links and structured product information." },
-      {kind:"new",title:"Geplande onderhoudspagina",titleEn:"Scheduled maintenance page",description:"Bezoekers zien een duidelijke reden en countdown, terwijl beheerders veilig kunnen inloggen en doorwerken.",descriptionEn:"Visitors see a clear reason and countdown while administrators can sign in securely and continue working."},
-      {kind:"new",title:"Privacyverzoek vanuit je account",titleEn:"Privacy requests from your account",description:"Ingelogde gebruikers kunnen een privacyverzoek indienen en daarna de status en antwoordtermijn vanuit hun account volgen.",descriptionEn:"Signed-in users can submit a privacy request and then track its status and response deadline from their account."},
-      {kind:"secure",title:"Providerverkeer via GlobeTrotr",titleEn:"Provider traffic through GlobeTrotr",description:"Bestemmingszoekopdrachten lopen via de server, zodat de externe dienst het IP-adres van het gebruikersapparaat niet ontvangt.",descriptionEn:"Destination searches run through the server so the external service does not receive the user's device IP address."},
-      {kind:"fixed",title:"Recensies en profielfoto's",titleEn:"Testimonials and profile photos",description:"Recensies geven heldere invoerfeedback en profielfoto's behouden hun natuurlijke verhouding.",descriptionEn:"Testimonials provide clear input feedback and profile photos retain their natural proportions."},
-      {kind:"improved",title:"Duidelijker productverhaal",titleEn:"Clearer product story",description:"De homepage laat direct zien welke reischaos GlobeTrotr vervangt en wat één gedeelde reis oplevert.",descriptionEn:"The homepage immediately shows which travel chaos GlobeTrotr replaces and what one shared trip provides."},
-      {kind:"new",title:"Reacties op feedback",titleEn:"Replies to feedback",description:"Beheerders kunnen een aanvullende vraag of reactie plaatsen en de indiener krijgt daar gericht bericht van.",descriptionEn:"Administrators can post a follow-up question or reply and the submitter receives a focused notification."},
-      {kind:"secure",title:"Moderatie van openbare reizen",titleEn:"Public trip moderation",description:"GlobeTrotr kan een openbare reis gemotiveerd depubliceren; de eigenaar wordt geïnformeerd en de ingreep wordt vastgelegd.",descriptionEn:"GlobeTrotr can unpublish a public trip with a recorded reason; the owner is informed and the action is audited."},
+      {
+        kind: "improved",
+        title: "Productieomgeving voorbereid",
+        titleEn: "Production environment prepared",
+        description:
+          "De database-opbouw, beheercontrole en scheiding tussen test- en productiegegevens zijn vastgelegd voor de verhuizing.",
+        descriptionEn:
+          "Database setup, administration checks and separation of test and production data are documented for the move.",
+      },
+      {
+        kind: "improved",
+        title: "Duidelijker proberen en instellen",
+        titleEn: "Clearer to try and configure",
+        description:
+          "De demo gebruikt fictieve voorbeelddata, supportlinks zijn herkenbaarder en de reisomslag heeft een eigen plek met aanbevolen afmetingen.",
+        descriptionEn:
+          "The demo uses fictional sample data, support links are easier to recognise and the trip cover has its own place with recommended dimensions.",
+      },
+      {
+        kind: "improved",
+        title: "Rustiger op ieder scherm",
+        titleEn: "Calmer on every screen",
+        description:
+          "Navigatie, aanraakknoppen, Engelse prijsteksten en foutmeldingen zijn aangescherpt voor telefoon, tablet en desktop.",
+        descriptionEn:
+          "Navigation, touch controls, English pricing copy and error messages have been refined for phone, tablet and desktop.",
+      },
+      {
+        kind: "new",
+        title: "Samen de reis afronden",
+        titleEn: "Finish the trip together",
+        description:
+          "Houd per reis gezamenlijke taken bij met een verantwoordelijke en deadline, en vink ze af zodra ze klaar zijn.",
+        descriptionEn:
+          "Track shared tasks per trip with an assignee and due date, and check them off when they are done.",
+      },
+      {
+        kind: "new",
+        title: "Alles voor vandaag",
+        titleEn: "Everything for today",
+        description:
+          "Bekijk onderweg één rustig overzicht met de planning, boekingen, bestemming, weer, documenten en taken van vandaag.",
+        descriptionEn:
+          "Use one calm on-the-go view for today's schedule, bookings, destination, weather, documents and tasks.",
+      },
+      {
+        kind: "improved",
+        title: "Meer op de kaart",
+        titleEn: "More on the map",
+        description:
+          "Zie plaatsgebonden boekingen en gekoppelde uitgaven direct naast je route en bestemmingen.",
+        descriptionEn:
+          "See location-based bookings and linked expenses directly alongside your route and destinations.",
+      },
+      {
+        kind: "new",
+        title: "Een eigen reisomslag",
+        titleEn: "Your own trip cover",
+        description:
+          "Geef iedere reis een eigen foto die veilig op de reis en dashboardkaart wordt getoond.",
+        descriptionEn:
+          "Give each trip its own photo, displayed securely on the trip and dashboard card.",
+      },
+      {
+        kind: "improved",
+        title: "Persoonlijkere reisgids",
+        titleEn: "A more personal trip guide",
+        description: "Je gekozen reisomslag verschijnt nu ook bovenaan de printbare reisgids.",
+        descriptionEn:
+          "Your selected trip cover now also appears at the top of the printable trip guide.",
+      },
+      {
+        kind: "new",
+        title: "Reizen naast elkaar",
+        titleEn: "Trips side by side",
+        description:
+          "Vergelijk twee reizen op periode, bestemmingen, boekingen, budget, uitgaven en routevolgorde voordat je een variant kiest.",
+        descriptionEn:
+          "Compare two trips by dates, destinations, bookings, budget, expenses and route order before choosing a variant.",
+      },
+      {
+        kind: "new",
+        title: "Je route meenemen",
+        titleEn: "Take your route with you",
+        description:
+          "Exporteer bestemmingen in hun huidige volgorde als GPX-bestand voor kaart- en navigatie-apps.",
+        descriptionEn:
+          "Export destinations in their current order as a GPX file for mapping and navigation apps.",
+      },
+      {
+        kind: "new",
+        title: "Route omkeren",
+        titleEn: "Reverse your route",
+        description:
+          "Draai de volledige volgorde van je bestemmingen gecontroleerd om, met bevestiging voordat de wijziging wordt opgeslagen.",
+        descriptionEn:
+          "Reverse the complete order of your destinations in a controlled action, with confirmation before saving.",
+      },
+      {
+        kind: "new",
+        title: "Begin met een reisvariant",
+        titleEn: "Start with a trip variant",
+        description:
+          "Dupliceer route, planning en paklijst naar een nieuwe privéreis. Deelnemers, uitgaven, boekingsreferenties en deelinstellingen blijven veilig achter.",
+        descriptionEn:
+          "Duplicate a route, itinerary and packing list into a new private trip. Members, expenses, booking references and sharing settings safely stay behind.",
+      },
+      {
+        kind: "improved",
+        title: "Rustiger navigeren",
+        titleEn: "Calmer navigation",
+        description:
+          "De publieke hoofdnavigatie focust op de belangrijkste keuzes. Ingelogde reizigers vinden Contact en Status voortaan direct in hun menu.",
+        descriptionEn:
+          "The public navigation now focuses on the main choices. Signed-in travellers can access Contact and Status directly from their menu.",
+      },
+      {
+        kind: "improved",
+        title: "Een persoonlijker verhaal",
+        titleEn: "A more personal story",
+        description:
+          "Over GlobeTrotr leest nu als één verhaal over de Zwedenreis die het platform begon, met minder losse blokken en meer context.",
+        descriptionEn:
+          "About GlobeTrotr now reads as one story about the Sweden trip that started the platform, with fewer separate blocks and more context.",
+      },
+      {
+        kind: "improved",
+        title: "Verzorgd tijdens onderhoud",
+        titleEn: "Clearer during maintenance",
+        description:
+          "De onderhoudspagina toont een rustigere kop, de concrete reden, resterende tijd en wat er met je reisgegevens gebeurt.",
+        descriptionEn:
+          "The maintenance page shows a calmer heading, the specific reason, remaining time and what happens to your trip data.",
+      },
+      {
+        kind: "new",
+        title: "Inzicht in je reisbudget",
+        titleEn: "Understand your trip budget",
+        description:
+          "Bekijk reisduur, bestemmingen, overnachtingen, uitgaven per categorie, daggemiddelde en een budgetprognose in één overzicht.",
+        descriptionEn:
+          "See trip length, destinations, nights, expenses by category, daily average and a budget forecast in one overview.",
+      },
+      {
+        kind: "new",
+        title: "Je reis in je agenda",
+        titleEn: "Your trip in your calendar",
+        description:
+          "Exporteer dagplanning en boekingen als ICS-bestand naar Apple Calendar, Google Calendar, Outlook en andere agenda-apps.",
+        descriptionEn:
+          "Export itinerary items and bookings as an ICS file for Apple Calendar, Google Calendar, Outlook and other calendar apps.",
+      },
+      {
+        kind: "secure",
+        title: "Bevestiging bij accountwijzigingen",
+        titleEn: "Sign-in change confirmations",
+        description:
+          "Een aangevraagde e-mailwijziging en een geslaagde wachtwoordwijziging verschijnen als blijvende beveiligingsmelding in je account.",
+        descriptionEn:
+          "A requested email change and an updated sign-in credential now appear as persistent security notifications in your account.",
+      },
+      {
+        kind: "improved",
+        title: "Gerichter platformbeheer",
+        titleEn: "More focused platform management",
+        description:
+          "Beheerders kunnen feedback beantwoorden, urgente problemen volgen, openbare reizen modereren en de bezorging van in-appmeldingen overzien.",
+        descriptionEn:
+          "Administrators can reply to feedback, track urgent issues, moderate public trips and review in-app notification delivery.",
+      },
+      {
+        kind: "improved",
+        title: "Beter vindbare publieke pagina's",
+        titleEn: "More discoverable public pages",
+        description:
+          "De belangrijkste pagina's hebben eigen social previews, canonical-links en gestructureerde productinformatie.",
+        descriptionEn:
+          "The main pages now have dedicated social previews, canonical links and structured product information.",
+      },
+      {
+        kind: "new",
+        title: "Geplande onderhoudspagina",
+        titleEn: "Scheduled maintenance page",
+        description:
+          "Bezoekers zien een duidelijke reden en countdown, terwijl beheerders veilig kunnen inloggen en doorwerken.",
+        descriptionEn:
+          "Visitors see a clear reason and countdown while administrators can sign in securely and continue working.",
+      },
+      {
+        kind: "new",
+        title: "Privacyverzoek vanuit je account",
+        titleEn: "Privacy requests from your account",
+        description:
+          "Ingelogde gebruikers kunnen een privacyverzoek indienen en daarna de status en antwoordtermijn vanuit hun account volgen.",
+        descriptionEn:
+          "Signed-in users can submit a privacy request and then track its status and response deadline from their account.",
+      },
+      {
+        kind: "secure",
+        title: "Providerverkeer via GlobeTrotr",
+        titleEn: "Provider traffic through GlobeTrotr",
+        description:
+          "Bestemmingszoekopdrachten lopen via de server, zodat de externe dienst het IP-adres van het gebruikersapparaat niet ontvangt.",
+        descriptionEn:
+          "Destination searches run through the server so the external service does not receive the user's device IP address.",
+      },
+      {
+        kind: "fixed",
+        title: "Recensies en profielfoto's",
+        titleEn: "Testimonials and profile photos",
+        description:
+          "Recensies geven heldere invoerfeedback en profielfoto's behouden hun natuurlijke verhouding.",
+        descriptionEn:
+          "Testimonials provide clear input feedback and profile photos retain their natural proportions.",
+      },
+      {
+        kind: "improved",
+        title: "Duidelijker productverhaal",
+        titleEn: "Clearer product story",
+        description:
+          "De homepage laat direct zien welke reischaos GlobeTrotr vervangt en wat één gedeelde reis oplevert.",
+        descriptionEn:
+          "The homepage immediately shows which travel chaos GlobeTrotr replaces and what one shared trip provides.",
+      },
+      {
+        kind: "new",
+        title: "Reacties op feedback",
+        titleEn: "Replies to feedback",
+        description:
+          "Beheerders kunnen een aanvullende vraag of reactie plaatsen en de indiener krijgt daar gericht bericht van.",
+        descriptionEn:
+          "Administrators can post a follow-up question or reply and the submitter receives a focused notification.",
+      },
+      {
+        kind: "secure",
+        title: "Moderatie van openbare reizen",
+        titleEn: "Public trip moderation",
+        description:
+          "GlobeTrotr kan een openbare reis gemotiveerd depubliceren; de eigenaar wordt geïnformeerd en de ingreep wordt vastgelegd.",
+        descriptionEn:
+          "GlobeTrotr can unpublish a public trip with a recorded reason; the owner is informed and the action is audited.",
+      },
     ],
   },
   {
@@ -169,14 +475,56 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-14T00:08:00+02:00",
     title: "Meer overzicht en sterkere privacy",
     titleEn: "More clarity and stronger privacy",
-    summary: "De publieke site leeft meer door actuele reizen, lange reisschermen zijn rustiger en gegevens tussen reisbedrijven zijn strikter geïsoleerd.",
-    summaryEn: "The public site feels more alive with current trips, long trip screens are calmer and data is more strictly isolated between travel businesses.",
+    summary:
+      "De publieke site leeft meer door actuele reizen, lange reisschermen zijn rustiger en gegevens tussen reisbedrijven zijn strikter geïsoleerd.",
+    summaryEn:
+      "The public site feels more alive with current trips, long trip screens are calmer and data is more strictly isolated between travel businesses.",
     changes: [
-      {kind:"secure",title:"Offerteprijzen per Agency afgeschermd",titleEn:"Quote pricing isolated per agency",description:"Prijsvarianten zijn alleen zichtbaar binnen de bijbehorende Agency-workspace met het juiste inzagerecht.",descriptionEn:"Pricing variants are only visible inside the matching agency workspace with the correct viewing permission."},
-      {kind:"new",title:"Actuele reizen op de homepage",titleEn:"Current trips on the homepage",description:"Bezoekers ontdekken rechtstreeks vanaf de homepage echte openbaar gedeelde reizen.",descriptionEn:"Visitors can discover real publicly shared trips directly from the homepage."},
-      {kind:"improved",title:"Europese privacy helder uitgelegd",titleEn:"European privacy clearly explained",description:"De website beschrijft primaire opslag in de EU, applicatieservers in Duitsland en controle over optionele koppelingen.",descriptionEn:"The website explains primary EU storage, application servers in Germany and control over optional connections."},
-      {kind:"improved",title:"Rustigere reisschermen",titleEn:"Calmer trip screens",description:"Instellingen en planning zijn per onderwerp verdeeld en lange uitgavenlijsten kunnen worden gezocht en gefilterd.",descriptionEn:"Settings and planning are divided by topic, while long expense lists can be searched and filtered."},
-      {kind:"new",title:"Vertalen met menselijke controle",titleEn:"Translation with human review",description:"Corporate Admin kan een Engels concept laten maken en controleert dit zelf voordat het wordt gepubliceerd.",descriptionEn:"Corporate Admin can create an English draft and reviews it before publication."},
+      {
+        kind: "secure",
+        title: "Offerteprijzen per Agency afgeschermd",
+        titleEn: "Quote pricing isolated per agency",
+        description:
+          "Prijsvarianten zijn alleen zichtbaar binnen de bijbehorende Agency-workspace met het juiste inzagerecht.",
+        descriptionEn:
+          "Pricing variants are only visible inside the matching agency workspace with the correct viewing permission.",
+      },
+      {
+        kind: "new",
+        title: "Actuele reizen op de homepage",
+        titleEn: "Current trips on the homepage",
+        description:
+          "Bezoekers ontdekken rechtstreeks vanaf de homepage echte openbaar gedeelde reizen.",
+        descriptionEn:
+          "Visitors can discover real publicly shared trips directly from the homepage.",
+      },
+      {
+        kind: "improved",
+        title: "Europese privacy helder uitgelegd",
+        titleEn: "European privacy clearly explained",
+        description:
+          "De website beschrijft primaire opslag in de EU, applicatieservers in Duitsland en controle over optionele koppelingen.",
+        descriptionEn:
+          "The website explains primary EU storage, application servers in Germany and control over optional connections.",
+      },
+      {
+        kind: "improved",
+        title: "Rustigere reisschermen",
+        titleEn: "Calmer trip screens",
+        description:
+          "Instellingen en planning zijn per onderwerp verdeeld en lange uitgavenlijsten kunnen worden gezocht en gefilterd.",
+        descriptionEn:
+          "Settings and planning are divided by topic, while long expense lists can be searched and filtered.",
+      },
+      {
+        kind: "new",
+        title: "Vertalen met menselijke controle",
+        titleEn: "Translation with human review",
+        description:
+          "Corporate Admin kan een Engels concept laten maken en controleert dit zelf voordat het wordt gepubliceerd.",
+        descriptionEn:
+          "Corporate Admin can create an English draft and reviews it before publication.",
+      },
     ],
   },
   {
@@ -185,13 +533,47 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-13T23:52:00+02:00",
     title: "Meer grip voor reisbedrijven en GlobeTrotr",
     titleEn: "More control for travel businesses and GlobeTrotr",
-    summary: "Agency-teams krijgen concreet inzicht in offertes en werk, terwijl het platform privacydeadlines, uitrol en incidenten beter bewaakt.",
-    summaryEn: "Agency teams gain practical insight into quotes and work while the platform improves oversight of privacy deadlines, rollout and incidents.",
+    summary:
+      "Agency-teams krijgen concreet inzicht in offertes en werk, terwijl het platform privacydeadlines, uitrol en incidenten beter bewaakt.",
+    summaryEn:
+      "Agency teams gain practical insight into quotes and work while the platform improves oversight of privacy deadlines, rollout and incidents.",
     changes: [
-      {kind:"new",title:"Agency-rapportage",titleEn:"Agency reporting",description:"Klanten, actieve reizen, offerteconversie, taken en declarabele kosten staan samen in één rustig overzicht.",descriptionEn:"Clients, active trips, quote conversion, tasks and billable expenses come together in one focused overview."},
-      {kind:"new",title:"Instelbare herinneringen",titleEn:"Configurable reminders",description:"Reisbedrijven bepalen zelf hoeveel dagen vooraf taken, offertes en documenten onder de aandacht komen.",descriptionEn:"Travel businesses choose how many days in advance tasks, quotes and documents should receive attention."},
-      {kind:"secure",title:"Privacy en incidenten onder controle",titleEn:"Privacy and incidents under control",description:"Privacyverzoeken krijgen een deadline en platformincidenten en gecontroleerde uitrol worden centraal en met auditregistratie beheerd.",descriptionEn:"Privacy requests receive a deadline, while platform incidents and controlled rollouts are managed centrally with audit records."},
-      {kind:"improved",title:"Beter vindbare publieke site",titleEn:"More discoverable public site",description:"Een sitemap en zoekmachine-instructies bereiden de website voor op het eigen GlobeTrotr-domein.",descriptionEn:"A sitemap and search engine instructions prepare the website for the GlobeTrotr domain."},
+      {
+        kind: "new",
+        title: "Agency-rapportage",
+        titleEn: "Agency reporting",
+        description:
+          "Klanten, actieve reizen, offerteconversie, taken en declarabele kosten staan samen in één rustig overzicht.",
+        descriptionEn:
+          "Clients, active trips, quote conversion, tasks and billable expenses come together in one focused overview.",
+      },
+      {
+        kind: "new",
+        title: "Instelbare herinneringen",
+        titleEn: "Configurable reminders",
+        description:
+          "Reisbedrijven bepalen zelf hoeveel dagen vooraf taken, offertes en documenten onder de aandacht komen.",
+        descriptionEn:
+          "Travel businesses choose how many days in advance tasks, quotes and documents should receive attention.",
+      },
+      {
+        kind: "secure",
+        title: "Privacy en incidenten onder controle",
+        titleEn: "Privacy and incidents under control",
+        description:
+          "Privacyverzoeken krijgen een deadline en platformincidenten en gecontroleerde uitrol worden centraal en met auditregistratie beheerd.",
+        descriptionEn:
+          "Privacy requests receive a deadline, while platform incidents and controlled rollouts are managed centrally with audit records.",
+      },
+      {
+        kind: "improved",
+        title: "Beter vindbare publieke site",
+        titleEn: "More discoverable public site",
+        description:
+          "Een sitemap en zoekmachine-instructies bereiden de website voor op het eigen GlobeTrotr-domein.",
+        descriptionEn:
+          "A sitemap and search engine instructions prepare the website for the GlobeTrotr domain.",
+      },
     ],
   },
   {
@@ -200,16 +582,74 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-13T23:06:00+02:00",
     title: "Van losse demo naar een echte productreis",
     titleEn: "From disconnected demo to a real product journey",
-    summary: "De homepage en demo vertellen rustiger en concreter hoe één reis van route en boekingen naar planning en verrekening groeit.",
-    summaryEn: "The homepage and demo now show more clearly how one trip grows from route and bookings into an itinerary and settlement.",
+    summary:
+      "De homepage en demo vertellen rustiger en concreter hoe één reis van route en boekingen naar planning en verrekening groeit.",
+    summaryEn:
+      "The homepage and demo now show more clearly how one trip grows from route and bookings into an itinerary and settlement.",
     changes: [
-      { kind: "improved", title: "Interactieve Scandinavië-reis", titleEn: "Interactive Scandinavian trip", description: "De productrondleiding bevat vier werkende stappen met route, boekingen, dagplanning, paklijst en een verrekenactie die direct reageert.", descriptionEn: "The product tour contains four working steps covering route, bookings, itinerary, packing and an immediately responsive settlement action." },
-      { kind: "new", title: "Echte recensies", titleEn: "Real testimonials", description: "Beheerders kunnen ervaringen toevoegen en bewust publiceren; de homepage toont uitsluitend goedgekeurde recensies.", descriptionEn: "Administrators can add and deliberately publish experiences; the homepage only shows approved testimonials." },
-      { kind: "new", title: "Veilig contact en opvolging", titleEn: "Secure contact and follow-up", description: "Het contactformulier gebruikt spamcontrole en nieuwe berichten kunnen vanuit een afgeschermde beheerinbox worden gezocht, opgevolgd en afgesloten.", descriptionEn: "The contact form uses spam protection and new messages can be searched, followed up and closed from a protected management inbox." },
-      { kind: "improved", title: "Iedere pagina een duidelijk doel", titleEn: "A clear purpose for every page", description: "De homepage introduceert het product, de demo laat het echt proberen en Mogelijkheden geeft het volledige overzicht. Prijzen helpt nu kiezen op basis van gebruik.", descriptionEn: "The homepage introduces the product, the demo lets visitors try it and Features provides the complete overview. Pricing now helps people choose based on use." },
-      { kind: "improved", title: "Betalen, opzeggen en terugbetalen", titleEn: "Payment, cancellation and refunds", description: "De commerciële en juridische pagina's beschrijven actieve betaalde abonnementen via Paddle, maandelijkse verlenging, opzegging, herroeping en terugbetaling.", descriptionEn: "Commercial and legal pages describe active paid subscriptions through Paddle, monthly renewal, cancellation, withdrawal and refunds." },
-      { kind: "improved", title: "Eerlijkere beta-status", titleEn: "More transparent beta status", description: "Verouderde problemen verdwijnen uit de actieve lijst en nog ontbrekende e-mail-, OAuth-, betaal- en domeinkoppelingen blijven zichtbaar.", descriptionEn: "Outdated issues leave the active list while pending email, OAuth, payment and domain integrations remain visible." },
-      { kind: "improved", title: "Actuele releasechecklist", titleEn: "Current release checklist", description: "Uitgevoerde migraties en SQL-controles staan apart van de handmatige producttests die nog moeten worden gedaan.", descriptionEn: "Completed migrations and SQL checks are separated from the manual product tests that still need to be performed." },
+      {
+        kind: "improved",
+        title: "Interactieve Scandinavië-reis",
+        titleEn: "Interactive Scandinavian trip",
+        description:
+          "De productrondleiding bevat vier werkende stappen met route, boekingen, dagplanning, paklijst en een verrekenactie die direct reageert.",
+        descriptionEn:
+          "The product tour contains four working steps covering route, bookings, itinerary, packing and an immediately responsive settlement action.",
+      },
+      {
+        kind: "new",
+        title: "Echte recensies",
+        titleEn: "Real testimonials",
+        description:
+          "Beheerders kunnen ervaringen toevoegen en bewust publiceren; de homepage toont uitsluitend goedgekeurde recensies.",
+        descriptionEn:
+          "Administrators can add and deliberately publish experiences; the homepage only shows approved testimonials.",
+      },
+      {
+        kind: "new",
+        title: "Veilig contact en opvolging",
+        titleEn: "Secure contact and follow-up",
+        description:
+          "Het contactformulier gebruikt spamcontrole en nieuwe berichten kunnen vanuit een afgeschermde beheerinbox worden gezocht, opgevolgd en afgesloten.",
+        descriptionEn:
+          "The contact form uses spam protection and new messages can be searched, followed up and closed from a protected management inbox.",
+      },
+      {
+        kind: "improved",
+        title: "Iedere pagina een duidelijk doel",
+        titleEn: "A clear purpose for every page",
+        description:
+          "De homepage introduceert het product, de demo laat het echt proberen en Mogelijkheden geeft het volledige overzicht. Prijzen helpt nu kiezen op basis van gebruik.",
+        descriptionEn:
+          "The homepage introduces the product, the demo lets visitors try it and Features provides the complete overview. Pricing now helps people choose based on use.",
+      },
+      {
+        kind: "improved",
+        title: "Betalen, opzeggen en terugbetalen",
+        titleEn: "Payment, cancellation and refunds",
+        description:
+          "De commerciële en juridische pagina's beschrijven actieve betaalde abonnementen via Paddle, maandelijkse verlenging, opzegging, herroeping en terugbetaling.",
+        descriptionEn:
+          "Commercial and legal pages describe active paid subscriptions through Paddle, monthly renewal, cancellation, withdrawal and refunds.",
+      },
+      {
+        kind: "improved",
+        title: "Eerlijkere beta-status",
+        titleEn: "More transparent beta status",
+        description:
+          "Verouderde problemen verdwijnen uit de actieve lijst en nog ontbrekende e-mail-, OAuth-, betaal- en domeinkoppelingen blijven zichtbaar.",
+        descriptionEn:
+          "Outdated issues leave the active list while pending email, OAuth, payment and domain integrations remain visible.",
+      },
+      {
+        kind: "improved",
+        title: "Actuele releasechecklist",
+        titleEn: "Current release checklist",
+        description:
+          "Uitgevoerde migraties en SQL-controles staan apart van de handmatige producttests die nog moeten worden gedaan.",
+        descriptionEn:
+          "Completed migrations and SQL checks are separated from the manual product tests that still need to be performed.",
+      },
     ],
   },
   {
@@ -218,14 +658,56 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-13T22:27:00+02:00",
     title: "Een duidelijker verhaal en stabielere reiservaring",
     titleEn: "A clearer story and a more stable trip experience",
-    summary: "De website laat concreter zien hoe GlobeTrotr reischaos oplost, terwijl gedeelde reizen, oude data, branding en navigatie betrouwbaarder werken.",
-    summaryEn: "The website now shows more clearly how GlobeTrotr solves travel chaos, while shared trips, old data, branding and navigation work more reliably.",
+    summary:
+      "De website laat concreter zien hoe GlobeTrotr reischaos oplost, terwijl gedeelde reizen, oude data, branding en navigatie betrouwbaarder werken.",
+    summaryEn:
+      "The website now shows more clearly how GlobeTrotr solves travel chaos, while shared trips, old data, branding and navigation work more reliably.",
     changes: [
-      { kind: "new", title: "GlobeTrotr in de praktijk", titleEn: "GlobeTrotr in practice", description: "De homepage toont herkenbare groepsreis-, roadtrip- en Agency-scenario’s en vertelt het persoonlijke oprichtersverhaal.", descriptionEn: "The homepage shows recognisable group trip, road trip and agency scenarios and shares the founder’s personal story." },
-      { kind: "fixed", title: "Gedeelde reislinks hersteld", titleEn: "Shared trip links restored", description: "Nederlandse en Engelstalige openbare reislinks gebruiken nu dezelfde veilige pagina en ontbrekende optionele gegevens veroorzaken geen fout meer.", descriptionEn: "Dutch and English public trip links now use the same secure page and missing optional data no longer causes an error." },
-      { kind: "fixed", title: "Actuele reizen en huisstijl", titleEn: "Current trips and branding", description: "Verwijderde oude reisdata keert niet terug uit een verouderde cache en na een downgrade verschijnt GlobeTrotr direct weer als huisstijl.", descriptionEn: "Deleted legacy trip data no longer returns from an outdated cache and GlobeTrotr branding returns immediately after a downgrade." },
-      { kind: "improved", title: "Rustiger beheer en routekaart", titleEn: "Calmer administration and route map", description: "Corporate Admin gebruikt een compacte zijbalk, dubbele leveranciersnavigatie is verwijderd en de kaart sluit in donkere modus beter aan op de interface.", descriptionEn: "Corporate Admin uses a compact sidebar, duplicate supplier navigation is removed and the map better matches the dark interface." },
-      { kind: "fixed", title: "Leesbare interface", titleEn: "Readable interface", description: "Resterende fout gecodeerde leestekens zijn uit de zichtbare interface en release-informatie verwijderd.", descriptionEn: "Remaining incorrectly encoded punctuation has been removed from the visible interface and release information." },
+      {
+        kind: "new",
+        title: "GlobeTrotr in de praktijk",
+        titleEn: "GlobeTrotr in practice",
+        description:
+          "De homepage toont herkenbare groepsreis-, roadtrip- en Agency-scenario’s en vertelt het persoonlijke oprichtersverhaal.",
+        descriptionEn:
+          "The homepage shows recognisable group trip, road trip and agency scenarios and shares the founder’s personal story.",
+      },
+      {
+        kind: "fixed",
+        title: "Gedeelde reislinks hersteld",
+        titleEn: "Shared trip links restored",
+        description:
+          "Nederlandse en Engelstalige openbare reislinks gebruiken nu dezelfde veilige pagina en ontbrekende optionele gegevens veroorzaken geen fout meer.",
+        descriptionEn:
+          "Dutch and English public trip links now use the same secure page and missing optional data no longer causes an error.",
+      },
+      {
+        kind: "fixed",
+        title: "Actuele reizen en huisstijl",
+        titleEn: "Current trips and branding",
+        description:
+          "Verwijderde oude reisdata keert niet terug uit een verouderde cache en na een downgrade verschijnt GlobeTrotr direct weer als huisstijl.",
+        descriptionEn:
+          "Deleted legacy trip data no longer returns from an outdated cache and GlobeTrotr branding returns immediately after a downgrade.",
+      },
+      {
+        kind: "improved",
+        title: "Rustiger beheer en routekaart",
+        titleEn: "Calmer administration and route map",
+        description:
+          "Corporate Admin gebruikt een compacte zijbalk, dubbele leveranciersnavigatie is verwijderd en de kaart sluit in donkere modus beter aan op de interface.",
+        descriptionEn:
+          "Corporate Admin uses a compact sidebar, duplicate supplier navigation is removed and the map better matches the dark interface.",
+      },
+      {
+        kind: "fixed",
+        title: "Leesbare interface",
+        titleEn: "Readable interface",
+        description:
+          "Resterende fout gecodeerde leestekens zijn uit de zichtbare interface en release-informatie verwijderd.",
+        descriptionEn:
+          "Remaining incorrectly encoded punctuation has been removed from the visible interface and release information.",
+      },
     ],
   },
   {
@@ -234,13 +716,46 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-12T12:52:00+02:00",
     title: "Transparante status en het verhaal achter GlobeTrotr",
     titleEn: "Transparent status and the story behind GlobeTrotr",
-    summary: "Een publieke statuspagina, het persoonlijke oprichtersverhaal en uitgebreid productiebeheer bereiden GlobeTrotr voor op de volgende testfase.",
-    summaryEn: "A public status page, the founder's story and expanded production controls prepare GlobeTrotr for its next testing phase.",
+    summary:
+      "Een publieke statuspagina, het persoonlijke oprichtersverhaal en uitgebreid productiebeheer bereiden GlobeTrotr voor op de volgende testfase.",
+    summaryEn:
+      "A public status page, the founder's story and expanded production controls prepare GlobeTrotr for its next testing phase.",
     changes: [
-      { kind: "new", title: "Publieke statuspagina", titleEn: "Public status page", description: "Bezoekers kunnen de beschikbaarheid van de website, gegevensdiensten en achtergrondverwerking volgen zonder interne servergegevens te zien.", descriptionEn: "Visitors can follow availability of the website, data services and background processing without seeing internal server details." },
-      { kind: "new", title: "Het verhaal van Domenic", titleEn: "Domenic's story", description: "Een nieuwe over-ons-pagina vertelt hoe een droomreis naar Zweden uitgroeide tot GlobeTrotr.", descriptionEn: "A new about page tells how a dream trip to Sweden grew into GlobeTrotr." },
-      { kind: "improved", title: "Klaar voor gecontroleerde implementatie", titleEn: "Ready for controlled implementation", description: "Corporate Admin krijgt infrastructuur-, quota-, factuur- en mailboxbeheer plus een blijvende releasechecklist voor de productiecontrole.", descriptionEn: "Corporate Admin gains infrastructure, quota, invoice and mailbox controls plus a persistent release checklist for production verification." },
-      { kind: "improved", title: "Professioneler bedrijfsbeheer", titleEn: "More professional business administration", description: "Bedrijfsrechten sturen de beheeromgeving, belangrijke acties vragen extra bevestiging en financiële of auditoverzichten zijn exporteerbaar.", descriptionEn: "Company permissions shape the administration area, important actions require an extra confirmation and financial or audit views can be exported." },
+      {
+        kind: "new",
+        title: "Publieke statuspagina",
+        titleEn: "Public status page",
+        description:
+          "Bezoekers kunnen de beschikbaarheid van de website, gegevensdiensten en achtergrondverwerking volgen zonder interne servergegevens te zien.",
+        descriptionEn:
+          "Visitors can follow availability of the website, data services and background processing without seeing internal server details.",
+      },
+      {
+        kind: "new",
+        title: "Het verhaal van Domenic",
+        titleEn: "Domenic's story",
+        description:
+          "Een nieuwe over-ons-pagina vertelt hoe een droomreis naar Zweden uitgroeide tot GlobeTrotr.",
+        descriptionEn: "A new about page tells how a dream trip to Sweden grew into GlobeTrotr.",
+      },
+      {
+        kind: "improved",
+        title: "Klaar voor gecontroleerde implementatie",
+        titleEn: "Ready for controlled implementation",
+        description:
+          "Corporate Admin krijgt infrastructuur-, quota-, factuur- en mailboxbeheer plus een blijvende releasechecklist voor de productiecontrole.",
+        descriptionEn:
+          "Corporate Admin gains infrastructure, quota, invoice and mailbox controls plus a persistent release checklist for production verification.",
+      },
+      {
+        kind: "improved",
+        title: "Professioneler bedrijfsbeheer",
+        titleEn: "More professional business administration",
+        description:
+          "Bedrijfsrechten sturen de beheeromgeving, belangrijke acties vragen extra bevestiging en financiële of auditoverzichten zijn exporteerbaar.",
+        descriptionEn:
+          "Company permissions shape the administration area, important actions require an extra confirmation and financial or audit views can be exported.",
+      },
     ],
   },
   {
@@ -249,13 +764,47 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-12T11:55:00+02:00",
     title: "Een complete werkplek voor reisprofessionals",
     titleEn: "A complete workspace for travel professionals",
-    summary: "Agency-teams beheren klanten, leveranciers, offertes, taken, documenten en reizen vanuit één beveiligde werkomgeving.",
-    summaryEn: "Agency teams manage clients, suppliers, quotes, tasks, documents and trips from one secure workspace.",
+    summary:
+      "Agency-teams beheren klanten, leveranciers, offertes, taken, documenten en reizen vanuit één beveiligde werkomgeving.",
+    summaryEn:
+      "Agency teams manage clients, suppliers, quotes, tasks, documents and trips from one secure workspace.",
     changes: [
-      { kind: "new", title: "Van klant tot reis", titleEn: "From client to trip", description: "Klantprofielen, offertes met prijsvarianten en gecontroleerde omzetting naar een reis vormen één doorlopende workflow.", descriptionEn: "Client profiles, quotes with pricing options and controlled conversion into a trip form one continuous workflow." },
-      { kind: "new", title: "Leveranciers, taken en documenten", titleEn: "Suppliers, tasks and documents", description: "Teams hergebruiken aanbieders, verdelen deadlines en bewaren reisdocumenten veilig bij de juiste reis.", descriptionEn: "Teams reuse providers, assign deadlines and securely keep travel documents with the correct trip." },
-      { kind: "improved", title: "Rollen en huisstijl", titleEn: "Roles and branding", description: "Persoonlijke rechten, Agency-brede toegang, auditgeschiedenis en huisstijl per organisatie of reis werken samen.", descriptionEn: "Personal permissions, agency-wide access, audit history and branding per organisation or trip work together." },
-      { kind: "secure", title: "Voorbereid op betrouwbare groei", titleEn: "Prepared for reliable growth", description: "Centrale gebruiksgrenzen, providerstops en gecontroleerde achtergrondtaken bereiden GlobeTrotr voor op de productieomgeving.", descriptionEn: "Central usage limits, provider controls and managed background tasks prepare GlobeTrotr for its production environment." },
+      {
+        kind: "new",
+        title: "Van klant tot reis",
+        titleEn: "From client to trip",
+        description:
+          "Klantprofielen, offertes met prijsvarianten en gecontroleerde omzetting naar een reis vormen één doorlopende workflow.",
+        descriptionEn:
+          "Client profiles, quotes with pricing options and controlled conversion into a trip form one continuous workflow.",
+      },
+      {
+        kind: "new",
+        title: "Leveranciers, taken en documenten",
+        titleEn: "Suppliers, tasks and documents",
+        description:
+          "Teams hergebruiken aanbieders, verdelen deadlines en bewaren reisdocumenten veilig bij de juiste reis.",
+        descriptionEn:
+          "Teams reuse providers, assign deadlines and securely keep travel documents with the correct trip.",
+      },
+      {
+        kind: "improved",
+        title: "Rollen en huisstijl",
+        titleEn: "Roles and branding",
+        description:
+          "Persoonlijke rechten, Agency-brede toegang, auditgeschiedenis en huisstijl per organisatie of reis werken samen.",
+        descriptionEn:
+          "Personal permissions, agency-wide access, audit history and branding per organisation or trip work together.",
+      },
+      {
+        kind: "secure",
+        title: "Voorbereid op betrouwbare groei",
+        titleEn: "Prepared for reliable growth",
+        description:
+          "Centrale gebruiksgrenzen, providerstops en gecontroleerde achtergrondtaken bereiden GlobeTrotr voor op de productieomgeving.",
+        descriptionEn:
+          "Central usage limits, provider controls and managed background tasks prepare GlobeTrotr for its production environment.",
+      },
     ],
   },
   {
@@ -264,12 +813,38 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-12T11:45:00+02:00",
     title: "Samenwerken met meldingen die ertoe doen",
     titleEn: "Collaborate with notifications that matter",
-    summary: "Uitnodigingen, toegang, reiswijzigingen, deadlines en verrekeningen bereiken gericht de juiste personen zonder onnodige herhaling.",
-    summaryEn: "Invitations, access, trip changes, deadlines and settlements reach the right people without unnecessary repetition.",
+    summary:
+      "Uitnodigingen, toegang, reiswijzigingen, deadlines en verrekeningen bereiken gericht de juiste personen zonder onnodige herhaling.",
+    summaryEn:
+      "Invitations, access, trip changes, deadlines and settlements reach the right people without unnecessary repetition.",
     changes: [
-      { kind: "improved", title: "Eén actuele melding", titleEn: "One current notification", description: "Herhaalde wijzigingen aan reizen, boekingen, uitgaven, documenten en Agency-werk worden overzichtelijk gebundeld.", descriptionEn: "Repeated changes to trips, bookings, expenses, documents and agency work are grouped clearly." },
-      { kind: "new", title: "Voorkeuren per reis", titleEn: "Preferences per trip", description: "Iedere deelnemer kiest informatieve updates per onderwerp; toegang, beveiliging en betaalverzoeken blijven altijd actief.", descriptionEn: "Each participant chooses informational updates by topic; access, security and payment requests always remain enabled." },
-      { kind: "new", title: "Betaalverzoeken en deadlines", titleEn: "Payment requests and deadlines", description: "Slimme verrekeningen kunnen worden gedeeld en afgerond, terwijl geplande herinneringen verlopen acties netjes sluiten.", descriptionEn: "Smart settlements can be shared and completed while scheduled reminders neatly close expired actions." },
+      {
+        kind: "improved",
+        title: "Eén actuele melding",
+        titleEn: "One current notification",
+        description:
+          "Herhaalde wijzigingen aan reizen, boekingen, uitgaven, documenten en Agency-werk worden overzichtelijk gebundeld.",
+        descriptionEn:
+          "Repeated changes to trips, bookings, expenses, documents and agency work are grouped clearly.",
+      },
+      {
+        kind: "new",
+        title: "Voorkeuren per reis",
+        titleEn: "Preferences per trip",
+        description:
+          "Iedere deelnemer kiest informatieve updates per onderwerp; toegang, beveiliging en betaalverzoeken blijven altijd actief.",
+        descriptionEn:
+          "Each participant chooses informational updates by topic; access, security and payment requests always remain enabled.",
+      },
+      {
+        kind: "new",
+        title: "Betaalverzoeken en deadlines",
+        titleEn: "Payment requests and deadlines",
+        description:
+          "Slimme verrekeningen kunnen worden gedeeld en afgerond, terwijl geplande herinneringen verlopen acties netjes sluiten.",
+        descriptionEn:
+          "Smart settlements can be shared and completed while scheduled reminders neatly close expired actions.",
+      },
     ],
   },
   {
@@ -278,14 +853,41 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-12T09:55:00+02:00",
     title: "GlobeTrotr helder uitgelegd",
     titleEn: "GlobeTrotr clearly explained",
-    summary: "De vernieuwde publieke website laat reizigers, groepen en reisprofessionals zien wat GlobeTrotr voor hen kan betekenen.",
-    summaryEn: "The renewed public website shows travellers, groups and travel professionals what GlobeTrotr can do for them.",
+    summary:
+      "De vernieuwde publieke website laat reizigers, groepen en reisprofessionals zien wat GlobeTrotr voor hen kan betekenen.",
+    summaryEn:
+      "The renewed public website shows travellers, groups and travel professionals what GlobeTrotr can do for them.",
     changes: [
-      { kind: "new", title: "Productpagina’s en interactieve demo", titleEn: "Product pages and interactive demo", description: "Iedere doelgroep heeft een eigen pagina, met een veilige demo, support en duidelijke navigatie in Nederlands en Engels.", descriptionEn: "Each audience has its own page with a safe demo, support and clear navigation in Dutch and English." },
-      { kind: "improved", title: "Stabiele internationale routes", titleEn: "Stable international routes", description: "Engelstalige URL’s, redirects, metadata, sitemap en bestaande gedeelde links vormen één consistente websitestructuur.", descriptionEn: "English URLs, redirects, metadata, sitemap and existing shared links form one consistent website structure." },
-      { kind: "secure", title: "Privacy en accountcontrole", titleEn: "Privacy and account control", description: "Cookiekeuzes, gegevensdownload, accountverwijdering en juridische informatie zijn bereikbaar vanuit een duidelijke account- en websitestructuur.", descriptionEn: "Cookie choices, data download, account deletion and legal information are available through a clear account and website structure." },
+      {
+        kind: "new",
+        title: "Productpagina’s en interactieve demo",
+        titleEn: "Product pages and interactive demo",
+        description:
+          "Iedere doelgroep heeft een eigen pagina, met een veilige demo, support en duidelijke navigatie in Nederlands en Engels.",
+        descriptionEn:
+          "Each audience has its own page with a safe demo, support and clear navigation in Dutch and English.",
+      },
+      {
+        kind: "improved",
+        title: "Stabiele internationale routes",
+        titleEn: "Stable international routes",
+        description:
+          "Engelstalige URL’s, redirects, metadata, sitemap en bestaande gedeelde links vormen één consistente websitestructuur.",
+        descriptionEn:
+          "English URLs, redirects, metadata, sitemap and existing shared links form one consistent website structure.",
+      },
+      {
+        kind: "secure",
+        title: "Privacy en accountcontrole",
+        titleEn: "Privacy and account control",
+        description:
+          "Cookiekeuzes, gegevensdownload, accountverwijdering en juridische informatie zijn bereikbaar vanuit een duidelijke account- en websitestructuur.",
+        descriptionEn:
+          "Cookie choices, data download, account deletion and legal information are available through a clear account and website structure.",
+      },
     ],
-  },  {
+  },
+  {
     id: "2026-09-09-agency-admin-start",
     version: "Beta 0.26",
     publishedAt: "2026-09-09T18:20:00+02:00",
@@ -558,10 +1160,8 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         kind: "improved",
         title: "Eén melding per gewijzigde reis",
         titleEn: "One notification per updated trip",
-        description:
-          "Meerdere wijzigingen worden samengevoegd tot één actuele melding per reis.",
-        descriptionEn:
-          "Multiple changes are combined into one current notification per trip.",
+        description: "Meerdere wijzigingen worden samengevoegd tot één actuele melding per reis.",
+        descriptionEn: "Multiple changes are combined into one current notification per trip.",
       },
       {
         kind: "new",
@@ -638,10 +1238,8 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         kind: "fixed",
         title: "Geen dubbele reisgenoten",
         titleEn: "No duplicate travellers",
-        description:
-          "Oude uitnodigingsregels worden bij acceptatie automatisch opgeruimd.",
-        descriptionEn:
-          "Old invitation entries are now cleaned up automatically after acceptance.",
+        description: "Oude uitnodigingsregels worden bij acceptatie automatisch opgeruimd.",
+        descriptionEn: "Old invitation entries are now cleaned up automatically after acceptance.",
       },
       {
         kind: "fixed",

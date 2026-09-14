@@ -1,6 +1,6 @@
 type AdminDb = { from: (table: string) => any };
 
-export async function queueInvitationEmail(db: AdminDb, input: { recipient: string; locale?: string; title: string; body: string; actionUrl: string; preferenceUserId?: string; invitationType: "trip" | "agency"; invitationId: string }): Promise<boolean> {
+export async function queueInvitationEmail(db: AdminDb, input: { recipient: string; locale?: string; title: string; body: string; actionUrl: string; preferenceUserId?: string; invitationType: "trip" | "agency"; invitationId: string; branding?: {brandName:string;accentHue:number} }): Promise<boolean> {
   if (input.preferenceUserId) {
     const { data: profile } = await db.from("profiles").select("notification_preferences").eq("id", input.preferenceUserId).maybeSingle();
     if (profile?.notification_preferences?.invitations === false) return false;
@@ -16,7 +16,7 @@ export async function queueInvitationEmail(db: AdminDb, input: { recipient: stri
     recipient_email: input.recipient,
     locale: input.locale === "en" ? "en" : "nl",
     template_key: "invitation",
-    payload: { title: input.title, body: input.body, actionUrl: input.actionUrl },
+    payload: { title: input.title, body: input.body, actionUrl: input.actionUrl, ...(input.branding?{branding:input.branding}:{}) },
     invitation_type: input.invitationType,
     invitation_id: input.invitationId,
     status: config.mode === "live" ? "pending" : "held",

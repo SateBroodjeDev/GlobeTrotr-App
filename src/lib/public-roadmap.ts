@@ -1,92 +1,379 @@
 export const PUBLIC_TODAY = {
-  date: ["14 september 2026", "14 September 2026"],
-  title: ["Klaar voor de brede acceptatietest", "Ready for broad acceptance testing"],
-  description: ["Onderhoud, privacyverzoeken, server-side providerverkeer en duidelijker beheer maken de beta klaar voor de volgende praktijktest.", "Maintenance, privacy requests, server-side provider traffic and clearer administration prepare the beta for its next practical test."],
+  date: ["15 september 2026", "15 September 2026"],
+  title: ["Communicatie klaar voor praktijktests", "Communication ready for hands-on testing"],
+  description: [
+    "Veilig aanmelden, uitnodigingen en bedrijfsmail zijn technisch aangesloten; de laatste productiecontroles staan klaar.",
+    "Secure sign-in, invitations and company email are technically connected; final production checks are ready.",
+  ],
   completed: [
-    ["Dagplanning en boekingen als agenda-export downloaden", "Download itinerary items and bookings as a calendar export"],
-    ["Reisstatistieken met uitgavenverdeling en budgetprognose", "Trip insights with expense breakdown and budget forecast"],
-    ["Een bestaande reis veilig als nieuwe private variant dupliceren", "Safely duplicate an existing trip as a new private variant"],
-    ["Bestemmingen als GPX exporteren en een volledige route gecontroleerd omkeren", "Export destinations as GPX and safely reverse an entire route"],
-    ["Twee reisvarianten op route, boekingen en budget vergelijken", "Compare two trip variants by route, bookings and budget"],
-    ["Eigen Agency Admin-navigatie voor organisatie, klanten, operatie en activiteit", "Dedicated Agency Admin navigation for organisation, clients, operations and activity"],
-    ["Klantprofielen met contactgegevens, taal, notities en gekoppelde reizen", "Client profiles with contact details, language, notes and linked trips"],
-    ["Bestaande klantaccounts automatisch toegang geven tot gekoppelde reizen", "Automatically grant existing client accounts access to linked trips"],
-    ["Rollen en persoonlijke rechten voor adviseurs en financiële medewerkers", "Role and personal permissions for advisers and finance staff"],
-    ["Agency-logo, merkgegevens en optionele huisstijl per reis", "Agency logo, brand details and optional branding per trip"],
-    ["Werkvoorraad voor aankomende reizen, boekingsgegevens en declarabele kosten", "Work queue for upcoming trips, booking details and billable expenses"],
-    ["Append-only beheerhistorie met actor, actie en tijdstip", "Append-only administration history with actor, action and timestamp"],
-    ["Agency-toegang en huisstijl automatisch bijwerken tijdens een actieve sessie", "Automatically refresh Agency access and branding during an active session"],
-    ["Consistente Agency-reisrollen bij bekijken en opslaan", "Consistent Agency trip roles when viewing and saving"],
-    ["Reisuitnodigingen en deelnemers beheren met expliciete Agency-rechten", "Manage trip invitations and participants with explicit Agency permissions"],
-    ["Persoonlijke Agency-rechten direct toepassen op planning, uitgaven en reisinstellingen", "Apply personal Agency permissions directly to planning, expenses and trip settings"],
-    ["Organisatiegegevens en huisstijl overzichtelijk in afzonderlijke tabs beheren", "Manage organisation details and branding in clear separate tabs"],
-    ["Agency-beveiliging, teamtoegang en recente beheeracties in één overzicht", "Agency security, team access and recent administrative actions in one overview"],
-    ["Aangemaakte en verwijderde Agency-reizen met uitvoerder in de beheerhistorie", "Record created and deleted Agency trips with the acting user"],
-    ["Persoonlijke Agency-meldingsvoorkeuren met verplichte beveiligingsmeldingen", "Personal Agency notification preferences with mandatory security notices"],
-    ["Volledige Agency-rollenmatrix en klantbegrenzing met regressietests bewaken", "Safeguard the complete Agency role matrix and client scope with regression tests"],
-    ["Actief Agency-plan en werkelijk workspacegebruik samen tonen", "Show the active Agency plan and real workspace usage together"],
-    ["Serveracties bijwerken naar de actuele validatie-API", "Update server actions to the current validation API"],
-    ["Tickets, vouchers en andere reisdocumenten veilig per reis bewaren", "Securely store tickets, vouchers and other documents for each trip"],
-    ["Eigen klantportaal voor gekoppelde Agency-reizen", "Dedicated client portal for linked Agency trips"],
-    ["Vervaldatums en waarschuwingen voor belangrijke reisdocumenten", "Expiry dates and alerts for important travel documents"],
-    ["Taken en deadlines verdelen binnen het Agency-team", "Assign tasks and deadlines across the Agency team"],
-    ["Herbruikbare Agency-sjablonen voor planning, paklijsten en klantteksten", "Reusable Agency templates for itineraries, packing lists and client messages"],
-    ["Openbare prijzen, algemene voorwaarden en terugbetalingsbeleid in Nederlands en Engels", "Public pricing, terms and refund policy in Dutch and English"],
-    ["Interne Agency-offertes met meerdere prijsvarianten en atomaire opslag", "Internal Agency quotes with multiple pricing options and atomic storage"],
-    ["Agency-offertes veilig bekijken via een tijdelijke klantlink", "Securely view Agency quotes through a temporary client link"],
-    ["Eén offertevariant veilig accepteren of de offerte afwijzen", "Securely accept one quote option or reject the quote"],
-    ["Een geaccepteerde offerte gecontroleerd aan een bestaande of nieuwe reis koppelen", "Link an accepted quote to an existing or new trip in a controlled flow"],
-    ["Actieve offertelinks bekijken, veilig vernieuwen en direct intrekken", "View, securely renew and immediately revoke active quote links"],
-    ["Teamleden gericht informeren wanneer hun Agency-rol of rechten veranderen", "Notify team members when their Agency role or permissions change"],
-    ["Bevoegde beheerders informeren over wijzigingen aan Agency- en reisbranding", "Notify authorised administrators about Agency and trip branding changes"],
-    ["Taaktoewijzing, overdracht, status en deadline gericht en gebundeld melden", "Send targeted, grouped notifications for task assignment, reassignment, status and deadlines"],
-    ["Agency-klanten bij koppelen, ontkoppelen, archiveren en herstellen gericht melden", "Send targeted notifications when Agency clients are linked, unlinked, archived or restored"],
-    ["Offertelinks delen, vernieuwen en intrekken melden en de volledige offertecyclus vastleggen", "Notify quote link sharing, renewal and revocation and record the complete quote lifecycle"],
-    ["Gewijzigde reisrollen en ingetrokken uitnodigingen duidelijk aan betrokken reizigers melden", "Clearly notify affected travellers about changed trip roles and revoked invitations"],
-    ["Reisleden veilig informeren wanneer een document of vervaldatum verandert", "Safely notify trip members when a document or expiry date changes"],
-    ["Belangrijke wijzigingen aan reisdata, bestemmingen en delen herkenbaar melden", "Clearly notify travellers about important changes to dates, destinations and sharing"],
-    ["Boekingen, vluchtstatus en uitgaven gericht en zonder duplicaten melden", "Send targeted notifications for bookings, flight status and expenses without duplicates"],
-    ["Aparte publieke pagina's voor reizigers, groepen, Agencies, demo en support", "Dedicated public pages for travellers, groups, agencies, demo and support"],
-    ["Stabiele Engelstalige URL's met behoud van bestaande links", "Stable English URLs while preserving existing links"],
-    ["Herinneringen voor taakdeadlines, documenten, offertes en verlopen uitnodigingen", "Reminders for task deadlines, documents, quotes and expired invitations"],
-    ["Betaalverzoeken en afgeronde verrekeningen gericht aan reisgenoten melden", "Send targeted payment requests and completed settlement notifications to travellers"],
-    ["Persoonlijke meldingsvoorkeuren per reis en onderwerp", "Personal notification preferences per trip and topic"],
-    ["Herbruikbare Agency-leveranciers met afspraken en reiskoppelingen", "Reusable Agency suppliers with agreements and trip links"],
-    ["Centrale gebruiksgrenzen en betrouwbare achtergrondverwerking voorbereiden", "Prepare central usage limits and reliable background processing"],
-    ["Schone beta-dataset en technische releasechecklist vastleggen", "Record the clean beta dataset and technical release checklist"],
-    ["Interactieve productrondleiding van route tot verrekening", "Interactive product tour from route to settlement"],
-    ["Beheerbare en expliciet gepubliceerde recensies op de homepage", "Managed and explicitly published testimonials on the homepage"],
-    ["Veilig contactformulier met spamcontrole en beheerinbox", "Secure contact form with spam protection and management inbox"],
-    ["Agency-rapportage voor offertes, taken en declarabele kosten", "Agency reporting for quotes, tasks and billable expenses"],
-    ["Instelbare herinneringen voor taken, offertes en documenten", "Configurable reminders for tasks, quotes and documents"],
-    ["Privacydeadlines, featureflags en incidentenbeheer voor GlobeTrotr", "Privacy deadlines, feature flags and incident management for GlobeTrotr"],
-    ["Publieke sitemap en zoekmachine-instructies", "Public sitemap and search engine instructions"],
-    ["Actuele openbare reizen rechtstreeks op de homepage", "Current public trips directly on the homepage"],
-    ["Europese gegevensopslag en privacykeuzes helder uitgelegd", "Clearly explain European data storage and privacy choices"],
-    ["Offerteprijzen strikt isoleren tussen Agency-workspaces", "Strictly isolate quote pricing between agency workspaces"],
-    ["Reisinstellingen, planning en lange uitgavenlijsten overzichtelijk opdelen", "Organise trip settings, planning and long expense lists into focused views"],
-    ["Controleerbare automatische vertaalconcepten voorbereiden", "Prepare reviewable automatic translation drafts"],
-    ["Onderhoudspagina met reden, countdown en beheerderstoegang", "Maintenance page with reason, countdown and administrator access"],
-    ["Privacyverzoeken indienen en de status vanuit het account volgen", "Submit privacy requests and track their status from the account"],
-    ["Bestemmingszoekopdrachten via de GlobeTrotr-server", "Destination searches through the GlobeTrotr server"],
-    ["Duidelijker recensiebeheer en correcte profielfotoverhoudingen", "Clearer testimonial management and correct profile photo proportions"],
-    ["Gezamenlijke taken met verantwoordelijke en deadline per reis", "Shared tasks with an assignee and due date for each trip"],
+    [
+      "Dagplanning en boekingen als agenda-export downloaden",
+      "Download itinerary items and bookings as a calendar export",
+    ],
+    [
+      "Reisstatistieken met uitgavenverdeling en budgetprognose",
+      "Trip insights with expense breakdown and budget forecast",
+    ],
+    [
+      "Een bestaande reis veilig als nieuwe private variant dupliceren",
+      "Safely duplicate an existing trip as a new private variant",
+    ],
+    [
+      "Bestemmingen als GPX exporteren en een volledige route gecontroleerd omkeren",
+      "Export destinations as GPX and safely reverse an entire route",
+    ],
+    [
+      "Twee reisvarianten op route, boekingen en budget vergelijken",
+      "Compare two trip variants by route, bookings and budget",
+    ],
+    [
+      "Eigen Agency Admin-navigatie voor organisatie, klanten, operatie en activiteit",
+      "Dedicated Agency Admin navigation for organisation, clients, operations and activity",
+    ],
+    [
+      "Klantprofielen met contactgegevens, taal, notities en gekoppelde reizen",
+      "Client profiles with contact details, language, notes and linked trips",
+    ],
+    [
+      "Bestaande klantaccounts automatisch toegang geven tot gekoppelde reizen",
+      "Automatically grant existing client accounts access to linked trips",
+    ],
+    [
+      "Rollen en persoonlijke rechten voor adviseurs en financiële medewerkers",
+      "Role and personal permissions for advisers and finance staff",
+    ],
+    [
+      "Agency-logo, merkgegevens en optionele huisstijl per reis",
+      "Agency logo, brand details and optional branding per trip",
+    ],
+    [
+      "Werkvoorraad voor aankomende reizen, boekingsgegevens en declarabele kosten",
+      "Work queue for upcoming trips, booking details and billable expenses",
+    ],
+    [
+      "Append-only beheerhistorie met actor, actie en tijdstip",
+      "Append-only administration history with actor, action and timestamp",
+    ],
+    [
+      "Agency-toegang en huisstijl automatisch bijwerken tijdens een actieve sessie",
+      "Automatically refresh Agency access and branding during an active session",
+    ],
+    [
+      "Consistente Agency-reisrollen bij bekijken en opslaan",
+      "Consistent Agency trip roles when viewing and saving",
+    ],
+    [
+      "Reisuitnodigingen en deelnemers beheren met expliciete Agency-rechten",
+      "Manage trip invitations and participants with explicit Agency permissions",
+    ],
+    [
+      "Persoonlijke Agency-rechten direct toepassen op planning, uitgaven en reisinstellingen",
+      "Apply personal Agency permissions directly to planning, expenses and trip settings",
+    ],
+    [
+      "Organisatiegegevens en huisstijl overzichtelijk in afzonderlijke tabs beheren",
+      "Manage organisation details and branding in clear separate tabs",
+    ],
+    [
+      "Agency-beveiliging, teamtoegang en recente beheeracties in één overzicht",
+      "Agency security, team access and recent administrative actions in one overview",
+    ],
+    [
+      "Aangemaakte en verwijderde Agency-reizen met uitvoerder in de beheerhistorie",
+      "Record created and deleted Agency trips with the acting user",
+    ],
+    [
+      "Persoonlijke Agency-meldingsvoorkeuren met verplichte beveiligingsmeldingen",
+      "Personal Agency notification preferences with mandatory security notices",
+    ],
+    [
+      "Volledige Agency-rollenmatrix en klantbegrenzing met regressietests bewaken",
+      "Safeguard the complete Agency role matrix and client scope with regression tests",
+    ],
+    [
+      "Actief Agency-plan en werkelijk workspacegebruik samen tonen",
+      "Show the active Agency plan and real workspace usage together",
+    ],
+    [
+      "Serveracties bijwerken naar de actuele validatie-API",
+      "Update server actions to the current validation API",
+    ],
+    [
+      "Tickets, vouchers en andere reisdocumenten veilig per reis bewaren",
+      "Securely store tickets, vouchers and other documents for each trip",
+    ],
+    [
+      "Eigen klantportaal voor gekoppelde Agency-reizen",
+      "Dedicated client portal for linked Agency trips",
+    ],
+    [
+      "Vervaldatums en waarschuwingen voor belangrijke reisdocumenten",
+      "Expiry dates and alerts for important travel documents",
+    ],
+    [
+      "Taken en deadlines verdelen binnen het Agency-team",
+      "Assign tasks and deadlines across the Agency team",
+    ],
+    [
+      "Herbruikbare Agency-sjablonen voor planning, paklijsten en klantteksten",
+      "Reusable Agency templates for itineraries, packing lists and client messages",
+    ],
+    [
+      "Openbare prijzen, algemene voorwaarden en terugbetalingsbeleid in Nederlands en Engels",
+      "Public pricing, terms and refund policy in Dutch and English",
+    ],
+    [
+      "Interne Agency-offertes met meerdere prijsvarianten en atomaire opslag",
+      "Internal Agency quotes with multiple pricing options and atomic storage",
+    ],
+    [
+      "Agency-offertes veilig bekijken via een tijdelijke klantlink",
+      "Securely view Agency quotes through a temporary client link",
+    ],
+    [
+      "Eén offertevariant veilig accepteren of de offerte afwijzen",
+      "Securely accept one quote option or reject the quote",
+    ],
+    [
+      "Een geaccepteerde offerte gecontroleerd aan een bestaande of nieuwe reis koppelen",
+      "Link an accepted quote to an existing or new trip in a controlled flow",
+    ],
+    [
+      "Actieve offertelinks bekijken, veilig vernieuwen en direct intrekken",
+      "View, securely renew and immediately revoke active quote links",
+    ],
+    [
+      "Teamleden gericht informeren wanneer hun Agency-rol of rechten veranderen",
+      "Notify team members when their Agency role or permissions change",
+    ],
+    [
+      "Bevoegde beheerders informeren over wijzigingen aan Agency- en reisbranding",
+      "Notify authorised administrators about Agency and trip branding changes",
+    ],
+    [
+      "Taaktoewijzing, overdracht, status en deadline gericht en gebundeld melden",
+      "Send targeted, grouped notifications for task assignment, reassignment, status and deadlines",
+    ],
+    [
+      "Agency-klanten bij koppelen, ontkoppelen, archiveren en herstellen gericht melden",
+      "Send targeted notifications when Agency clients are linked, unlinked, archived or restored",
+    ],
+    [
+      "Offertelinks delen, vernieuwen en intrekken melden en de volledige offertecyclus vastleggen",
+      "Notify quote link sharing, renewal and revocation and record the complete quote lifecycle",
+    ],
+    [
+      "Gewijzigde reisrollen en ingetrokken uitnodigingen duidelijk aan betrokken reizigers melden",
+      "Clearly notify affected travellers about changed trip roles and revoked invitations",
+    ],
+    [
+      "Reisleden veilig informeren wanneer een document of vervaldatum verandert",
+      "Safely notify trip members when a document or expiry date changes",
+    ],
+    [
+      "Belangrijke wijzigingen aan reisdata, bestemmingen en delen herkenbaar melden",
+      "Clearly notify travellers about important changes to dates, destinations and sharing",
+    ],
+    [
+      "Boekingen, vluchtstatus en uitgaven gericht en zonder duplicaten melden",
+      "Send targeted notifications for bookings, flight status and expenses without duplicates",
+    ],
+    [
+      "Aparte publieke pagina's voor reizigers, groepen, Agencies, demo en support",
+      "Dedicated public pages for travellers, groups, agencies, demo and support",
+    ],
+    [
+      "Stabiele Engelstalige URL's met behoud van bestaande links",
+      "Stable English URLs while preserving existing links",
+    ],
+    [
+      "Herinneringen voor taakdeadlines, documenten, offertes en verlopen uitnodigingen",
+      "Reminders for task deadlines, documents, quotes and expired invitations",
+    ],
+    [
+      "Betaalverzoeken en afgeronde verrekeningen gericht aan reisgenoten melden",
+      "Send targeted payment requests and completed settlement notifications to travellers",
+    ],
+    [
+      "Persoonlijke meldingsvoorkeuren per reis en onderwerp",
+      "Personal notification preferences per trip and topic",
+    ],
+    [
+      "Herbruikbare Agency-leveranciers met afspraken en reiskoppelingen",
+      "Reusable Agency suppliers with agreements and trip links",
+    ],
+    [
+      "Centrale gebruiksgrenzen en betrouwbare achtergrondverwerking voorbereiden",
+      "Prepare central usage limits and reliable background processing",
+    ],
+    [
+      "Schone beta-dataset en technische releasechecklist vastleggen",
+      "Record the clean beta dataset and technical release checklist",
+    ],
+    [
+      "Interactieve productrondleiding van route tot verrekening",
+      "Interactive product tour from route to settlement",
+    ],
+    [
+      "Beheerbare en expliciet gepubliceerde recensies op de homepage",
+      "Managed and explicitly published testimonials on the homepage",
+    ],
+    [
+      "Veilig contactformulier met spamcontrole en beheerinbox",
+      "Secure contact form with spam protection and management inbox",
+    ],
+    [
+      "Agency-rapportage voor offertes, taken en declarabele kosten",
+      "Agency reporting for quotes, tasks and billable expenses",
+    ],
+    [
+      "Instelbare herinneringen voor taken, offertes en documenten",
+      "Configurable reminders for tasks, quotes and documents",
+    ],
+    [
+      "Privacydeadlines, featureflags en incidentenbeheer voor GlobeTrotr",
+      "Privacy deadlines, feature flags and incident management for GlobeTrotr",
+    ],
+    [
+      "Publieke sitemap en zoekmachine-instructies",
+      "Public sitemap and search engine instructions",
+    ],
+    [
+      "Actuele openbare reizen rechtstreeks op de homepage",
+      "Current public trips directly on the homepage",
+    ],
+    [
+      "Europese gegevensopslag en privacykeuzes helder uitgelegd",
+      "Clearly explain European data storage and privacy choices",
+    ],
+    [
+      "Offerteprijzen strikt isoleren tussen Agency-workspaces",
+      "Strictly isolate quote pricing between agency workspaces",
+    ],
+    [
+      "Reisinstellingen, planning en lange uitgavenlijsten overzichtelijk opdelen",
+      "Organise trip settings, planning and long expense lists into focused views",
+    ],
+    [
+      "Controleerbare automatische vertaalconcepten voorbereiden",
+      "Prepare reviewable automatic translation drafts",
+    ],
+    [
+      "Onderhoudspagina met reden, countdown en beheerderstoegang",
+      "Maintenance page with reason, countdown and administrator access",
+    ],
+    [
+      "Privacyverzoeken indienen en de status vanuit het account volgen",
+      "Submit privacy requests and track their status from the account",
+    ],
+    [
+      "Bestemmingszoekopdrachten via de GlobeTrotr-server",
+      "Destination searches through the GlobeTrotr server",
+    ],
+    [
+      "Duidelijker recensiebeheer en correcte profielfotoverhoudingen",
+      "Clearer testimonial management and correct profile photo proportions",
+    ],
+    [
+      "Gezamenlijke taken met verantwoordelijke en deadline per reis",
+      "Shared tasks with an assignee and due date for each trip",
+    ],
     ["Rustig dagoverzicht voor onderweg", "Calm daily overview while travelling"],
-    ["Plaatsgebonden boekingen en gekoppelde uitgaven op de routekaart", "Location-based bookings and linked expenses on the route map"],
-    ["Private omslagfoto's voor reizen en dashboardkaarten", "Private cover photos for trips and dashboard cards"],
-    ["Mobiele navigatie, aanraakbediening en productiegerichte teksten aanscherpen", "Refine mobile navigation, touch controls and production copy"],
-    ["Controleerbare Supabase-productieopbouw met gescheiden test- en productiegegevens", "Auditable Supabase production setup with separated test and production data"],
+    [
+      "Plaatsgebonden boekingen en gekoppelde uitgaven op de routekaart",
+      "Location-based bookings and linked expenses on the route map",
+    ],
+    [
+      "Private omslagfoto's voor reizen en dashboardkaarten",
+      "Private cover photos for trips and dashboard cards",
+    ],
+    [
+      "Mobiele navigatie, aanraakbediening en productiegerichte teksten aanscherpen",
+      "Refine mobile navigation, touch controls and production copy",
+    ],
+    [
+      "Controleerbare Supabase-productieopbouw met gescheiden test- en productiegegevens",
+      "Auditable Supabase production setup with separated test and production data",
+    ],
+    [
+      "Persoonlijke en gedeelde bedrijfsmail met herkenbare GlobeTrotr-handtekening",
+      "Personal and shared company email with a recognisable GlobeTrotr signature",
+    ],
+    [
+      "Reis- en Agency-uitnodigingen betrouwbaar per e-mail bezorgen",
+      "Reliably deliver trip and Agency invitations by email",
+    ],
   ],
 } as const;
 
 export const PUBLIC_ROADMAP = [
-  { status: "now", title: ["Internationale beta verbeteren", "Improve the international beta"], description: ["Feedback verwerken, bekende problemen oplossen en de ervaring op telefoon verder aanscherpen.", "Process feedback, resolve known issues and further refine the mobile experience."], items: [
-    ["Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren", "Practically verify Agency downgrade and return to GlobeTrotr"], ["De vernieuwde homepage en productrondleiding op telefoon en desktop controleren", "Review the renewed homepage and product tour on mobile and desktop"], ["Actuele beta-beperkingen transparant opvolgen", "Transparently track current beta limitations"], ["Betrouwbaarheid en privacy blijven controleren", "Continue checking reliability and privacy"],
-  ]},
-  { status: "next", title: ["Samenwerking en communicatie", "Collaboration and communication"], description: ["Uitnodigingen en updates eenvoudiger bij alle reizigers krijgen.", "Make invitations and updates easier to reach every traveller."], items: [
-    ["Automatische reisuitnodigingen en updates via e-mail", "Automated trip invitations and updates by email"], ["Pro-agenda-abonnement dat wijzigingen automatisch in je agenda bijwerkt", "Pro calendar subscription that automatically updates trip changes in your calendar"], ["Zelf gehoste EU-vertaalprovider aansluiten op de voorbereide vertaalconcepten", "Connect a self-hosted EU translation provider to the prepared translation drafts"],
-  ]},
-  { status: "later", title: ["Slimmere reisassistentie", "Smarter travel assistance"], description: ["Meer handwerk wegnemen zonder controle over je reis over te nemen.", "Remove more manual work while keeping you in control of your trip."], items: [
-    ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Offline reisoverzicht vooraf downloaden", "Download an offline trip overview in advance"], ["Routevolgorde met handmatige bevestiging optimaliseren", "Optimise route order with manual confirmation"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Agency-facturen en betaalstatus zodra Paddle is aangesloten", "Agency invoices and payment status once Paddle is connected"], ["Uitgebreidere Agency-werkstromen met meerdere acties", "Expanded Agency workflows with multiple actions"],
-  ]},
+  {
+    status: "now",
+    title: ["Internationale beta verbeteren", "Improve the international beta"],
+    description: [
+      "Feedback verwerken, bekende problemen oplossen en de ervaring op telefoon verder aanscherpen.",
+      "Process feedback, resolve known issues and further refine the mobile experience.",
+    ],
+    items: [
+      [
+        "Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren",
+        "Practically verify Agency downgrade and return to GlobeTrotr",
+      ],
+      [
+        "De vernieuwde homepage en productrondleiding op telefoon en desktop controleren",
+        "Review the renewed homepage and product tour on mobile and desktop",
+      ],
+      [
+        "Actuele beta-beperkingen transparant opvolgen",
+        "Transparently track current beta limitations",
+      ],
+      [
+        "Betrouwbaarheid en privacy blijven controleren",
+        "Continue checking reliability and privacy",
+      ],
+    ],
+  },
+  {
+    status: "next",
+    title: ["Samenwerking en communicatie", "Collaboration and communication"],
+    description: [
+      "Uitnodigingen en updates eenvoudiger bij alle reizigers krijgen.",
+      "Make invitations and updates easier to reach every traveller.",
+    ],
+    items: [
+      [
+        "Pro-agenda-abonnement dat wijzigingen automatisch in je agenda bijwerkt",
+        "Pro calendar subscription that automatically updates trip changes in your calendar",
+      ],
+      [
+        "Zelf gehoste EU-vertaalprovider aansluiten op de voorbereide vertaalconcepten",
+        "Connect a self-hosted EU translation provider to the prepared translation drafts",
+      ],
+    ],
+  },
+  {
+    status: "later",
+    title: ["Slimmere reisassistentie", "Smarter travel assistance"],
+    description: [
+      "Meer handwerk wegnemen zonder controle over je reis over te nemen.",
+      "Remove more manual work while keeping you in control of your trip.",
+    ],
+    items: [
+      ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"],
+      ["Offline reisoverzicht vooraf downloaden", "Download an offline trip overview in advance"],
+      [
+        "Routevolgorde met handmatige bevestiging optimaliseren",
+        "Optimise route order with manual confirmation",
+      ],
+      ["Periodieke vluchtupdates", "Periodic flight updates"],
+      [
+        "Agency-facturen en betaalstatus zodra Paddle is aangesloten",
+        "Agency invoices and payment status once Paddle is connected",
+      ],
+      [
+        "Uitgebreidere Agency-werkstromen met meerdere acties",
+        "Expanded Agency workflows with multiple actions",
+      ],
+    ],
+  },
 ] as const;

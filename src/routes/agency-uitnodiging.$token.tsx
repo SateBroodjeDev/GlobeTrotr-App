@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { Building2, Check, Clock3, LogIn, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,7 @@ import { useLocale } from "@/lib/locale";
 export const Route = createFileRoute("/agency-uitnodiging/$token")({ component: AgencyInvitationPage });
 
 export function AgencyInvitationPage() {
-  const { token } = Route.useParams();
+  const { token } = useParams({ strict: false }) as { token: string };
   const { user } = useAuth();
   const { text } = useLocale();
   const [busy, setBusy] = useState(false);

@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { queueInvitationEmail } from "@/lib/email-outbox.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { AGENCY_PERMISSIONS, effectiveAgencyPermissions, type AgencyPermission, type AgencyPermissionMap, type AgencyPermissionOverrides } from "@/lib/agency-permissions";
@@ -320,9 +320,9 @@ export const createAgencyInvitation = createServerFn({ method: "POST" })
     const { data: invitation, error } = await db.from("workspace_invitations").insert({ workspace_uuid: workspaceId, email, role: data.role, token_hash: await sha256(rawToken), invited_by: context.userId, expires_at: new Date(Date.now() + 7 * 86400000).toISOString() }).select("id, expires_at").single();
     if (error) throw new Error(error.code === "23505" ? "INVITATION_EXISTS" : "INVITATION_CREATE_FAILED");
     await agencyAudit(db,workspaceId,context.userId,"invitation.create","invitation",invitation.id,{role:data.role});
-    const [{data:settings},{data:recipient}]=await Promise.all([db.from("agency_settings").select("system_name").eq("workspace_uuid",workspaceId).maybeSingle(),db.from("profiles").select("id,locale").ilike("email",email).maybeSingle()]);
+    const [{data:settings},{data:recipient}]=await Promise.all([db.from("agency_settings").select("system_name,accent").eq("workspace_uuid",workspaceId).maybeSingle(),db.from("profiles").select("id,locale").ilike("email",email).maybeSingle()]);
     const agencyName=settings?.system_name??"GlobeTrotr Agency";
-    await queueInvitationEmail(db,{recipient:email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je bent uitgenodigd voor het Agency-team van ${agencyName}. / You have been invited to the Agency team at ${agencyName}.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`,invitationType:"agency",invitationId:invitation.id});
+    await queueInvitationEmail(db,{recipient:email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"en").startsWith("nl")?"nl":"en",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je bent uitgenodigd voor het Agency-team van ${agencyName}. / You have been invited to the Agency team at ${agencyName}.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`,invitationType:"agency",invitationId:invitation.id,branding:{brandName:agencyName,accentHue:Number(settings?.accent??174)}});
     return { id: invitation.id as string, token: rawToken, expiresAt: invitation.expires_at as string };
   });
 
@@ -338,10 +338,10 @@ export const manageAgencyInvitation = createServerFn({ method: "POST" })
     if (error || !result || result.status !== (data.action === "renew" ? "renewed" : "revoked")) throw new Error("AGENCY_INVITATION_MANAGEMENT_FAILED");
     await agencyAudit(db,access.workspaceId,context.userId,`invitation.${data.action}`,"invitation",data.invitationId);
     if(data.action==="renew"){
-      const [{data:invitation},{data:settings}]=await Promise.all([db.from("workspace_invitations").select("email").eq("id",data.invitationId).single(),db.from("agency_settings").select("system_name").eq("workspace_uuid",access.workspaceId).maybeSingle()]);
+      const [{data:invitation},{data:settings}]=await Promise.all([db.from("workspace_invitations").select("email").eq("id",data.invitationId).single(),db.from("agency_settings").select("system_name,accent").eq("workspace_uuid",access.workspaceId).maybeSingle()]);
       const {data:recipient}=await db.from("profiles").select("id,locale").ilike("email",invitation?.email??"").maybeSingle();
       const agencyName=settings?.system_name??"GlobeTrotr Agency";
-      if(invitation?.email) await queueInvitationEmail(db,{recipient:invitation.email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je vernieuwde uitnodiging voor ${agencyName} staat klaar. / Your renewed invitation to ${agencyName} is ready.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`,invitationType:"agency",invitationId:data.invitationId});
+      if(invitation?.email) await queueInvitationEmail(db,{recipient:invitation.email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"en").startsWith("nl")?"nl":"en",title:`Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,body:`Je vernieuwde uitnodiging voor ${agencyName} staat klaar. / Your renewed invitation to ${agencyName} is ready.`,actionUrl:`https://globetrotr.nl/agency-invite/${rawToken}`,invitationType:"agency",invitationId:data.invitationId,branding:{brandName:agencyName,accentHue:Number(settings?.accent??174)}});
     }
     return { ...result, token: rawToken || undefined } as { status: "renewed" | "revoked"; token?: string; expiresAt?: string };
   });
