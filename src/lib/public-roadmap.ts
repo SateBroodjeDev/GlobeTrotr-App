@@ -4,6 +4,10 @@ export const PUBLIC_TODAY = {
   description: ["Onderhoud, privacyverzoeken, server-side providerverkeer en duidelijker beheer maken de beta klaar voor de volgende praktijktest.", "Maintenance, privacy requests, server-side provider traffic and clearer administration prepare the beta for its next practical test."],
   completed: [
     ["Dagplanning en boekingen als agenda-export downloaden", "Download itinerary items and bookings as a calendar export"],
+    ["Reisstatistieken met uitgavenverdeling en budgetprognose", "Trip insights with expense breakdown and budget forecast"],
+    ["Een bestaande reis veilig als nieuwe private variant dupliceren", "Safely duplicate an existing trip as a new private variant"],
+    ["Bestemmingen als GPX exporteren en een volledige route gecontroleerd omkeren", "Export destinations as GPX and safely reverse an entire route"],
+    ["Twee reisvarianten op route, boekingen en budget vergelijken", "Compare two trip variants by route, bookings and budget"],
     ["Eigen Agency Admin-navigatie voor organisatie, klanten, operatie en activiteit", "Dedicated Agency Admin navigation for organisation, clients, operations and activity"],
     ["Klantprofielen met contactgegevens, taal, notities en gekoppelde reizen", "Client profiles with contact details, language, notes and linked trips"],
     ["Bestaande klantaccounts automatisch toegang geven tot gekoppelde reizen", "Automatically grant existing client accounts access to linked trips"],
@@ -66,6 +70,10 @@ export const PUBLIC_TODAY = {
     ["Privacyverzoeken indienen en de status vanuit het account volgen", "Submit privacy requests and track their status from the account"],
     ["Bestemmingszoekopdrachten via de GlobeTrotr-server", "Destination searches through the GlobeTrotr server"],
     ["Duidelijker recensiebeheer en correcte profielfotoverhoudingen", "Clearer testimonial management and correct profile photo proportions"],
+    ["Gezamenlijke taken met verantwoordelijke en deadline per reis", "Shared tasks with an assignee and due date for each trip"],
+    ["Rustig dagoverzicht voor onderweg", "Calm daily overview while travelling"],
+    ["Plaatsgebonden boekingen en gekoppelde uitgaven op de routekaart", "Location-based bookings and linked expenses on the route map"],
+    ["Private omslagfoto's voor reizen en dashboardkaarten", "Private cover photos for trips and dashboard cards"],
   ],
 } as const;
 

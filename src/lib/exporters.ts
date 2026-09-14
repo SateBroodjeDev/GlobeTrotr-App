@@ -123,12 +123,32 @@ export function downloadTripCalendar(trip: Trip) {
   URL.revokeObjectURL(url);
 }
 
+function escapeXml(value: string) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+}
+
+export function buildTripGpx(trip: Trip) {
+  const points = trip.stops.map((stop) => `    <rtept lat="${stop.lat}" lon="${stop.lon}"><name>${escapeXml(stop.name)}</name><desc>${escapeXml(stop.country)}</desc></rtept>`).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="GlobeTrotr" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${escapeXml(trip.name)}</name></metadata>\n  <rte><name>${escapeXml(trip.name)}</name>\n${points}\n  </rte>\n</gpx>\n`;
+}
+
+export function downloadTripGpx(trip: Trip) {
+  const blob = new Blob([buildTripGpx(trip)], { type: "application/gpx+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${safeFileName(trip.name)}.gpx`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 export function openPdf(
   trip: Trip,
   base: string,
   rates: Rates,
   brand: { brandName: string; domain: string },
   locale: AppLocale,
+  coverUrl?: string | null,
 ) {
   const en = locale === "en-GB";
   const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
@@ -235,6 +255,7 @@ export function openGuide(
  a{color:#0f9b8e}
  @media print{@page{margin:14mm} a{text-decoration:none}}
 </style></head><body>
+${coverUrl ? `<img src="${escapeHtml(coverUrl)}" alt="" style="display:block;width:100%;height:240px;object-fit:cover;border-radius:14px;margin-bottom:20px">` : ""}
 <div class="cover"><div><h1>${escapeHtml(trip.name)}</h1>
 <div class="muted">${trip.start} ${en ? "to" : "t/m"} ${trip.end} · ${trip.stops.length} ${en ? "destinations" : "bestemmingen"} · ${en ? "budget" : "budget"} ${formatMoney(trip.budget, base)}</div></div>
 <div class="muted">${escapeHtml(brand.brandName)}<br>${escapeHtml(brand.domain)}</div></div>

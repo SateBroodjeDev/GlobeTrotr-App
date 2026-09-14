@@ -1,0 +1,10 @@
+BEGIN;
+ALTER TABLE public.trips ADD COLUMN IF NOT EXISTS cover_path TEXT;
+ALTER TABLE public.trips DROP CONSTRAINT IF EXISTS trips_cover_path_check;
+ALTER TABLE public.trips ADD CONSTRAINT trips_cover_path_check CHECK(cover_path IS NULL OR cover_path~'^[0-9a-f-]{36}/cover-[0-9]+\.(jpg|png|webp)$');
+INSERT INTO storage.buckets(id,name,public,file_size_limit,allowed_mime_types) VALUES('trip-covers','trip-covers',false,5242880,ARRAY['image/jpeg','image/png','image/webp']) ON CONFLICT(id) DO UPDATE SET public=false,file_size_limit=5242880,allowed_mime_types=EXCLUDED.allowed_mime_types;
+CREATE POLICY "Trip members read covers" ON storage.objects FOR SELECT TO authenticated USING(bucket_id='trip-covers' AND CASE WHEN(storage.foldername(name))[1]~*'^[0-9a-f-]{36}$' THEN private.can_view_trip(((storage.foldername(name))[1])::UUID) ELSE false END);
+CREATE POLICY "Trip planners upload covers" ON storage.objects FOR INSERT TO authenticated WITH CHECK(bucket_id='trip-covers' AND CASE WHEN(storage.foldername(name))[1]~*'^[0-9a-f-]{36}$' THEN private.can_manage_trip_documents(((storage.foldername(name))[1])::UUID) ELSE false END);
+CREATE POLICY "Trip planners delete covers" ON storage.objects FOR DELETE TO authenticated USING(bucket_id='trip-covers' AND CASE WHEN(storage.foldername(name))[1]~*'^[0-9a-f-]{36}$' THEN private.can_manage_trip_documents(((storage.foldername(name))[1])::UUID) ELSE false END);
+INSERT INTO public.release_checklist_items(item_key,category,label_nl,label_en,position) VALUES('trip.cover','Reizen','Omslagfoto uploaden, vervangen, verwijderen en veilig tonen controleren','Verify uploading, replacing, removing and securely displaying a trip cover',122) ON CONFLICT(item_key) DO UPDATE SET category=EXCLUDED.category,label_nl=EXCLUDED.label_nl,label_en=EXCLUDED.label_en,position=EXCLUDED.position;
+COMMIT;

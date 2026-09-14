@@ -59,15 +59,15 @@ const AGENCY_NAV = [
   { to: "/agency-admin", label: "Agency Admin", icon: Building2 },
 ] as const;
 const CLIENT_NAV = [{ to: "/client-portal", label: "Klantportaal", icon: BriefcaseBusiness }] as const;
+const SUPPORT_NAV = [
+  { to: "/contact", label: "Contact", icon: Mail },
+  { to: "/status", label: "Status", icon: Activity },
+] as const;
 const PUBLIC_NAV = [
   { to: "/", label: "Home", icon: Map },
   { to: "/features", label: "Features", icon: Compass },
-  { to: "/demo", label: "Demo", icon: Sparkles },
-  { to: "/for-agencies", label: "Agency", icon: Building2 },
   { to: "/pricing", label: "Pricing", icon: Tags },
   { to: "/contact", label: "Contact", icon: Mail },
-  { to: "/status", label: "Status", icon: Activity },
-  { to: "/about", label: "About", icon: HeartHandshake },
 ] as const;
 type ThemePreference = "system" | "light" | "dark";
 const THEME_STORAGE_KEY = "globetrotr.theme";
@@ -139,7 +139,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
     ? profileQuery.data === undefined ? cachedTheme() : asTheme(profileQuery.data?.theme)
     : guestTheme;
   const navItems = user
-    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
+    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...SUPPORT_NAV, ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
     : PUBLIC_NAV;
   const displayName =
     profileQuery.data?.display_name ||

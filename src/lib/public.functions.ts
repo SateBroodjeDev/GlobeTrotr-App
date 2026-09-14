@@ -33,6 +33,7 @@ export type PublicTripCard = {
   end: string;
   stops: PublicStop[];
   authorName: string;
+  coverUrl?: string;
   branding?: { brandName: string; domain: string; tagline: string; accent: number };
 };
 
@@ -330,6 +331,14 @@ export const getPublicTrip = createServerFn({ method: "GET" })
         if (branding && typeof branding === "object") {
           result.trip.branding = branding as PublicTripDetail["branding"];
           result.trip.authorName = result.trip.branding?.brandName || result.trip.authorName;
+        }
+        if (process.env["SUPABASE_SERVICE_ROLE_KEY"] && /^[0-9a-f-]{36}$/i.test(input.tripId)) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: coveredTrip } = await supabaseAdmin.from("trips").select("cover_path").eq("trip_uuid", input.tripId).eq("is_public", true).eq("archived", false).maybeSingle();
+          if (coveredTrip?.cover_path) {
+            const { data: signed } = await supabaseAdmin.storage.from("trip-covers").createSignedUrl(coveredTrip.cover_path, 900);
+            if (signed?.signedUrl) result.trip.coverUrl = signed.signedUrl;
+          }
         }
       }
       return result;

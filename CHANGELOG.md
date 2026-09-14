@@ -5,6 +5,30 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 ## 2026-09-14 12:00 CEST — Onderhoud, privacyverzoeken en laatste acceptatievoorbereiding
 
+- Migratie `20260908096000_pre_vps_release_gate.sql` en `pre_vps_release_gate.sql` zijn op 14 september 2026 zonder fouten uitgevoerd; de afsluitende controle bewaakt alle nieuwe checklistonderdelen, taak-RLS en de private omslagbucket.
+- De printbare reisgids neemt de eigen omslagfoto mee wanneer die veilig voor de ingelogde gebruiker is geladen.
+- Een reis heeft nu een gezamenlijke takenlijst met verantwoordelijke, deadline, afronden en verwijderen. Lezen en wijzigen worden in de serverlaag tegen het reis- of Agency-recht gecontroleerd.
+- Migratie `20260908092000_trip_tasks.sql` en de rollbacktest `trip_tasks.sql` zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Het rustige scherm Vandaag brengt de actuele planning, boekingen, bestemming, weer, documentenroute en openstaande taken samen voor onderweg.
+- Migratie `20260908093000_trip_today_acceptance.sql` en de bijbehorende acceptatietest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- De routekaart toont plaatsgebonden boekingen en daaraan gekoppelde uitgaven als herkenbare markers; kaartpop-ups ontsmetten alle ingevoerde tekst.
+- Migratie `20260908094000_trip_map_layers_acceptance.sql` en de bijbehorende acceptatietest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Reizen ondersteunen een eigen omslagfoto in een private opslagbucket, met begrensde bestandstypen en omvang, toegangscontrole en directe weergave op reis en dashboard.
+- Een bewust openbare reis krijgt de omslag uitsluitend na succesvolle controle van de openbare link via een kortlevende, server-side ondertekende URL.
+- Migratie `20260908095000_trip_cover_photos.sql` en de rollbacktest `trip_cover_photos.sql` zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Het reisdashboard kan twee zichtbare reizen naast elkaar vergelijken op periode, bestemmingen, boekingen, budget, omgerekende uitgaven en routevolgorde.
+- Migratie `20260908091000_trip_comparison_acceptance.sql` en de bijbehorende checklisttest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- De routekaart kan bestemmingen in volgorde als geldige GPX 1.1-route exporteren; namen en landen worden veilig als XML verwerkt.
+- Reiseigenaren en planners kunnen de volledige bestemmingsvolgorde na bevestiging omkeren via de bestaande versiegestuurde opslag.
+- Migratie `20260908090000_route_tools_acceptance.sql` en de bijbehorende checklisttest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Reiseigenaren kunnen een reis veilig dupliceren als private variant; planning en paklijst worden voorzien van nieuwe IDs en gevoelige samenwerking-, betaal- en deelgegevens worden niet gekopieerd.
+- Migratie `20260908089000_trip_duplicate_acceptance.sql` en de bijbehorende checklisttest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- De publieke hoofdnavigatie is teruggebracht tot Home, Mogelijkheden, Prijzen en Contact; ingelogde gebruikers krijgen Contact en Status direct in het reisplatformmenu.
+- De Over-pagina is herschreven als een langer, doorlopend oprichtersverhaal met minder losse kaarten en meer context over het ontstaan en de privacyvisie.
+- De onderhoudspagina gebruikt een kleinere kop, legt de veiligheid van reisgegevens uit en groepeert reden, countdown en beheerderslogin overzichtelijk.
+- Migratie `20260908088000_public_navigation_about_maintenance_acceptance.sql` en de bijbehorende checklisttest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Geld-tools tonen nu reisstatistieken, uitgaven per categorie, het werkelijke daggemiddelde en een budgetprognose zonder externe provider.
+- Migratie `20260908087000_trip_insights_acceptance.sql` en de bijbehorende checklisttest zijn op 14 september 2026 zonder fouten uitgevoerd.
 - Corporate Admin heeft een overzichtelijke Governance-indeling voor onderhoud, privacy, incidenten en gecontroleerde uitrol.
 - Onderhoud kan met een Nederlandse en Engelse reden, begin- en eindtijd worden gepubliceerd. Gewone bezoekers zien een aftellende onderhoudspagina met toegang tot inloggen; Corporate Admins kunnen doorwerken.
 - Ingelogde gebruikers kunnen vanuit hun account een privacyverzoek indienen, de actuele status en antwoordtermijn volgen en Corporate Admin kan dit in dezelfde privacy-inbox behandelen.

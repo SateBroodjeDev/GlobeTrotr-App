@@ -5,8 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Archive,
+  ArrowDownUp,
   BookOpen,
   CalendarDays,
+  Copy,
   FileDown,
   Download,
   FileText,
@@ -32,7 +34,7 @@ import {
 } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
-import { downloadCsv, downloadJson, downloadTripCalendar, openGuide, openPdf } from "@/lib/exporters";
+import { downloadCsv, downloadJson, downloadTripCalendar, downloadTripGpx, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import {
   normalizeExpenseParticipants,
@@ -54,6 +56,10 @@ import { TripBrandingSettings } from "@/components/TripBrandingSettings";
 import { TripNotificationPreferences } from "@/components/TripNotificationPreferences";
 import { TripDocuments } from "@/components/TripDocuments";
 import { TripTemplateApply } from "@/components/TripTemplateApply";
+import { TripInsights } from "@/components/TripInsights";
+import { TripTasks } from "@/components/TripTasks";
+import { TripToday } from "@/components/TripToday";
+import { TripCover } from "@/components/TripCover";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -67,6 +73,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
+import { buildTripDuplicate, duplicateTripName } from "@/lib/duplicate-trip";
 import { resolveBranding } from "@/lib/branding";
 import { getMyAgencyAccess } from "@/lib/agency.functions";
 import {
@@ -127,7 +134,7 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
 function TripDetail() {
   const { locale, text } = useLocale();
   const { tripId } = Route.useParams();
-  const { state, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
+  const { state, addTrip, saveTripNow, removeTrip, rates, ratesLive } = useWorkspace();
   const navigate = useNavigate();
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
@@ -232,6 +239,7 @@ function TripDetail() {
   const [settings, setSettings] = useState<TripSettingsDraft>(() => settingsFromTrip(trip));
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [showAllStops, setShowAllStops] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [activeStopId, setActiveStopId] = useState<string>();
   const visibleStops = showAllStops ? trip.stops : trip.stops.slice(0, 4);
   const visibleExpenses = trip.expenses.filter((expense) =>
@@ -735,7 +743,7 @@ function TripDetail() {
             variant="outline"
             disabled={false}
             onClick={() => {
-              if (!openGuide(trip, base, rates, exportBranding, locale))
+              if (!openGuide(trip, base, rates, exportBranding, locale, coverUrl))
                 toast.error(
                   text(
                     "Sta pop-ups toe om de reisgids te openen.",
@@ -804,6 +812,7 @@ function TripDetail() {
 
       <Tabs defaultValue="route">
         <TabsList className="h-auto max-w-full flex-wrap justify-start">
+          <TabsTrigger value="today">{text("Vandaag", "Today")}</TabsTrigger>
           <TabsTrigger value="route">{text("Routekaart", "Route map")}</TabsTrigger>
           <TabsTrigger value="plan">{text("Reisschema", "Itinerary")}</TabsTrigger>
           {editable && (
@@ -818,9 +827,11 @@ function TripDetail() {
           <TabsTrigger value="settings">{text("Instellingen", "Settings")}</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="today" className="space-y-4"><TripToday trip={trip} editable={editable} weatherEnabled={hasFeature(state.plan, "weather")} text={text}/></TabsContent>
+
         <TabsContent value="settings" className="space-y-4">
           <Tabs defaultValue="general"><TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="general">{text("Algemeen","General")}</TabsTrigger><TabsTrigger value="notifications">{text("Meldingen","Notifications")}</TabsTrigger>{state.plan==="agency"&&<TabsTrigger value="branding">{text("Huisstijl","Branding")}</TabsTrigger>}<TabsTrigger value="sharing">{text("Delen","Sharing")}</TabsTrigger><TabsTrigger value="members">{text("Reisgenoten","Travellers")}</TabsTrigger><TabsTrigger value="danger">{text("Beheer","Management")}</TabsTrigger></TabsList>
-          <TabsContent value="general" className="mt-4"><Card className="surface">
+          <TabsContent value="general" className="mt-4 space-y-4"><TripCover tripId={trip.id} editable={editable} text={text} onUrlChange={setCoverUrl}/><Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Settings2 className="size-4" /> {text("Reisinstellingen", "Trip settings")}
@@ -1105,6 +1116,25 @@ function TripDetail() {
                   <Download className="size-4" /> {text("Back-up downloaden", "Download backup")}
                 </Button>
                 <Button
+                  variant="outline"
+                  disabled={!tripOwner}
+                  onClick={async () => {
+                    let newId: string | undefined;
+                    try {
+                      const name = duplicateTripName(trip.name, text("kopie", "copy"), TRIP_NAME_MAX_LENGTH);
+                      newId = await addTrip(name, trip.template);
+                      await saveTripNow(newId, (created) => ({ ...buildTripDuplicate(trip, created, () => crypto.randomUUID()), name }));
+                      toast.success(text("Reisvariant aangemaakt", "Trip variant created"));
+                      navigate({ to: "/trips/$tripId", params: { tripId: newId } });
+                    } catch (error) {
+                      if (newId) await removeTrip(newId).catch(() => undefined);
+                      toast.error(error instanceof Error ? error.message : text("De reis kon niet worden gekopieerd.", "The trip could not be copied."));
+                    }
+                  }}
+                >
+                  <Copy className="size-4" /> {text("Reis dupliceren", "Duplicate trip")}
+                </Button>
+                <Button
                   variant="destructive"
                   disabled={!tripOwner}
                   onClick={async () => {
@@ -1165,6 +1195,15 @@ function TripDetail() {
                   >
                     <TripMap
                       stops={trip.stops}
+                      points={(trip.travelItems ?? []).flatMap((item) => {
+                        const location = item.location ?? item.departure ?? item.arrival;
+                        if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon)) return [];
+                        const expense = item.expenseId ? trip.expenses.find((entry) => entry.id === item.expenseId) : undefined;
+                        return [
+                          { id: `booking-${item.id}`, lat: location.lat, lon: location.lon, title: item.title, detail: item.provider, kind: "booking" as const },
+                          ...(expense ? [{ id: `expense-${expense.id}`, lat: location.lat, lon: location.lon, title: expense.title, detail: formatMoney(expense.amount, expense.currency), kind: "expense" as const }] : []),
+                        ];
+                      })}
                       activeStopId={activeStopId}
                       onStopSelect={selectStop}
                     />
@@ -1248,6 +1287,10 @@ function TripDetail() {
                           )}
                     </Button>
                   )}
+                  {trip.stops.length > 0 && <div className="grid gap-2 sm:grid-cols-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => { downloadTripGpx(trip); toast.success(text("GPX-route gedownload", "GPX route downloaded")); }}><Download className="size-4"/>{text("GPX exporteren", "Export GPX")}</Button>
+                    <Button type="button" variant="outline" size="sm" disabled={!editable || trip.stops.length < 2} onClick={async () => { if (!window.confirm(text("Wil je de volledige volgorde van de bestemmingen omkeren?", "Reverse the complete destination order?"))) return; try { await saveTripNow(trip.id, (current) => ({ ...current, stops: [...current.stops].reverse() })); setActiveStopId(undefined); toast.success(text("Route omgekeerd", "Route reversed")); } catch { toast.error(text("De route kon niet worden omgekeerd.", "The route could not be reversed.")); } }}><ArrowDownUp className="size-4"/>{text("Route omkeren", "Reverse route")}</Button>
+                  </div>}
                 </CardContent>
               </Card>
               <WeatherWidget
@@ -1259,6 +1302,7 @@ function TripDetail() {
         </TabsContent>
 
         <TabsContent value="plan" className="space-y-4">
+          <TripTasks tripId={trip.id} editable={editable} text={text} />
           <TripTimeline
             trip={trip}
             baseCurrency={base}
@@ -1677,6 +1721,7 @@ function TripDetail() {
         </TabsContent>
 
         <TabsContent value="money" className="space-y-4">
+          <TripInsights trip={trip} base={base} rates={rates} text={text} />
           <div className="grid gap-4 lg:grid-cols-2">
             <CurrencyConverter rates={rates} base={base} live={ratesLive} />
             <FuelCalculator rates={rates} base={base} />

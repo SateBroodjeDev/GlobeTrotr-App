@@ -158,6 +158,7 @@ export function PublicTrip() {
   return (
     <div className="space-y-6 sm:space-y-8">
       <header className="aurora relative overflow-hidden rounded-3xl px-6 py-10 sm:px-10 sm:py-14" style={tripBranding?{background:`linear-gradient(135deg,hsl(${tripBranding.accent} 70% 45% / .20),transparent)`}:undefined}>
+        {trip.coverUrl && <img src={trip.coverUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20"/>}
         <div className="relative max-w-3xl">
           <Badge variant="secondary" className="mb-5 gap-1.5">
             <Sparkles className="size-3" /> {text("Openbaar reisverhaal", "Public travel story")}

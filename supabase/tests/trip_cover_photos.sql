@@ -1,0 +1,2 @@
+-- Uitvoeren na 20260908095000_trip_cover_photos.sql. Alles wordt teruggedraaid.
+BEGIN;DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM storage.buckets WHERE id='trip-covers' AND NOT public)THEN RAISE EXCEPTION 'PRIVATE_TRIP_COVER_BUCKET_MISSING';END IF;IF NOT EXISTS(SELECT 1 FROM public.release_checklist_items WHERE item_key='trip.cover')THEN RAISE EXCEPTION 'TRIP_COVER_ACCEPTANCE_MISSING';END IF;END $$;ROLLBACK;

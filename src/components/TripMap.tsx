@@ -3,14 +3,19 @@ import type { Stop } from "@/lib/types";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 
+export type TripMapPoint = { id: string; lat: number; lon: number; title: string; detail?: string; kind: "booking" | "expense" };
+const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
+
 export default function TripMap({
   stops,
   activeStopId,
   onStopSelect,
+  points = [],
 }: {
   stops: Stop[];
   activeStopId?: string;
   onStopSelect?: (id: string) => void;
+  points?: TripMapPoint[];
 }) {
   const { locale } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
@@ -35,7 +40,7 @@ export default function TripMap({
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map.eachLayer((layer: any) => {
-        if (layer instanceof L.Marker || layer instanceof L.Polyline) map.removeLayer(layer);
+        if (layer instanceof L.Marker || layer instanceof L.Polyline || layer instanceof L.CircleMarker) map.removeLayer(layer);
       });
 
       if (stops.length) {
@@ -52,7 +57,7 @@ export default function TripMap({
             }),
           })
             .addTo(map)
-            .bindPopup(`<b>${s.name}</b><br/>${localizeCountry(s.country, locale)}`)
+            .bindPopup(`<b>${escapeHtml(s.name)}</b><br/>${escapeHtml(localizeCountry(s.country, locale))}`)
             .on("click", () => onStopSelect?.(s.id));
         });
         if (latlngs.length > 1) {
@@ -66,13 +71,22 @@ export default function TripMap({
         const activeStop = stops.find((stop) => stop.id === activeStopId);
         if (activeStop) map.setView([activeStop.lat, activeStop.lon], Math.max(map.getZoom(), 7));
       }
+      points.forEach((point) => {
+        L.circleMarker([point.lat, point.lon], {
+          radius: 7,
+          color: point.kind === "expense" ? "#f59e0b" : "#2563eb",
+          fillColor: point.kind === "expense" ? "#f59e0b" : "#2563eb",
+          fillOpacity: 0.85,
+          weight: 2,
+        }).addTo(map).bindPopup(`<b>${escapeHtml(point.title)}</b>${point.detail ? `<br/>${escapeHtml(point.detail)}` : ""}`);
+      });
       setTimeout(() => map.invalidateSize(), 60);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [activeStopId, locale, onStopSelect, stops]);
+  }, [activeStopId, locale, onStopSelect, points, stops]);
 
   useEffect(() => {
     return () => {

@@ -23,6 +23,8 @@ import { Progress } from "@/components/ui/progress";
 import { useLocale } from "@/lib/locale";
 import { localizeTagline } from "@/lib/localized-values";
 import { TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
+import { TripComparison } from "@/components/TripComparison";
+import { TripCover } from "@/components/TripCover";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -52,6 +54,8 @@ function TripsOverview() {
   const [name, setName] = useState("");
   const [template, setTemplate] = useState<TripTemplate>("citytrip");
   const [filter, setFilter] = useState<TripStatus | "all">("all");
+  const [compareLeft, setCompareLeft] = useState("");
+  const [compareRight, setCompareRight] = useState("");
 
   const ownedTripCount = state.trips.filter((trip) => ownsTrip(trip.accessRole)).length;
   const atLimit = ownedTripCount >= plan.tripLimit;
@@ -231,6 +235,18 @@ function TripsOverview() {
         </Button>
       </div>
 
+      {state.trips.length >= 2 && <Card className="surface"><CardHeader className="pb-3"><CardTitle className="text-base">{text("Vergelijk twee reisvarianten", "Compare two trip variants")}</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm"><span className="text-muted-foreground">{text("Eerste reis", "First trip")}</span><select className="h-10 w-full rounded-md border bg-background px-3" value={compareLeft} onChange={(event) => setCompareLeft(event.target.value)}><option value="">{text("Kies een reis", "Choose a trip")}</option>{state.trips.filter((trip) => trip.id !== compareRight).map((trip) => <option key={trip.id} value={trip.id}>{trip.name}</option>)}</select></label><label className="space-y-1 text-sm"><span className="text-muted-foreground">{text("Tweede reis", "Second trip")}</span><select className="h-10 w-full rounded-md border bg-background px-3" value={compareRight} onChange={(event) => setCompareRight(event.target.value)}><option value="">{text("Kies een reis", "Choose a trip")}</option>{state.trips.filter((trip) => trip.id !== compareLeft).map((trip) => <option key={trip.id} value={trip.id}>{trip.name}</option>)}</select></label></CardContent></Card>}
+
+      {compareLeft && compareRight && (
+        <TripComparison
+          left={state.trips.find((trip) => trip.id === compareLeft)!}
+          right={state.trips.find((trip) => trip.id === compareRight)!}
+          base={base}
+          rates={rates}
+          text={text}
+        />
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {visible.map((trip) => {
           const spent = totals.find((t) => t.id === trip.id)!.spent;
@@ -238,6 +254,7 @@ function TripsOverview() {
           const tpl = TEMPLATES.find((t) => t.id === trip.template);
           return (
             <Card key={trip.id} className="surface flex flex-col">
+              <div className="overflow-hidden rounded-t-xl"><TripCover tripId={trip.id} editable={false} text={text} compact/></div>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="min-w-0 break-anywhere text-base">

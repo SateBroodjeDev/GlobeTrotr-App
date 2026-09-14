@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "worker": "node worker/index.mjs",
-    "test": "node --test src/lib/trip-save-queue.test.ts src/lib/public-changelog.test.ts src/lib/trip-access.test.ts src/lib/agency-permissions.test.ts src/lib/branding.test.ts src/lib/settle.test.ts src/lib/flight-schedule.test.ts src/lib/fuel-costs.test.ts src/lib/exporters.test.ts src/lib/mail-templates.test.ts src/lib/infrastructure-policy.test.ts",
+    "test": "node --test src/lib/trip-save-queue.test.ts src/lib/public-changelog.test.ts src/lib/trip-access.test.ts src/lib/agency-permissions.test.ts src/lib/branding.test.ts src/lib/settle.test.ts src/lib/flight-schedule.test.ts src/lib/fuel-costs.test.ts src/lib/exporters.test.ts src/lib/mail-templates.test.ts src/lib/infrastructure-policy.test.ts src/lib/trip-statistics.test.ts src/lib/duplicate-trip.test.ts",
     "check": "npm test && npm run build",
     "lint": "eslint .",
     "format": "prettier --write ."

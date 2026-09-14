@@ -1,6 +1,6 @@
 # GlobeTrotr beta-testlijst
 
-> Alle databasemigraties en SQL-regressietests tot en met migratie 860 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
+> Alle databasemigraties en SQL-regressietests tot en met migratie 960 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
 
 ## Nieuwe praktische acceptatiecontroles
 
@@ -10,8 +10,11 @@
 - [ ] Voeg een recensie van minimaal 20 tekens toe, publiceer, wijzig en archiveer haar.
 - [ ] Controleer vierkante en staande profielfoto's; de afbeelding moet uitsnijden zonder uitrekken.
 - [ ] Controleer Contact en Status in de hoofdnavigatie op telefoon en desktop.
+- [ ] Log in en controleer dat Contact en Status ook vanuit het reisplatform direct in de hoofdnavigatie staan.
 - [ ] Zoek een bestemming en controleer dat de browser uitsluitend de GlobeTrotr-serverfunctie aanspreekt.
 - [ ] Controleer homepage, demo, mogelijkheden en Over op een duidelijke eigen taak en zonder zichtbare regeleindemarkeringen.
+- [ ] Lees Over volledig in NL/EN en controleer dat het verhaal rustig doorloopt zonder een stapeling van losse kaarten.
+- [ ] Controleer de onderhoudspagina op telefoon en desktop: compacte kop, onderhoudsreden, countdown, gegevensuitleg en beheerderslogin.
 - [ ] Dien feedback in; controleer de Corporate Admin-melding, stuur een aanvullende vraag en controleer de gebruikersmelding.
 - [ ] Publiceer een hoog of kritiek bekend probleem; controleer de beheermelding en dat deze na oplossen wordt gesloten.
 - [ ] Depubliceer en archiveer een openbare reis vanuit Corporate Admin; controleer eigenaarsmelding, auditlog en herstel als privé-reis.
@@ -38,6 +41,11 @@ Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar
 - [ ] Auto, openbaar vervoer, fiets en lopen kiezen; brandstofprognose klopt alleen waar passend.
 - [ ] Reisback-up vanuit reisinstellingen downloaden en via accountinstellingen importeren.
 - [ ] Reisagenda als `.ics` downloaden; controleer dagplanning, boekingstijden, locaties en meerdaagse onderdelen in minimaal één agenda-app.
+- [ ] Controleer reisduur, landen, overnachtingen, categorie-uitgaven, daggemiddelde en budgetprognose voor een toekomstige en een lopende reis.
+- [ ] Dupliceer een reis en controleer dat route, planning en paklijst meegaan, terwijl deelnemers, uitgaven, boekingsreferenties, PIN en openbare status leeg of uitgeschakeld blijven.
+- [ ] Exporteer minimaal twee bestemmingen als GPX, open het bestand in een kaartapp en controleer namen, coördinaten en volgorde.
+- [ ] Keer een route met meerdere bestemmingen tweemaal om; controleer na iedere opslag de kaart en dat geen bestemming verdwijnt.
+- [ ] Vergelijk twee reizen op het dashboard en controleer periode, routevolgorde, boekingen, budget en omgerekende uitgaven op desktop en telefoon.
 
 ## Uitgaven en verrekening
 
@@ -139,6 +147,16 @@ Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar
 - [ ] Feedbackknop blijft bereikbaar zonder inhoud te bedekken.
 
 ## Technische eindcontrole
+
+- [x] Migraties 870–960, alle gelijknamige SQL-tests en afsluitend `pre_vps_release_gate.sql` zijn uitgevoerd.
+- [ ] Open Corporate Admin → Releasecheck, doorloop iedere open productcontrole en registreer iedere afwijking als feedback of bekend probleem.
+- [ ] Maak als eigenaar een reistaak met verantwoordelijke en deadline, rond hem af en verwijder hem.
+- [ ] Controleer dat een actieve reisgenoot de taak ziet en dat een gebruiker buiten de reis geen taken kan uitlezen.
+- [ ] Open Vandaag op een lopende reis en controleer planning, boekingen, bestemming, weer, documentenverwijzing en taken op telefoon.
+- [ ] Controleer blauwe boekingsmarkers en oranje gekoppelde-uitgavemarkers op de routekaart en open hun pop-ups.
+- [ ] Upload, vervang en verwijder een reisomslag en controleer de verhouding op de reis en dashboardkaart.
+- [ ] Controleer als reisgenoot dat de private omslag zichtbaar is en als buitenstaander dat het opslagbestand niet toegankelijk is.
+- [ ] Maak de reis bewust openbaar en controleer dat de omslag via een kortlevende URL op de openbare reispagina verschijnt; schakel delen daarna weer uit.
 
 - [ ] `npm test` slaagt.
 - [ ] `npm run build` slaagt.

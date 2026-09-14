@@ -8,7 +8,7 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-Alle databasemigraties en SQL-regressietests tot en met migratie 860 zijn uitgevoerd. Onderhoud, privacyverzoeken, feedbackgesprekken, beheermeldingen, moderatie van openbare reizen, accountbeveiligingsmeldingen en agenda-export zijn daarmee geïmplementeerd; de praktische productacceptatie blijft open.
+Alle databasemigraties en SQL-regressietests tot en met migratie 960 zijn uitgevoerd. De nieuwe reisfuncties en de afsluitende pre-VPS-releasepoort zijn daarmee technisch toegepast; de praktische productacceptatie blijft open.
 
 ## Eerstvolgende controle
 
@@ -18,8 +18,9 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 860 zijn uitgev
 4. [x] Migraties 780, 790, 800, 810 en 820 met hun SQL-tests in volgorde uitgevoerd.
 5. [x] De herstelde `agency_quote_variant_isolation.sql`, migraties 830 en 840 en hun SQL-tests uitgevoerd.
 6. [x] Migraties 850 en 860 en hun SQL-acceptatietests uitgevoerd.
-7. [ ] De concrete scenario's per categorie in Corporate Admin → Releasecheck praktisch uitvoeren.
-8. [ ] Afwijkingen tijdens de acceptatietest direct als feedback of bekend probleem vastleggen en waar passend met GitHub synchroniseren.
+7. [x] Migraties 870 tot en met 960, hun SQL-tests en de afsluitende pre-VPS-releasepoort uitgevoerd.
+8. [ ] De concrete scenario's per categorie in Corporate Admin → Releasecheck praktisch uitvoeren.
+9. [ ] Afwijkingen tijdens de acceptatietest direct als feedback of bekend probleem vastleggen en waar passend met GitHub synchroniseren.
 
 ## Eerstvolgende bouwvolgorde
 
@@ -126,6 +127,7 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 860 zijn uitgev
 - [x] Company-homepage met duidelijke waardepropositie, doelgroep en primaire actie binnen de eerste schermhoogte.
 - [x] Homepage uitbreiden met concrete groepsreis-, roadtrip- en Agency-praktijkvoorbeelden en het oprichtersverhaal met foto.
 - [x] Publieke navigatie voor product, oplossingen, demo, prijzen, updates, roadmap, support en juridische informatie.
+- [x] Publieke hoofdnavigatie terugbrengen tot de primaire keuzes en Contact en Status ook binnen de ingelogde omgeving direct bereikbaar maken.
 - [x] Interactieve demo met veilige voorbeelddata voor route, planning, paklijst, uitgaven en verrekening.
 - [x] Beheerbare recensies in Corporate Admin; alleen expliciet gepubliceerde recensies verschijnen op de homepage.
 - [x] Publiek contactformulier met Turnstile, afgeschermde opslag en een doorzoekbare Corporate Admin-inbox met statussen en auditlog.
@@ -136,6 +138,7 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 860 zijn uitgev
 - [x] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
 - [x] Agency-productpagina voor teams, rollen, klanten, offertes, taken, branding en werkvoorraad.
 - [x] Realistische scenario's, privacyvertrouwen, transparante betastatus en duidelijke ondersteuning.
+- [x] Over-pagina herschrijven als een doorlopend persoonlijk oprichtersverhaal en de onderhoudspagina compacter en informatiever vormgeven.
 - [x] De belangrijkste publieke routes hebben routespecifieke canonical-URL's, social previews en gestructureerde organisatie- en productdata.
 - [ ] Volledig responsive en toegankelijk in NL/EN handmatig controleren.
 - [x] Engelstalige slugs: `/features`, `/demo`, `/for-travelers`, `/for-groups`, `/for-agencies`, `/pricing`, `/updates`, `/roadmap`, `/known-issues`, `/beta`, `/privacy`, `/terms` en `/refund-policy`.
@@ -252,11 +255,18 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 
 ## P1 — Reizen onderweg en productkwaliteit
 
-- [ ] Offline of beperkte-connectiviteitsmodus voor essentiële reisgegevens.
+- [x] Reisstatistieken met reisdagen, landen, bestemmingen, overnachtingen, totale uitgaven, daggemiddelde en categorieën.
+- [x] Budgettempo met besteed bedrag, resterend budget en een prognose voor lopende reizen.
 - [x] Provider-onafhankelijke ICS-agenda-export voor dagplanning en boekingen, geschikt voor gangbare agenda-apps.
+- [x] GPX-export van bestemmingen en routevolgorde voor kaart- en navigatie-apps.
+- [x] Route gecontroleerd omkeren met bevestiging en opslag via de bestaande versiecontrole.
+- [x] Reis als veilige private variant dupliceren.
+- [x] Basisgegevens, route, boekingen, budget en omgerekende uitgaven van twee reisvarianten naast elkaar vergelijken.
+- [x] Gezamenlijke taken per reis met verantwoordelijke, deadline en status.
+- [x] Eigen private omslagfoto per reis voor reisscherm en dashboard, met kortlevende veilige weergave op een bewust openbare reispagina; reisgidsopmaak volgt na opslagacceptatie.
+- [x] Plaatsgebonden activiteiten en boekingen plus daaraan gekoppelde uitgaven als afzonderlijke markers op de routekaart.
+- [x] Rustig dagoverzicht voor onderweg met uitsluitend vandaag: planning, adressen, boekingen, documenten, weer en openstaande taken.
 - [ ] Later optionele tweerichtings-agendasynchronisatie onderzoeken.
-- [ ] Periodieke vluchtupdates en optionele vluchtalerts zonder API-quota te verspillen.
-- [ ] Routeoptimalisatie met handmatige bevestiging.
 - [ ] Verdere mobiele, toegankelijkheids- en performancecontrole.
 - [ ] Grote bundles splitsen waar dit de gemeten laadtijd werkelijk verbetert.
 - [ ] Automatische vertaling van feedback en bekende problemen pas na keuze van een veilige provider en bewaarbeleid.
@@ -269,6 +279,18 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] CRM- en boekhoudexport via afgeschermde integraties.
 - [ ] Geplande Agency-automatiseringen en uitgebreidere rapportages.
 - [ ] Aanvullende talen na volledige dekking en kwaliteitscontrole van Nederlands en Engels.
+
+## Grotere functies na de VPS-overgang
+
+- [ ] Echte offline modus met expliciete download, versiestatus, conflictbehandeling en veilige lokale opslag.
+- [ ] Boekingen uit doorgestuurde e-mail omzetten naar controleerbare concepten.
+- [ ] Automatische routeoptimalisatie met reistijden, voorkeuren en verplichte handmatige bevestiging.
+- [ ] Plaatsaanbevelingen en actuele openingstijden via een server-side provider met passend quotum.
+- [ ] Periodieke vluchtcontrole en gerichte vluchtalerts via de worker.
+- [ ] GPX-import met validatie, preview, limieten en dubbele-puntdetectie.
+- [ ] Veilige klantformulieren voor reiswensen en ontbrekende gegevens.
+- [ ] Mailboxintegratie voor ontvangen Agency- en bedrijfsmail.
+- [ ] AI-reisplanning met bronvermelding, kostenlimieten, privacycontrole en menselijke goedkeuring.
 
 ## Gebouwd fundament
 
@@ -298,8 +320,8 @@ De offici?le productinformatie van Wanderlog, TripIt, Roadtrippers, TravelSpend,
 - [ ] Boekingsbevestigingen uit doorgestuurde e-mail of upload omzetten naar een controleerbaar concept; nooit stilzwijgend opslaan.
 - [ ] Routeoptimalisatie en reistijd tussen stops, met vermijden van tolwegen, snelwegen of veerboten en altijd handmatige bevestiging.
 - [ ] Plaatsen ontdekken rond verblijf of route op categorie, afstand en openingstijd; externe providers via de server benaderen.
-- [ ] Reisstatistieken: landen, afstand, reisdagen, categorie-uitgaven, gemiddeld dagbudget en resterend dagbudget.
-- [ ] Reis dupliceren en een alternatieve route of offertevariant naast het origineel vergelijken.
+- [x] Reisstatistieken: landen, bestemmingen, overnachtingen, reisdagen, categorie-uitgaven, daggemiddelde en budgetprognose; afstand volgt bij de route-engine.
+- [x] Reis veilig dupliceren als private variant, met planning en paklijst maar zonder deelnemers, uitgaven, boekingsreferenties, PIN of deelstatus, en twee varianten op het dashboard vergelijken.
 
 ### Voor Pro en onderweg
 
