@@ -8,6 +8,7 @@
 - `VPS_DEPLOYMENT.md` beschrijft DNS, secrets, firewall, installatie, healthchecks, updates en rollback voor beide Hetzner-nodes.
 - De productiebuild is zonder fouten uitgevoerd. Compose-validatie volgt op een systeem waarop Docker beschikbaar is.
 - De deploymentdocumentatie begrenst de eerste livegang tot het hoofddomein en beschrijft de veilige vervolgstappen voor Agency-subdomeinen en eigen domeinen via CNAME, TXT-verificatie en begrensde certificaatuitgifte.
+- Zelf gehoste builds gebruiken nu expliciet Nitro's `node-server`-doel, zodat de webcontainer als blijvende HTTP-server draait; Lovable behoudt binnen zijn eigen buildomgeving het Cloudflare-doel.
 
 Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikersgerichte versie staat op `/changelog`.
 
