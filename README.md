@@ -13,9 +13,10 @@ De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord 
 - Beveiligde samenwerking per reis met rollen, uitnodigingslink, accountmelding, accepteren, weigeren, vernieuwen en intrekken.
 - Openbare reispagina's met kaart, planning, optioneel gedeelde boekingen, PIN-bescherming en weer.
 - JSON-back-up per reis, volledige workspaceback-up, veilige import en AVG-gegevensexport.
+- Agenda-export van dagplanning en boekingen naar Apple Calendar, Google Calendar, Outlook en andere agenda-apps.
 - Persistente meldingen, platformstatusbanners, feedback en een publieke lijst met bekende problemen.
 - Een afzonderlijke Agency Admin met organisatie-instellingen, private logo-opslag, centrale en per-reisbranding, interne teamrollen, persoonlijke rechten, klantprofielen, operationele werkvoorraad en append-only auditlog.
-- Afgeschermd Corporate Admin-dashboard voor gebruikers, platformstatus, feedback, problemen en auditlog.
+- Afgeschermd Corporate Admin-dashboard voor gebruikers, platformstatus, feedbackgesprekken, openbare-reismoderatie, privacyverzoeken, onderhoud, problemen en auditlog.
 
 ## Techniek
 
@@ -63,7 +64,7 @@ Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`T
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-De Agency-basis tot en met `20260908057000_important_trip_notifications.sql` is toegepast. De laatste implementatiereeks (`580` tot en met `700`), bijbehorende tests en releasepoort staan in [`AGENCY_IMPLEMENTATION.md`](AGENCY_IMPLEMENTATION.md).
+De migraties en SQL-regressietests tot en met `20260908086000_calendar_export_acceptance.sql` zijn toegepast en uitgevoerd. De Agency-implementatievolgorde en releasepoort staan in [`AGENCY_IMPLEMENTATION.md`](AGENCY_IMPLEMENTATION.md).
 
 De beoogde productieopzet gebruikt één Hetzner-VPS voor de webapp en proxy en een tweede voor workers, geplande taken en e-mail. Supabase blijft aanvankelijk de beheerde database, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft hoe bestanden later zonder publieke buckets of padgebonden autorisatie naar Hetzner Object Storage kunnen worden verplaatst.
 
@@ -100,7 +101,7 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.
 - `/changelog`: publieke release notes.
-- `/prijzen`: openbare vergelijking van Free, Pro en Agency; de betaalde tarieven zijn tijdens de gratis beta nog niet actief.
+- `/prijzen`: openbare vergelijking van Free, Pro en Agency voor de actieve beta; betalingen worden via Paddle als Merchant of Record voorbereid en geactiveerd zodra de productieomgeving en domeincontrole gereed zijn.
 - `/privacy`, `/algemene-voorwaarden`, `/terugbetalingsbeleid` en `/beta-voorwaarden`: gepubliceerde privacy-, gebruiks-, terugbetalings- en betavoorwaarden in NL/EN.
 
 ## Lovable

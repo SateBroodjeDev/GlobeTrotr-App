@@ -1,10 +1,29 @@
 # GlobeTrotr beta-testlijst
 
+> Alle databasemigraties en SQL-regressietests tot en met migratie 860 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
+
+## Nieuwe praktische acceptatiecontroles
+
+- [ ] Onderhoud aanzetten met Nederlandse en Engelse reden en eindtijd; controleer de countdown als gewone gebruiker.
+- [ ] Controleer dat `/auth` tijdens onderhoud bereikbaar blijft en dat een Corporate Admin na inloggen toegang houdt.
+- [ ] Dien vanuit Account → Privacy een verzoek in, controleer direct de statusgeschiedenis en behandel het in Governance → Privacy.
+- [ ] Voeg een recensie van minimaal 20 tekens toe, publiceer, wijzig en archiveer haar.
+- [ ] Controleer vierkante en staande profielfoto's; de afbeelding moet uitsnijden zonder uitrekken.
+- [ ] Controleer Contact en Status in de hoofdnavigatie op telefoon en desktop.
+- [ ] Zoek een bestemming en controleer dat de browser uitsluitend de GlobeTrotr-serverfunctie aanspreekt.
+- [ ] Controleer homepage, demo, mogelijkheden en Over op een duidelijke eigen taak en zonder zichtbare regeleindemarkeringen.
+- [ ] Dien feedback in; controleer de Corporate Admin-melding, stuur een aanvullende vraag en controleer de gebruikersmelding.
+- [ ] Publiceer een hoog of kritiek bekend probleem; controleer de beheermelding en dat deze na oplossen wordt gesloten.
+- [ ] Depubliceer en archiveer een openbare reis vanuit Corporate Admin; controleer eigenaarsmelding, auditlog en herstel als privé-reis.
+- [ ] Open het bezorgoverzicht in Corporate Admin en controleer aantallen per meldingstype na openen en wegklikken.
+- [ ] Controleer canonical-URL, social preview en structured data op Home, Demo, Prijzen, Over, Contact en Status.
 Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar, een Agency-medewerker en een klant. Test belangrijke schermen eenmaal op telefoon en eenmaal op desktop.
 
 ## Account
 
 - [ ] Account maken, inloggen, uitloggen en wachtwoord herstellen.
+- [ ] E-mailadres wijzigen; controleer de bevestigingsmail van Auth en de blijvende beveiligingsmelding in GlobeTrotr.
+- [ ] Wachtwoord wijzigen; controleer de bevestiging en dat de beveiligingsmelding na vernieuwen blijft bestaan.
 - [ ] Taal NL/EN en licht/donker wijzigen; vernieuwen geeft geen lichtflits.
 - [ ] Profiel wijzigen en controleren dat de wijziging direct zichtbaar is.
 - [ ] Volledige gegevens-export downloaden en veilig opnieuw importeren.
@@ -18,6 +37,7 @@ Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar
 - [ ] Vlucht, accommodatie, huurauto, vervoer en activiteit toevoegen en wijzigen.
 - [ ] Auto, openbaar vervoer, fiets en lopen kiezen; brandstofprognose klopt alleen waar passend.
 - [ ] Reisback-up vanuit reisinstellingen downloaden en via accountinstellingen importeren.
+- [ ] Reisagenda als `.ics` downloaden; controleer dagplanning, boekingstijden, locaties en meerdaagse onderdelen in minimaal één agenda-app.
 
 ## Uitgaven en verrekening
 

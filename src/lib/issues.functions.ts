@@ -101,6 +101,32 @@ export const getCorporateAgencies = createServerFn({ method: "GET" })
     return owners;
   });
 
+export const listPublicTripsForModeration = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await adminDb(context.userId);
+    const { data, error } = await db.from("trips").select("trip_uuid,workspace_user_id,name,description,start_date,end_date,is_public,archived,updated_at").or("is_public.eq.true,archived.eq.true").order("updated_at",{ascending:false}).limit(250);
+    if (error) throw error;
+    const owners=await Promise.all((data??[]).map(async(row:any)=>{const result=await db.auth.admin.getUserById(row.workspace_user_id);return{...row,ownerEmail:result.data.user?.email??""}}));
+    await audit(db,context.userId,"public_trips.moderation.view","trip",null,"success");
+    return owners;
+  });
+
+export const moderatePublicTrip = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input:{tripId:string;action:"unpublish"|"archive"|"restore";reason:string})=>input)
+  .handler(async({data,context})=>{
+    const db=await adminDb(context.userId),reason=data.reason.trim();
+    if(!/^[0-9a-f-]{36}$/i.test(data.tripId)||reason.length<5||reason.length>500)throw new Error("INVALID_MODERATION");
+    const{data:trip,error:loadError}=await db.from("trips").select("trip_uuid,workspace_user_id,name").eq("trip_uuid",data.tripId).maybeSingle();
+    if(loadError||!trip)throw new Error("TRIP_NOT_FOUND");
+    const changes=data.action==="unpublish"?{is_public:false}:data.action==="archive"?{archived:true,is_public:false}:{archived:false};
+    const{error}=await db.from("trips").update({...changes,updated_at:new Date().toISOString()}).eq("trip_uuid",data.tripId);if(error)throw error;
+    await db.from("notifications").upsert({user_id:trip.workspace_user_id,kind:"platform",title:"Openbare reis beoordeeld / Public trip reviewed",body:`${data.action}|${trip.name}|${reason}`,trip_uuid:trip.trip_uuid,event_key:`trip-moderation:${trip.trip_uuid}`,created_at:new Date().toISOString(),dismissed_at:null},{onConflict:"user_id,event_key"});
+    await audit(db,context.userId,`public_trip.${data.action}`,"trip",data.tripId,"success",{reason});
+    return{ok:true};
+  });
+
 export const saveCorporateAgencySettings = createServerFn({method:"POST"})
   .middleware([requireSupabaseAuth])
   .validator((input:{ownerId:string;settings:{systemName:string;senderName:string;contactEmail:string;defaultLocale:"nl"|"en";timezone:string;currency:string;domain:string;tagline:string;accent:number;logoPath:string|null};reason:string})=>input)
@@ -117,8 +143,9 @@ export const getCorporateAdminData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await adminDb(context.userId);
-    const [feedback, issues, workspaces, trips, auditLog, profiles, authUsers] = await Promise.all([
+    const [feedback, feedbackReplies, issues, workspaces, trips, auditLog, profiles, authUsers] = await Promise.all([
       db.from("beta_feedback").select("*").order("created_at", { ascending: false }),
+      db.from("feedback_replies").select("id,feedback_id,author_user_id,body,created_at").order("created_at"),
       db.from("known_issues").select("*").order("created_at", { ascending: false }),
       db.from("workspaces").select("user_id, plan, created_at, updated_at"),
       db.from("trips").select("archived, is_public"),
@@ -131,6 +158,7 @@ export const getCorporateAdminData = createServerFn({ method: "GET" })
       db.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     ]);
     if (feedback.error) throw feedback.error;
+    if (feedbackReplies.error) throw feedbackReplies.error;
     if (issues.error) throw issues.error;
     if (workspaces.error) throw workspaces.error;
     if (trips.error) throw trips.error;
@@ -149,6 +177,7 @@ export const getCorporateAdminData = createServerFn({ method: "GET" })
     await audit(db, context.userId, "admin.dashboard.view", "platform", null, "success");
     return {
       feedback: feedbackRows,
+      feedbackReplies: feedbackReplies.data ?? [],
       issues: issueRows,
       auditLog: (auditLog.data ?? []).map((entry: any) => {
         const actor: any = profileById.get(entry.actor_user_id);
@@ -631,6 +660,23 @@ export const updateFeedbackStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const replyToFeedback = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { id: string; body: string }) => input)
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    const body = data.body.trim();
+    if (!/^[0-9a-f-]{36}$/i.test(data.id) || body.length < 2 || body.length > 2000)
+      throw new Error("INVALID_FEEDBACK_REPLY");
+    const { data: feedback, error: feedbackError } = await db.from("beta_feedback").select("id,status").eq("id", data.id).maybeSingle();
+    if (feedbackError || !feedback) throw new Error("FEEDBACK_NOT_FOUND");
+    const { error } = await db.from("feedback_replies").insert({ feedback_id: data.id, author_user_id: context.userId, body });
+    if (error) throw error;
+    if (feedback.status === "new") await db.from("beta_feedback").update({ status: "reviewing", updated_at: new Date().toISOString() }).eq("id", data.id);
+    await audit(db, context.userId, "feedback.reply.create", "feedback", data.id, "success");
+    return { ok: true };
+  });
+
 export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(
@@ -687,6 +733,26 @@ export const listPlatformAnnouncements = createServerFn({ method: "GET" })
       if (key) latestStatus.add(key);
       return { ...item, current };
     });
+  });
+
+export const getNotificationDeliveryOverview = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await adminDb(context.userId);
+    const { data, error } = await db.from("notifications")
+      .select("kind,dismissed_at,created_at").order("created_at", { ascending: false }).limit(1000);
+    if (error) throw error;
+    const rows = data ?? [];
+    const byKind = new Map<string, { kind: string; sent: number; dismissed: number; open: number }>();
+    for (const row of rows) {
+      const value = byKind.get(row.kind) ?? { kind: row.kind, sent: 0, dismissed: 0, open: 0 };
+      value.sent += 1;
+      if (row.dismissed_at) value.dismissed += 1;
+      else value.open += 1;
+      byKind.set(row.kind, value);
+    }
+    await audit(db, context.userId, "notifications.delivery.view", "notification", null, "success", { sample: rows.length });
+    return { sample: rows.length, groups: [...byKind.values()].sort((a, b) => b.sent - a.sent) };
   });
 
 export const manageAdminRecord = createServerFn({ method: "POST" })

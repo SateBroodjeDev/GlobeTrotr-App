@@ -28,6 +28,7 @@ export const Route = createFileRoute("/changelog")({
         content: "Nieuwe functies, verbeteringen en oplossingen in GlobeTrotr.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://globetrotr.nl/updates" }],
   }),
   component: ChangelogPage,
 });

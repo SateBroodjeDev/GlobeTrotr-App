@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   Archive,
   BookOpen,
+  CalendarDays,
   FileDown,
   Download,
   FileText,
@@ -31,7 +32,7 @@ import {
 } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
-import { downloadCsv, downloadJson, openGuide, openPdf } from "@/lib/exporters";
+import { downloadCsv, downloadJson, downloadTripCalendar, openGuide, openPdf } from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import {
   normalizeExpenseParticipants,
@@ -1064,7 +1065,7 @@ function TripDetail() {
 
           <TabsContent value="danger" className="mt-4"><Card className="border-destructive/40 surface">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Gevarenzone</CardTitle>
+              <CardTitle className="text-sm">{text("Reisbeheer en exports", "Trip management and exports")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm">
               <p className="text-muted-foreground">
@@ -1073,7 +1074,16 @@ function TripDetail() {
                   "Archive the trip or delete it permanently.",
                 )}
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    downloadTripCalendar(trip);
+                    toast.success(text("Reisagenda gedownload", "Trip calendar downloaded"));
+                  }}
+                >
+                  <CalendarDays className="size-4" /> {text("Agenda exporteren", "Export calendar")}
+                </Button>
                 <Button
                   variant="outline"
                   disabled={!settingsEditable}

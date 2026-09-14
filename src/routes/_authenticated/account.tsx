@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Camera,
@@ -26,13 +26,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {Textarea} from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useLocale } from "@/lib/locale";
-import { deleteAccount, exportAccountData } from "@/lib/account.functions";
+import { deleteAccount, exportAccountData, recordAccountSecurityEvent } from "@/lib/account.functions";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
 import { TEMPLATES, type Trip, type WorkspaceState } from "@/lib/types";
 import { ownsTrip } from "@/lib/plans";
 import { TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
+import {listMyPrivacyRequests,submitPrivacyRequest} from "@/lib/maintenance.functions";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,6 +129,10 @@ function AccountPage() {
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [privacyType,setPrivacyType]=useState<"access"|"correction"|"deletion"|"restriction"|"objection"|"portability"|"other">("access");
+  const [privacyNotes,setPrivacyNotes]=useState("");
+  const privacyRequests=useQuery({queryKey:["my-privacy-requests",user.id],queryFn:()=>listMyPrivacyRequests()});
+  const [submittingPrivacy,setSubmittingPrivacy]=useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -188,6 +194,7 @@ function AccountPage() {
       if (requestedEmail !== (user.email ?? "").toLowerCase()) {
         const { error: emailError } = await supabase.auth.updateUser({ email: requestedEmail });
         if (emailError) throw emailError;
+        await recordAccountSecurityEvent({ data: { event: "email_change_requested" } });
         toast.success(text("Profiel opgeslagen. Bevestig je nieuwe e-mailadres via je mail.", "Profile saved. Confirm your new email address by email."));
       } else {
         toast.success(text("Accountinstellingen opgeslagen.", "Account settings saved."));
@@ -285,6 +292,7 @@ function AccountPage() {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
+      await recordAccountSecurityEvent({ data: { event: "password_changed" } });
       setNewPassword("");
       setRepeatPassword("");
       toast.success(text("Wachtwoord gewijzigd.", "Password changed."));
@@ -402,6 +410,7 @@ function AccountPage() {
       setDeleting(false);
     }
   }
+  async function sendPrivacyRequest(){setSubmittingPrivacy(true);try{await submitPrivacyRequest({data:{type:privacyType,notes:privacyNotes}});setPrivacyNotes("");await privacyRequests.refetch();toast.success(text("Privacyverzoek ontvangen. We reageren normaal binnen een maand.","Privacy request received. We normally respond within one month."));}catch(error){toast.error(String(error).includes("PRIVACY_REQUEST_LIMIT")?text("Je hebt al drie open privacyverzoeken.","You already have three open privacy requests."):text("Privacyverzoek kon niet worden ingediend.","Privacy request could not be submitted."));}finally{setSubmittingPrivacy(false)}}
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -701,6 +710,13 @@ function AccountPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5 text-sm">
+          <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div><p className="font-medium">{text("AVG-privacyverzoek indienen","Submit a GDPR privacy request")}</p><p className="mt-1 text-xs text-muted-foreground">{text("Vraag om inzage, correctie, verwijdering, beperking, bezwaar of overdraagbaarheid. Het verzoek komt rechtstreeks in de beveiligde Corporate Admin-wachtrij.","Request access, correction, deletion, restriction, objection or portability. Your request goes directly to the protected Corporate Admin queue.")}</p></div>
+            <select className="h-10 w-full rounded-md border bg-background px-3" value={privacyType} onChange={e=>setPrivacyType(e.target.value as typeof privacyType)}><option value="access">{text("Inzage","Access")}</option><option value="correction">{text("Correctie","Correction")}</option><option value="deletion">{text("Verwijdering","Deletion")}</option><option value="restriction">{text("Beperking","Restriction")}</option><option value="objection">{text("Bezwaar","Objection")}</option><option value="portability">{text("Overdraagbaarheid","Portability")}</option><option value="other">{text("Anders","Other")}</option></select>
+            <Textarea value={privacyNotes} maxLength={2000} onChange={e=>setPrivacyNotes(e.target.value)} placeholder={text("Beschrijf je verzoek (minimaal 10 tekens)","Describe your request (at least 10 characters)")}/>
+            <Button type="button" disabled={submittingPrivacy||privacyNotes.trim().length<10} onClick={()=>void sendPrivacyRequest()}>{submittingPrivacy?text("Indienen…","Submitting…"):text("Privacyverzoek indienen","Submit privacy request")}</Button>
+            {(privacyRequests.data?.length??0)>0&&<div className="space-y-2 border-t pt-3"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{text("Mijn eerdere verzoeken","My previous requests")}</p>{privacyRequests.data!.map((request:any)=><div key={request.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-background px-3 py-2 text-xs"><span>{privacyTypeLabel(request.request_type,text)}</span><span className="rounded-full bg-muted px-2 py-1 font-medium">{privacyStatusLabel(request.status,text)}</span><span className="w-full text-muted-foreground">{text("Ontvangen","Received")} {new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date(request.received_at))} {" / "} {request.closed_at?text("Afgesloten","Closed"):`${text("Uiterlijk antwoord","Response due")} ${new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date(request.due_at))}`}</span></div>)}</div>}
+          </div>
           <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div><p className="font-medium">{text("Browseropslag beheren", "Manage browser storage")}</p><p className="mt-1 text-xs text-muted-foreground">{text("Bekijk noodzakelijke opslag en bepaal of je taalkeuze op dit apparaat wordt onthouden.", "Review necessary storage and choose whether your language is remembered on this device.")}</p></div>
             <Button type="button" variant="outline" className="shrink-0" onClick={openPrivacyChoices}>{text("Privacykeuzes", "Privacy choices")}</Button>
@@ -753,3 +769,6 @@ function AccountPage() {
 function providerLabel(provider: string) {
   return OAUTH_PROVIDERS.find((option) => option.id === provider)?.label ?? provider;
 }
+
+function privacyTypeLabel(value:string,text:(nl:string,en:string)=>string){return ({access:text("Inzage","Access"),correction:text("Correctie","Correction"),deletion:text("Verwijdering","Deletion"),restriction:text("Beperking","Restriction"),objection:text("Bezwaar","Objection"),portability:text("Overdraagbaarheid","Portability"),other:text("Anders","Other")})[value]??value}
+function privacyStatusLabel(value:string,text:(nl:string,en:string)=>string){return ({received:text("Ontvangen","Received"),verifying:text("Identiteit controleren","Verifying identity"),processing:text("In behandeling","Processing"),completed:text("Afgerond","Completed"),rejected:text("Afgewezen","Rejected")})[value]??value}

@@ -1,8 +1,9 @@
 export const PUBLIC_TODAY = {
   date: ["14 september 2026", "14 September 2026"],
-  title: ["Meer overzicht en sterkere privacy", "More clarity and stronger privacy"],
-  description: ["Openbare reizen maken de homepage levendiger, lange reisschermen zijn opgedeeld en Agency-offerteprijzen zijn strikter afgeschermd.", "Public trips make the homepage more dynamic, long trip screens are divided into focused sections and agency quote pricing is more strictly protected."],
+  title: ["Klaar voor de brede acceptatietest", "Ready for broad acceptance testing"],
+  description: ["Onderhoud, privacyverzoeken, server-side providerverkeer en duidelijker beheer maken de beta klaar voor de volgende praktijktest.", "Maintenance, privacy requests, server-side provider traffic and clearer administration prepare the beta for its next practical test."],
   completed: [
+    ["Dagplanning en boekingen als agenda-export downloaden", "Download itinerary items and bookings as a calendar export"],
     ["Eigen Agency Admin-navigatie voor organisatie, klanten, operatie en activiteit", "Dedicated Agency Admin navigation for organisation, clients, operations and activity"],
     ["Klantprofielen met contactgegevens, taal, notities en gekoppelde reizen", "Client profiles with contact details, language, notes and linked trips"],
     ["Bestaande klantaccounts automatisch toegang geven tot gekoppelde reizen", "Automatically grant existing client accounts access to linked trips"],
@@ -61,6 +62,10 @@ export const PUBLIC_TODAY = {
     ["Offerteprijzen strikt isoleren tussen Agency-workspaces", "Strictly isolate quote pricing between agency workspaces"],
     ["Reisinstellingen, planning en lange uitgavenlijsten overzichtelijk opdelen", "Organise trip settings, planning and long expense lists into focused views"],
     ["Controleerbare automatische vertaalconcepten voorbereiden", "Prepare reviewable automatic translation drafts"],
+    ["Onderhoudspagina met reden, countdown en beheerderstoegang", "Maintenance page with reason, countdown and administrator access"],
+    ["Privacyverzoeken indienen en de status vanuit het account volgen", "Submit privacy requests and track their status from the account"],
+    ["Bestemmingszoekopdrachten via de GlobeTrotr-server", "Destination searches through the GlobeTrotr server"],
+    ["Duidelijker recensiebeheer en correcte profielfotoverhoudingen", "Clearer testimonial management and correct profile photo proportions"],
   ],
 } as const;
 
@@ -72,6 +77,6 @@ export const PUBLIC_ROADMAP = [
     ["Automatische reisuitnodigingen en updates via e-mail", "Automated trip invitations and updates by email"], ["Zelf gehoste EU-vertaalprovider aansluiten op de voorbereide vertaalconcepten", "Connect a self-hosted EU translation provider to the prepared translation drafts"],
   ]},
   { status: "later", title: ["Slimmere reisassistentie", "Smarter travel assistance"], description: ["Meer handwerk wegnemen zonder controle over je reis over te nemen.", "Remove more manual work while keeping you in control of your trip."], items: [
-    ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Agency-facturen en betaalstatus zodra Paddle is aangesloten", "Agency invoices and payment status once Paddle is connected"], ["Uitgebreidere Agency-werkstromen met meerdere acties", "Expanded Agency workflows with multiple actions"],
+    ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"], ["Offline reisoverzicht vooraf downloaden", "Download an offline trip overview in advance"], ["Routevolgorde met handmatige bevestiging optimaliseren", "Optimise route order with manual confirmation"], ["Periodieke vluchtupdates", "Periodic flight updates"], ["Agency-facturen en betaalstatus zodra Paddle is aangesloten", "Agency invoices and payment status once Paddle is connected"], ["Uitgebreidere Agency-werkstromen met meerdere acties", "Expanded Agency workflows with multiple actions"],
   ]},
 ] as const;

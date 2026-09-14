@@ -49,6 +49,28 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-14-release-control-and-privacy",
+    version: "Beta 0.35",
+    publishedAt: "2026-09-14T12:00:00+02:00",
+    title: "Meer controle tijdens de beta",
+    titleEn: "More control during the beta",
+    summary: "Onderhoud, privacyverzoeken en beheer zijn samengebracht voor een veiligere en duidelijkere acceptatietest.",
+    summaryEn: "Maintenance, privacy requests and administration come together for a safer and clearer acceptance test.",
+    changes: [
+      { kind: "new", title: "Je reis in je agenda", titleEn: "Your trip in your calendar", description: "Exporteer dagplanning en boekingen als ICS-bestand naar Apple Calendar, Google Calendar, Outlook en andere agenda-apps.", descriptionEn: "Export itinerary items and bookings as an ICS file for Apple Calendar, Google Calendar, Outlook and other calendar apps." },
+      { kind: "secure", title: "Bevestiging bij accountwijzigingen", titleEn: "Sign-in change confirmations", description: "Een aangevraagde e-mailwijziging en een geslaagde wachtwoordwijziging verschijnen als blijvende beveiligingsmelding in je account.", descriptionEn: "A requested email change and an updated sign-in credential now appear as persistent security notifications in your account." },
+      { kind: "improved", title: "Gerichter platformbeheer", titleEn: "More focused platform management", description: "Beheerders kunnen feedback beantwoorden, urgente problemen volgen, openbare reizen modereren en de bezorging van in-appmeldingen overzien.", descriptionEn: "Administrators can reply to feedback, track urgent issues, moderate public trips and review in-app notification delivery." },
+      { kind: "improved", title: "Beter vindbare publieke pagina's", titleEn: "More discoverable public pages", description: "De belangrijkste pagina's hebben eigen social previews, canonical-links en gestructureerde productinformatie.", descriptionEn: "The main pages now have dedicated social previews, canonical links and structured product information." },
+      {kind:"new",title:"Geplande onderhoudspagina",titleEn:"Scheduled maintenance page",description:"Bezoekers zien een duidelijke reden en countdown, terwijl beheerders veilig kunnen inloggen en doorwerken.",descriptionEn:"Visitors see a clear reason and countdown while administrators can sign in securely and continue working."},
+      {kind:"new",title:"Privacyverzoek vanuit je account",titleEn:"Privacy requests from your account",description:"Ingelogde gebruikers kunnen een privacyverzoek indienen en daarna de status en antwoordtermijn vanuit hun account volgen.",descriptionEn:"Signed-in users can submit a privacy request and then track its status and response deadline from their account."},
+      {kind:"secure",title:"Providerverkeer via GlobeTrotr",titleEn:"Provider traffic through GlobeTrotr",description:"Bestemmingszoekopdrachten lopen via de server, zodat de externe dienst het IP-adres van het gebruikersapparaat niet ontvangt.",descriptionEn:"Destination searches run through the server so the external service does not receive the user's device IP address."},
+      {kind:"fixed",title:"Recensies en profielfoto's",titleEn:"Testimonials and profile photos",description:"Recensies geven heldere invoerfeedback en profielfoto's behouden hun natuurlijke verhouding.",descriptionEn:"Testimonials provide clear input feedback and profile photos retain their natural proportions."},
+      {kind:"improved",title:"Duidelijker productverhaal",titleEn:"Clearer product story",description:"De homepage laat direct zien welke reischaos GlobeTrotr vervangt en wat één gedeelde reis oplevert.",descriptionEn:"The homepage immediately shows which travel chaos GlobeTrotr replaces and what one shared trip provides."},
+      {kind:"new",title:"Reacties op feedback",titleEn:"Replies to feedback",description:"Beheerders kunnen een aanvullende vraag of reactie plaatsen en de indiener krijgt daar gericht bericht van.",descriptionEn:"Administrators can post a follow-up question or reply and the submitter receives a focused notification."},
+      {kind:"secure",title:"Moderatie van openbare reizen",titleEn:"Public trip moderation",description:"GlobeTrotr kan een openbare reis gemotiveerd depubliceren; de eigenaar wordt geïnformeerd en de ingreep wordt vastgelegd.",descriptionEn:"GlobeTrotr can unpublish a public trip with a recorded reason; the owner is informed and the action is audited."},
+    ],
+  },
+  {
     id: "2026-09-14-privacy-and-trip-clarity",
     version: "Beta 0.34",
     publishedAt: "2026-09-14T00:08:00+02:00",

@@ -55,6 +55,74 @@ function slug(s: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function icsText(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+}
+
+function icsDate(value: string) {
+  return value.replaceAll("-", "");
+}
+
+function nextIcsDate(value: string) {
+  const date = new Date(`${value}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10).replaceAll("-", "");
+}
+
+/** Provider-onafhankelijke agenda-export voor Apple Calendar, Google Calendar en Outlook. */
+export function buildTripCalendar(trip: Trip) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const events = [
+    ...trip.itinerary.map((item) => ({
+      id: `itinerary-${item.id}`,
+      title: item.title,
+      notes: item.notes ?? "",
+      date: item.day,
+      endDate: item.day,
+      startTime: "",
+      endTime: "",
+      location: "",
+    })),
+    ...(trip.travelItems ?? []).map((item) => ({
+      id: `booking-${item.id}`,
+      title: item.title,
+      notes: item.notes ?? "",
+      date: item.date,
+      endDate: item.endDate ?? item.date,
+      startTime: item.details?.startTime ?? "",
+      endTime: item.details?.endTime ?? "",
+      location: item.location?.name ?? item.departure?.name ?? item.arrival?.name ?? "",
+    })),
+  ].filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.date));
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//GlobeTrotr//Trip Calendar//NL", "CALSCALE:GREGORIAN", `X-WR-CALNAME:${icsText(trip.name)}`];
+  for (const event of events) {
+    const timed = /^\d{2}:\d{2}$/.test(event.startTime);
+    lines.push("BEGIN:VEVENT", `UID:${event.id}@globetrotr.nl`, `DTSTAMP:${stamp}`);
+    if (timed) {
+      lines.push(`DTSTART:${icsDate(event.date)}T${event.startTime.replace(":", "")}00`);
+      if (/^\d{2}:\d{2}$/.test(event.endTime)) lines.push(`DTEND:${icsDate(event.endDate)}T${event.endTime.replace(":", "")}00`);
+    } else {
+      lines.push(`DTSTART;VALUE=DATE:${icsDate(event.date)}`, `DTEND;VALUE=DATE:${nextIcsDate(event.endDate)}`);
+    }
+    lines.push(`SUMMARY:${icsText(event.title)}`);
+    if (event.notes) lines.push(`DESCRIPTION:${icsText(event.notes)}`);
+    if (event.location) lines.push(`LOCATION:${icsText(event.location)}`);
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return `${lines.join("\r\n")}\r\n`;
+}
+
+export function downloadTripCalendar(trip: Trip) {
+  const blob = new Blob([buildTripCalendar(trip)], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${slug(trip.name)}-agenda.ics`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
 export function openPdf(
   trip: Trip,
   base: string,

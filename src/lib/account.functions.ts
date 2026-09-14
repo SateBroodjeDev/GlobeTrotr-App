@@ -135,6 +135,36 @@ export const exportAccountData = createServerFn({ method: "GET" })
     return result;
   });
 
+export const recordAccountSecurityEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { event: "email_change_requested" | "password_changed" }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = supabaseAdmin as unknown as AdminClient;
+    const message = data.event === "password_changed"
+      ? {
+          title: "Wachtwoord gewijzigd / Password changed",
+          body: "password_changed|security",
+          eventKey: "account-security:password",
+        }
+      : {
+          title: "Wijziging e-mailadres aangevraagd / Email change requested",
+          body: "email_change_requested|security",
+          eventKey: "account-security:email",
+        };
+    const { error } = await db.from("notifications").upsert({
+      user_id: context.userId,
+      kind: "account",
+      title: message.title,
+      body: message.body,
+      event_key: message.eventKey,
+      created_at: new Date().toISOString(),
+      dismissed_at: null,
+    }, { onConflict: "user_id,event_key" });
+    if (error) throw error;
+    return { recorded: true };
+  });
+
 export const deleteAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: { confirmation: string }) => input)

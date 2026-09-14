@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search, Loader2 } from "lucide-react";
-import { searchPlaces, type GeoResult } from "@/lib/services";
+import { type GeoResult } from "@/lib/services";
+import {searchPlacesServer} from "@/lib/place.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLocale } from "@/lib/locale";
@@ -25,7 +26,7 @@ export function PlaceSearch({
     setLoading(true);
     setError(null);
     try {
-      setResults(await searchPlaces(q));
+      setResults(await searchPlacesServer({data:{query:q}}));
     } catch {
       setError(text("Zoeken lukte niet, probeer opnieuw.", "Search failed. Please try again."));
     } finally {

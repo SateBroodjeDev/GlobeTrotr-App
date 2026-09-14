@@ -8,16 +8,18 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 770 zijn uitgevoerd. Migraties 780 tot en met 820 voor governance, Agency-rapportage, configureerbare herinneringen, offerte-isolatie en aangescherpte functierechten staan klaar voor uitvoering. De beta is met een schone dataset, een nieuw eigenaaraccount en werkende Corporate Admin-toegang opnieuw gestart.
+Alle databasemigraties en SQL-regressietests tot en met migratie 860 zijn uitgevoerd. Onderhoud, privacyverzoeken, feedbackgesprekken, beheermeldingen, moderatie van openbare reizen, accountbeveiligingsmeldingen en agenda-export zijn daarmee geïmplementeerd; de praktische productacceptatie blijft open.
 
 ## Eerstvolgende controle
 
 1. [x] Database opnieuw opgebouwd, SQL-regressietests uitgevoerd en schone accounts gecontroleerd.
 2. [x] Reisback-up teruggezet en samenwerking met een tweede account praktisch bevestigd.
 3. [x] Migraties 760 en 770 plus `contact_messages.sql` en `expanded_release_checklist.sql` uitgevoerd.
-4. [ ] Migraties 780, 790, 800, 810 en 820 met hun SQL-tests in volgorde uitvoeren.
-5. [ ] De concrete scenario's per categorie in Corporate Admin → Releasecheck praktisch uitvoeren.
-6. [ ] Afwijkingen tijdens de acceptatietest direct als feedback of bekend probleem vastleggen en waar passend met GitHub synchroniseren.
+4. [x] Migraties 780, 790, 800, 810 en 820 met hun SQL-tests in volgorde uitgevoerd.
+5. [x] De herstelde `agency_quote_variant_isolation.sql`, migraties 830 en 840 en hun SQL-tests uitgevoerd.
+6. [x] Migraties 850 en 860 en hun SQL-acceptatietests uitgevoerd.
+7. [ ] De concrete scenario's per categorie in Corporate Admin → Releasecheck praktisch uitvoeren.
+8. [ ] Afwijkingen tijdens de acceptatietest direct als feedback of bekend probleem vastleggen en waar passend met GitHub synchroniseren.
 
 ## Eerstvolgende bouwvolgorde
 
@@ -28,11 +30,12 @@ Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 770 
 5. [x] **Leveranciersbibliotheek:** herbruikbare aanbieders voor accommodatie, vervoer en activiteiten binnen één Agency-workspace, met afspraken, archief en reiskoppelingen.
 6. [x] **Gebruiksvriendelijkheid lange reizen:** reisinstellingen zijn verdeeld in onderwerpen, planning in boekingen en dagplanning, en uitgaven zijn doorzoekbaar en filterbaar.
 7. [x] **Publieke dynamiek en privacyverhaal:** actuele openbare reizen staan op de homepage, Contact staat in de hoofdnavigatie en de Europese opslag en privacykeuzes worden helder uitgelegd.
-8. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
-9. [ ] **Hostingportabiliteit:** Node/Nitro-doel, VPS-service, stagingdomein, secrets, monitoring en rollback bouwen.
-10. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
-11. [ ] **OAuth:** Apple, Google en Microsoft activeren zodra de productie-infrastructuur en providerconfiguratie gereed zijn.
-12. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
+8. [x] **Onderhoud en privacy-inbox:** Corporate Admin kan een onderhoudsvenster beheren; gebruikers zien een countdown en kunnen vanuit hun account een privacyverzoek indienen en de actuele status volgen.
+9. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
+10. [ ] **Hostingportabiliteit:** Node/Nitro-doel, VPS-service, stagingdomein, secrets, monitoring en rollback bouwen.
+11. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
+12. [ ] **OAuth:** Apple, Google en Microsoft activeren zodra de productie-infrastructuur en providerconfiguratie gereed zijn.
+13. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
 
 ## P0 — Volledige notificatiedekking
 
@@ -53,9 +56,11 @@ Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 770 
 
 - [x] Accountblokkade en herstel melden aan de betrokken gebruiker.
 - [x] Belangrijke platformupdates en actuele storingen als melding of wegklikbare banner tonen.
-- [ ] Wijziging van e-mailadres, wachtwoord, herstelmethode en toekomstige OAuth-koppeling bevestigen.
+- [x] Aangevraagde wijziging van e-mailadres en geslaagde wachtwoordwijziging met een persistente beveiligingsmelding bevestigen.
+- [ ] Wijziging van herstelmethode en toekomstige OAuth-koppeling bevestigen zodra die functies actief zijn.
 - [ ] Nieuwe of verdachte login en beëindiging van alle sessies melden zodra betrouwbare sessiegegevens beschikbaar zijn.
-- [ ] Gegevens-export, accountverwijderingsverzoek en voltooiing bevestigen.
+- [x] Een afgeronde gegevens-export in-app bevestigen.
+- [ ] Accountverwijdering na de SMTP-implementatie per e-mail bevestigen; een in-appmelding kan na het wissen van het account niet blijven bestaan.
 - [ ] Wijziging van abonnement, betaling, mislukte betaling, opzegging en terugbetaling melden zodra Paddle actief is.
 
 ### Reizen en samenwerking
@@ -94,11 +99,12 @@ Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 770 
 
 - [x] Feedbackindiener bij een statuswijziging informeren.
 - [x] Platformstatus publiceren, bijwerken en opgelost melden; actieve storing via een banner tonen.
-- [ ] Nieuwe feedback en urgente bekende problemen aan de juiste Corporate Admin-ontvangers melden.
-- [ ] Reactie of aanvullende vraag op feedback ondersteunen zonder privégegevens openbaar te maken.
-- [ ] Publicatie, wijziging, oplossing en archivering van een bekend probleem consistent verwerken.
-- [ ] Notificatiebeheer in Corporate Admin toevoegen: gebeurtenistype, doelgroep, kanaal, status, laatste fout en opnieuw proberen.
-- [ ] Alle beheeracties rond meldingen in de append-only auditlog vastleggen.
+- [x] Nieuwe feedback en urgente bekende problemen aan de actieve Corporate Admin-ontvangers melden.
+- [x] Reactie of aanvullende vraag op feedback ondersteunen zonder privégegevens openbaar te maken.
+- [x] Publicatie, wijziging, oplossing en archivering van een bekend probleem consistent verwerken en bij urgente status de beheermelding bijwerken.
+- [x] Corporate Admin toont per gebeurtenistype hoeveel recente in-appmeldingen open of afgesloten zijn.
+- [ ] E-mailbezorging later uitbreiden met kanaal, laatste fout en gecontroleerd opnieuw proberen zodra SMTP actief is.
+- [x] Inzage en publicatie binnen het huidige meldingenbeheer in de append-only auditlog vastleggen.
 
 ## P0 — Agency-offertes afronden
 
@@ -130,7 +136,8 @@ Alle bevestigde databasemigraties en SQL-regressietests tot en met migratie 770 
 - [x] Afzonderlijke pagina's voor reizigers, groepen en Agencies.
 - [x] Agency-productpagina voor teams, rollen, klanten, offertes, taken, branding en werkvoorraad.
 - [x] Realistische scenario's, privacyvertrouwen, transparante betastatus en duidelijke ondersteuning.
-- [ ] Volledig responsive en toegankelijk in NL/EN; algemene metadata, `robots.txt` en sitemap zijn gebouwd, correcte routespecifieke canonical-URL's, social previews en gestructureerde data volgen.
+- [x] De belangrijkste publieke routes hebben routespecifieke canonical-URL's, social previews en gestructureerde organisatie- en productdata.
+- [ ] Volledig responsive en toegankelijk in NL/EN handmatig controleren.
 - [x] Engelstalige slugs: `/features`, `/demo`, `/for-travelers`, `/for-groups`, `/for-agencies`, `/pricing`, `/updates`, `/roadmap`, `/known-issues`, `/beta`, `/privacy`, `/terms` en `/refund-policy`.
 - [x] Functionele slugs gemigreerd naar `/trip/:token/:tripId`, `/invite/:token` en `/agency-invite/:token`.
 - [x] Bestaande Nederlandse routes via productie-redirects behouden voor bookmarks, gedeelde reizen en uitnodigingen.
@@ -197,7 +204,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] IMAP of mailprovider-API op de VPS aansluiten voor ontvangen mail; SMTP blijft uitsluitend de verzendlaag.
 - [ ] Persoonlijke adressen volgens `eerstelettervoornaam.achternaam@globetrotr.nl` provisionen en mailboxrechten praktisch controleren.
 - [ ] Paddle-webhooks als gezaghebbende bron aansluiten op de interne factuur- en omzetweergave.
-- [ ] Moderatie van openbare reizen met reden en auditlog.
+- [x] Moderatie van openbare reizen met verplichte reden, eigenaarsmelding en auditlog.
 - [x] Featureflags met interne, beta- of publieke doelgroep, verplichte reden en auditlog.
 - [x] Privacyverzoeken en wettelijke afhandelingstermijnen registreren en volgen.
 - [x] Beperkte interne incidentenmodule met ernst, status en auditregistratie.
@@ -246,7 +253,8 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 ## P1 — Reizen onderweg en productkwaliteit
 
 - [ ] Offline of beperkte-connectiviteitsmodus voor essentiële reisgegevens.
-- [ ] Kalenderexport en latere agenda-integratie.
+- [x] Provider-onafhankelijke ICS-agenda-export voor dagplanning en boekingen, geschikt voor gangbare agenda-apps.
+- [ ] Later optionele tweerichtings-agendasynchronisatie onderzoeken.
 - [ ] Periodieke vluchtupdates en optionele vluchtalerts zonder API-quota te verspillen.
 - [ ] Routeoptimalisatie met handmatige bevestiging.
 - [ ] Verdere mobiele, toegankelijkheids- en performancecontrole.
@@ -280,3 +288,37 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - Paddle-checkout, facturen en betaalstatus zijn nog niet actief; de beta schrijft niets af.
 - Automatische vertaling van feedback en bekende problemen is nog niet actief.
 - Eigen Agency-domeinen, echte mailboxsynchronisatie en providerverzending worden pas tijdens de VPS-productieconfiguratie geactiveerd.
+## Productkansen uit concurrentieonderzoek ? na stabilisatie
+
+De offici?le productinformatie van Wanderlog, TripIt, Roadtrippers, TravelSpend, TripMapper en Travefy is op 14 september 2026 vergeleken met GlobeTrotr. Bestaande GlobeTrotr-sterktes zijn samenwerking met rollen, slimme verrekening, Agency-branding, offertes, taken, documenten, Europese gegevenscontrole en openbaar delen. Kansrijke aanvullingen zijn geprioriteerd op gebruikerswaarde en technische afhankelijkheden.
+
+### Hoogste productwaarde
+
+- [ ] Offline reismodus met expliciete download, laatste synchronisatietijd en alleen de essenti?le planning, adressen, boekingen en documenten.
+- [ ] Boekingsbevestigingen uit doorgestuurde e-mail of upload omzetten naar een controleerbaar concept; nooit stilzwijgend opslaan.
+- [ ] Routeoptimalisatie en reistijd tussen stops, met vermijden van tolwegen, snelwegen of veerboten en altijd handmatige bevestiging.
+- [ ] Plaatsen ontdekken rond verblijf of route op categorie, afstand en openingstijd; externe providers via de server benaderen.
+- [ ] Reisstatistieken: landen, afstand, reisdagen, categorie-uitgaven, gemiddeld dagbudget en resterend dagbudget.
+- [ ] Reis dupliceren en een alternatieve route of offertevariant naast het origineel vergelijken.
+
+### Voor Pro en onderweg
+
+- [ ] Live vluchtmeldingen uitbreiden met gate, terminal, bagageband, check-inherinnering en vertrektijdadvies wanneer providerdata betrouwbaar is.
+- [ ] GPX- en Google Maps-export naast ICS en de bestaande reisgids.
+- [ ] Persoonlijk reizigersprofiel met optionele loyaliteitsprogramma's en documentvervalherinneringen, strikt priv? en versleuteld.
+- [ ] Veilige bestemmingsinformatie over reisdocumenten, lokale noodnummers en actuele verstoringen via aantoonbaar betrouwbare bronnen.
+- [ ] Uitgaven aan plaatsen koppelen en daggemiddelde, budgettempo en voorspelde overschrijding tonen.
+
+### Voor Agency
+
+- [ ] Veilige klantformulieren voor reiswensen en ontbrekende gegevens met veldniveau-toestemming en bewaartermijn.
+- [ ] Contentbibliotheek met herbruikbare bestemmingen, activiteiten, teksten en media naast bestaande sjablonen en leveranciers.
+- [ ] Commissie-, marge-, betaalplanning- en factuurreconciliatie zodra Paddle en boekhouding als betrouwbare bronnen zijn aangesloten.
+- [ ] Klantcommunicatie per reis bundelen vanuit de toekomstige mailbox zonder priv?-mail automatisch te scannen.
+- [ ] Mooie PDF-offerte en reisgids met geselecteerde media, eigen domein en Agency-huisstijl.
+
+### Bewust niet direct kopi?ren
+
+- [ ] Generatieve reisplanning pas onderzoeken na privacy-, bronkwaliteit-, kosten- en menselijke-controleontwerp.
+- [ ] Gmail- of inboxscanning alleen opt-in, minimaal, herroepbaar en na een aparte DPIA; e-mail doorsturen naar een uniek reisadres heeft voorkeur.
+- [ ] Boekingsmarktplaatsen, advertenties en compensatieclaims alleen toevoegen als ze aantoonbaar bij GlobeTrotr passen en belangen transparant blijven.

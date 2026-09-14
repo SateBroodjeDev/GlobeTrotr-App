@@ -76,6 +76,7 @@ import { Route as AuthenticatedCorporateAdminInfrastructureRouteImport } from '.
 import { Route as AuthenticatedCorporateAdminIssuesRouteImport } from './routes/_authenticated/corporate-admin.issues'
 import { Route as AuthenticatedCorporateAdminMailRouteImport } from './routes/_authenticated/corporate-admin.mail'
 import { Route as AuthenticatedCorporateAdminNotificationsRouteImport } from './routes/_authenticated/corporate-admin.notifications'
+import { Route as AuthenticatedCorporateAdminPublicTripsRouteImport } from './routes/_authenticated/corporate-admin.public-trips'
 import { Route as AuthenticatedCorporateAdminReleaseChecklistRouteImport } from './routes/_authenticated/corporate-admin.release-checklist'
 import { Route as AuthenticatedCorporateAdminStaffRouteImport } from './routes/_authenticated/corporate-admin.staff'
 import { Route as AuthenticatedCorporateAdminStatusRouteImport } from './routes/_authenticated/corporate-admin.status'
@@ -450,6 +451,12 @@ const AuthenticatedCorporateAdminNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
+const AuthenticatedCorporateAdminPublicTripsRoute =
+  AuthenticatedCorporateAdminPublicTripsRouteImport.update({
+    id: '/public-trips',
+    path: '/public-trips',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 const AuthenticatedCorporateAdminReleaseChecklistRoute =
   AuthenticatedCorporateAdminReleaseChecklistRouteImport.update({
     id: '/release-checklist',
@@ -574,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
   '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
   '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
+  '/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
   '/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   '/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
@@ -650,6 +658,7 @@ export interface FileRoutesByTo {
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
   '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
   '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
+  '/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
   '/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   '/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
@@ -730,6 +739,7 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
   '/_authenticated/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
   '/_authenticated/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
+  '/_authenticated/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
   '/_authenticated/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   '/_authenticated/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
   '/_authenticated/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
@@ -810,6 +820,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/issues'
     | '/corporate-admin/mail'
     | '/corporate-admin/notifications'
+    | '/corporate-admin/public-trips'
     | '/corporate-admin/release-checklist'
     | '/corporate-admin/staff'
     | '/corporate-admin/status'
@@ -886,6 +897,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/issues'
     | '/corporate-admin/mail'
     | '/corporate-admin/notifications'
+    | '/corporate-admin/public-trips'
     | '/corporate-admin/release-checklist'
     | '/corporate-admin/staff'
     | '/corporate-admin/status'
@@ -965,6 +977,7 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin/issues'
     | '/_authenticated/corporate-admin/mail'
     | '/_authenticated/corporate-admin/notifications'
+    | '/_authenticated/corporate-admin/public-trips'
     | '/_authenticated/corporate-admin/release-checklist'
     | '/_authenticated/corporate-admin/staff'
     | '/_authenticated/corporate-admin/status'
@@ -1487,6 +1500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCorporateAdminNotificationsRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
+    '/_authenticated/corporate-admin/public-trips': {
+      id: '/_authenticated/corporate-admin/public-trips'
+      path: '/public-trips'
+      fullPath: '/corporate-admin/public-trips'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminPublicTripsRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
     '/_authenticated/corporate-admin/release-checklist': {
       id: '/_authenticated/corporate-admin/release-checklist'
       path: '/release-checklist'
@@ -1635,6 +1655,7 @@ interface AuthenticatedCorporateAdminRouteChildren {
   AuthenticatedCorporateAdminIssuesRoute: typeof AuthenticatedCorporateAdminIssuesRoute
   AuthenticatedCorporateAdminMailRoute: typeof AuthenticatedCorporateAdminMailRoute
   AuthenticatedCorporateAdminNotificationsRoute: typeof AuthenticatedCorporateAdminNotificationsRoute
+  AuthenticatedCorporateAdminPublicTripsRoute: typeof AuthenticatedCorporateAdminPublicTripsRoute
   AuthenticatedCorporateAdminReleaseChecklistRoute: typeof AuthenticatedCorporateAdminReleaseChecklistRoute
   AuthenticatedCorporateAdminStaffRoute: typeof AuthenticatedCorporateAdminStaffRoute
   AuthenticatedCorporateAdminStatusRoute: typeof AuthenticatedCorporateAdminStatusRoute
@@ -1665,6 +1686,8 @@ const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRoute
     AuthenticatedCorporateAdminMailRoute: AuthenticatedCorporateAdminMailRoute,
     AuthenticatedCorporateAdminNotificationsRoute:
       AuthenticatedCorporateAdminNotificationsRoute,
+    AuthenticatedCorporateAdminPublicTripsRoute:
+      AuthenticatedCorporateAdminPublicTripsRoute,
     AuthenticatedCorporateAdminReleaseChecklistRoute:
       AuthenticatedCorporateAdminReleaseChecklistRoute,
     AuthenticatedCorporateAdminStaffRoute:

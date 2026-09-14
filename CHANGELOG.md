@@ -3,6 +3,26 @@
 Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikersgerichte versie staat op `/changelog`.
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
+## 2026-09-14 12:00 CEST — Onderhoud, privacyverzoeken en laatste acceptatievoorbereiding
+
+- Corporate Admin heeft een overzichtelijke Governance-indeling voor onderhoud, privacy, incidenten en gecontroleerde uitrol.
+- Onderhoud kan met een Nederlandse en Engelse reden, begin- en eindtijd worden gepubliceerd. Gewone bezoekers zien een aftellende onderhoudspagina met toegang tot inloggen; Corporate Admins kunnen doorwerken.
+- Ingelogde gebruikers kunnen vanuit hun account een privacyverzoek indienen, de actuele status en antwoordtermijn volgen en Corporate Admin kan dit in dezelfde privacy-inbox behandelen.
+- Bestemmingszoekopdrachten lopen via de serverlaag, zodat de externe provider het IP-adres van het gebruikersapparaat niet ontvangt. De privacyverklaring beschrijft deze bestaande werkwijze.
+- Contact en Status staan in de publieke hoofdnavigatie, profielfoto's behouden hun verhouding en de homepage legt het verschil voor en na GlobeTrotr concreter uit.
+- Recensiebeheer accepteert Corporate Admins met content- of operationeel recht, toont invoergrenzen en geeft bruikbare foutmeldingen.
+- De offerte-isolatietest geeft de tijdelijke fixture expliciet leesrecht als `authenticated`; de productiepolicy blijft afgeschermd.
+- Migratie `20260908083000_maintenance_privacy_and_acceptance.sql` en de bijbehorende rollbacktest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Nieuwe feedback informeert actieve Corporate Admins. Beheerders kunnen een veilige antwoordthread gebruiken; iedere nieuwe reactie informeert de feedbackindiener zonder de inhoud openbaar te maken.
+- Hoge en kritieke bekende problemen geven een gebundelde beheermelding die automatisch sluit wanneer het probleem wordt opgelost of gearchiveerd.
+- Migratie `20260908084000_feedback_conversations_and_admin_alerts.sql` en de bijbehorende rollbacktest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Migratie `20260908085000_account_security_acceptance.sql` en de bijbehorende acceptatietest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Reizigers kunnen dagplanning en boekingen vanuit de reisinstellingen als `.ics`-agenda exporteren.
+- Migratie `20260908086000_calendar_export_acceptance.sql` en de bijbehorende acceptatietest zijn op 14 september 2026 zonder fouten uitgevoerd.
+- Corporate Admin bevat een aparte moderatielijst voor openbare reizen. Depubliceren, archiveren en herstellen vereist een reden, informeert de eigenaar en schrijft de actor naar de auditlog.
+- Het meldingenbeheer toont een bezorgoverzicht per gebeurtenistype met verzonden, open en afgesloten in-appmeldingen; inzage wordt geaudit.
+- De belangrijkste publieke routes hebben eigen canonical-URL's en social previews; Over en Prijzen leveren aanvullende structured data voor zoekmachines.
+- De productiebuild is gecontroleerd: routepagina's en zware kaart-, grafiek- en Supabasebibliotheken worden als afzonderlijke chunks geladen.
 
 ## 2026-09-14 00:08 CEST — Privacy, dynamische website en rustigere reisschermen
 

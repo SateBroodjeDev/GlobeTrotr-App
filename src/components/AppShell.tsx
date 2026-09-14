@@ -51,6 +51,8 @@ import { useLocale } from "@/lib/locale";
 import { localizeTagline } from "@/lib/localized-values";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
 import { getMyAgencyAccess } from "@/lib/agency.functions";
+import {getMaintenanceState} from "@/lib/maintenance.functions";
+import {MaintenanceScreen} from "@/components/MaintenanceScreen";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
@@ -64,6 +66,7 @@ const PUBLIC_NAV = [
   { to: "/for-agencies", label: "Agency", icon: Building2 },
   { to: "/pricing", label: "Pricing", icon: Tags },
   { to: "/contact", label: "Contact", icon: Mail },
+  { to: "/status", label: "Status", icon: Activity },
   { to: "/about", label: "About", icon: HeartHandshake },
 ] as const;
 type ThemePreference = "system" | "light" | "dark";
@@ -92,12 +95,14 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { locale, setLocale, text } = useLocale();
   const navigate = useNavigate();
-  const corporateAdmin = useRouterState({ select: (routerState) => routerState.location.pathname.startsWith("/corporate-admin") });
+  const pathname = useRouterState({ select: (routerState) => routerState.location.pathname });
+  const corporateAdmin = pathname.startsWith("/corporate-admin");
   const queryClient = useQueryClient();
   const [guestTheme, setGuestTheme] = useState<ThemePreference>(cachedTheme);
   const [dark, setDark] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [agencyLogoUrl, setAgencyLogoUrl] = useState<string>();
+  const maintenance=useQuery({queryKey:["public-maintenance"],queryFn:()=>getMaintenanceState(),refetchInterval:60_000});
   const agencyRefreshPending = useRef(false);
   const profileQuery = useQuery({
     queryKey: ["profile-theme", user?.id],
@@ -213,6 +218,8 @@ function AppShellContent({ children }: { children: ReactNode }) {
     const { error } = await supabase.from("profiles").upsert({ id: user.id, theme: next });
     if (!error) await queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] });
   }
+  const isCorporateUser=user?.app_metadata?.corporate_admin===true;
+  if(maintenance.data?.active&&!isCorporateUser&&pathname!=="/auth")return <MaintenanceScreen state={maintenance.data}/>;
   if (corporateAdmin) {
     return <div className="min-h-screen bg-muted/20">
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">

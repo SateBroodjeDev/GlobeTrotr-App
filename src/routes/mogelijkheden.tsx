@@ -28,6 +28,7 @@ export const Route = createFileRoute("/mogelijkheden")({
       { title: "Mogelijkheden — GlobeTrotr" },
       { name: "description", content: "Ontdek routes, planning, boekingen, uitgaven, samenwerking en openbare reisverhalen in GlobeTrotr." },
     ],
+    links: [{ rel: "canonical", href: "https://globetrotr.nl/features" }],
   }),
   component: FeaturesPage,
 });
@@ -79,4 +80,3 @@ export function FeaturesPage() {
 function Audience({ icon: Icon, title, body }: { icon: typeof Users; title: string; body: string }) {
   return <Card className="surface"><CardContent className="p-6"><Icon className="size-6 text-primary" /><h3 className="mt-4 font-display text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></CardContent></Card>;
 }
-
