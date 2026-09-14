@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { ClientOnly } from "@tanstack/react-router";
 import { Suspense, lazy, useCallback, useEffect, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import {
   FileText,
   Globe2,
   Paperclip,
+  ImagePlus,
   Pencil,
   Plus,
   Settings2,
@@ -831,7 +832,7 @@ function TripDetail() {
 
         <TabsContent value="settings" className="space-y-4">
           <Tabs defaultValue="general"><TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="general">{text("Algemeen","General")}</TabsTrigger><TabsTrigger value="notifications">{text("Meldingen","Notifications")}</TabsTrigger>{state.plan==="agency"&&<TabsTrigger value="branding">{text("Huisstijl","Branding")}</TabsTrigger>}<TabsTrigger value="sharing">{text("Delen","Sharing")}</TabsTrigger><TabsTrigger value="members">{text("Reisgenoten","Travellers")}</TabsTrigger><TabsTrigger value="danger">{text("Beheer","Management")}</TabsTrigger></TabsList>
-          <TabsContent value="general" className="mt-4 space-y-4"><TripCover tripId={trip.id} editable={editable} text={text} onUrlChange={setCoverUrl}/><Card className="surface">
+          <TabsContent value="general" className="mt-4"><div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]"><Card className="surface">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Settings2 className="size-4" /> {text("Reisinstellingen", "Trip settings")}
@@ -950,7 +951,7 @@ function TripDetail() {
                 </div>
               </form>
             </CardContent>
-          </Card></TabsContent>
+          </Card><Card className="surface"><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><ImagePlus className="size-4"/>{text("Uitstraling","Appearance")}</CardTitle></CardHeader><CardContent><TripCover tripId={trip.id} editable={editable} text={text} onUrlChange={setCoverUrl}/></CardContent></Card></div></TabsContent>
 
           <TabsContent value="notifications" className="mt-4"><TripNotificationPreferences tripId={trip.id} /></TabsContent>
 

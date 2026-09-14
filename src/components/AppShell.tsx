@@ -139,7 +139,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
     ? profileQuery.data === undefined ? cachedTheme() : asTheme(profileQuery.data?.theme)
     : guestTheme;
   const navItems = user
-    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...SUPPORT_NAV, ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : [])]
+    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : []), ...SUPPORT_NAV.slice().reverse()]
     : PUBLIC_NAV;
   const displayName =
     profileQuery.data?.display_name ||

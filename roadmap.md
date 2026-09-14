@@ -8,7 +8,7 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
 
-Alle databasemigraties en SQL-regressietests tot en met migratie 960 zijn uitgevoerd. De nieuwe reisfuncties en de afsluitende pre-VPS-releasepoort zijn daarmee technisch toegepast. Migratie 970 voegt de laatste productie-UI-controles toe en staat klaar voor uitvoering; de praktische productacceptatie blijft open.
+Alle databasemigraties en SQL-regressietests tot en met migratie 970 zijn uitgevoerd. De nieuwe reisfuncties, pre-VPS-releasepoort en productie-UI-controles zijn daarmee technisch toegepast; de praktische productacceptatie blijft open.
 
 ## Eerstvolgende controle
 
@@ -258,6 +258,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Reisstatistieken met reisdagen, landen, bestemmingen, overnachtingen, totale uitgaven, daggemiddelde en categorieën.
 - [x] Budgettempo met besteed bedrag, resterend budget en een prognose voor lopende reizen.
 - [x] Provider-onafhankelijke ICS-agenda-export voor dagplanning en boekingen, geschikt voor gangbare agenda-apps.
+- [ ] Pro-agenda-abonnement bouwen met een intrekbare, willekeurige feed-URL, alleen-lezen iCalendar-uitvoer en een duidelijke keuze tussen eenmalig exporteren en automatisch bijwerken.
 - [x] GPX-export van bestemmingen en routevolgorde voor kaart- en navigatie-apps.
 - [x] Route gecontroleerd omkeren met bevestiging en opslag via de bestaande versiecontrole.
 - [x] Reis als veilige private variant dupliceren.
@@ -266,9 +267,10 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Eigen private omslagfoto per reis voor reisscherm en dashboard, met kortlevende veilige weergave op een bewust openbare reispagina; reisgidsopmaak volgt na opslagacceptatie.
 - [x] Plaatsgebonden activiteiten en boekingen plus daaraan gekoppelde uitgaven als afzonderlijke markers op de routekaart.
 - [x] Rustig dagoverzicht voor onderweg met uitsluitend vandaag: planning, adressen, boekingen, documenten, weer en openstaande taken.
-- [ ] Later optionele tweerichtings-agendasynchronisatie onderzoeken.
+- [ ] Later optionele tweerichtings-agendasynchronisatie via CalDAV/WebDAV onderzoeken; dit blijft los van het geplande alleen-lezen agenda-abonnement.
 - [ ] Verdere mobiele, toegankelijkheids- en performancecontrole.
 - [x] Corporate Admin-navigatie op kleine schermen inklapbaar maken, icoonknoppen vergroten en productiegerichte foutteksten gebruiken.
+- [x] Demo anonimiseren, Contact-acties van iconen voorzien, ingelogde supportlinks logisch als laatste plaatsen en de reisomslag naast de algemene instellingen zetten.
 - [ ] Grote bundles splitsen waar dit de gemeten laadtijd werkelijk verbetert.
 - [ ] Automatische vertaling van feedback en bekende problemen pas na keuze van een veilige provider en bewaarbeleid.
 - [ ] Automatische vertaalconcepten voor statusberichten, bekende problemen en publieke communicatie bouwen, met verplichte menselijke controle vóór publicatie.

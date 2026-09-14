@@ -5,6 +5,10 @@ Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikers
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
 ## 2026-09-14 12:00 CEST — Onderhoud, privacyverzoeken en laatste acceptatievoorbereiding
 
+- De productdemo gebruikt voortaan volledig fictieve reis- en persoonsnamen; de route-, dag-, paklijst- en verrekenbediening blijft interactief.
+- Contact toont bij alle zelfhulplinks een herkenbaar icoon. Voor ingelogde beheerders volgen Status en Contact nu na Bedrijfsmail en Corporate Admin.
+- De reisomslag staat in een eigen instellingenblok naast de algemene gegevens en vermeldt het aanbevolen formaat van 1600 × 900 pixels.
+- Een automatisch bijwerkend Pro-agenda-abonnement is als afzonderlijke beveiligde vervolgfunctie gespecificeerd; de bestaande eenmalige ICS-export blijft beschikbaar.
 - Een productie-UI-audit heeft de mobiele Corporate Admin-navigatie ingeklapt, icoonknoppen vergroot, Engelse prijsvoordelen hersteld en verouderde migratiemeldingen vervangen door bruikbare foutteksten.
 - Recensies sluiten weer met het juiste aanhalingsteken en de Engelse Corporate Admin-releasecheck toont nu werkelijk de Engelse labels en datumopmaak.
 - Migratie `20260908097000_production_ui_acceptance.sql` en `production_ui_acceptance.sql` voegen de definitieve breedte-, touch- en NL/EN-tekstcontrole aan Corporate Admin toe.

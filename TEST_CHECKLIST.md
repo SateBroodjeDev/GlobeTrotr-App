@@ -1,6 +1,6 @@
 # GlobeTrotr beta-testlijst
 
-> Alle databasemigraties en SQL-regressietests tot en met migratie 960 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
+> Alle databasemigraties en SQL-regressietests tot en met migratie 970 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
 
 ## Nieuwe praktische acceptatiecontroles
 
@@ -11,8 +11,11 @@
 - [ ] Controleer vierkante en staande profielfoto's; de afbeelding moet uitsnijden zonder uitrekken.
 - [ ] Controleer Contact en Status in de hoofdnavigatie op telefoon en desktop.
 - [ ] Log in en controleer dat Contact en Status ook vanuit het reisplatform direct in de hoofdnavigatie staan.
+- [ ] Controleer dat bij een Corporate Admin eerst Bedrijfsmail en Corporate Admin staan, daarna Status en als laatste Contact.
+- [ ] Controleer op Contact dat Bekende problemen, Platformstatus en Supportmogelijkheden ieder een passend icoon hebben.
 - [ ] Zoek een bestemming en controleer dat de browser uitsluitend de GlobeTrotr-serverfunctie aanspreekt.
 - [ ] Controleer homepage, demo, mogelijkheden en Over op een duidelijke eigen taak en zonder zichtbare regeleindemarkeringen.
+- [ ] Doorloop de demo zonder account: wissel alle vier onderdelen, kies meerdere dagen, vink de paklijst af en verreken de voorbeeldbetaling; controleer dat nergens eigen reis- of persoonsdata verschijnt.
 - [ ] Lees Over volledig in NL/EN en controleer dat het verhaal rustig doorloopt zonder een stapeling van losse kaarten.
 - [ ] Controleer de onderhoudspagina op telefoon en desktop: compacte kop, onderhoudsreden, countdown, gegevensuitleg en beheerderslogin.
 - [ ] Dien feedback in; controleer de Corporate Admin-melding, stuur een aanvullende vraag en controleer de gebruikersmelding.
@@ -41,6 +44,7 @@ Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar
 - [ ] Auto, openbaar vervoer, fiets en lopen kiezen; brandstofprognose klopt alleen waar passend.
 - [ ] Reisback-up vanuit reisinstellingen downloaden en via accountinstellingen importeren.
 - [ ] Reisagenda als `.ics` downloaden; controleer dagplanning, boekingstijden, locaties en meerdaagse onderdelen in minimaal één agenda-app.
+- [ ] Open Reisinstellingen → Algemeen op telefoon en desktop; de omslag staat in een eigen blok naast of onder de velden en vermeldt 1600 × 900 px als aanbevolen formaat.
 - [ ] Controleer reisduur, landen, overnachtingen, categorie-uitgaven, daggemiddelde en budgetprognose voor een toekomstige en een lopende reis.
 - [ ] Dupliceer een reis en controleer dat route, planning en paklijst meegaan, terwijl deelnemers, uitgaven, boekingsreferenties, PIN en openbare status leeg of uitgeschakeld blijven.
 - [ ] Exporteer minimaal twee bestemmingen als GPX, open het bestand in een kaartapp en controleer namen, coördinaten en volgorde.
