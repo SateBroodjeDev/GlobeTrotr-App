@@ -45,6 +45,15 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-14-passwordless-entry", version: "Beta 0.41", publishedAt: "2026-09-14T23:45:00+02:00",
+    title: "Makkelijker weer toegang tot je account", titleEn: "Easier account access",
+    summary: "Vraag vanaf het inlogscherm veilig een herstelmail of een eenmalige inloglink aan.", summaryEn: "Securely request account recovery or a single-use sign-in link from the sign-in screen.",
+    changes: [
+      {kind:"new",title:"Account herstellen",titleEn:"Account recovery",description:"De herstelmail leidt via GlobeTrotr naar het veilig vernieuwen van je inloggegevens.",descriptionEn:"The recovery email leads through GlobeTrotr to securely renewing your sign-in details."},
+      {kind:"new",title:"Inloglink per e-mail",titleEn:"Email sign-in link",description:"Log rechtstreeks in met een beveiligde link die maar één keer werkt.",descriptionEn:"Sign in directly using a protected link that works only once."},
+    ],
+  },
+  {
     id: "2026-09-14-social-sign-in", version: "Beta 0.40", publishedAt: "2026-09-14T23:30:00+02:00",
     title: "Sneller aanmelden met je bestaande account", titleEn: "Faster sign-in with your existing account",
     summary: "GlobeTrotr is voorbereid op aanmelden via Google, Facebook en Discord, inclusief een veilige terugkeer naar uitnodigingen.", summaryEn: "GlobeTrotr is prepared for sign-in through Google, Facebook and Discord, including a safe return to invitations.",

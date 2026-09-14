@@ -1,5 +1,12 @@
 # GlobeTrotr changelog
 
+## 2026-09-14 23:45 CEST — Herstel en inloggen zonder wachtwoord
+
+- Het inlogscherm kan nu rechtstreeks een wachtwoordherstelmail of een eenmalige magic link aanvragen.
+- Herstel toont geen informatie waarmee het bestaan van een account kan worden afgeleid en gebruikt de eigen GlobeTrotr-tokenroute.
+- Een actuele implementatielijst groepeert resterend werk voor database, Supabase Auth, beide VPS'en en productacceptatie.
+- Twee nieuwe Corporate Admin-controles dekken herstel en wachtwoordloos inloggen.
+
 ## 2026-09-14 23:30 CEST — Inloggen met Google, Facebook en Discord
 
 - Inloggen en registreren bieden nu Google, Facebook en Discord naast e-mail, wachtwoord en passkey.

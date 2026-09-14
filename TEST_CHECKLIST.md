@@ -8,7 +8,10 @@
 - [ ] Voer `20260908101000_direct_invitation_email.sql` en daarna `direct_invitation_email.sql` uit.
 - [ ] Voer `20260908102000_email_template_acceptance.sql` en daarna `email_template_acceptance.sql` uit.
 - [ ] Voer `20260908103000_social_login_acceptance.sql` en daarna `social_login_acceptance.sql` uit.
+- [ ] Voer `20260908104000_passwordless_auth_acceptance.sql` en daarna `passwordless_auth_acceptance.sql` uit.
 - [ ] Registreer via `/register`; controleer aflevering, de eigen `/token/...`-bevestigingsroute en daarna inloggen.
+- [ ] Vraag op `/auth` wachtwoordherstel aan, open de mail en stel vanuit Account daadwerkelijk een nieuw wachtwoord in.
+- [ ] Vraag op `/auth` een magic link aan; controleer eenmalig gebruik, verlopen link en veilige terugkeer naar een uitnodiging.
 - [ ] Activeer Google, Facebook en Discord volgens `OAUTH_SETUP.md`; test iedere knop met een nieuw en bestaand account.
 - [ ] Start OAuth vanaf een reis- en Agency-uitnodiging en controleer dat de veilige `redirect` na terugkeer behouden blijft.
 - [ ] Controleer in Supabase dat een bestaand e-mailadres geen dubbel profiel of lege workspace veroorzaakt.

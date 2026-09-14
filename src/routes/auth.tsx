@@ -44,8 +44,10 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sentKind, setSentKind] = useState<"confirmation" | "recovery" | "magic">("confirmation");
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
+  const [emailActionBusy, setEmailActionBusy] = useState<"recovery" | "magic" | null>(null);
   const { session } = useAuth();
   const { redirect } = Route.useSearch();
   const { text } = useLocale();
@@ -78,6 +80,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
         });
         if (error) throw error;
         if (!data.session) {
+          setSentKind("confirmation");
           setSent(true);
           toast.success(
             text(
@@ -131,6 +134,30 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     }
   }
 
+  async function sendEmailAction(action: "recovery" | "magic") {
+    const normalized = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+      toast.error(text("Vul eerst een geldig e-mailadres in.", "Enter a valid email address first."));
+      return;
+    }
+    setEmailActionBusy(action);
+    try {
+      const callback = new URL("/auth", window.location.origin);
+      if (redirect) callback.searchParams.set("redirect", redirect);
+      const result = action === "recovery"
+        ? await supabase.auth.resetPasswordForEmail(normalized, { redirectTo: callback.toString() })
+        : await supabase.auth.signInWithOtp({ email: normalized, options: { emailRedirectTo: callback.toString(), shouldCreateUser: registrationEnabled } });
+      if (result.error) throw result.error;
+      setEmail(normalized);
+      setSentKind(action);
+      setSent(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : text("De e-mail kon niet worden aangevraagd.", "The email could not be requested."));
+    } finally {
+      setEmailActionBusy(null);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-md py-8">
       <Card>
@@ -149,21 +176,16 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
         </CardHeader>
         <CardContent>
           {sent ? (
-            <p className="text-sm">
-              {text(
-                "We hebben een bevestigingsmail gestuurd naar",
-                "We sent a confirmation email to",
-              )}{" "}
-              <strong>{email}</strong>.{" "}
-              {text(
-                redirect
-                  ? "Klik op de link om je account te bevestigen. Daarna kom je terug bij de uitnodiging."
-                  : "Klik op de link om je workspace te activeren.",
-                redirect
-                  ? "Follow the link to confirm your account. You will then return to the invitation."
-                  : "Follow the link to activate your workspace.",
-              )}
-            </p>
+            <div className="space-y-4 text-sm">
+              <p>{text(
+                sentKind === "recovery" ? "Als dit account bestaat, hebben we een herstelmail gestuurd naar" : sentKind === "magic" ? "We hebben een veilige inloglink gestuurd naar" : "We hebben een bevestigingsmail gestuurd naar",
+                sentKind === "recovery" ? "If this account exists, we sent a recovery email to" : sentKind === "magic" ? "We sent a secure sign-in link to" : "We sent a confirmation email to",
+              )} <strong>{email}</strong>. {text(
+                sentKind === "recovery" ? "Open de link om een nieuw wachtwoord te kiezen." : sentKind === "magic" ? "De link kan een keer worden gebruikt en brengt je veilig terug naar GlobeTrotr." : redirect ? "Klik op de link om je account te bevestigen. Daarna kom je terug bij de uitnodiging." : "Klik op de link om je workspace te activeren.",
+                sentKind === "recovery" ? "Open the link to choose a new password." : sentKind === "magic" ? "The link can be used once and safely returns you to GlobeTrotr." : redirect ? "Follow the link to confirm your account. You will then return to the invitation." : "Follow the link to activate your workspace.",
+              )}</p>
+              <Button type="button" variant="outline" className="w-full" onClick={() => setSent(false)}>{text("Terug naar inloggen", "Back to sign in")}</Button>
+            </div>
           ) : (
             <div className="space-y-4">
               <div className="grid gap-2 sm:grid-cols-3">
@@ -209,6 +231,10 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
               </Button>
               {mode === "signin" && <><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{text("of", "or")}</span><span className="h-px flex-1 bg-border"/></div><Button type="button" variant="outline" className="w-full" disabled={passkeyBusy} onClick={() => void signInWithPasskey()}><KeyRound className="size-4"/>{passkeyBusy ? text("Passkey openen…", "Opening passkey…") : text("Inloggen met passkey", "Sign in with passkey")}</Button></>}
               </form>
+              {mode === "signin" && <div className="grid gap-2 sm:grid-cols-2">
+                <Button type="button" variant="ghost" className="h-auto min-h-10 whitespace-normal text-xs" disabled={Boolean(emailActionBusy)} onClick={() => void sendEmailAction("recovery")}>{emailActionBusy === "recovery" ? text("Versturen...", "Sending...") : text("Wachtwoord vergeten?", "Forgot password?")}</Button>
+                <Button type="button" variant="ghost" className="h-auto min-h-10 whitespace-normal text-xs" disabled={Boolean(emailActionBusy)} onClick={() => void sendEmailAction("magic")}>{emailActionBusy === "magic" ? text("Versturen...", "Sending...") : text("Inloglink per e-mail", "Email me a sign-in link")}</Button>
+              </div>}
               <p className="text-center text-xs leading-5 text-muted-foreground">{text("Door verder te gaan accepteer je de voorwaarden en privacyverklaring.","By continuing, you accept the terms and privacy policy.")} <Link to="/terms" className="underline underline-offset-2">{text("Voorwaarden","Terms")}</Link> · <Link to="/privacy" className="underline underline-offset-2">Privacy</Link></p>
             </div>
           )}
