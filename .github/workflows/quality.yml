@@ -1,0 +1,26 @@
+name: Quality checks
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Node installeren
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Bun installeren
+        uses: oven-sh/setup-bun@v2
+      - name: Dependencies installeren
+        run: bun install --frozen-lockfile
+      - name: Tests en productiebuild controleren
+        run: bun run check

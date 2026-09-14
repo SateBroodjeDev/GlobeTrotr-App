@@ -1,0 +1,35 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { CircleDollarSign, Download, FileText, RefreshCcw, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Metric } from "@/lib/corporate-admin-ui";
+import { getCorporateFinanceData } from "@/lib/corporate-business.functions";
+import { csvCell } from "@/lib/exporters";
+import { useLocale } from "@/lib/locale";
+
+export const Route = createFileRoute("/_authenticated/corporate-admin/finance")({ component: Page });
+
+function exportCsv(name: string, rows: unknown[][]) {
+  const blob = new Blob(["\uFEFF" + rows.map((row) => row.map(csvCell).join(";")).join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob), anchor = document.createElement("a");
+  anchor.href = url; anchor.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`; anchor.click(); URL.revokeObjectURL(url);
+}
+
+function Page() {
+  const { text, locale } = useLocale();
+  const [days, setDays] = useState(30);
+  const { data } = useQuery({ queryKey: ["corporate-finance", days], queryFn: () => getCorporateFinanceData({ data: { days } }) });
+  const money = (minor: number, currency = "EUR") => new Intl.NumberFormat(locale, { style: "currency", currency }).format((minor || 0) / 100);
+  const max = Math.max(1, ...(data?.dailyRevenue ?? []).map((item: any) => item.totalMinor));
+  const exportInvoices = () => exportCsv("globetrotr-invoices", [["invoice_number", "customer", "status", "currency", "subtotal_minor", "tax_minor", "total_minor", "issued_at", "provider"], ...(data?.invoices ?? []).map((x: any) => [x.invoice_number, x.customer_name, x.status, x.currency, x.subtotal_minor, x.tax_minor, x.total_minor, x.issued_at, x.external_provider])]);
+  const exportRevenue = () => exportCsv("globetrotr-revenue", [["date", "net_revenue_minor"], ...(data?.dailyRevenue ?? []).map((x: any) => [x.date, x.totalMinor])]);
+  return <div className="space-y-6">
+    <header className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="font-display text-2xl font-semibold">{text("Financiële bedrijfsvoering", "Financial operations")}</h2><p className="text-sm text-muted-foreground">{text("Paddle wordt na webhookactivatie de gezaghebbende betaalbron.", "Paddle becomes the authoritative payment source after webhook activation.")}</p></div><div className="flex flex-wrap gap-2"><Button variant="outline" disabled={!data?.dailyRevenue.length} onClick={exportRevenue}><Download className="size-4"/>{text("Omzet CSV", "Revenue CSV")}</Button><Button variant="outline" disabled={!data?.invoices.length} onClick={exportInvoices}><Download className="size-4"/>{text("Facturen CSV", "Invoices CSV")}</Button><select className="h-10 rounded-md border bg-background px-3" value={days} onChange={(e) => setDays(Number(e.target.value))}><option value={30}>30 {text("dagen", "days")}</option><option value={90}>90 {text("dagen", "days")}</option><option value={365}>1 {text("jaar", "year")}</option></select></div></header>
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric icon={TrendingUp} label="MRR" value={money(data?.metrics.mrrMinor ?? 0)} detail={`${data?.metrics.activeSubscriptions ?? 0} ${text("actieve abonnementen", "active subscriptions")}`}/><Metric icon={CircleDollarSign} label={text("Netto omzet", "Net revenue")} value={money(data?.metrics.revenueMinor ?? 0)} detail={`${days} ${text("dagen", "days")}`}/><Metric icon={RefreshCcw} label={text("Terugbetaald", "Refunded")} value={money(data?.metrics.refundedMinor ?? 0)} detail={`${data?.metrics.pastDue ?? 0} past due`}/><Metric icon={FileText} label={text("Webhookwachtrij", "Webhook queue")} value={data?.metrics.pendingWebhooks}/></section>
+    <Card><CardHeader><CardTitle>{text("Omzetontwikkeling", "Revenue trend")}</CardTitle></CardHeader><CardContent>{data?.dailyRevenue.length ? <div className="flex h-44 items-end gap-1" aria-label={text("Omzetgrafiek", "Revenue chart")}>{data.dailyRevenue.map((x: any) => <div key={x.date} title={`${x.date}: ${money(x.totalMinor)}`} className="min-w-1 flex-1 rounded-t bg-primary/75" style={{ height: `${Math.max(3, x.totalMinor / max * 100)}%` }}/>)}</div> : <p className="text-sm text-muted-foreground">{text("Nog geen betaaltransacties in deze periode.", "No payment transactions in this period yet.")}</p>}</CardContent></Card>
+    <Card><CardHeader><CardTitle>{text("Verkoopfacturen", "Sales invoices")}</CardTitle></CardHeader><CardContent className="space-y-2">{!data?.invoices.length ? <p className="text-sm text-muted-foreground">{text("Nog geen door Paddle gesynchroniseerde facturen.", "No Paddle-synchronised invoices yet.")}</p> : data.invoices.map((x: any) => <details key={x.id} className="rounded-xl border p-4"><summary className="grid cursor-pointer gap-2 sm:grid-cols-[1fr_auto_auto] sm:items-center"><span><strong className="block">{x.invoice_number}</strong><small className="text-muted-foreground">{x.customer_name}</small></span><Badge variant={x.status === "paid" ? "secondary" : x.status === "past_due" ? "destructive" : "outline"}>{x.status}</Badge><strong>{money(x.total_minor, x.currency)}</strong></summary><dl className="mt-4 grid gap-2 border-t pt-4 text-sm sm:grid-cols-3"><div><dt className="text-muted-foreground">Subtotal</dt><dd>{money(x.subtotal_minor, x.currency)}</dd></div><div><dt className="text-muted-foreground">Tax</dt><dd>{money(x.tax_minor, x.currency)}</dd></div><div><dt className="text-muted-foreground">Provider</dt><dd>{x.external_provider}</dd></div></dl></details>)}</CardContent></Card>
+  </div>;
+}

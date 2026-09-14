@@ -60,26 +60,26 @@
   --radius: 0.75rem;
   --brand-hue: 172;
 
-  --background: oklch(0.985 0.006 170);
-  --foreground: oklch(0.22 0.03 190);
+  --background: oklch(0.985 0.002 260);
+  --foreground: oklch(0.22 0.012 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 190);
+  --card-foreground: oklch(0.22 0.012 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 190);
+  --popover-foreground: oklch(0.22 0.012 260);
   --primary: oklch(0.52 0.115 var(--brand-hue));
   --primary-foreground: oklch(0.99 0.01 var(--brand-hue));
-  --secondary: oklch(0.95 0.02 var(--brand-hue));
-  --secondary-foreground: oklch(0.32 0.06 var(--brand-hue));
-  --muted: oklch(0.955 0.01 190);
-  --muted-foreground: oklch(0.52 0.02 195);
-  --accent: oklch(0.93 0.045 var(--brand-hue));
+  --secondary: oklch(0.965 0.003 260);
+  --secondary-foreground: oklch(0.3 0.012 260);
+  --muted: oklch(0.955 0.003 260);
+  --muted-foreground: oklch(0.48 0.012 260);
+  --accent: oklch(0.94 0.025 var(--brand-hue));
   --accent-foreground: oklch(0.3 0.07 var(--brand-hue));
   --destructive: oklch(0.577 0.19 25);
   --destructive-foreground: oklch(0.99 0.005 25);
   --success: oklch(0.62 0.14 155);
   --warning: oklch(0.75 0.14 75);
-  --border: oklch(0.9 0.014 190);
-  --input: oklch(0.9 0.014 190);
+  --border: oklch(0.89 0.004 260);
+  --input: oklch(0.84 0.005 260);
   --ring: oklch(0.52 0.115 var(--brand-hue));
   --chart-1: oklch(0.55 0.12 var(--brand-hue));
   --chart-2: oklch(0.68 0.13 215);
@@ -97,36 +97,38 @@
 
   --gradient-aurora: linear-gradient(
     135deg,
-    oklch(0.32 0.07 var(--brand-hue)) 0%,
-    oklch(0.42 0.11 calc(var(--brand-hue) + 30)) 50%,
-    oklch(0.36 0.1 calc(var(--brand-hue) + 90)) 100%
+    oklch(0.99 0.003 260) 0%,
+    oklch(0.96 0.018 var(--brand-hue)) 100%
   );
-  --gradient-sheen: linear-gradient(
-    180deg,
-    oklch(1 0 0 / 0.9) 0%,
-    oklch(0.97 0.015 var(--brand-hue) / 0.8) 100%
-  );
-  --shadow-soft: 0 1px 2px oklch(0.3 0.03 195 / 0.06), 0 10px 30px oklch(0.3 0.03 195 / 0.07);
-  --shadow-lift: 0 20px 50px oklch(0.3 0.05 195 / 0.16);
+  --gradient-sheen: linear-gradient(180deg, oklch(1 0 0) 0%, oklch(0.99 0.002 260) 100%);
+  --shadow-soft: 0 1px 2px oklch(0.22 0.01 260 / 0.05), 0 8px 24px oklch(0.22 0.01 260 / 0.05);
+  --shadow-lift: 0 20px 50px oklch(0.22 0.01 260 / 0.14);
 }
 
 .dark {
-  --background: oklch(0.18 0.025 200);
-  --foreground: oklch(0.96 0.008 190);
-  --card: oklch(0.23 0.028 198);
-  --card-foreground: oklch(0.96 0.008 190);
-  --popover: oklch(0.23 0.028 198);
-  --popover-foreground: oklch(0.96 0.008 190);
+  --background: oklch(0.17 0.012 260);
+  --foreground: oklch(0.96 0.003 260);
+  --card: oklch(0.22 0.012 260);
+  --card-foreground: oklch(0.96 0.003 260);
+  --popover: oklch(0.22 0.012 260);
+  --popover-foreground: oklch(0.96 0.003 260);
   --primary: oklch(0.7 0.13 var(--brand-hue));
   --primary-foreground: oklch(0.18 0.03 198);
-  --secondary: oklch(0.28 0.035 198);
-  --secondary-foreground: oklch(0.95 0.01 190);
-  --muted: oklch(0.28 0.03 198);
-  --muted-foreground: oklch(0.72 0.02 195);
+  --secondary: oklch(0.28 0.012 260);
+  --secondary-foreground: oklch(0.95 0.003 260);
+  --muted: oklch(0.28 0.01 260);
+  --muted-foreground: oklch(0.72 0.01 260);
   --accent: oklch(0.32 0.05 var(--brand-hue));
   --accent-foreground: oklch(0.95 0.02 var(--brand-hue));
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
+  --gradient-aurora: linear-gradient(
+    135deg,
+    oklch(0.22 0.012 260) 0%,
+    oklch(0.24 0.025 var(--brand-hue)) 100%
+  );
+  --gradient-sheen: linear-gradient(180deg, oklch(0.235 0.012 260) 0%, oklch(0.2 0.01 260) 100%);
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.2), 0 8px 24px oklch(0 0 0 / 0.18);
 }
 
 @layer base {
@@ -156,9 +158,27 @@
   border-radius: var(--radius-2xl);
 }
 
+/* OpenStreetMap heeft geen eigen donker thema. Deze rustige correctie houdt
+ * wegen en labels leesbaar zonder een fel vlak in de donkere interface. */
+.dark .trip-map .leaflet-tile-pane {
+  filter: brightness(0.62) contrast(1.08) saturate(0.72);
+}
+
 @utility aurora {
   background: var(--gradient-aurora);
-  color: oklch(0.98 0.01 190);
+  color: var(--color-foreground);
+}
+
+@utility form-control {
+  display: flex;
+  height: 2.5rem;
+  width: 100%;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--color-input);
+  background: var(--color-card);
+  padding-inline: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-foreground);
 }
 
 /* Leaflet map skin */

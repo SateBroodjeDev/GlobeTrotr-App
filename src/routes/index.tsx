@@ -1,143 +1,72 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Globe2, MapPin, ShieldCheck, Wallet, Users, ArrowRight } from "lucide-react";
-import { listPublicTrips } from "@/lib/public.functions";
-import { useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, BriefcaseBusiness, Check, Route as RouteIcon, ShieldCheck, Sparkles, Users, WalletCards } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth";
+import { useLocale } from "@/lib/locale";
+import { listPublicTestimonials } from "@/lib/testimonials.functions";
+import { listPublicTrips } from "@/lib/public.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GlobeTrotr — Reisplanner & kostenverdeler voor elke trip" },
-      {
-        name: "description",
-        content:
-          "Plan reizen wereldwijd, houd budget en uitgaven bij in elke valuta, verdeel kosten eerlijk en deel je reis openbaar. Maak gratis een account.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "GlobeTrotr — Reisplanner & kostenverdeler" },
-      {
-        property: "og:description",
-        content: "Multi-trip planner met live koersen, kaarten, paklijsten en eerlijke verrekening.",
-      },
+      { title: "GlobeTrotr — Plan samen, reis slimmer" },
+      { name: "description", content: "Plan routes, boekingen, dagprogramma en groepskosten samen in één helder reisdashboard." },
+      { property: "og:title", content: "GlobeTrotr — Je hele reis in één overzicht" },
+      { property: "og:description", content: "Van eerste route tot laatste betaalverzoek: plan de reis samen en houd grip op ieder detail." },
     ],
+    links: [{ rel: "canonical", href: "https://globetrotr.nl/" }],
   }),
   component: Landing,
 });
 
-const FEATURES = [
-  { icon: MapPin, title: "Route & kaart", text: "Bestemmingen zoeken wereldwijd, dag-voor-dag schema en navigatie per stop." },
-  { icon: Wallet, title: "Budget & valuta", text: "Uitgaven in elke munt met live koersen, budget versus werkelijk." },
-  { icon: Users, title: "Eerlijk verdelen", text: "Kosten 50/50 of per persoon, met het minimale aantal overboekingen." },
-  { icon: ShieldCheck, title: "Privé per account", text: "Je reizen staan veilig in je eigen account. Delen doe je alleen als je dat wilt." },
-];
-
 function Landing() {
   const { user } = useAuth();
-  const publicTrips = useQuery({
-    queryKey: ["public-trips"],
-    queryFn: () => listPublicTrips(),
-    staleTime: 60_000,
-  });
+  const { text } = useLocale();
+  const testimonials=useQuery({queryKey:["public-testimonials"],queryFn:listPublicTestimonials,staleTime:300_000});
+  const publicTrips=useQuery({queryKey:["public-trip-cards"],queryFn:listPublicTrips,staleTime:300_000,retry:false});
+  const startLabel = user ? text("Open mijn reizen", "Open my trips") : text("Start gratis", "Start for free");
+  const journey = [
+    { icon: RouteIcon, number: "01", title: text("Bouw samen de route", "Build the route together"), body: text("Zet stops in de juiste volgorde, bekijk ze op de kaart en houd reisdagen overzichtelijk.", "Order stops, see them on the map and keep travel days clear.") },
+    { icon: BriefcaseBusiness, number: "02", title: text("Leg plannen en boekingen vast", "Capture plans and bookings"), body: text("Bewaar verblijf, vervoer en activiteiten naast het dagprogramma, zonder te zoeken in chats en inboxen.", "Keep accommodation, transport and activities beside the itinerary without searching chats and inboxes.") },
+    { icon: WalletCards, number: "03", title: text("Verdeel kosten zonder gedoe", "Split expenses without hassle"), body: text("Registreer wie betaalde en laat de slimme verrekening het kleinste aantal terugbetalingen voorstellen.", "Record who paid and let smart settlement propose the fewest repayments.") },
+  ];
 
-  return (
-    <div className="space-y-14">
-      <section className="aurora relative overflow-hidden rounded-3xl px-6 py-14 md:px-12">
-        <div className="max-w-2xl">
-          <Badge variant="secondary" className="mb-4 gap-1">
-            <Globe2 className="size-3" /> globetrotr.nl
-          </Badge>
-          <h1 className="font-display text-4xl font-semibold leading-tight md:text-5xl">
-            Plan elke reis. Verantwoord elke euro.
-          </h1>
-          <p className="mt-4 max-w-xl text-sm opacity-90 md:text-base">
-            GlobeTrotr bundelt je route, dagplanning, paklijst en alle kosten in één overzicht —
-            voor jezelf, je reisgenoten en je hele vriendengroep.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            {user ? (
-              <Button asChild size="lg">
-                <Link to="/dashboard">
-                  Naar mijn reizen <ArrowRight className="size-4" />
-                </Link>
-              </Button>
-            ) : (
-              <>
-                <Button asChild size="lg">
-                  <Link to="/auth">Gratis account maken</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link to="/auth">Inloggen</Link>
-                </Button>
-              </>
-            )}
-          </div>
+  return <div className="space-y-20 pb-8">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "SoftwareApplication", name: "GlobeTrotr", applicationCategory: "TravelApplication", operatingSystem: "Web", url: "https://globetrotr.nl/", offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" } }) }} />
+    <section className="aurora relative overflow-hidden rounded-[2rem] px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+      <div className="absolute -right-20 -top-24 size-80 rounded-full bg-primary/15 blur-3xl" />
+      <div className="relative grid items-center gap-10 xl:grid-cols-[.9fr_1.1fr]">
+        <div>
+          <Badge variant="secondary" className="mb-5 gap-1.5"><Sparkles className="size-3.5" />{text("Gebouwd voor echte groepsreizen", "Built for real group trips")}</Badge>
+          <h1 className="max-w-2xl font-display text-4xl font-semibold leading-[1.05] sm:text-5xl lg:text-6xl">{text("Plan de reis. Deel de details. Verreken eerlijk.", "Plan the trip. Share the details. Settle fairly.")}</h1>
+          <p className="mt-5 max-w-xl text-base leading-relaxed opacity-90 sm:text-lg">{text("GlobeTrotr brengt route, boekingen, dagplanning, paklijst en groepskosten samen. Iedereen weet waar de reis staat en wat er nog moet gebeuren.", "GlobeTrotr brings routes, bookings, itineraries, packing and group expenses together. Everyone knows where the trip stands and what remains to be done.")}</p>
+          <div className="mt-8 flex flex-wrap gap-3"><Button asChild size="lg"><Link to={user ? "/dashboard" : "/auth"}>{startLabel}<ArrowRight className="size-4" /></Link></Button><Button asChild size="lg" variant="outline"><Link to="/demo">{text("Probeer de interactieve demo", "Try the interactive demo")}</Link></Button></div>
+          <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs opacity-80">{[text("Gratis beta-account", "Free beta account"), text("Privé als standaard", "Private by default"), text("Nederlands en Engels", "Dutch and English")].map(item => <span key={item} className="flex items-center gap-1.5"><Check className="size-3.5" />{item}</span>)}</div>
         </div>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {FEATURES.map((f) => (
-          <Card key={f.title} className="surface">
-            <CardHeader className="pb-2">
-              <f.icon className="size-5 text-primary" />
-              <CardTitle className="text-base">{f.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">{f.text}</CardContent>
-          </Card>
-        ))}
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl font-semibold">Openbare reizen</h2>
-            <p className="text-sm text-muted-foreground">
-              Reizen die andere reizigers openbaar hebben gedeeld — laat je inspireren.
-            </p>
-          </div>
+        <div className="relative rounded-[1.75rem] border border-primary/20 bg-background p-5 shadow-2xl shadow-primary/10">
+          <div className="flex items-start justify-between border-b pb-4"><div><p className="text-xs font-semibold uppercase tracking-widest text-primary">{text("Jullie reisoverzicht","Your trip overview")}</p><h2 className="mt-1 font-display text-2xl font-semibold">{text("Scandinavië 2026","Scandinavia 2026")}</h2></div><Badge variant="outline">{text("4 reizigers","4 travellers")}</Badge></div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2"><Card className="bg-primary/5"><CardContent className="p-4"><RouteIcon className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Volgende stop","Next stop")}</p><p className="font-semibold">Stockholm · 8 dec</p></CardContent></Card><Card><CardContent className="p-4"><BriefcaseBusiness className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Boekingen compleet","Bookings complete")}</p><p className="font-semibold">7 van 8</p></CardContent></Card><Card><CardContent className="p-4"><WalletCards className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Budget gebruikt","Budget used")}</p><p className="font-semibold">€3.482 van €5.250</p></CardContent></Card><Card><CardContent className="p-4"><Users className="size-5 text-primary"/><p className="mt-3 text-xs text-muted-foreground">{text("Nog te doen","Still to do")}</p><p className="font-semibold">{text("3 gezamenlijke taken","3 shared tasks")}</p></CardContent></Card></div>
+          <Button asChild variant="outline" className="mt-4 w-full"><Link to="/demo">{text("Open de klikbare voorbeeldreis","Open the interactive sample trip")}<ArrowRight className="size-4"/></Link></Button>
         </div>
+      </div>
+    </section>
 
-        {publicTrips.isLoading ? (
-          <p className="text-sm text-muted-foreground">Reizen laden…</p>
-        ) : (publicTrips.data ?? []).length === 0 ? (
-          <Card className="surface">
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Er zijn nog geen openbare reizen gedeeld. Maak een account en deel de jouwe als
-              eerste.
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {(publicTrips.data ?? []).map((t) => (
-              <Card key={`${t.token}-${t.tripId}`} className="surface flex flex-col">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">
-                    <Link
-                      to="/reis/$token/$tripId"
-                      params={{ token: t.token, tripId: t.tripId }}
-                      className="hover:underline"
-                    >
-                      {t.name}
-                    </Link>
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground">
-                    {t.start} → {t.end} · door {t.brandName}
-                  </p>
-                </CardHeader>
-                <CardContent className="mt-auto space-y-2 text-sm text-muted-foreground">
-                  <p className="flex items-center gap-1">
-                    <MapPin className="size-4" />
-                    {t.stops.map((s) => s.name).slice(0, 4).join(" · ") || "Nog geen bestemmingen"}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
-  );
+    <section className="grid overflow-hidden rounded-3xl border lg:grid-cols-2"><div className="bg-muted/40 p-7 sm:p-9"><Badge variant="outline">{text("Zonder GlobeTrotr","Without GlobeTrotr")}</Badge><h2 className="mt-4 font-display text-2xl font-semibold">{text("Zoeken, doorsturen en opnieuw uitrekenen","Search, forward and recalculate")}</h2><ul className="mt-5 space-y-3 text-sm text-muted-foreground">{[text("Boekingen verspreid over mailboxen en chats","Bookings scattered across inboxes and chats"),text("Niemand weet welke planning actueel is","Nobody knows which itinerary is current"),text("Handmatig uitzoeken wie nog aan wie betaalt","Manually work out who still owes whom")].map(item=><li key={item} className="flex gap-3"><span className="text-destructive">×</span>{item}</li>)}</ul></div><div className="bg-primary/5 p-7 sm:p-9"><Badge>{text("Met GlobeTrotr","With GlobeTrotr")}</Badge><h2 className="mt-4 font-display text-2xl font-semibold">{text("Eén actuele reis die iedereen begrijpt","One current trip everyone understands")}</h2><ul className="mt-5 space-y-3 text-sm">{[text("Route, boekingen en dagplanning bij elkaar","Routes, bookings and itinerary together"),text("Iedereen ziet wat bij zijn of haar rol past","Everyone sees what fits their role"),text("Slimme verrekening maakt betalen concreet","Smart settlement makes repayments clear")].map(item=><li key={item} className="flex gap-3"><Check className="mt-0.5 size-4 shrink-0 text-primary"/>{item}</li>)}</ul><Button asChild className="mt-7"><Link to="/demo">{text("Ervaar het zelf in de demo","Experience it in the demo")}<ArrowRight className="size-4"/></Link></Button></div></section>
+    <section><div className="mx-auto max-w-2xl text-center"><Badge variant="outline">{text("Eén doorlopende reis", "One connected journey")}</Badge><h2 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">{text("Van eerste idee tot thuiskomst", "From first idea to coming home")}</h2><p className="mt-3 text-muted-foreground">{text("Geen verzameling losse hulpmiddelen, maar één reis die met jullie plannen meegroeit.", "A single trip that grows with your plans instead of disconnected tools.")}</p></div><div className="mt-9 grid gap-4 lg:grid-cols-3">{journey.map(({ icon: Icon, number, title, body }) => <Card key={number} className="surface"><CardContent className="p-6"><div className="flex items-center justify-between"><span className="grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary"><Icon className="size-5" /></span><span className="font-display text-3xl text-muted-foreground/35">{number}</span></div><h3 className="mt-5 font-display text-xl font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p></CardContent></Card>)}</div></section>
+
+    <section className="grid gap-5 rounded-3xl border bg-card/60 p-6 sm:p-9 lg:grid-cols-[1.1fr_.9fr] lg:items-center"><div><Badge variant="secondary"><Users className="mr-1 size-3" />{text("Voor reizigers én reisprofessionals", "For travellers and travel professionals")}</Badge><h2 className="mt-4 font-display text-3xl font-semibold">{text("Dezelfde heldere reis, met toegang die bij je rol past", "The same clear trip, with access that fits your role")}</h2><p className="mt-3 max-w-2xl text-muted-foreground">{text("Reisgenoten werken samen aan planning en kosten. Agencies beheren daarnaast klanten, offertes, taken, leveranciers en hun eigen huisstijl vanuit een aparte werkplek.", "Travellers collaborate on plans and expenses. Agencies also manage clients, quotes, tasks, suppliers and their own branding from a dedicated workspace.")}</p></div><div className="grid gap-3"><Button asChild variant="outline" className="h-auto justify-between p-4"><Link to="/for-groups">{text("Bekijk groepsreizen", "Explore group travel")}<ArrowRight className="size-4" /></Link></Button><Button asChild variant="outline" className="h-auto justify-between p-4"><Link to="/for-agencies">{text("Ontdek GlobeTrotr Agency", "Discover GlobeTrotr Agency")}<ArrowRight className="size-4" /></Link></Button></div></section>
+
+    {(testimonials.data?.length??0)>0&&<section><div className="mx-auto max-w-2xl text-center"><Badge variant="outline">{text("Ervaringen", "Testimonials")}</Badge><h2 className="mt-4 font-display text-3xl font-semibold">{text("Wat reizigers over GlobeTrotr zeggen", "What travellers say about GlobeTrotr")}</h2></div><div className="mt-8 grid gap-4 lg:grid-cols-3">{testimonials.data!.slice(0,6).map(review=><Card key={review.id} className="surface"><CardContent className="p-6">{review.rating&&<div className="mb-4 flex gap-1 text-amber-500" aria-label={`${review.rating}/5`}>{Array.from({length:review.rating},(_,i)=><span key={i}>★</span>)}</div>}<blockquote className="leading-relaxed">“{text(review.quoteNl,review.quoteEn)}”</blockquote><p className="mt-5 font-semibold">{review.authorName}</p><p className="text-sm text-muted-foreground">{text(review.authorContextNl,review.authorContextEn)}</p></CardContent></Card>)}</div></section>}
+
+    {(publicTrips.data?.length??0)>0&&<section><div className="flex flex-wrap items-end justify-between gap-4"><div><Badge variant="outline">{text("Openbare reizen","Public trips")}</Badge><h2 className="mt-4 font-display text-3xl font-semibold">{text("Bekijk hoe anderen hun reis opbouwen","See how others build their trip")}</h2><p className="mt-2 text-muted-foreground">{text("Alleen reizen die bewust openbaar zijn gemaakt en geen PIN hebben verschijnen hier.","Only trips deliberately made public without a PIN appear here.")}</p></div></div><div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{publicTrips.data!.slice(0,6).map(trip=><Card key={trip.tripId} className="surface overflow-hidden"><CardContent className="p-6"><div className="flex items-center justify-between gap-3"><Badge variant="secondary">{trip.template}</Badge><span className="text-xs text-muted-foreground">{trip.stops.length} stops</span></div><h3 className="mt-4 font-display text-xl font-semibold">{trip.name}</h3>{trip.description&&<p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{trip.description}</p>}<p className="mt-4 text-xs text-muted-foreground">{trip.start} — {trip.end} · {trip.branding?.brandName||trip.authorName}</p><Button asChild variant="outline" className="mt-5 w-full"><Link to="/trip/$token/$tripId" params={{token:trip.token,tripId:trip.tripId}}>{text("Bekijk openbare reis","View public trip")}<ArrowRight className="size-4"/></Link></Button></CardContent></Card>)}</div></section>}
+
+    <section className="grid overflow-hidden rounded-3xl border bg-card lg:grid-cols-[.72fr_1.28fr]"><div className="relative min-h-80"><img src="/about/domenic-founder-web.jpg" alt={text("Domenic, oprichter van GlobeTrotr", "Domenic, founder of GlobeTrotr")} className="absolute inset-0 size-full object-cover" /></div><div className="p-7 sm:p-10"><Badge variant="secondary">{text("Ontstaan tijdens een echte reis", "Created while planning a real trip")}</Badge><h2 className="mt-4 font-display text-3xl font-semibold">{text("Van spreadsheet-hel naar een droomreis door Zweden", "From spreadsheet hell to a dream trip through Sweden")}</h2><p className="mt-4 leading-relaxed text-muted-foreground">{text("Ik bouwde GlobeTrotr toen vluchtbevestigingen, hoteladressen, routes en groepskosten voor mijn eigen reis overal verspreid stonden. Reizen hoort om vrijheid en voorpret te draaien, niet om administratie.", "I built GlobeTrotr when flight confirmations, hotel addresses, routes and group expenses for my own trip were scattered everywhere. Travel should be about freedom and anticipation, not administration.")}</p><p className="mt-4 font-medium">— Domenic, {text("oprichter van GlobeTrotr", "founder of GlobeTrotr")}</p><Button asChild variant="outline" className="mt-6"><Link to="/about">{text("Lees het hele verhaal", "Read the full story")}<ArrowRight className="size-4" /></Link></Button></div></section>
+
+    <section className="grid gap-5 rounded-3xl border bg-card/60 p-6 sm:p-9 lg:grid-cols-3"><div className="lg:col-span-1"><ShieldCheck className="size-7 text-primary"/><h2 className="mt-4 font-display text-2xl font-semibold">{text("Je reisdata blijft dichtbij","Your trip data stays close")}</h2><p className="mt-2 text-sm text-muted-foreground">{text("Primaire account-, reis- en documentgegevens worden opgeslagen in de Europese Unie.","Primary account, trip and document data is stored in the European Union.")}</p></div><div className="rounded-2xl border p-5"><p className="font-semibold">{text("Europese infrastructuur","European infrastructure")}</p><p className="mt-2 text-sm text-muted-foreground">{text("Supabase in een Europese projectregio en GlobeTrotr-servers in Duitsland.","Supabase in a European project region and GlobeTrotr servers in Germany.")}</p></div><div className="rounded-2xl border p-5"><p className="font-semibold">{text("Jij houdt controle","You stay in control")}</p><p className="mt-2 text-sm text-muted-foreground">{text("Exporteer of verwijder je gegevens en kies later zelf welke optionele koppelingen je activeert.","Export or delete your data and choose which optional connections you activate later.")}</p><Button asChild variant="link" className="mt-2 px-0"><Link to="/privacy">{text("Lees hoe privacy werkt","Read how privacy works")}<ArrowRight className="size-4"/></Link></Button></div></section>
+
+    <section className="aurora rounded-3xl px-6 py-10 text-center sm:px-10 sm:py-14"><ShieldCheck className="mx-auto size-8 text-primary" /><h2 className="mt-4 font-display text-3xl font-semibold">{text("Maak van reischaos weer voorpret", "Turn travel chaos back into anticipation")}</h2><p className="mx-auto mt-3 max-w-xl text-sm opacity-85">{text("Start gratis in de beta. Je reis blijft privé totdat jij besluit iets te delen.", "Start free in the beta. Your trip stays private until you choose to share it.")}</p><Button asChild size="lg" className="mt-7"><Link to={user ? "/dashboard" : "/auth"}>{startLabel}<ArrowRight className="size-4" /></Link></Button></section>
+  </div>;
 }

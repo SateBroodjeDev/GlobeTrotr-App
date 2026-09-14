@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -7,8 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocale } from "@/lib/locale";
+import { getPublicFeatureFlags } from "@/lib/corporate-governance.functions";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" && search.redirect.startsWith("/") && !search.redirect.startsWith("//")
+      ? search.redirect.slice(0, 500)
+      : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Inloggen — GlobeTrotr workspace" },
@@ -35,11 +43,21 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const { session } = useAuth();
+  const { redirect } = Route.useSearch();
+  const { text } = useLocale();
   const navigate = useNavigate();
+  const flags = useQuery({ queryKey: ["public-feature-flags"], queryFn: () => getPublicFeatureFlags(), retry: false });
+  const registrationEnabled = flags.data?.["public.registration"] !== false;
 
   useEffect(() => {
-    if (session) navigate({ to: "/dashboard", replace: true });
-  }, [session, navigate]);
+    if (!registrationEnabled && mode === "signup") setMode("signin");
+  }, [registrationEnabled, mode]);
+
+  useEffect(() => {
+    if (!session) return;
+    if (redirect) window.location.replace(redirect);
+    else navigate({ to: "/dashboard", replace: true });
+  }, [session, navigate, redirect]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,22 +68,35 @@ function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}${redirect ?? ""}`,
             data: { full_name: name },
           },
         });
         if (error) throw error;
         if (!data.session) {
           setSent(true);
-          toast.success("Check je mail om je account te bevestigen.");
+          toast.success(
+            text(
+              "Check je mail om je account te bevestigen.",
+              "Check your email to confirm your account.",
+            ),
+          );
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Welkom terug!");
+        toast.success(text("Welkom terug!", "Welcome back!"));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Er ging iets mis");
+      const message = err instanceof Error ? err.message : "";
+      toast.error(
+        /user is banned/i.test(message)
+          ? text(
+              "Dit account is tijdelijk geblokkeerd. Neem contact op via info@globetrotr.nl als je denkt dat dit niet klopt.",
+              "This account is temporarily blocked. Contact info@globetrotr.nl if you believe this is incorrect.",
+            )
+          : message || text("Er ging iets mis", "Something went wrong"),
+      );
     } finally {
       setBusy(false);
     }
@@ -76,23 +107,39 @@ function AuthPage() {
       <Card>
         <CardHeader>
           <CardTitle className="font-display text-2xl">
-            {mode === "signin" ? "Inloggen" : "Account aanmaken"}
+            {mode === "signin"
+              ? text("Inloggen", "Sign in")
+              : text("Account aanmaken", "Create account")}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Je reizen, uitgaven en bonnetjes worden versleuteld in je eigen workspace bewaard.
+            {text(
+              "Je reizen, uitgaven en bonnetjes worden veilig in je eigen workspace bewaard.",
+              "Your trips, expenses and receipts are stored securely in your own workspace.",
+            )}
           </p>
         </CardHeader>
         <CardContent>
           {sent ? (
             <p className="text-sm">
-              We hebben een bevestigingsmail naar <strong>{email}</strong> gestuurd. Klik op de
-              link om je workspace te activeren.
+              {text(
+                "We hebben een bevestigingsmail gestuurd naar",
+                "We sent a confirmation email to",
+              )}{" "}
+              <strong>{email}</strong>.{" "}
+              {text(
+                redirect
+                  ? "Klik op de link om je account te bevestigen. Daarna kom je terug bij de uitnodiging."
+                  : "Klik op de link om je workspace te activeren.",
+                redirect
+                  ? "Follow the link to confirm your account. You will then return to the invitation."
+                  : "Follow the link to activate your workspace.",
+              )}
             </p>
           ) : (
             <form onSubmit={submit} className="space-y-4">
               {mode === "signup" && (
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">Naam</Label>
+                  <Label htmlFor="name">{text("Naam", "Name")}</Label>
                   <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
               )}
@@ -108,7 +155,7 @@ function AuthPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="password">Wachtwoord</Label>
+                <Label htmlFor="password">{text("Wachtwoord", "Password")}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -120,12 +167,16 @@ function AuthPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={busy}>
-                {busy ? "Bezig…" : mode === "signin" ? "Inloggen" : "Account aanmaken"}
+                {busy
+                  ? text("Bezig…", "Working…")
+                  : mode === "signin"
+                    ? text("Inloggen", "Sign in")
+                    : text("Account aanmaken", "Create account")}
               </Button>
             </form>
           )}
 
-          <button
+          {registrationEnabled ? <button
             type="button"
             onClick={() => {
               setMode(mode === "signin" ? "signup" : "signin");
@@ -134,9 +185,9 @@ function AuthPage() {
             className="mt-4 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
           >
             {mode === "signin"
-              ? "Nog geen account? Registreer gratis"
-              : "Al een account? Log in"}
-          </button>
+              ? text("Nog geen account? Registreer gratis", "No account yet? Create one for free")
+              : text("Al een account? Log in", "Already have an account? Sign in")}
+          </button> : <p className="mt-4 text-center text-sm text-muted-foreground">{text("Nieuwe registraties zijn tijdelijk gepauzeerd. Bestaande gebruikers kunnen gewoon inloggen.","New registrations are temporarily paused. Existing users can still sign in.")}</p>}
         </CardContent>
       </Card>
     </div>

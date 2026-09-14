@@ -8,7 +8,8 @@ export type Feature =
   | "analytics"
   | "roles"
   | "weather"
-  | "billable_expenses";
+  | "billable_expenses"
+  | "receipts";
 
 export const PLANS: {
   id: PlanId;
@@ -56,11 +57,13 @@ export const PLANS: {
       "roles",
       "weather",
       "billable_expenses",
+      "receipts",
     ],
     highlights: [
       "Eigen merk en domein",
       "Rollen en rechten",
       "Declarabele klantuitgaven",
+      "Bonnetjes bij uitgaven",
     ],
   },
 ];
@@ -108,4 +111,16 @@ export function canExport(role: RoleId) {
 }
 export function canBill(role: RoleId) {
   return role === "owner";
+}
+
+export function canPlanTrip(role: import("./types").TripMemberRole | undefined) {
+  return !role || role === "owner" || role === "traveler" || role === "advisor";
+}
+
+export function canManageTripMoney(role: import("./types").TripMemberRole | undefined) {
+  return !role || role === "owner" || role === "traveler" || role === "advisor" || role === "finance";
+}
+
+export function ownsTrip(role: import("./types").TripMemberRole | undefined) {
+  return !role || role === "owner";
 }

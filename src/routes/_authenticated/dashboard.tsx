@@ -3,8 +3,15 @@ import { useState } from "react";
 import { Plus, Trash2, MapPin, Wallet, Lock, Download } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
-import { canEdit, planOf } from "@/lib/plans";
-import { TEMPLATES, STATUS_LABEL, tripStatus, type TripStatus, type TripTemplate } from "@/lib/types";
+import { canEdit, ownsTrip, planOf } from "@/lib/plans";
+import {
+  TEMPLATES,
+  STATUS_LABEL,
+  tripStatus,
+  type TripStatus,
+  type TripTemplate,
+  type Trip,
+} from "@/lib/types";
 import { convert, formatMoney } from "@/lib/services";
 import { downloadJson } from "@/lib/exporters";
 import { Countdown } from "@/components/Countdown";
@@ -13,6 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useLocale } from "@/lib/locale";
+import { localizeTagline } from "@/lib/localized-values";
+import { TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
+import { TripComparison } from "@/components/TripComparison";
+import { TripCover } from "@/components/TripCover";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -35,14 +47,18 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function TripsOverview() {
   const { state, addTrip, removeTrip, rates, ratesLive } = useWorkspace();
+  const { locale, text } = useLocale();
   const navigate = useNavigate();
   const plan = planOf(state.plan);
   const editable = canEdit(state.role);
   const [name, setName] = useState("");
   const [template, setTemplate] = useState<TripTemplate>("citytrip");
   const [filter, setFilter] = useState<TripStatus | "all">("all");
+  const [compareLeft, setCompareLeft] = useState("");
+  const [compareRight, setCompareRight] = useState("");
 
-  const atLimit = state.trips.length >= plan.tripLimit;
+  const ownedTripCount = state.trips.filter((trip) => ownsTrip(trip.accessRole)).length;
+  const atLimit = ownedTripCount >= plan.tripLimit;
   const base = state.baseCurrency;
 
   const totals = state.trips.map((t) => ({
@@ -58,20 +74,42 @@ function TripsOverview() {
     .filter((t) => tripStatus(t) === "upcoming")
     .sort((a, b) => a.start.localeCompare(b.start))[0];
 
-
-  function create() {
+  async function create() {
     if (!name.trim()) {
-      toast.error("Geef de reis een naam");
+      toast.error(text("Geef de reis een naam", "Give your trip a name"));
+      return;
+    }
+    if (name.trim().length > TRIP_NAME_MAX_LENGTH) {
+      toast.error(
+        text(
+          `De reisnaam mag maximaal ${TRIP_NAME_MAX_LENGTH} tekens bevatten.`,
+          `The trip name can contain up to ${TRIP_NAME_MAX_LENGTH} characters.`,
+        ),
+      );
       return;
     }
     if (atLimit) {
-      toast.error(`Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`);
+      toast.error(
+        text(
+          `Je ${plan.name}-plan staat ${plan.tripLimit} reizen toe. Upgrade naar Pro.`,
+          `Your ${plan.name} plan allows ${plan.tripLimit} trips. Upgrade to Pro.`,
+        ),
+      );
       return;
     }
-    const id = addTrip(name.trim(), template);
-    setName("");
-    toast.success("Reis aangemaakt");
-    navigate({ to: "/trips/$tripId", params: { tripId: id } });
+    try {
+      const id = await addTrip(name.trim(), template);
+      setName("");
+      toast.success(text("Reis aangemaakt", "Trip created"));
+      navigate({ to: "/trips/$tripId", params: { tripId: id } });
+    } catch {
+      toast.error(
+        text(
+          "De reis kon niet worden aangemaakt. Probeer het opnieuw.",
+          "The trip could not be created. Please try again.",
+        ),
+      );
+    }
   }
 
   return (
@@ -79,21 +117,29 @@ function TripsOverview() {
       <section className="aurora relative overflow-hidden rounded-3xl px-6 py-10 md:px-10">
         <div className="max-w-2xl">
           <Badge variant="secondary" className="mb-3">
-            {ratesLive ? "Live ECB-koersen actief" : "Fallback koersen"}
+            {ratesLive
+              ? text("Live ECB-koersen actief", "Live ECB rates active")
+              : text("Fallback koersen", "Fallback rates")}
           </Badge>
           <h1 className="font-display text-3xl font-semibold md:text-4xl">
-            {state.branding.tagline}
+            {localizeTagline(state.branding.tagline, locale)}
           </h1>
           <p className="mt-3 text-sm opacity-90">
-            {state.trips.length} actieve reizen · {formatMoney(grand, base)} geboekte uitgaven ·
-            wereldwijde geocoding, multi-valuta en live weer.
+            {text(`${state.trips.length} actieve reizen`, `${state.trips.length} active trips`)} ·{" "}
+            {formatMoney(grand, base)} {text("geboekte uitgaven", "recorded expenses")} ·{" "}
+            {text(
+              "wereldwijde geocoding, multi-valuta en live weer.",
+              "global geocoding, multiple currencies and live weather.",
+            )}
           </p>
         </div>
       </section>
 
       <Card className="surface">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Nieuwe reis vanuit sjabloon</CardTitle>
+          <CardTitle className="text-base">
+            {text("Nieuwe reis vanuit sjabloon", "New trip from template")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -108,29 +154,37 @@ function TripsOverview() {
                 }`}
               >
                 <span className="mr-1">{t.emoji}</span>
-                {t.label}
+                {templateLabel(t.id, t.label, text)}
               </button>
             ))}
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               value={name}
+              maxLength={TRIP_NAME_MAX_LENGTH}
               disabled={!editable}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Bijv. Namibië familie-safari"
+              placeholder={text(
+                "Bijv. Namibië familie-safari",
+                "For example, Namibia family safari",
+              )}
             />
             <Button onClick={create} disabled={!editable || atLimit}>
-              <Plus className="size-4" /> Reis aanmaken
+              <Plus className="size-4" /> {text("Reis aanmaken", "Create trip")}
             </Button>
           </div>
           {!editable && (
             <p className="text-sm text-muted-foreground">
-              Je huidige rol is alleen-lezen. Wissel rechtsboven van rol om te bewerken.
+              {text("Je huidige rol is alleen-lezen.", "Your current role is read-only.")}
             </p>
           )}
           {atLimit && (
             <p className="flex items-center gap-2 text-sm text-warning">
-              <Lock className="size-4" /> Limiet van {plan.tripLimit} reizen bereikt op {plan.name}.{" "}
+              <Lock className="size-4" />{" "}
+              {text(
+                `Limiet van ${plan.tripLimit} reizen bereikt op ${plan.name}.`,
+                `${plan.name} limit of ${plan.tripLimit} trips reached.`,
+              )}{" "}
               <Link to="/billing" className="underline">
                 Upgrade
               </Link>
@@ -142,8 +196,8 @@ function TripsOverview() {
       {nextTrip && (
         <Card className="surface">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">
-              Aftellen naar {nextTrip.name} · {nextTrip.start}
+            <CardTitle className="break-anywhere text-base">
+              {text("Aftellen naar", "Countdown to")} {nextTrip.name} · {nextTrip.start}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -163,7 +217,9 @@ function TripsOverview() {
                 : "border-border hover:bg-muted"
             }`}
           >
-            {f === "all" ? `Alles (${state.trips.length})` : `${STATUS_LABEL[f]} (${counts[f]})`}
+            {f === "all"
+              ? `${text("Alles", "All")} (${state.trips.length})`
+              : `${statusLabel(f, text)} (${counts[f]})`}
           </button>
         ))}
         <Button
@@ -172,12 +228,24 @@ function TripsOverview() {
           className="ml-auto"
           onClick={() => {
             downloadJson(state, state.branding.brandName);
-            toast.success("Back-up gedownload");
+            toast.success(text("Back-up gedownload", "Backup downloaded"));
           }}
         >
-          <Download className="size-4" /> JSON back-up
+          <Download className="size-4" /> {text("Alle reizen", "All trips")} · JSON
         </Button>
       </div>
+
+      {state.trips.length >= 2 && <Card className="surface"><CardHeader className="pb-3"><CardTitle className="text-base">{text("Vergelijk twee reisvarianten", "Compare two trip variants")}</CardTitle></CardHeader><CardContent className="grid gap-3 sm:grid-cols-2"><label className="space-y-1 text-sm"><span className="text-muted-foreground">{text("Eerste reis", "First trip")}</span><select className="h-10 w-full rounded-md border bg-background px-3" value={compareLeft} onChange={(event) => setCompareLeft(event.target.value)}><option value="">{text("Kies een reis", "Choose a trip")}</option>{state.trips.filter((trip) => trip.id !== compareRight).map((trip) => <option key={trip.id} value={trip.id}>{trip.name}</option>)}</select></label><label className="space-y-1 text-sm"><span className="text-muted-foreground">{text("Tweede reis", "Second trip")}</span><select className="h-10 w-full rounded-md border bg-background px-3" value={compareRight} onChange={(event) => setCompareRight(event.target.value)}><option value="">{text("Kies een reis", "Choose a trip")}</option>{state.trips.filter((trip) => trip.id !== compareLeft).map((trip) => <option key={trip.id} value={trip.id}>{trip.name}</option>)}</select></label></CardContent></Card>}
+
+      {compareLeft && compareRight && (
+        <TripComparison
+          left={state.trips.find((trip) => trip.id === compareLeft)!}
+          right={state.trips.find((trip) => trip.id === compareRight)!}
+          base={base}
+          rates={rates}
+          text={text}
+        />
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {visible.map((trip) => {
@@ -186,9 +254,10 @@ function TripsOverview() {
           const tpl = TEMPLATES.find((t) => t.id === trip.template);
           return (
             <Card key={trip.id} className="surface flex flex-col">
+              <div className="overflow-hidden rounded-t-xl"><TripCover tripId={trip.id} editable={false} text={text} compact/></div>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base">
+                  <CardTitle className="min-w-0 break-anywhere text-base">
                     <Link
                       to="/trips/$tripId"
                       params={{ tripId: trip.id }}
@@ -197,22 +266,36 @@ function TripsOverview() {
                       {tpl?.emoji} {trip.name}
                     </Link>
                   </CardTitle>
-                  {canEdit(state.role) && (
+                  {ownsTrip(trip.accessRole) && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        removeTrip(trip.id);
-                        toast.success("Reis verwijderd");
+                      onClick={async () => {
+                        try {
+                          await removeTrip(trip.id);
+                          toast.success(text("Reis verwijderd", "Trip deleted"));
+                        } catch (error) {
+                          toast.error(
+                            error instanceof Error
+                              ? error.message
+                              : text(
+                                  "Reis kon niet worden verwijderd.",
+                                  "Trip could not be deleted.",
+                                ),
+                          );
+                        }
                       }}
-                      aria-label="Reis verwijderen"
+                      aria-label={text("Reis verwijderen", "Delete trip")}
                     >
                       <Trash2 className="size-4" />
                     </Button>
                   )}
                 </div>
                 <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant="secondary">{STATUS_LABEL[tripStatus(trip)]}</Badge>
+                  <Badge variant="secondary">{statusLabel(tripStatus(trip), text)}</Badge>
+                  {!ownsTrip(trip.accessRole) && (
+                    <Badge variant="outline">{text("Gedeeld", "Shared")}</Badge>
+                  )}
                   {trip.start} → {trip.end}
                   {tripStatus(trip) === "upcoming" && <Countdown date={trip.start} compact />}
                 </p>
@@ -230,7 +313,7 @@ function TripsOverview() {
                 <p className="text-sm">
                   <span className="font-semibold">{formatMoney(spent, base)}</span>{" "}
                   <span className="text-muted-foreground">
-                    van {formatMoney(trip.budget, base)}
+                    {text("van", "of")} {formatMoney(trip.budget, base)}
                   </span>
                 </p>
               </CardContent>
@@ -240,4 +323,29 @@ function TripsOverview() {
       </div>
     </div>
   );
+}
+
+function statusLabel(status: TripStatus, text: (nl: string, en: string) => string) {
+  return text(
+    STATUS_LABEL[status],
+    { current: "Current", upcoming: "Upcoming", archived: "Archived" }[status],
+  );
+}
+
+function templateLabel(
+  id: TripTemplate,
+  fallback: string,
+  text: (nl: string, en: string) => string,
+) {
+  const english: Record<TripTemplate, string> = {
+    safari: "Safari",
+    cruise: "Cruise",
+    citytrip: "City trip",
+    roadtrip: "Road trip",
+    backpacking: "Backpacking",
+    beach: "Beach holiday",
+    winter: "Winter trip",
+    business: "Business trip",
+  };
+  return text(fallback, english[id]);
 }

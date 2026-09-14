@@ -11,10 +11,14 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { WorkspaceProvider } from "@/lib/workspace";
 import { AppShell } from "@/components/AppShell";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
+import { WorkspaceProvider } from "@/lib/workspace";
+import { LocaleProvider } from "@/lib/locale";
+import { PrivacyChoices } from "@/components/PrivacyChoices";
+import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
+import "leaflet/dist/leaflet.css";
 
 function NotFoundComponent() {
   return (
@@ -81,29 +85,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GlobeTrotr — Multi-Trip & Expense Planner" },
+      { title: "GlobeTrotr — Samen reizen plannen zonder chaos" },
       {
         name: "description",
         content:
           "Wereldwijde reisplanner voor vriendengroepen met routekaart, gedeelde uitgaven, live weer en paklijsten.",
       },
-      { property: "og:title", content: "GlobeTrotr — Multi-Trip & Expense Planner" },
+      { property: "og:title", content: "GlobeTrotr — Samen reizen plannen zonder chaos" },
       {
         property: "og:description",
         content: "Plan elke reis ter wereld en verantwoord elke euro.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "GlobeTrotr" },
+      { property: "og:locale", content: "nl_NL" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#0f766e" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap",
-      },
-      { rel: "stylesheet", href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
   }),
@@ -117,6 +117,7 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="nl">
       <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("globetrotr.theme");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})();` }} />
         <HeadContent />
       </head>
       <body>
@@ -133,15 +134,18 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-      <WorkspaceProvider>
-        <AppShell>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </AppShell>
+        <LocaleProvider>
+          <WorkspaceProvider>
+            <AppShell>
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </AppShell>
+            <PrivacyChoices />
+            <BetaFeedbackButton />
+          </WorkspaceProvider>
+        </LocaleProvider>
         <Toaster richColors position="top-center" />
-      </WorkspaceProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
-

@@ -1,78 +1,113 @@
 # GlobeTrotr
 
-Ik ga het project uitbreiden tot een volwaardige, wereldwijde Multi-Trip & Expense Planner WebApp die direct klaar is om op de markt gebracht te worden als SaaS (Software as a Service) platform!
+GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
-Hier zijn de belangrijkste toevoegingen en verbeteringen:
+De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord werkt. OAuth en automatische app-e-mails staan bewust nog niet aan. Voor productie is Paddle de gekozen Merchant of Record voor abonnementen; de applicatieserver verhuist later van Lovable naar een eigen VPS en transactionele e-mail gaat dan via een afzonderlijke SMTP-provider.
 
-Wereldwijde Geschiktheid (Alle soorten reizen):
+## Wat de applicatie bevat
 
-Wereldwijde Geocoding & OpenStreetMap Routekaart: Geen vast-gecodeerde steden meer. Dankzij dynamische zoekopdrachten via de Nominatim API kun je elk dorp, stad of land ter wereld toevoegen aan de interactieve routekaart.
+- Meerdere reizen met sjablonen, data, bestemmingen en een interactieve OpenStreetMap-route.
+- Chronologisch reisschema, boekingen, vluchtinformatie, vervoer en paklijsten.
+- Uitgaven in meerdere valuta, live ECB-koersen, slimme verrekening en veilige CSV/PDF-export.
+- Brandstofprognoses per vervoerstype en koppeling met werkelijke tankuitgaven.
+- Beveiligde samenwerking per reis met rollen, uitnodigingslink, accountmelding, accepteren, weigeren, vernieuwen en intrekken.
+- Openbare reispagina's met kaart, planning, optioneel gedeelde boekingen, PIN-bescherming en weer.
+- JSON-back-up per reis, volledige workspaceback-up, veilige import en AVG-gegevensexport.
+- Agenda-export van dagplanning en boekingen naar Apple Calendar, Google Calendar, Outlook en andere agenda-apps.
+- Reisstatistieken met reisduur, bestemmingen, overnachtingen, uitgavenverdeling, daggemiddelde en budgetprognose.
+- Veilige reisduplicatie voor een private routevariant zonder deelnemers, uitgaven, boekingsreferenties of deelinstellingen over te nemen.
+- GPX-export van de route en gecontroleerd omkeren van de bestemmingsvolgorde.
+- Vergelijking van twee reizen op periode, route, boekingen, budget en omgerekende uitgaven.
+- Persistente meldingen, platformstatusbanners, feedback en een publieke lijst met bekende problemen.
+- Een afzonderlijke Agency Admin met organisatie-instellingen, private logo-opslag, centrale en per-reisbranding, interne teamrollen, persoonlijke rechten, klantprofielen, operationele werkvoorraad en append-only auditlog.
+- Afgeschermd Corporate Admin-dashboard voor gebruikers, platformstatus, feedbackgesprekken, openbare-reismoderatie, privacyverzoeken, onderhoud, problemen en auditlog.
 
-Multi-Valuta & Live Omrekening Engine: Ondersteuning voor alle globale valuta (EUR, USD, GBP, JPY, AUD, CAD, CHF, THB, SEK, NOK, BRL, IDR, etc.) met live koersberekening en instelbare valuta per uitgave.
+## Techniek
 
-Dynamische Weer-Widget voor Elke Locatie Ter Wereld: Vraagt live de weersverwachting op van jouw specifieke bestemming via Open-Meteo Geocoding.
+- React 19 en TypeScript
+- TanStack Router, Start en React Query
+- Vite 8 en Nitro met Cloudflare-build
+- Tailwind CSS en Radix UI-componenten
+- Supabase Auth, PostgreSQL, Row Level Security en voorlopig Supabase Storage
+- Leaflet en OpenStreetMap
 
-Sjablonen voor Elk Type Reis: Snel-templates voor Safari, Cruise, Roadtrip, Backpacken, Stedentrip, Beach/Resort, Zakenreis & Winterexpeditie.
+Gevoelige databasebewerkingen lopen via geauthenticeerde serverfuncties en service-role-only RPC's. Publieke reisroutes gebruiken afzonderlijke RPC's die uitsluitend geselecteerde openbare velden teruggeven.
 
-SaaS (Software as a Service) Functionaliteiten:
+## Lokaal ontwikkelen
 
-Subscription Tiers & Billing Portal Simulator: Ingebouwde abonnementen-matrix (Free, Pro €9/m, Business/Agency €29/m) met realtime feature-gating en een interactieve Billing & Subscription portal.
+Vereisten:
 
-White-Label & Custom Branding: Bedrijven of travel agencies kunnen de app voorzien van hun eigen merknaam, logo, domein en kleurenschema.
-
-Rollen- & Rechtenmatrix (Multi-User): Beheerder (Owner), Medereiziger (Editor), Boekhouder (Accountant) en Publieke Kijkersrol (Viewer).
-
-SaaS Admin Analytics Dashboard: Inzicht in MRR (Monthly Recurring Revenue), actieve reizen, opslagverbruik en conversiestatistieken.
-
-Professionele PDF & CSV Export: Genereer overzichtelijke declaraties, reisschema's en financiële verantwoording met 1 klik.
-
-Ik ga het complete bestand nu voor je genereren.
-
-Zweden & Multi-Trip Reisplanner WebApp
-
-31 aug, 17:02
-
-Openen
-
-Belangrijkste innovaties in deze versie:
-
-Wereldwijde Ondersteuning:
-
-Dynamic Leaflet / OpenStreetMap Pins: Niet langer afhankelijk van een beperkte lijst steden. Locaties worden live opgehaald via de OpenStreetMap Nominatim API voor routekaarten wereldwijd.
-
-Multi-Valuta Converter: Ondersteuning voor 10+ wereldvaluta's (USD, EUR, GBP, JPY, SEK, NOK, AUD, CAD, THB, etc.) met realtime omrekening naar Euro.
-
-Live Weerbericht overal ter wereld: Gebruikt Open-Meteo Geocoding API om voor elke opgegeven stad de actuele temperatuur en weersverwachting te tonen.
-
-SaaS (Software as a Service) Functionaliteiten:
-
-Subscription Tiers & Billing Portal Simulator: Wissel tussen Free, Pro (€9/mnd) en Agency (€29/mnd) met actieve feature gating en plannenbeheer.
-
-White-Label Branding Module: Mogelijkheid om de merknaam, subdomeinen en accentkleuren aan te passen voor reisorganisaties of touroperators.
-
-Multi-User Rollen & Rechten Matrix: Wissel snel tussen Workspace Eigenaar, Medereiziger (Editor) en Publieke Kijker (Read-Only) om de rechten in actie te zien.
-
-SaaS Business Analytics Dashboard: Inzicht in MRR, actieve workspaces, API latency en opslagstatistieken.
-
-PDF & CSV Export: Genereer overzichtelijke declaraties, reisschema's en CSV-bestanden voor boekhouding en declaraties.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/10a99005-074f-45e3-b36a-3c5b9da4a2c2).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+- Node.js 24
+- npm; Bun is alleen nodig wanneer je lokaal exact dezelfde lockfile-installatie als CI wilt gebruiken
+- Een gekoppeld Supabase-project en de vereiste omgevingsvariabelen
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+git clone <repository-url>
+cd globetrotr-1d042353
+npm install
 npm run dev
 ```
+
+Plaats secrets uitsluitend in de afgeschermde serveromgeving en commit nooit `.env`-bestanden, SMTP-wachtwoorden, Paddle-webhooksecrets of service-role-sleutels.
+
+## Controles
+
+```sh
+npm test
+npm run build
+npm run check
+```
+
+`npm run check` voert de regressietests en de volledige client-, SSR- en Cloudflare-productiebuild uit. GitHub Actions voert dezelfde scriptset uit en installeert dependencies reproduceerbaar vanuit `bun.lock`.
+
+Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Iedere test draait in een transactie en eindigt met `ROLLBACK`.
+
+Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`TEST_CHECKLIST.md`](TEST_CHECKLIST.md).
+
+## Databasewijzigingen
+
+Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
+
+De migraties en SQL-regressietests tot en met `20260908096000_pre_vps_release_gate.sql` zijn toegepast en uitgevoerd. De Agency-implementatievolgorde en releasepoort staan in [`AGENCY_IMPLEMENTATION.md`](AGENCY_IMPLEMENTATION.md).
+
+De beoogde productieopzet gebruikt één Hetzner-VPS voor de webapp en proxy en een tweede voor workers, geplande taken en e-mail. Supabase blijft aanvankelijk de beheerde database, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft hoe bestanden later zonder publieke buckets of padgebonden autorisatie naar Hetzner Object Storage kunnen worden verplaatst.
+
+De eerste productiecontainer staat in `Dockerfile`; `compose.production.yml` definieert afzonderlijke web- en workerservices. De workerhandleiding en vereiste omgevingsvariabelen staan in [`worker/README.md`](worker/README.md). De worker blijft vóór de VPS-implementatie buiten gebruik en e-mail blijft standaard vastgehouden in testmodus.
+
+De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke migratie eerst vereist is.
+
+### Agency Admin
+
+- `/agency-admin`: workspaceoverzicht en teambeheer.
+- `/agency-admin/settings`: organisatiegegevens, standaardtaal, valuta, tijdzone, domein, accentkleur en logo.
+- `/agency-admin/permissions`: standaardrechten per rol en persoonlijke uitzonderingen.
+- `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Een bestaand account met hetzelfde e-mailadres krijgt automatisch de rol `client` op die reizen; archiveren trekt deze automatische toegang in en herstellen bouwt haar opnieuw op. Voor een nieuw account blijft een uitnodiging nodig.
+- `/agency-admin/suppliers`: herbruikbare accommodaties, vervoerders en activiteiten met contactgegevens, afspraken, commissie, archief en reiskoppelingen.
+- `/contact`: publiek contactformulier met Cloudflare Turnstile; bevoegde medewerkers behandelen berichten via `/corporate-admin/contact`.
+- `/agency-admin/operations`: portfolio, kosten en concrete aandachtspunten uit relationele reisdata.
+- `/agency-admin/quotes`: interne offertes met klant, optionele reis, geldigheid en meerdere prijsvarianten.
+- `/agency-admin/quotes/:quoteId/convert`: controlepagina om een geaccepteerde offerte aan een bestaande reis te koppelen of als nieuwe privéreis aan te maken.
+- `/quote/:token`: tijdelijke, beveiligde klantweergave van een deelklare Agency-offerte.
+- `/agency-admin/tasks`: taken, prioriteiten, deadlines en toewijzingen aan teamleden.
+- `/agency-admin/templates`: herbruikbare programma's, paklijsten en klantteksten.
+- `/agency-admin/notifications`: persoonlijke Agency-meldingsvoorkeuren.
+- `/agency-admin/security`: teamstatus, verlopen uitnodigingen en recente veiligheidsrelevante activiteit.
+- `/agency-admin/subscription`: actief Agency-plan en werkelijke gebruiksaantallen zonder gesimuleerde facturen.
+- `/agency-admin/audit`: onveranderbare beheerhistorie voor de Agency-eigenaar.
+- `/client-portal`: afgeschermde klantweergave van uitsluitend expliciet gekoppelde reizen.
+
+Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waaraan hun profiel of geaccepteerde uitnodiging expliciet is gekoppeld.
+
+## Projectdocumentatie
+
+- `roadmap.md`: interne technische roadmap en migratiestatus.
+- `AGENCY_IMPLEMENTATION.md`: vaste uitvoervolgorde en releasepoort voor de Agency-implementatie.
+- `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
+- `/roadmap`: publieke productroadmap.
+- `/changelog`: publieke release notes.
+- `/prijzen`: openbare vergelijking van Free, Pro en Agency voor de actieve beta; betalingen worden via Paddle als Merchant of Record voorbereid en geactiveerd zodra de productieomgeving en domeincontrole gereed zijn.
+- `/privacy`, `/algemene-voorwaarden`, `/terugbetalingsbeleid` en `/beta-voorwaarden`: gepubliceerde privacy-, gebruiks-, terugbetalings- en betavoorwaarden in NL/EN.
+
+## Lovable
+
+Dit is een bestaand [Lovable](https://lovable.dev)-project. Commits op de gekoppelde branch synchroniseren terug naar Lovable. Herschrijf gepubliceerde Git-geschiedenis daarom niet met force-push, rebase of amend.

@@ -1,7 +1,23 @@
 import { useEffect, useRef } from "react";
 import type { Stop } from "@/lib/types";
+import { useLocale } from "@/lib/locale";
+import { localizeCountry } from "@/lib/localized-values";
 
-export default function TripMap({ stops }: { stops: Stop[] }) {
+export type TripMapPoint = { id: string; lat: number; lon: number; title: string; detail?: string; kind: "booking" | "expense" };
+const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
+
+export default function TripMap({
+  stops,
+  activeStopId,
+  onStopSelect,
+  points = [],
+}: {
+  stops: Stop[];
+  activeStopId?: string;
+  onStopSelect?: (id: string) => void;
+  points?: TripMapPoint[];
+}) {
+  const { locale } = useLocale();
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<unknown>(null);
 
@@ -24,22 +40,25 @@ export default function TripMap({ stops }: { stops: Stop[] }) {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map.eachLayer((layer: any) => {
-        if (layer instanceof L.Marker || layer instanceof L.Polyline) map.removeLayer(layer);
+        if (layer instanceof L.Marker || layer instanceof L.Polyline || layer instanceof L.CircleMarker) map.removeLayer(layer);
       });
 
       if (stops.length) {
         const latlngs = stops.map((s) => [s.lat, s.lon] as [number, number]);
         stops.forEach((s, i) => {
+          const active = s.id === activeStopId;
+          const size = active ? 34 : 28;
           L.marker([s.lat, s.lon], {
             icon: L.divIcon({
               className: "",
-              html: `<div style="display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:oklch(0.52 0.115 var(--brand-hue));color:#fff;font:600 12px/1 system-ui;box-shadow:0 2px 8px rgba(0,0,0,.35)">${i + 1}</div>`,
-              iconSize: [28, 28],
-              iconAnchor: [14, 14],
+              html: `<div style="display:grid;place-items:center;width:${size}px;height:${size}px;border-radius:999px;background:${active ? "#111827" : "oklch(0.52 0.115 var(--brand-hue))"};color:#fff;font:600 12px/1 system-ui;box-shadow:0 2px 8px rgba(0,0,0,.35)">${i + 1}</div>`,
+              iconSize: [size, size],
+              iconAnchor: [size / 2, size / 2],
             }),
           })
             .addTo(map)
-            .bindPopup(`<b>${s.name}</b><br/>${s.country}`);
+            .bindPopup(`<b>${escapeHtml(s.name)}</b><br/>${escapeHtml(localizeCountry(s.country, locale))}`)
+            .on("click", () => onStopSelect?.(s.id));
         });
         if (latlngs.length > 1) {
           L.polyline(latlngs, {
@@ -49,14 +68,25 @@ export default function TripMap({ stops }: { stops: Stop[] }) {
           }).addTo(map);
         }
         map.fitBounds(L.latLngBounds(latlngs).pad(0.35), { maxZoom: 8 });
+        const activeStop = stops.find((stop) => stop.id === activeStopId);
+        if (activeStop) map.setView([activeStop.lat, activeStop.lon], Math.max(map.getZoom(), 7));
       }
+      points.forEach((point) => {
+        L.circleMarker([point.lat, point.lon], {
+          radius: 7,
+          color: point.kind === "expense" ? "#f59e0b" : "#2563eb",
+          fillColor: point.kind === "expense" ? "#f59e0b" : "#2563eb",
+          fillOpacity: 0.85,
+          weight: 2,
+        }).addTo(map).bindPopup(`<b>${escapeHtml(point.title)}</b>${point.detail ? `<br/>${escapeHtml(point.detail)}` : ""}`);
+      });
       setTimeout(() => map.invalidateSize(), 60);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [stops]);
+  }, [activeStopId, locale, onStopSelect, points, stops]);
 
   useEffect(() => {
     return () => {
@@ -69,5 +99,5 @@ export default function TripMap({ stops }: { stops: Stop[] }) {
     };
   }, []);
 
-  return <div ref={ref} className="h-[420px] w-full rounded-xl bg-muted" />;
+  return <div ref={ref} className="trip-map h-[500px] w-full rounded-xl bg-muted sm:h-[560px]" />;
 }

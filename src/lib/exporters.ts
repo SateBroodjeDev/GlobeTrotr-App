@@ -1,34 +1,145 @@
-import { CATEGORIES, type Trip } from "./types";
-import { convert, formatMoney, type Rates } from "./services";
+import { CATEGORIES, type Trip } from "./types.ts";
+import { convert, formatMoney, type Rates } from "./services.ts";
+import type { AppLocale } from "./locale.tsx";
+import { localizeCountry } from "./localized-values.ts";
 
-export function downloadCsv(trip: Trip, base: string, rates: Rates) {
+export function downloadCsv(trip: Trip, base: string, rates: Rates, locale: AppLocale) {
+  const en = locale === "en-GB";
   const rows = [
-    ["Datum", "Omschrijving", "Categorie", "Bedrag", "Valuta", `Bedrag (${base})`, "Betaald door", "Declarabel"],
+    en
+      ? [
+          "Date",
+          "Description",
+          "Category",
+          "Amount",
+          "Currency",
+          `Amount (${base})`,
+          "Paid by",
+          "Billable",
+        ]
+      : [
+          "Datum",
+          "Omschrijving",
+          "Categorie",
+          "Bedrag",
+          "Valuta",
+          `Bedrag (${base})`,
+          "Betaald door",
+          "Declarabel",
+        ],
     ...trip.expenses.map((e) => [
       e.date,
       e.title,
-      CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category,
+      exportCategory(e.category, locale),
       e.amount.toFixed(2),
       e.currency,
       convert(e.amount, e.currency, base, rates).toFixed(2),
       e.paidBy,
-      e.billable ? "ja" : "nee",
+      e.billable ? (en ? "yes" : "ja") : en ? "no" : "nee",
     ]),
   ];
-  const csv = rows
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";"))
-    .join("\n");
+  const csv = rows.map((r) => r.map(csvCell).join(";")).join("\n");
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${slug(trip.name)}-uitgaven.csv`;
+  a.download = `${slug(trip.name)}-${en ? "expenses" : "uitgaven"}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function slug(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function icsText(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+}
+
+function icsDate(value: string) {
+  return value.replaceAll("-", "");
+}
+
+function nextIcsDate(value: string) {
+  const date = new Date(`${value}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10).replaceAll("-", "");
+}
+
+/** Provider-onafhankelijke agenda-export voor Apple Calendar, Google Calendar en Outlook. */
+export function buildTripCalendar(trip: Trip) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const events = [
+    ...trip.itinerary.map((item) => ({
+      id: `itinerary-${item.id}`,
+      title: item.title,
+      notes: item.notes ?? "",
+      date: item.day,
+      endDate: item.day,
+      startTime: "",
+      endTime: "",
+      location: "",
+    })),
+    ...(trip.travelItems ?? []).map((item) => ({
+      id: `booking-${item.id}`,
+      title: item.title,
+      notes: item.notes ?? "",
+      date: item.date,
+      endDate: item.endDate ?? item.date,
+      startTime: item.details?.startTime ?? "",
+      endTime: item.details?.endTime ?? "",
+      location: item.location?.name ?? item.departure?.name ?? item.arrival?.name ?? "",
+    })),
+  ].filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.date));
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//GlobeTrotr//Trip Calendar//NL", "CALSCALE:GREGORIAN", `X-WR-CALNAME:${icsText(trip.name)}`];
+  for (const event of events) {
+    const timed = /^\d{2}:\d{2}$/.test(event.startTime);
+    lines.push("BEGIN:VEVENT", `UID:${event.id}@globetrotr.nl`, `DTSTAMP:${stamp}`);
+    if (timed) {
+      lines.push(`DTSTART:${icsDate(event.date)}T${event.startTime.replace(":", "")}00`);
+      if (/^\d{2}:\d{2}$/.test(event.endTime)) lines.push(`DTEND:${icsDate(event.endDate)}T${event.endTime.replace(":", "")}00`);
+    } else {
+      lines.push(`DTSTART;VALUE=DATE:${icsDate(event.date)}`, `DTEND;VALUE=DATE:${nextIcsDate(event.endDate)}`);
+    }
+    lines.push(`SUMMARY:${icsText(event.title)}`);
+    if (event.notes) lines.push(`DESCRIPTION:${icsText(event.notes)}`);
+    if (event.location) lines.push(`LOCATION:${icsText(event.location)}`);
+    lines.push("END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  return `${lines.join("\r\n")}\r\n`;
+}
+
+export function downloadTripCalendar(trip: Trip) {
+  const blob = new Blob([buildTripCalendar(trip)], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${slug(trip.name)}-agenda.ics`;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeXml(value: string) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+}
+
+export function buildTripGpx(trip: Trip) {
+  const points = trip.stops.map((stop) => `    <rtept lat="${stop.lat}" lon="${stop.lon}"><name>${escapeXml(stop.name)}</name><desc>${escapeXml(stop.country)}</desc></rtept>`).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="GlobeTrotr" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${escapeXml(trip.name)}</name></metadata>\n  <rte><name>${escapeXml(trip.name)}</name>\n${points}\n  </rte>\n</gpx>\n`;
+}
+
+export function downloadTripGpx(trip: Trip) {
+  const blob = new Blob([buildTripGpx(trip)], { type: "application/gpx+xml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${safeFileName(trip.name)}.gpx`;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 export function openPdf(
@@ -36,14 +147,17 @@ export function openPdf(
   base: string,
   rates: Rates,
   brand: { brandName: string; domain: string },
+  locale: AppLocale,
+  coverUrl?: string | null,
 ) {
+  const en = locale === "en-GB";
   const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const billable = trip.expenses
     .filter((e) => e.billable)
     .reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
 
-  const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8">
-<title>Declaratie — ${escapeHtml(trip.name)}</title>
+  const html = `<!doctype html><html lang="${en ? "en" : "nl"}"><head><meta charset="utf-8">
+<title>${en ? "Expense claim" : "Declaratie"} — ${escapeHtml(trip.name)}</title>
 <style>
  body{font-family:ui-sans-serif,system-ui,Helvetica,Arial;margin:40px;color:#12211f}
  h1{font-size:22px;margin:0 0 4px}
@@ -58,28 +172,33 @@ export function openPdf(
 </style></head><body>
 <div class="brand"><div><h1>${escapeHtml(brand.brandName)}</h1>
 <div class="muted">${escapeHtml(brand.domain)}</div></div>
-<div class="muted">Gegenereerd ${new Date().toLocaleDateString("nl-NL")}</div></div>
+<div class="muted">${en ? "Generated" : "Gegenereerd"} ${new Date().toLocaleDateString(locale)}</div></div>
 <h1>${escapeHtml(trip.name)}</h1>
-<div class="muted">${trip.start} t/m ${trip.end} · ${trip.stops.length} bestemmingen</div>
-<h3>Reisschema</h3><ul class="sched">${trip.itinerary
-    .map((i) => `<li><b>${i.day}</b> — ${escapeHtml(i.title)}${i.notes ? ` <span class="muted">(${escapeHtml(i.notes)})</span>` : ""}</li>`)
+<div class="muted">${trip.start} ${en ? "to" : "t/m"} ${trip.end} · ${trip.stops.length} ${en ? "destinations" : "bestemmingen"}</div>
+<h3>${en ? "Itinerary" : "Reisschema"}</h3><ul class="sched">${trip.itinerary
+    .map(
+      (i) =>
+        `<li><b>${i.day}</b> — ${escapeHtml(i.title)}${i.notes ? ` <span class="muted">(${escapeHtml(i.notes)})</span>` : ""}</li>`,
+    )
     .join("")}</ul>
-<h3>Uitgaven & declaratie</h3>
-<table><thead><tr><th>Datum</th><th>Omschrijving</th><th>Categorie</th><th>Origineel</th><th>${base}</th><th>Declarabel</th></tr></thead>
+<h3>${en ? "Expenses & claim" : "Uitgaven & declaratie"}</h3>
+<table><thead><tr><th>${en ? "Date" : "Datum"}</th><th>${en ? "Description" : "Omschrijving"}</th><th>${en ? "Category" : "Categorie"}</th><th>${en ? "Original" : "Origineel"}</th><th>${base}</th><th>${en ? "Billable" : "Declarabel"}</th></tr></thead>
 <tbody>${trip.expenses
     .map(
-      (e) => `<tr><td>${e.date}</td><td>${escapeHtml(e.title)}</td><td>${
-        CATEGORIES.find((c) => c.id === e.category)?.label ?? e.category
-      }</td><td>${e.amount.toFixed(2)} ${e.currency}</td><td>${formatMoney(
-        convert(e.amount, e.currency, base, rates),
-        base,
-      )}</td><td>${e.billable ? "ja" : "—"}</td></tr>`,
+      (e) =>
+        `<tr><td>${e.date}</td><td>${escapeHtml(e.title)}</td><td>${exportCategory(
+          e.category,
+          locale,
+        )}</td><td>${e.amount.toFixed(2)} ${e.currency}</td><td>${formatMoney(
+          convert(e.amount, e.currency, base, rates),
+          base,
+        )}</td><td>${e.billable ? (en ? "yes" : "ja") : "—"}</td></tr>`,
     )
     .join("")}</tbody>
-<tfoot><tr><td colspan="4">Totaal</td><td>${formatMoney(total, base)}</td><td>${formatMoney(billable, base)}</td></tr></tfoot>
+<tfoot><tr><td colspan="4">${en ? "Total" : "Totaal"}</td><td>${formatMoney(total, base)}</td><td>${formatMoney(billable, base)}</td></tr></tfoot>
 </table>
-<p class="muted">Budget: ${formatMoney(trip.budget, base)} · Restant: ${formatMoney(trip.budget - total, base)}</p>
-<script>window.onload=()=>window.print()<\/script>
+<p class="muted">${en ? "Budget" : "Budget"}: ${formatMoney(trip.budget, base)} · ${en ? "Remaining" : "Restant"}: ${formatMoney(trip.budget - total, base)}</p>
+<script>window.onload=()=>window.print()</script>
 </body></html>`;
 
   const w = window.open("", "_blank");
@@ -90,8 +209,9 @@ export function openPdf(
 }
 
 function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
   );
 }
 
@@ -112,14 +232,16 @@ export function openGuide(
   base: string,
   rates: Rates,
   brand: { brandName: string; domain: string },
+  locale: AppLocale,
 ) {
+  const en = locale === "en-GB";
   const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
   const days = [...new Set(trip.itinerary.map((i) => i.day))].sort();
   const nav = (lat: number, lon: number) =>
     `https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`;
 
-  const html = `<!doctype html><html lang="nl"><head><meta charset="utf-8">
-<title>Reisgids — ${escapeHtml(trip.name)}</title>
+  const html = `<!doctype html><html lang="${en ? "en" : "nl"}"><head><meta charset="utf-8">
+<title>${en ? "Trip guide" : "Reisgids"} — ${escapeHtml(trip.name)}</title>
 <style>
  body{font-family:ui-sans-serif,system-ui,Helvetica,Arial;margin:36px;color:#12211f}
  h1{font-size:26px;margin:0 0 4px}
@@ -133,48 +255,49 @@ export function openGuide(
  a{color:#0f9b8e}
  @media print{@page{margin:14mm} a{text-decoration:none}}
 </style></head><body>
+${coverUrl ? `<img src="${escapeHtml(coverUrl)}" alt="" style="display:block;width:100%;height:240px;object-fit:cover;border-radius:14px;margin-bottom:20px">` : ""}
 <div class="cover"><div><h1>${escapeHtml(trip.name)}</h1>
-<div class="muted">${trip.start} t/m ${trip.end} · ${trip.stops.length} bestemmingen · budget ${formatMoney(trip.budget, base)}</div></div>
+<div class="muted">${trip.start} ${en ? "to" : "t/m"} ${trip.end} · ${trip.stops.length} ${en ? "destinations" : "bestemmingen"} · ${en ? "budget" : "budget"} ${formatMoney(trip.budget, base)}</div></div>
 <div class="muted">${escapeHtml(brand.brandName)}<br>${escapeHtml(brand.domain)}</div></div>
 
-<h2>Route & navigatie</h2>
+<h2>${en ? "Route & navigation" : "Route & navigatie"}</h2>
 <div class="grid">${trip.stops
     .map(
       (s, i) =>
         `<div class="chip"><b>${i + 1}. ${escapeHtml(s.name)}</b> <span class="muted">${escapeHtml(
-          s.country,
-        )}</span><br><a href="${nav(s.lat, s.lon)}">Navigeer met Google Maps</a></div>`,
+          localizeCountry(s.country, locale),
+        )}</span><br><a href="${nav(s.lat, s.lon)}">${en ? "Navigate with Google Maps" : "Navigeer met Google Maps"}</a></div>`,
     )
     .join("")}</div>
 
-<h2>Dag voor dag</h2>
+<h2>${en ? "Day by day" : "Dag voor dag"}</h2>
 ${days
-    .map(
-      (d) =>
-        `<div class="day"><b>${d}</b><ul>${trip.itinerary
-          .filter((i) => i.day === d)
-          .map(
-            (i) =>
-              `<li>${escapeHtml(i.title)}${i.notes ? ` <span class="muted">— ${escapeHtml(i.notes)}</span>` : ""}</li>`,
-          )
-          .join("")}</ul></div>`,
-    )
-    .join("")}
+  .map(
+    (d) =>
+      `<div class="day"><b>${d}</b><ul>${trip.itinerary
+        .filter((i) => i.day === d)
+        .map(
+          (i) =>
+            `<li>${escapeHtml(i.title)}${i.notes ? ` <span class="muted">— ${escapeHtml(i.notes)}</span>` : ""}</li>`,
+        )
+        .join("")}</ul></div>`,
+  )
+  .join("")}
 
 ${
-    trip.packing?.length
-      ? `<h2>Paklijst</h2><ul>${trip.packing
-          .map((p) => `<li>${p.done ? "☑" : "☐"} ${escapeHtml(p.label)}</li>`)
-          .join("")}</ul>`
-      : ""
-  }
+  trip.packing?.length
+    ? `<h2>${en ? "Packing list" : "Paklijst"}</h2><ul>${trip.packing
+        .map((p) => `<li>${p.done ? "☑" : "☐"} ${escapeHtml(p.label)}</li>`)
+        .join("")}</ul>`
+    : ""
+}
 
 <h2>Budget</h2>
-<p class="muted">Uitgegeven ${formatMoney(total, base)} van ${formatMoney(trip.budget, base)} · restant ${formatMoney(
+<p class="muted">${en ? "Spent" : "Uitgegeven"} ${formatMoney(total, base)} ${en ? "of" : "van"} ${formatMoney(trip.budget, base)} · ${en ? "remaining" : "restant"} ${formatMoney(
     trip.budget - total,
     base,
   )}</p>
-<script>window.onload=()=>window.print()<\/script>
+<script>window.onload=()=>window.print()</script>
 </body></html>`;
 
   const w = window.open("", "_blank");
@@ -182,4 +305,25 @@ ${
   w.document.write(html);
   w.document.close();
   return true;
+}
+
+/** Voorkom dat spreadsheetprogramma's gebruikersinvoer als formule uitvoeren. */
+export function csvCell(value: unknown) {
+  const raw = String(value);
+  const safe = /^\s*[=+\-@]/.test(raw) || /^[\t\r]/.test(raw) ? `'${raw}` : raw;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
+
+function exportCategory(id: string, locale: AppLocale) {
+  const fallback = CATEGORIES.find((category) => category.id === id)?.label ?? id;
+  if (locale === "nl-NL") return fallback;
+  const labels: Record<string, string> = {
+    transport: "Transport",
+    lodging: "Accommodation",
+    food: "Food and drink",
+    activities: "Activities",
+    shopping: "Shopping",
+    other: "Other",
+  };
+  return labels[id] ?? fallback;
 }

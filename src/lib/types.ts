@@ -1,5 +1,7 @@
 export type PlanId = "free" | "pro" | "agency";
 export type RoleId = "owner" | "editor" | "accountant" | "viewer";
+export type TripMemberRole = "owner" | "traveler" | "viewer" | "advisor" | "finance" | "client";
+export type TripMemberStatus = "invited" | "active";
 
 export type Stop = {
   id: string;
@@ -16,6 +18,84 @@ export type ItineraryItem = {
   day: string;
   title: string;
   notes?: string;
+  /** Set for the legacy planning row that belongs to a booked travel item. */
+  sourceTravelItemId?: string;
+};
+
+export type TravelItemType = "flight" | "lodging" | "transport" | "car_rental" | "activity";
+export type TransportMode =
+  | "car"
+  | "motorcycle"
+  | "camper"
+  | "public_transport"
+  | "train"
+  | "bus"
+  | "ferry"
+  | "taxi"
+  | "bicycle"
+  | "walking"
+  | "other";
+
+export type TravelLocation = {
+  name: string;
+  country: string;
+  lat: number;
+  lon: number;
+};
+
+/** Een geboekt onderdeel van een reis, zoals vlucht, hotel of treinrit. */
+export type TravelItem = {
+  id: string;
+  type: TravelItemType;
+  title: string;
+  date: string;
+  endDate?: string;
+  provider?: string;
+  bookingReference?: string;
+  flightNumber?: string;
+  flightStatus?: string;
+  departure?: TravelLocation;
+  arrival?: TravelLocation;
+  location?: TravelLocation;
+  amount?: number;
+  currency?: string;
+  /** Gekoppelde uitgave die automatisch bij dit onderdeel is aangemaakt. */
+  expenseId?: string;
+  notes?: string;
+  /** Type-specific, non-sensitive booking details. */
+  details?: {
+    startTime?: string;
+    endTime?: string;
+    vehicle?: string;
+    vehicleCategory?: string;
+    deposit?: number;
+    insurance?: string;
+    excess?: number;
+    distanceKm?: number;
+    consumptionPer100Km?: number;
+    fuelPricePerLiter?: number;
+    fuelCurrency?: string;
+    transportMode?: TransportMode;
+    /** Werkelijke brandstofuitgaven die de prognose voor deze rit vervangen. */
+    fuelActualExpenseIds?: string[];
+    /** Alleen de veilige samenvatting van dit onderdeel mag openbaar worden getoond. */
+    sharePublicly?: boolean;
+    /** Optionele drielettercode voor een datumgebonden Schedule-fallback. */
+    flightDepartureIata?: string;
+    flightDepartureAirport?: string;
+    flightArrivalAirport?: string;
+    flightDepartureScheduled?: string;
+    flightDepartureActual?: string;
+    flightDepartureTerminal?: string;
+    flightDepartureGate?: string;
+    flightDepartureCheckin?: string;
+    flightArrivalScheduled?: string;
+    flightArrivalEstimated?: string;
+    flightArrivalTerminal?: string;
+    flightArrivalGate?: string;
+    flightArrivalBaggage?: string;
+    flightLastCheckedAt?: string;
+  };
 };
 
 export type Expense = {
@@ -32,15 +112,11 @@ export type Expense = {
   /** Pad in de receipts-opslag */
   receiptPath?: string;
   receiptName?: string;
+  notes?: string;
 };
 
 export type ExpenseCategory =
-  | "transport"
-  | "lodging"
-  | "food"
-  | "activities"
-  | "shopping"
-  | "other";
+  "transport" | "lodging" | "food" | "activities" | "shopping" | "other";
 
 export const CATEGORIES: { id: ExpenseCategory; label: string }[] = [
   { id: "transport", label: "Vervoer" },
@@ -52,14 +128,7 @@ export const CATEGORIES: { id: ExpenseCategory; label: string }[] = [
 ];
 
 export type TripTemplate =
-  | "safari"
-  | "cruise"
-  | "roadtrip"
-  | "backpacking"
-  | "citytrip"
-  | "beach"
-  | "business"
-  | "winter";
+  "safari" | "cruise" | "roadtrip" | "backpacking" | "citytrip" | "beach" | "business" | "winter";
 
 export const TEMPLATES: {
   id: TripTemplate;
@@ -67,14 +136,54 @@ export const TEMPLATES: {
   emoji: string;
   itinerary: string[];
 }[] = [
-  { id: "safari", label: "Safari", emoji: "🦁", itinerary: ["Aankomst & lodge check-in", "Game drive bij zonsopgang", "Bushwalk met ranger"] },
-  { id: "cruise", label: "Cruise", emoji: "🛳️", itinerary: ["Inschepen & muster drill", "Zeedag aan boord", "Excursie in havenstad"] },
-  { id: "roadtrip", label: "Roadtrip", emoji: "🚐", itinerary: ["Huurauto ophalen", "Scenic route etappe 1", "Overnachting onderweg"] },
-  { id: "backpacking", label: "Backpacken", emoji: "🎒", itinerary: ["Hostel check-in", "Free walking tour", "Nachtbus naar volgende stop"] },
-  { id: "citytrip", label: "Stedentrip", emoji: "🏙️", itinerary: ["Aankomst & hotel", "Museum & oude stad", "Rooftop diner"] },
-  { id: "beach", label: "Beach / Resort", emoji: "🏝️", itinerary: ["Transfer naar resort", "Strand & snorkelen", "Spa & sunset cocktails"] },
-  { id: "business", label: "Zakenreis", emoji: "💼", itinerary: ["Vlucht & inchecken", "Client meeting", "Conferentiedag"] },
-  { id: "winter", label: "Winterexpeditie", emoji: "🏔️", itinerary: ["Aankomst & materiaalcheck", "Husky- of sneeuwscootertocht", "Noorderlicht safari"] },
+  {
+    id: "safari",
+    label: "Safari",
+    emoji: "🦁",
+    itinerary: ["Aankomst & lodge check-in", "Game drive bij zonsopgang", "Bushwalk met ranger"],
+  },
+  {
+    id: "cruise",
+    label: "Cruise",
+    emoji: "🛳️",
+    itinerary: ["Inschepen & muster drill", "Zeedag aan boord", "Excursie in havenstad"],
+  },
+  {
+    id: "roadtrip",
+    label: "Roadtrip",
+    emoji: "🚐",
+    itinerary: ["Huurauto ophalen", "Scenic route etappe 1", "Overnachting onderweg"],
+  },
+  {
+    id: "backpacking",
+    label: "Backpacken",
+    emoji: "🎒",
+    itinerary: ["Hostel check-in", "Free walking tour", "Nachtbus naar volgende stop"],
+  },
+  {
+    id: "citytrip",
+    label: "Stedentrip",
+    emoji: "🏙️",
+    itinerary: ["Aankomst & hotel", "Museum & oude stad", "Rooftop diner"],
+  },
+  {
+    id: "beach",
+    label: "Beach / Resort",
+    emoji: "🏝️",
+    itinerary: ["Transfer naar resort", "Strand & snorkelen", "Spa & sunset cocktails"],
+  },
+  {
+    id: "business",
+    label: "Zakenreis",
+    emoji: "💼",
+    itinerary: ["Vlucht & inchecken", "Client meeting", "Conferentiedag"],
+  },
+  {
+    id: "winter",
+    label: "Winterexpeditie",
+    emoji: "🏔️",
+    itinerary: ["Aankomst & materiaalcheck", "Husky- of sneeuwscootertocht", "Noorderlicht safari"],
+  },
 ];
 
 export type Member = {
@@ -82,6 +191,16 @@ export type Member = {
   name: string;
   email: string;
   role: RoleId;
+};
+
+/** Een reisgenoot is onderdeel van één reis en staat in het JSON-workspace-document. */
+export type TripMember = {
+  id: string;
+  name: string;
+  email: string;
+  role: TripMemberRole;
+  status: TripMemberStatus;
+  invitedAt: string;
 };
 
 export type TripStatus = "upcoming" | "current" | "archived";
@@ -94,19 +213,36 @@ export type PackingItem = {
 
 export type Trip = {
   id: string;
+  /** Database-eigenaar; gebruikt als vaste deelnemerssleutel voor kosten. */
+  ownerId?: string;
+  /** Rol van het huidige account binnen deze reis; ontbreekt bij oude lokale data en betekent eigenaar. */
+  accessRole?: TripMemberRole;
+  /** Database version, kept as text to preserve BIGINT precision. */
+  revision?: string;
   name: string;
+  /** Korte introductie van de reis, zichtbaar op de publieke pagina wanneer gedeeld. */
+  description?: string | undefined;
+  /** Optionele Agency-huisstijl voor uitsluitend deze reis. */
+  branding?: Partial<Branding>;
   template: TripTemplate;
   start: string;
   end: string;
   budget: number;
   stops: Stop[];
   itinerary: ItineraryItem[];
+  travelItems?: TravelItem[];
+  /** Uitgenodigde reisgenoten en hun rechten voor deze reis. */
+  members?: TripMember[];
   expenses: Expense[];
   travelers?: string[];
   packing?: PackingItem[];
   archived?: boolean;
   /** Openbaar zichtbaar op de homepage */
   public?: boolean;
+  /** Toon het budget op de openbare reispagina */
+  shareFinancials?: boolean;
+  /** SHA-256-hash van de optionele PIN voor deze openbare reis */
+  sharePinHash?: string;
 };
 
 export function tripStatus(trip: Trip, today = new Date()): TripStatus {
@@ -215,6 +351,8 @@ export type Branding = {
   domain: string;
   accent: number; // hue
   tagline: string;
+  /** Private Storage-path; de browser ontvangt alleen een tijdelijke signed URL. */
+  logoPath?: string;
 };
 
 export type WorkspaceState = {

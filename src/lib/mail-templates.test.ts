@@ -1,0 +1,2 @@
+import assert from"node:assert/strict";import{test}from"node:test";import{renderMail}from"./mail-templates.ts";
+test("mailtemplate vertaalt en ontsnapt onveilige inhoud",()=>{const mail=renderMail({locale:"en",templateKey:"account",payload:{title:"Bijgewerkt / Updated",body:"<script>alert(1)</script>",tripId:"abc"}},"https://dashboard.globetrotr.nl");assert.equal(mail.subject,"Updated");assert.doesNotMatch(mail.html,/<script>/);assert.match(mail.html,/dashboard\.globetrotr\.nl\/trips\/abc/)});

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://globetrotr.nl/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://globetrotr.nl/features</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://globetrotr.nl/demo</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://globetrotr.nl/for-travelers</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://globetrotr.nl/for-groups</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://globetrotr.nl/for-agencies</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://globetrotr.nl/pricing</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://globetrotr.nl/about</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetrotr.nl/updates</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://globetrotr.nl/roadmap</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://globetrotr.nl/known-issues</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://globetrotr.nl/beta</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://globetrotr.nl/support</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetrotr.nl/status</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetrotr.nl/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetrotr.nl/privacy</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://globetrotr.nl/terms</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://globetrotr.nl/refund-policy</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>

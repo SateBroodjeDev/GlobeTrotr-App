@@ -11,14 +11,82 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AlgemeneVoorwaardenRouteImport } from './routes/algemene-voorwaarden'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BekendeProblemenRouteImport } from './routes/bekende-problemen'
+import { Route as BetaRouteImport } from './routes/beta'
+import { Route as BetaVoorwaardenRouteImport } from './routes/beta-voorwaarden'
+import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as ForAgenciesRouteImport } from './routes/for-agencies'
+import { Route as ForGroupsRouteImport } from './routes/for-groups'
+import { Route as ForTravelersRouteImport } from './routes/for-travelers'
+import { Route as KnownIssuesRouteImport } from './routes/known-issues'
+import { Route as MogelijkhedenRouteImport } from './routes/mogelijkheden'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrijzenRouteImport } from './routes/prijzen'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as StatusRouteImport } from './routes/status'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TerugbetalingsbeleidRouteImport } from './routes/terugbetalingsbeleid'
+import { Route as UpdatesRouteImport } from './routes/updates'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedAgencyAdminRouteImport } from './routes/_authenticated/agency-admin'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedBrandingRouteImport } from './routes/_authenticated/branding'
+import { Route as AuthenticatedClientPortalRouteImport } from './routes/_authenticated/client-portal'
+import { Route as AuthenticatedCompanyMailRouteImport } from './routes/_authenticated/company-mail'
+import { Route as AuthenticatedCorporateAdminRouteImport } from './routes/_authenticated/corporate-admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
+import { Route as AgencyInviteTokenRouteImport } from './routes/agency-invite.$token'
+import { Route as AgencyUitnodigingTokenRouteImport } from './routes/agency-uitnodiging.$token'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as QuoteTokenRouteImport } from './routes/quote.$token'
+import { Route as UitnodigingTokenRouteImport } from './routes/uitnodiging.$token'
+import { Route as AuthenticatedAgencyAdminIndexRouteImport } from './routes/_authenticated/agency-admin.index'
+import { Route as AuthenticatedAgencyAdminAuditRouteImport } from './routes/_authenticated/agency-admin.audit'
+import { Route as AuthenticatedAgencyAdminClientsRouteImport } from './routes/_authenticated/agency-admin.clients'
+import { Route as AuthenticatedAgencyAdminNotificationsRouteImport } from './routes/_authenticated/agency-admin.notifications'
+import { Route as AuthenticatedAgencyAdminOperationsRouteImport } from './routes/_authenticated/agency-admin.operations'
+import { Route as AuthenticatedAgencyAdminPermissionsRouteImport } from './routes/_authenticated/agency-admin.permissions'
+import { Route as AuthenticatedAgencyAdminQuotesRouteImport } from './routes/_authenticated/agency-admin.quotes'
+import { Route as AuthenticatedAgencyAdminReportsRouteImport } from './routes/_authenticated/agency-admin.reports'
+import { Route as AuthenticatedAgencyAdminSecurityRouteImport } from './routes/_authenticated/agency-admin.security'
+import { Route as AuthenticatedAgencyAdminSettingsRouteImport } from './routes/_authenticated/agency-admin.settings'
+import { Route as AuthenticatedAgencyAdminSubscriptionRouteImport } from './routes/_authenticated/agency-admin.subscription'
+import { Route as AuthenticatedAgencyAdminSuppliersRouteImport } from './routes/_authenticated/agency-admin.suppliers'
+import { Route as AuthenticatedAgencyAdminTasksRouteImport } from './routes/_authenticated/agency-admin.tasks'
+import { Route as AuthenticatedAgencyAdminTemplatesRouteImport } from './routes/_authenticated/agency-admin.templates'
+import { Route as AuthenticatedCorporateAdminIndexRouteImport } from './routes/_authenticated/corporate-admin.index'
+import { Route as AuthenticatedCorporateAdminAgenciesRouteImport } from './routes/_authenticated/corporate-admin.agencies'
+import { Route as AuthenticatedCorporateAdminAuditRouteImport } from './routes/_authenticated/corporate-admin.audit'
+import { Route as AuthenticatedCorporateAdminContactRouteImport } from './routes/_authenticated/corporate-admin.contact'
+import { Route as AuthenticatedCorporateAdminFeedbackRouteImport } from './routes/_authenticated/corporate-admin.feedback'
+import { Route as AuthenticatedCorporateAdminFinanceRouteImport } from './routes/_authenticated/corporate-admin.finance'
+import { Route as AuthenticatedCorporateAdminGovernanceRouteImport } from './routes/_authenticated/corporate-admin.governance'
+import { Route as AuthenticatedCorporateAdminInfrastructureRouteImport } from './routes/_authenticated/corporate-admin.infrastructure'
+import { Route as AuthenticatedCorporateAdminIssuesRouteImport } from './routes/_authenticated/corporate-admin.issues'
+import { Route as AuthenticatedCorporateAdminMailRouteImport } from './routes/_authenticated/corporate-admin.mail'
+import { Route as AuthenticatedCorporateAdminNotificationsRouteImport } from './routes/_authenticated/corporate-admin.notifications'
+import { Route as AuthenticatedCorporateAdminPublicTripsRouteImport } from './routes/_authenticated/corporate-admin.public-trips'
+import { Route as AuthenticatedCorporateAdminReleaseChecklistRouteImport } from './routes/_authenticated/corporate-admin.release-checklist'
+import { Route as AuthenticatedCorporateAdminStaffRouteImport } from './routes/_authenticated/corporate-admin.staff'
+import { Route as AuthenticatedCorporateAdminStatusRouteImport } from './routes/_authenticated/corporate-admin.status'
+import { Route as AuthenticatedCorporateAdminTestimonialsRouteImport } from './routes/_authenticated/corporate-admin.testimonials'
+import { Route as AuthenticatedCorporateAdminUsersRouteImport } from './routes/_authenticated/corporate-admin.users'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
 import { Route as ReisTokenTripIdRouteImport } from './routes/reis.$token.$tripId'
+import { Route as TripTokenTripIdRouteImport } from './routes/trip.$token.$tripId'
+import { Route as AuthenticatedCorporateAdminUserUserIdRouteImport } from './routes/_authenticated/corporate-admin.user.$userId'
+import { Route as AuthenticatedAgencyAdminQuotesQuoteIdConvertRouteImport } from './routes/_authenticated/agency-admin.quotes.$quoteId.convert'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,11 +97,142 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlgemeneVoorwaardenRoute = AlgemeneVoorwaardenRouteImport.update({
+  id: '/algemene-voorwaarden',
+  path: '/algemene-voorwaarden',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BekendeProblemenRoute = BekendeProblemenRouteImport.update({
+  id: '/bekende-problemen',
+  path: '/bekende-problemen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BetaRoute = BetaRouteImport.update({
+  id: '/beta',
+  path: '/beta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BetaVoorwaardenRoute = BetaVoorwaardenRouteImport.update({
+  id: '/beta-voorwaarden',
+  path: '/beta-voorwaarden',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForAgenciesRoute = ForAgenciesRouteImport.update({
+  id: '/for-agencies',
+  path: '/for-agencies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForGroupsRoute = ForGroupsRouteImport.update({
+  id: '/for-groups',
+  path: '/for-groups',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForTravelersRoute = ForTravelersRouteImport.update({
+  id: '/for-travelers',
+  path: '/for-travelers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KnownIssuesRoute = KnownIssuesRouteImport.update({
+  id: '/known-issues',
+  path: '/known-issues',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MogelijkhedenRoute = MogelijkhedenRouteImport.update({
+  id: '/mogelijkheden',
+  path: '/mogelijkheden',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrijzenRoute = PrijzenRouteImport.update({
+  id: '/prijzen',
+  path: '/prijzen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundPolicyRoute = RefundPolicyRouteImport.update({
+  id: '/refund-policy',
+  path: '/refund-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TerugbetalingsbeleidRoute = TerugbetalingsbeleidRouteImport.update({
+  id: '/terugbetalingsbeleid',
+  path: '/terugbetalingsbeleid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UpdatesRoute = UpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAgencyAdminRoute =
+  AuthenticatedAgencyAdminRouteImport.update({
+    id: '/agency-admin',
+    path: '/agency-admin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -49,6 +248,24 @@ const AuthenticatedBrandingRoute = AuthenticatedBrandingRouteImport.update({
   path: '/branding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClientPortalRoute =
+  AuthenticatedClientPortalRouteImport.update({
+    id: '/client-portal',
+    path: '/client-portal',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCompanyMailRoute =
+  AuthenticatedCompanyMailRouteImport.update({
+    id: '/company-mail',
+    path: '/company-mail',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCorporateAdminRoute =
+  AuthenticatedCorporateAdminRouteImport.update({
+    id: '/corporate-admin',
+    path: '/corporate-admin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -59,6 +276,217 @@ const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AgencyInviteTokenRoute = AgencyInviteTokenRouteImport.update({
+  id: '/agency-invite/$token',
+  path: '/agency-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgencyUitnodigingTokenRoute = AgencyUitnodigingTokenRouteImport.update({
+  id: '/agency-uitnodiging/$token',
+  path: '/agency-uitnodiging/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuoteTokenRoute = QuoteTokenRouteImport.update({
+  id: '/quote/$token',
+  path: '/quote/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UitnodigingTokenRoute = UitnodigingTokenRouteImport.update({
+  id: '/uitnodiging/$token',
+  path: '/uitnodiging/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAgencyAdminIndexRoute =
+  AuthenticatedAgencyAdminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminAuditRoute =
+  AuthenticatedAgencyAdminAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminClientsRoute =
+  AuthenticatedAgencyAdminClientsRouteImport.update({
+    id: '/clients',
+    path: '/clients',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminNotificationsRoute =
+  AuthenticatedAgencyAdminNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminOperationsRoute =
+  AuthenticatedAgencyAdminOperationsRouteImport.update({
+    id: '/operations',
+    path: '/operations',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminPermissionsRoute =
+  AuthenticatedAgencyAdminPermissionsRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminQuotesRoute =
+  AuthenticatedAgencyAdminQuotesRouteImport.update({
+    id: '/quotes',
+    path: '/quotes',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminReportsRoute =
+  AuthenticatedAgencyAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminSecurityRoute =
+  AuthenticatedAgencyAdminSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminSettingsRoute =
+  AuthenticatedAgencyAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminSubscriptionRoute =
+  AuthenticatedAgencyAdminSubscriptionRouteImport.update({
+    id: '/subscription',
+    path: '/subscription',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminSuppliersRoute =
+  AuthenticatedAgencyAdminSuppliersRouteImport.update({
+    id: '/suppliers',
+    path: '/suppliers',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminTasksRoute =
+  AuthenticatedAgencyAdminTasksRouteImport.update({
+    id: '/tasks',
+    path: '/tasks',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminTemplatesRoute =
+  AuthenticatedAgencyAdminTemplatesRouteImport.update({
+    id: '/templates',
+    path: '/templates',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminIndexRoute =
+  AuthenticatedCorporateAdminIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminAgenciesRoute =
+  AuthenticatedCorporateAdminAgenciesRouteImport.update({
+    id: '/agencies',
+    path: '/agencies',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminAuditRoute =
+  AuthenticatedCorporateAdminAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminContactRoute =
+  AuthenticatedCorporateAdminContactRouteImport.update({
+    id: '/contact',
+    path: '/contact',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminFeedbackRoute =
+  AuthenticatedCorporateAdminFeedbackRouteImport.update({
+    id: '/feedback',
+    path: '/feedback',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminFinanceRoute =
+  AuthenticatedCorporateAdminFinanceRouteImport.update({
+    id: '/finance',
+    path: '/finance',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminGovernanceRoute =
+  AuthenticatedCorporateAdminGovernanceRouteImport.update({
+    id: '/governance',
+    path: '/governance',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminInfrastructureRoute =
+  AuthenticatedCorporateAdminInfrastructureRouteImport.update({
+    id: '/infrastructure',
+    path: '/infrastructure',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminIssuesRoute =
+  AuthenticatedCorporateAdminIssuesRouteImport.update({
+    id: '/issues',
+    path: '/issues',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminMailRoute =
+  AuthenticatedCorporateAdminMailRouteImport.update({
+    id: '/mail',
+    path: '/mail',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminNotificationsRoute =
+  AuthenticatedCorporateAdminNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminPublicTripsRoute =
+  AuthenticatedCorporateAdminPublicTripsRouteImport.update({
+    id: '/public-trips',
+    path: '/public-trips',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminReleaseChecklistRoute =
+  AuthenticatedCorporateAdminReleaseChecklistRouteImport.update({
+    id: '/release-checklist',
+    path: '/release-checklist',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminStaffRoute =
+  AuthenticatedCorporateAdminStaffRouteImport.update({
+    id: '/staff',
+    path: '/staff',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminStatusRoute =
+  AuthenticatedCorporateAdminStatusRouteImport.update({
+    id: '/status',
+    path: '/status',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminTestimonialsRoute =
+  AuthenticatedCorporateAdminTestimonialsRouteImport.update({
+    id: '/testimonials',
+    path: '/testimonials',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedCorporateAdminUsersRoute =
+  AuthenticatedCorporateAdminUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 const AuthenticatedTripsTripIdRoute =
   AuthenticatedTripsTripIdRouteImport.update({
     id: '/trips/$tripId',
@@ -70,84 +498,535 @@ const ReisTokenTripIdRoute = ReisTokenTripIdRouteImport.update({
   path: '/reis/$token/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TripTokenTripIdRoute = TripTokenTripIdRouteImport.update({
+  id: '/trip/$token/$tripId',
+  path: '/trip/$token/$tripId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCorporateAdminUserUserIdRoute =
+  AuthenticatedCorporateAdminUserUserIdRouteImport.update({
+    id: '/user/$userId',
+    path: '/user/$userId',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute =
+  AuthenticatedAgencyAdminQuotesQuoteIdConvertRouteImport.update({
+    id: '/$quoteId/convert',
+    path: '/$quoteId/convert',
+    getParentRoute: () => AuthenticatedAgencyAdminQuotesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/algemene-voorwaarden': typeof AlgemeneVoorwaardenRoute
   '/auth': typeof AuthRoute
+  '/bekende-problemen': typeof BekendeProblemenRoute
+  '/beta': typeof BetaRoute
+  '/beta-voorwaarden': typeof BetaVoorwaardenRoute
+  '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
+  '/demo': typeof DemoRoute
+  '/features': typeof FeaturesRoute
+  '/for-agencies': typeof ForAgenciesRoute
+  '/for-groups': typeof ForGroupsRoute
+  '/for-travelers': typeof ForTravelersRoute
+  '/known-issues': typeof KnownIssuesRoute
+  '/mogelijkheden': typeof MogelijkhedenRoute
+  '/pricing': typeof PricingRoute
+  '/prijzen': typeof PrijzenRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/roadmap': typeof RoadmapRoute
+  '/status': typeof StatusRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/terugbetalingsbeleid': typeof TerugbetalingsbeleidRoute
+  '/updates': typeof UpdatesRoute
+  '/account': typeof AuthenticatedAccountRoute
+  '/agency-admin': typeof AuthenticatedAgencyAdminRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/branding': typeof AuthenticatedBrandingRoute
+  '/client-portal': typeof AuthenticatedClientPortalRoute
+  '/company-mail': typeof AuthenticatedCompanyMailRoute
+  '/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/agency-invite/$token': typeof AgencyInviteTokenRoute
+  '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/quote/$token': typeof QuoteTokenRoute
+  '/uitnodiging/$token': typeof UitnodigingTokenRoute
+  '/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
+  '/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
+  '/agency-admin/notifications': typeof AuthenticatedAgencyAdminNotificationsRoute
+  '/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
+  '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
+  '/agency-admin/quotes': typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  '/agency-admin/reports': typeof AuthenticatedAgencyAdminReportsRoute
+  '/agency-admin/security': typeof AuthenticatedAgencyAdminSecurityRoute
+  '/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
+  '/agency-admin/subscription': typeof AuthenticatedAgencyAdminSubscriptionRoute
+  '/agency-admin/suppliers': typeof AuthenticatedAgencyAdminSuppliersRoute
+  '/agency-admin/tasks': typeof AuthenticatedAgencyAdminTasksRoute
+  '/agency-admin/templates': typeof AuthenticatedAgencyAdminTemplatesRoute
+  '/corporate-admin/agencies': typeof AuthenticatedCorporateAdminAgenciesRoute
+  '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
+  '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
+  '/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
+  '/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
+  '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
+  '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
+  '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
+  '/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
+  '/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
+  '/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
+  '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
+  '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/trip/$token/$tripId': typeof TripTokenTripIdRoute
+  '/agency-admin/': typeof AuthenticatedAgencyAdminIndexRoute
+  '/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
+  '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
+  '/agency-admin/quotes/$quoteId/convert': typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/algemene-voorwaarden': typeof AlgemeneVoorwaardenRoute
   '/auth': typeof AuthRoute
+  '/bekende-problemen': typeof BekendeProblemenRoute
+  '/beta': typeof BetaRoute
+  '/beta-voorwaarden': typeof BetaVoorwaardenRoute
+  '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
+  '/demo': typeof DemoRoute
+  '/features': typeof FeaturesRoute
+  '/for-agencies': typeof ForAgenciesRoute
+  '/for-groups': typeof ForGroupsRoute
+  '/for-travelers': typeof ForTravelersRoute
+  '/known-issues': typeof KnownIssuesRoute
+  '/mogelijkheden': typeof MogelijkhedenRoute
+  '/pricing': typeof PricingRoute
+  '/prijzen': typeof PrijzenRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/roadmap': typeof RoadmapRoute
+  '/status': typeof StatusRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/terugbetalingsbeleid': typeof TerugbetalingsbeleidRoute
+  '/updates': typeof UpdatesRoute
+  '/account': typeof AuthenticatedAccountRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/branding': typeof AuthenticatedBrandingRoute
+  '/client-portal': typeof AuthenticatedClientPortalRoute
+  '/company-mail': typeof AuthenticatedCompanyMailRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/team': typeof AuthenticatedTeamRoute
+  '/agency-invite/$token': typeof AgencyInviteTokenRoute
+  '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/quote/$token': typeof QuoteTokenRoute
+  '/uitnodiging/$token': typeof UitnodigingTokenRoute
+  '/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
+  '/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
+  '/agency-admin/notifications': typeof AuthenticatedAgencyAdminNotificationsRoute
+  '/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
+  '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
+  '/agency-admin/quotes': typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  '/agency-admin/reports': typeof AuthenticatedAgencyAdminReportsRoute
+  '/agency-admin/security': typeof AuthenticatedAgencyAdminSecurityRoute
+  '/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
+  '/agency-admin/subscription': typeof AuthenticatedAgencyAdminSubscriptionRoute
+  '/agency-admin/suppliers': typeof AuthenticatedAgencyAdminSuppliersRoute
+  '/agency-admin/tasks': typeof AuthenticatedAgencyAdminTasksRoute
+  '/agency-admin/templates': typeof AuthenticatedAgencyAdminTemplatesRoute
+  '/corporate-admin/agencies': typeof AuthenticatedCorporateAdminAgenciesRoute
+  '/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
+  '/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
+  '/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
+  '/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
+  '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
+  '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
+  '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
+  '/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
+  '/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
+  '/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
+  '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
+  '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/trip/$token/$tripId': typeof TripTokenTripIdRoute
+  '/agency-admin': typeof AuthenticatedAgencyAdminIndexRoute
+  '/corporate-admin': typeof AuthenticatedCorporateAdminIndexRoute
+  '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
+  '/agency-admin/quotes/$quoteId/convert': typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
+  '/algemene-voorwaarden': typeof AlgemeneVoorwaardenRoute
   '/auth': typeof AuthRoute
+  '/bekende-problemen': typeof BekendeProblemenRoute
+  '/beta': typeof BetaRoute
+  '/beta-voorwaarden': typeof BetaVoorwaardenRoute
+  '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
+  '/demo': typeof DemoRoute
+  '/features': typeof FeaturesRoute
+  '/for-agencies': typeof ForAgenciesRoute
+  '/for-groups': typeof ForGroupsRoute
+  '/for-travelers': typeof ForTravelersRoute
+  '/known-issues': typeof KnownIssuesRoute
+  '/mogelijkheden': typeof MogelijkhedenRoute
+  '/pricing': typeof PricingRoute
+  '/prijzen': typeof PrijzenRoute
+  '/privacy': typeof PrivacyRoute
+  '/refund-policy': typeof RefundPolicyRoute
+  '/roadmap': typeof RoadmapRoute
+  '/status': typeof StatusRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
+  '/terugbetalingsbeleid': typeof TerugbetalingsbeleidRoute
+  '/updates': typeof UpdatesRoute
+  '/_authenticated/account': typeof AuthenticatedAccountRoute
+  '/_authenticated/agency-admin': typeof AuthenticatedAgencyAdminRouteWithChildren
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/branding': typeof AuthenticatedBrandingRoute
+  '/_authenticated/client-portal': typeof AuthenticatedClientPortalRoute
+  '/_authenticated/company-mail': typeof AuthenticatedCompanyMailRoute
+  '/_authenticated/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/agency-invite/$token': typeof AgencyInviteTokenRoute
+  '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/quote/$token': typeof QuoteTokenRoute
+  '/uitnodiging/$token': typeof UitnodigingTokenRoute
+  '/_authenticated/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
+  '/_authenticated/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
+  '/_authenticated/agency-admin/notifications': typeof AuthenticatedAgencyAdminNotificationsRoute
+  '/_authenticated/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
+  '/_authenticated/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
+  '/_authenticated/agency-admin/quotes': typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  '/_authenticated/agency-admin/reports': typeof AuthenticatedAgencyAdminReportsRoute
+  '/_authenticated/agency-admin/security': typeof AuthenticatedAgencyAdminSecurityRoute
+  '/_authenticated/agency-admin/settings': typeof AuthenticatedAgencyAdminSettingsRoute
+  '/_authenticated/agency-admin/subscription': typeof AuthenticatedAgencyAdminSubscriptionRoute
+  '/_authenticated/agency-admin/suppliers': typeof AuthenticatedAgencyAdminSuppliersRoute
+  '/_authenticated/agency-admin/tasks': typeof AuthenticatedAgencyAdminTasksRoute
+  '/_authenticated/agency-admin/templates': typeof AuthenticatedAgencyAdminTemplatesRoute
+  '/_authenticated/corporate-admin/agencies': typeof AuthenticatedCorporateAdminAgenciesRoute
+  '/_authenticated/corporate-admin/audit': typeof AuthenticatedCorporateAdminAuditRoute
+  '/_authenticated/corporate-admin/contact': typeof AuthenticatedCorporateAdminContactRoute
+  '/_authenticated/corporate-admin/feedback': typeof AuthenticatedCorporateAdminFeedbackRoute
+  '/_authenticated/corporate-admin/finance': typeof AuthenticatedCorporateAdminFinanceRoute
+  '/_authenticated/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
+  '/_authenticated/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
+  '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/_authenticated/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
+  '/_authenticated/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
+  '/_authenticated/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
+  '/_authenticated/corporate-admin/release-checklist': typeof AuthenticatedCorporateAdminReleaseChecklistRoute
+  '/_authenticated/corporate-admin/staff': typeof AuthenticatedCorporateAdminStaffRoute
+  '/_authenticated/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
+  '/_authenticated/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
+  '/_authenticated/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
+  '/trip/$token/$tripId': typeof TripTokenTripIdRoute
+  '/_authenticated/agency-admin/': typeof AuthenticatedAgencyAdminIndexRoute
+  '/_authenticated/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
+  '/_authenticated/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
+  '/_authenticated/agency-admin/quotes/$quoteId/convert': typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
+    | '/algemene-voorwaarden'
     | '/auth'
+    | '/bekende-problemen'
+    | '/beta'
+    | '/beta-voorwaarden'
+    | '/changelog'
+    | '/contact'
+    | '/demo'
+    | '/features'
+    | '/for-agencies'
+    | '/for-groups'
+    | '/for-travelers'
+    | '/known-issues'
+    | '/mogelijkheden'
+    | '/pricing'
+    | '/prijzen'
+    | '/privacy'
+    | '/refund-policy'
+    | '/roadmap'
+    | '/status'
+    | '/support'
+    | '/terms'
+    | '/terugbetalingsbeleid'
+    | '/updates'
+    | '/account'
+    | '/agency-admin'
     | '/analytics'
     | '/billing'
     | '/branding'
+    | '/client-portal'
+    | '/company-mail'
+    | '/corporate-admin'
     | '/dashboard'
     | '/team'
+    | '/agency-invite/$token'
+    | '/agency-uitnodiging/$token'
+    | '/invite/$token'
+    | '/quote/$token'
+    | '/uitnodiging/$token'
+    | '/agency-admin/audit'
+    | '/agency-admin/clients'
+    | '/agency-admin/notifications'
+    | '/agency-admin/operations'
+    | '/agency-admin/permissions'
+    | '/agency-admin/quotes'
+    | '/agency-admin/reports'
+    | '/agency-admin/security'
+    | '/agency-admin/settings'
+    | '/agency-admin/subscription'
+    | '/agency-admin/suppliers'
+    | '/agency-admin/tasks'
+    | '/agency-admin/templates'
+    | '/corporate-admin/agencies'
+    | '/corporate-admin/audit'
+    | '/corporate-admin/contact'
+    | '/corporate-admin/feedback'
+    | '/corporate-admin/finance'
+    | '/corporate-admin/governance'
+    | '/corporate-admin/infrastructure'
+    | '/corporate-admin/issues'
+    | '/corporate-admin/mail'
+    | '/corporate-admin/notifications'
+    | '/corporate-admin/public-trips'
+    | '/corporate-admin/release-checklist'
+    | '/corporate-admin/staff'
+    | '/corporate-admin/status'
+    | '/corporate-admin/testimonials'
+    | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/trip/$token/$tripId'
+    | '/agency-admin/'
+    | '/corporate-admin/'
+    | '/corporate-admin/user/$userId'
+    | '/agency-admin/quotes/$quoteId/convert'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/algemene-voorwaarden'
     | '/auth'
+    | '/bekende-problemen'
+    | '/beta'
+    | '/beta-voorwaarden'
+    | '/changelog'
+    | '/contact'
+    | '/demo'
+    | '/features'
+    | '/for-agencies'
+    | '/for-groups'
+    | '/for-travelers'
+    | '/known-issues'
+    | '/mogelijkheden'
+    | '/pricing'
+    | '/prijzen'
+    | '/privacy'
+    | '/refund-policy'
+    | '/roadmap'
+    | '/status'
+    | '/support'
+    | '/terms'
+    | '/terugbetalingsbeleid'
+    | '/updates'
+    | '/account'
     | '/analytics'
     | '/billing'
     | '/branding'
+    | '/client-portal'
+    | '/company-mail'
     | '/dashboard'
     | '/team'
+    | '/agency-invite/$token'
+    | '/agency-uitnodiging/$token'
+    | '/invite/$token'
+    | '/quote/$token'
+    | '/uitnodiging/$token'
+    | '/agency-admin/audit'
+    | '/agency-admin/clients'
+    | '/agency-admin/notifications'
+    | '/agency-admin/operations'
+    | '/agency-admin/permissions'
+    | '/agency-admin/quotes'
+    | '/agency-admin/reports'
+    | '/agency-admin/security'
+    | '/agency-admin/settings'
+    | '/agency-admin/subscription'
+    | '/agency-admin/suppliers'
+    | '/agency-admin/tasks'
+    | '/agency-admin/templates'
+    | '/corporate-admin/agencies'
+    | '/corporate-admin/audit'
+    | '/corporate-admin/contact'
+    | '/corporate-admin/feedback'
+    | '/corporate-admin/finance'
+    | '/corporate-admin/governance'
+    | '/corporate-admin/infrastructure'
+    | '/corporate-admin/issues'
+    | '/corporate-admin/mail'
+    | '/corporate-admin/notifications'
+    | '/corporate-admin/public-trips'
+    | '/corporate-admin/release-checklist'
+    | '/corporate-admin/staff'
+    | '/corporate-admin/status'
+    | '/corporate-admin/testimonials'
+    | '/corporate-admin/users'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/trip/$token/$tripId'
+    | '/agency-admin'
+    | '/corporate-admin'
+    | '/corporate-admin/user/$userId'
+    | '/agency-admin/quotes/$quoteId/convert'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
+    | '/algemene-voorwaarden'
     | '/auth'
+    | '/bekende-problemen'
+    | '/beta'
+    | '/beta-voorwaarden'
+    | '/changelog'
+    | '/contact'
+    | '/demo'
+    | '/features'
+    | '/for-agencies'
+    | '/for-groups'
+    | '/for-travelers'
+    | '/known-issues'
+    | '/mogelijkheden'
+    | '/pricing'
+    | '/prijzen'
+    | '/privacy'
+    | '/refund-policy'
+    | '/roadmap'
+    | '/status'
+    | '/support'
+    | '/terms'
+    | '/terugbetalingsbeleid'
+    | '/updates'
+    | '/_authenticated/account'
+    | '/_authenticated/agency-admin'
     | '/_authenticated/analytics'
     | '/_authenticated/billing'
     | '/_authenticated/branding'
+    | '/_authenticated/client-portal'
+    | '/_authenticated/company-mail'
+    | '/_authenticated/corporate-admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/team'
+    | '/agency-invite/$token'
+    | '/agency-uitnodiging/$token'
+    | '/invite/$token'
+    | '/quote/$token'
+    | '/uitnodiging/$token'
+    | '/_authenticated/agency-admin/audit'
+    | '/_authenticated/agency-admin/clients'
+    | '/_authenticated/agency-admin/notifications'
+    | '/_authenticated/agency-admin/operations'
+    | '/_authenticated/agency-admin/permissions'
+    | '/_authenticated/agency-admin/quotes'
+    | '/_authenticated/agency-admin/reports'
+    | '/_authenticated/agency-admin/security'
+    | '/_authenticated/agency-admin/settings'
+    | '/_authenticated/agency-admin/subscription'
+    | '/_authenticated/agency-admin/suppliers'
+    | '/_authenticated/agency-admin/tasks'
+    | '/_authenticated/agency-admin/templates'
+    | '/_authenticated/corporate-admin/agencies'
+    | '/_authenticated/corporate-admin/audit'
+    | '/_authenticated/corporate-admin/contact'
+    | '/_authenticated/corporate-admin/feedback'
+    | '/_authenticated/corporate-admin/finance'
+    | '/_authenticated/corporate-admin/governance'
+    | '/_authenticated/corporate-admin/infrastructure'
+    | '/_authenticated/corporate-admin/issues'
+    | '/_authenticated/corporate-admin/mail'
+    | '/_authenticated/corporate-admin/notifications'
+    | '/_authenticated/corporate-admin/public-trips'
+    | '/_authenticated/corporate-admin/release-checklist'
+    | '/_authenticated/corporate-admin/staff'
+    | '/_authenticated/corporate-admin/status'
+    | '/_authenticated/corporate-admin/testimonials'
+    | '/_authenticated/corporate-admin/users'
     | '/_authenticated/trips/$tripId'
     | '/reis/$token/$tripId'
+    | '/trip/$token/$tripId'
+    | '/_authenticated/agency-admin/'
+    | '/_authenticated/corporate-admin/'
+    | '/_authenticated/corporate-admin/user/$userId'
+    | '/_authenticated/agency-admin/quotes/$quoteId/convert'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
+  AlgemeneVoorwaardenRoute: typeof AlgemeneVoorwaardenRoute
   AuthRoute: typeof AuthRoute
+  BekendeProblemenRoute: typeof BekendeProblemenRoute
+  BetaRoute: typeof BetaRoute
+  BetaVoorwaardenRoute: typeof BetaVoorwaardenRoute
+  ChangelogRoute: typeof ChangelogRoute
+  ContactRoute: typeof ContactRoute
+  DemoRoute: typeof DemoRoute
+  FeaturesRoute: typeof FeaturesRoute
+  ForAgenciesRoute: typeof ForAgenciesRoute
+  ForGroupsRoute: typeof ForGroupsRoute
+  ForTravelersRoute: typeof ForTravelersRoute
+  KnownIssuesRoute: typeof KnownIssuesRoute
+  MogelijkhedenRoute: typeof MogelijkhedenRoute
+  PricingRoute: typeof PricingRoute
+  PrijzenRoute: typeof PrijzenRoute
+  PrivacyRoute: typeof PrivacyRoute
+  RefundPolicyRoute: typeof RefundPolicyRoute
+  RoadmapRoute: typeof RoadmapRoute
+  StatusRoute: typeof StatusRoute
+  SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
+  TerugbetalingsbeleidRoute: typeof TerugbetalingsbeleidRoute
+  UpdatesRoute: typeof UpdatesRoute
+  AgencyInviteTokenRoute: typeof AgencyInviteTokenRoute
+  AgencyUitnodigingTokenRoute: typeof AgencyUitnodigingTokenRoute
+  InviteTokenRoute: typeof InviteTokenRoute
+  QuoteTokenRoute: typeof QuoteTokenRoute
+  UitnodigingTokenRoute: typeof UitnodigingTokenRoute
   ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
+  TripTokenTripIdRoute: typeof TripTokenTripIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -166,12 +1045,194 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/algemene-voorwaarden': {
+      id: '/algemene-voorwaarden'
+      path: '/algemene-voorwaarden'
+      fullPath: '/algemene-voorwaarden'
+      preLoaderRoute: typeof AlgemeneVoorwaardenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/bekende-problemen': {
+      id: '/bekende-problemen'
+      path: '/bekende-problemen'
+      fullPath: '/bekende-problemen'
+      preLoaderRoute: typeof BekendeProblemenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/beta': {
+      id: '/beta'
+      path: '/beta'
+      fullPath: '/beta'
+      preLoaderRoute: typeof BetaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/beta-voorwaarden': {
+      id: '/beta-voorwaarden'
+      path: '/beta-voorwaarden'
+      fullPath: '/beta-voorwaarden'
+      preLoaderRoute: typeof BetaVoorwaardenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-agencies': {
+      id: '/for-agencies'
+      path: '/for-agencies'
+      fullPath: '/for-agencies'
+      preLoaderRoute: typeof ForAgenciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-groups': {
+      id: '/for-groups'
+      path: '/for-groups'
+      fullPath: '/for-groups'
+      preLoaderRoute: typeof ForGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-travelers': {
+      id: '/for-travelers'
+      path: '/for-travelers'
+      fullPath: '/for-travelers'
+      preLoaderRoute: typeof ForTravelersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/known-issues': {
+      id: '/known-issues'
+      path: '/known-issues'
+      fullPath: '/known-issues'
+      preLoaderRoute: typeof KnownIssuesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mogelijkheden': {
+      id: '/mogelijkheden'
+      path: '/mogelijkheden'
+      fullPath: '/mogelijkheden'
+      preLoaderRoute: typeof MogelijkhedenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prijzen': {
+      id: '/prijzen'
+      path: '/prijzen'
+      fullPath: '/prijzen'
+      preLoaderRoute: typeof PrijzenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund-policy': {
+      id: '/refund-policy'
+      path: '/refund-policy'
+      fullPath: '/refund-policy'
+      preLoaderRoute: typeof RefundPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terugbetalingsbeleid': {
+      id: '/terugbetalingsbeleid'
+      path: '/terugbetalingsbeleid'
+      fullPath: '/terugbetalingsbeleid'
+      preLoaderRoute: typeof TerugbetalingsbeleidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/updates': {
+      id: '/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof UpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/agency-admin': {
+      id: '/_authenticated/agency-admin'
+      path: '/agency-admin'
+      fullPath: '/agency-admin'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/analytics': {
       id: '/_authenticated/analytics'
@@ -194,6 +1255,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBrandingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/client-portal': {
+      id: '/_authenticated/client-portal'
+      path: '/client-portal'
+      fullPath: '/client-portal'
+      preLoaderRoute: typeof AuthenticatedClientPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/company-mail': {
+      id: '/_authenticated/company-mail'
+      path: '/company-mail'
+      fullPath: '/company-mail'
+      preLoaderRoute: typeof AuthenticatedCompanyMailRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/corporate-admin': {
+      id: '/_authenticated/corporate-admin'
+      path: '/corporate-admin'
+      fullPath: '/corporate-admin'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -207,6 +1289,258 @@ declare module '@tanstack/react-router' {
       fullPath: '/team'
       preLoaderRoute: typeof AuthenticatedTeamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/agency-invite/$token': {
+      id: '/agency-invite/$token'
+      path: '/agency-invite/$token'
+      fullPath: '/agency-invite/$token'
+      preLoaderRoute: typeof AgencyInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agency-uitnodiging/$token': {
+      id: '/agency-uitnodiging/$token'
+      path: '/agency-uitnodiging/$token'
+      fullPath: '/agency-uitnodiging/$token'
+      preLoaderRoute: typeof AgencyUitnodigingTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quote/$token': {
+      id: '/quote/$token'
+      path: '/quote/$token'
+      fullPath: '/quote/$token'
+      preLoaderRoute: typeof QuoteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/uitnodiging/$token': {
+      id: '/uitnodiging/$token'
+      path: '/uitnodiging/$token'
+      fullPath: '/uitnodiging/$token'
+      preLoaderRoute: typeof UitnodigingTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/agency-admin/': {
+      id: '/_authenticated/agency-admin/'
+      path: '/'
+      fullPath: '/agency-admin/'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/audit': {
+      id: '/_authenticated/agency-admin/audit'
+      path: '/audit'
+      fullPath: '/agency-admin/audit'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/clients': {
+      id: '/_authenticated/agency-admin/clients'
+      path: '/clients'
+      fullPath: '/agency-admin/clients'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminClientsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/notifications': {
+      id: '/_authenticated/agency-admin/notifications'
+      path: '/notifications'
+      fullPath: '/agency-admin/notifications'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminNotificationsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/operations': {
+      id: '/_authenticated/agency-admin/operations'
+      path: '/operations'
+      fullPath: '/agency-admin/operations'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminOperationsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/permissions': {
+      id: '/_authenticated/agency-admin/permissions'
+      path: '/permissions'
+      fullPath: '/agency-admin/permissions'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminPermissionsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/quotes': {
+      id: '/_authenticated/agency-admin/quotes'
+      path: '/quotes'
+      fullPath: '/agency-admin/quotes'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminQuotesRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/reports': {
+      id: '/_authenticated/agency-admin/reports'
+      path: '/reports'
+      fullPath: '/agency-admin/reports'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/security': {
+      id: '/_authenticated/agency-admin/security'
+      path: '/security'
+      fullPath: '/agency-admin/security'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminSecurityRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/settings': {
+      id: '/_authenticated/agency-admin/settings'
+      path: '/settings'
+      fullPath: '/agency-admin/settings'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/subscription': {
+      id: '/_authenticated/agency-admin/subscription'
+      path: '/subscription'
+      fullPath: '/agency-admin/subscription'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/suppliers': {
+      id: '/_authenticated/agency-admin/suppliers'
+      path: '/suppliers'
+      fullPath: '/agency-admin/suppliers'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminSuppliersRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/tasks': {
+      id: '/_authenticated/agency-admin/tasks'
+      path: '/tasks'
+      fullPath: '/agency-admin/tasks'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminTasksRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/templates': {
+      id: '/_authenticated/agency-admin/templates'
+      path: '/templates'
+      fullPath: '/agency-admin/templates'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminTemplatesRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/corporate-admin/': {
+      id: '/_authenticated/corporate-admin/'
+      path: '/'
+      fullPath: '/corporate-admin/'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/agencies': {
+      id: '/_authenticated/corporate-admin/agencies'
+      path: '/agencies'
+      fullPath: '/corporate-admin/agencies'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminAgenciesRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/audit': {
+      id: '/_authenticated/corporate-admin/audit'
+      path: '/audit'
+      fullPath: '/corporate-admin/audit'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/contact': {
+      id: '/_authenticated/corporate-admin/contact'
+      path: '/contact'
+      fullPath: '/corporate-admin/contact'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminContactRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/feedback': {
+      id: '/_authenticated/corporate-admin/feedback'
+      path: '/feedback'
+      fullPath: '/corporate-admin/feedback'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminFeedbackRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/finance': {
+      id: '/_authenticated/corporate-admin/finance'
+      path: '/finance'
+      fullPath: '/corporate-admin/finance'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminFinanceRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/governance': {
+      id: '/_authenticated/corporate-admin/governance'
+      path: '/governance'
+      fullPath: '/corporate-admin/governance'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminGovernanceRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/infrastructure': {
+      id: '/_authenticated/corporate-admin/infrastructure'
+      path: '/infrastructure'
+      fullPath: '/corporate-admin/infrastructure'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminInfrastructureRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/issues': {
+      id: '/_authenticated/corporate-admin/issues'
+      path: '/issues'
+      fullPath: '/corporate-admin/issues'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminIssuesRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/mail': {
+      id: '/_authenticated/corporate-admin/mail'
+      path: '/mail'
+      fullPath: '/corporate-admin/mail'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminMailRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/notifications': {
+      id: '/_authenticated/corporate-admin/notifications'
+      path: '/notifications'
+      fullPath: '/corporate-admin/notifications'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminNotificationsRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/public-trips': {
+      id: '/_authenticated/corporate-admin/public-trips'
+      path: '/public-trips'
+      fullPath: '/corporate-admin/public-trips'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminPublicTripsRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/release-checklist': {
+      id: '/_authenticated/corporate-admin/release-checklist'
+      path: '/release-checklist'
+      fullPath: '/corporate-admin/release-checklist'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminReleaseChecklistRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/staff': {
+      id: '/_authenticated/corporate-admin/staff'
+      path: '/staff'
+      fullPath: '/corporate-admin/staff'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminStaffRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/status': {
+      id: '/_authenticated/corporate-admin/status'
+      path: '/status'
+      fullPath: '/corporate-admin/status'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminStatusRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/testimonials': {
+      id: '/_authenticated/corporate-admin/testimonials'
+      path: '/testimonials'
+      fullPath: '/corporate-admin/testimonials'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminTestimonialsRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/corporate-admin/users': {
+      id: '/_authenticated/corporate-admin/users'
+      path: '/users'
+      fullPath: '/corporate-admin/users'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
     '/_authenticated/trips/$tripId': {
       id: '/_authenticated/trips/$tripId'
@@ -222,22 +1556,183 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReisTokenTripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trip/$token/$tripId': {
+      id: '/trip/$token/$tripId'
+      path: '/trip/$token/$tripId'
+      fullPath: '/trip/$token/$tripId'
+      preLoaderRoute: typeof TripTokenTripIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/corporate-admin/user/$userId': {
+      id: '/_authenticated/corporate-admin/user/$userId'
+      path: '/user/$userId'
+      fullPath: '/corporate-admin/user/$userId'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminUserUserIdRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/_authenticated/agency-admin/quotes/$quoteId/convert': {
+      id: '/_authenticated/agency-admin/quotes/$quoteId/convert'
+      path: '/$quoteId/convert'
+      fullPath: '/agency-admin/quotes/$quoteId/convert'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminQuotesRoute
+    }
   }
 }
 
+interface AuthenticatedAgencyAdminQuotesRouteChildren {
+  AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute: typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute
+}
+
+const AuthenticatedAgencyAdminQuotesRouteChildren: AuthenticatedAgencyAdminQuotesRouteChildren =
+  {
+    AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute:
+      AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute,
+  }
+
+const AuthenticatedAgencyAdminQuotesRouteWithChildren =
+  AuthenticatedAgencyAdminQuotesRoute._addFileChildren(
+    AuthenticatedAgencyAdminQuotesRouteChildren,
+  )
+
+interface AuthenticatedAgencyAdminRouteChildren {
+  AuthenticatedAgencyAdminAuditRoute: typeof AuthenticatedAgencyAdminAuditRoute
+  AuthenticatedAgencyAdminClientsRoute: typeof AuthenticatedAgencyAdminClientsRoute
+  AuthenticatedAgencyAdminNotificationsRoute: typeof AuthenticatedAgencyAdminNotificationsRoute
+  AuthenticatedAgencyAdminOperationsRoute: typeof AuthenticatedAgencyAdminOperationsRoute
+  AuthenticatedAgencyAdminPermissionsRoute: typeof AuthenticatedAgencyAdminPermissionsRoute
+  AuthenticatedAgencyAdminQuotesRoute: typeof AuthenticatedAgencyAdminQuotesRouteWithChildren
+  AuthenticatedAgencyAdminReportsRoute: typeof AuthenticatedAgencyAdminReportsRoute
+  AuthenticatedAgencyAdminSecurityRoute: typeof AuthenticatedAgencyAdminSecurityRoute
+  AuthenticatedAgencyAdminSettingsRoute: typeof AuthenticatedAgencyAdminSettingsRoute
+  AuthenticatedAgencyAdminSubscriptionRoute: typeof AuthenticatedAgencyAdminSubscriptionRoute
+  AuthenticatedAgencyAdminSuppliersRoute: typeof AuthenticatedAgencyAdminSuppliersRoute
+  AuthenticatedAgencyAdminTasksRoute: typeof AuthenticatedAgencyAdminTasksRoute
+  AuthenticatedAgencyAdminTemplatesRoute: typeof AuthenticatedAgencyAdminTemplatesRoute
+  AuthenticatedAgencyAdminIndexRoute: typeof AuthenticatedAgencyAdminIndexRoute
+}
+
+const AuthenticatedAgencyAdminRouteChildren: AuthenticatedAgencyAdminRouteChildren =
+  {
+    AuthenticatedAgencyAdminAuditRoute: AuthenticatedAgencyAdminAuditRoute,
+    AuthenticatedAgencyAdminClientsRoute: AuthenticatedAgencyAdminClientsRoute,
+    AuthenticatedAgencyAdminNotificationsRoute:
+      AuthenticatedAgencyAdminNotificationsRoute,
+    AuthenticatedAgencyAdminOperationsRoute:
+      AuthenticatedAgencyAdminOperationsRoute,
+    AuthenticatedAgencyAdminPermissionsRoute:
+      AuthenticatedAgencyAdminPermissionsRoute,
+    AuthenticatedAgencyAdminQuotesRoute:
+      AuthenticatedAgencyAdminQuotesRouteWithChildren,
+    AuthenticatedAgencyAdminReportsRoute: AuthenticatedAgencyAdminReportsRoute,
+    AuthenticatedAgencyAdminSecurityRoute:
+      AuthenticatedAgencyAdminSecurityRoute,
+    AuthenticatedAgencyAdminSettingsRoute:
+      AuthenticatedAgencyAdminSettingsRoute,
+    AuthenticatedAgencyAdminSubscriptionRoute:
+      AuthenticatedAgencyAdminSubscriptionRoute,
+    AuthenticatedAgencyAdminSuppliersRoute:
+      AuthenticatedAgencyAdminSuppliersRoute,
+    AuthenticatedAgencyAdminTasksRoute: AuthenticatedAgencyAdminTasksRoute,
+    AuthenticatedAgencyAdminTemplatesRoute:
+      AuthenticatedAgencyAdminTemplatesRoute,
+    AuthenticatedAgencyAdminIndexRoute: AuthenticatedAgencyAdminIndexRoute,
+  }
+
+const AuthenticatedAgencyAdminRouteWithChildren =
+  AuthenticatedAgencyAdminRoute._addFileChildren(
+    AuthenticatedAgencyAdminRouteChildren,
+  )
+
+interface AuthenticatedCorporateAdminRouteChildren {
+  AuthenticatedCorporateAdminAgenciesRoute: typeof AuthenticatedCorporateAdminAgenciesRoute
+  AuthenticatedCorporateAdminAuditRoute: typeof AuthenticatedCorporateAdminAuditRoute
+  AuthenticatedCorporateAdminContactRoute: typeof AuthenticatedCorporateAdminContactRoute
+  AuthenticatedCorporateAdminFeedbackRoute: typeof AuthenticatedCorporateAdminFeedbackRoute
+  AuthenticatedCorporateAdminFinanceRoute: typeof AuthenticatedCorporateAdminFinanceRoute
+  AuthenticatedCorporateAdminGovernanceRoute: typeof AuthenticatedCorporateAdminGovernanceRoute
+  AuthenticatedCorporateAdminInfrastructureRoute: typeof AuthenticatedCorporateAdminInfrastructureRoute
+  AuthenticatedCorporateAdminIssuesRoute: typeof AuthenticatedCorporateAdminIssuesRoute
+  AuthenticatedCorporateAdminMailRoute: typeof AuthenticatedCorporateAdminMailRoute
+  AuthenticatedCorporateAdminNotificationsRoute: typeof AuthenticatedCorporateAdminNotificationsRoute
+  AuthenticatedCorporateAdminPublicTripsRoute: typeof AuthenticatedCorporateAdminPublicTripsRoute
+  AuthenticatedCorporateAdminReleaseChecklistRoute: typeof AuthenticatedCorporateAdminReleaseChecklistRoute
+  AuthenticatedCorporateAdminStaffRoute: typeof AuthenticatedCorporateAdminStaffRoute
+  AuthenticatedCorporateAdminStatusRoute: typeof AuthenticatedCorporateAdminStatusRoute
+  AuthenticatedCorporateAdminTestimonialsRoute: typeof AuthenticatedCorporateAdminTestimonialsRoute
+  AuthenticatedCorporateAdminUsersRoute: typeof AuthenticatedCorporateAdminUsersRoute
+  AuthenticatedCorporateAdminIndexRoute: typeof AuthenticatedCorporateAdminIndexRoute
+  AuthenticatedCorporateAdminUserUserIdRoute: typeof AuthenticatedCorporateAdminUserUserIdRoute
+}
+
+const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRouteChildren =
+  {
+    AuthenticatedCorporateAdminAgenciesRoute:
+      AuthenticatedCorporateAdminAgenciesRoute,
+    AuthenticatedCorporateAdminAuditRoute:
+      AuthenticatedCorporateAdminAuditRoute,
+    AuthenticatedCorporateAdminContactRoute:
+      AuthenticatedCorporateAdminContactRoute,
+    AuthenticatedCorporateAdminFeedbackRoute:
+      AuthenticatedCorporateAdminFeedbackRoute,
+    AuthenticatedCorporateAdminFinanceRoute:
+      AuthenticatedCorporateAdminFinanceRoute,
+    AuthenticatedCorporateAdminGovernanceRoute:
+      AuthenticatedCorporateAdminGovernanceRoute,
+    AuthenticatedCorporateAdminInfrastructureRoute:
+      AuthenticatedCorporateAdminInfrastructureRoute,
+    AuthenticatedCorporateAdminIssuesRoute:
+      AuthenticatedCorporateAdminIssuesRoute,
+    AuthenticatedCorporateAdminMailRoute: AuthenticatedCorporateAdminMailRoute,
+    AuthenticatedCorporateAdminNotificationsRoute:
+      AuthenticatedCorporateAdminNotificationsRoute,
+    AuthenticatedCorporateAdminPublicTripsRoute:
+      AuthenticatedCorporateAdminPublicTripsRoute,
+    AuthenticatedCorporateAdminReleaseChecklistRoute:
+      AuthenticatedCorporateAdminReleaseChecklistRoute,
+    AuthenticatedCorporateAdminStaffRoute:
+      AuthenticatedCorporateAdminStaffRoute,
+    AuthenticatedCorporateAdminStatusRoute:
+      AuthenticatedCorporateAdminStatusRoute,
+    AuthenticatedCorporateAdminTestimonialsRoute:
+      AuthenticatedCorporateAdminTestimonialsRoute,
+    AuthenticatedCorporateAdminUsersRoute:
+      AuthenticatedCorporateAdminUsersRoute,
+    AuthenticatedCorporateAdminIndexRoute:
+      AuthenticatedCorporateAdminIndexRoute,
+    AuthenticatedCorporateAdminUserUserIdRoute:
+      AuthenticatedCorporateAdminUserUserIdRoute,
+  }
+
+const AuthenticatedCorporateAdminRouteWithChildren =
+  AuthenticatedCorporateAdminRoute._addFileChildren(
+    AuthenticatedCorporateAdminRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
+  AuthenticatedAgencyAdminRoute: typeof AuthenticatedAgencyAdminRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedBrandingRoute: typeof AuthenticatedBrandingRoute
+  AuthenticatedClientPortalRoute: typeof AuthenticatedClientPortalRoute
+  AuthenticatedCompanyMailRoute: typeof AuthenticatedCompanyMailRoute
+  AuthenticatedCorporateAdminRoute: typeof AuthenticatedCorporateAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAccountRoute: AuthenticatedAccountRoute,
+  AuthenticatedAgencyAdminRoute: AuthenticatedAgencyAdminRouteWithChildren,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedBrandingRoute: AuthenticatedBrandingRoute,
+  AuthenticatedClientPortalRoute: AuthenticatedClientPortalRoute,
+  AuthenticatedCompanyMailRoute: AuthenticatedCompanyMailRoute,
+  AuthenticatedCorporateAdminRoute:
+    AuthenticatedCorporateAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
@@ -249,8 +1744,38 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
+  AlgemeneVoorwaardenRoute: AlgemeneVoorwaardenRoute,
   AuthRoute: AuthRoute,
+  BekendeProblemenRoute: BekendeProblemenRoute,
+  BetaRoute: BetaRoute,
+  BetaVoorwaardenRoute: BetaVoorwaardenRoute,
+  ChangelogRoute: ChangelogRoute,
+  ContactRoute: ContactRoute,
+  DemoRoute: DemoRoute,
+  FeaturesRoute: FeaturesRoute,
+  ForAgenciesRoute: ForAgenciesRoute,
+  ForGroupsRoute: ForGroupsRoute,
+  ForTravelersRoute: ForTravelersRoute,
+  KnownIssuesRoute: KnownIssuesRoute,
+  MogelijkhedenRoute: MogelijkhedenRoute,
+  PricingRoute: PricingRoute,
+  PrijzenRoute: PrijzenRoute,
+  PrivacyRoute: PrivacyRoute,
+  RefundPolicyRoute: RefundPolicyRoute,
+  RoadmapRoute: RoadmapRoute,
+  StatusRoute: StatusRoute,
+  SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
+  TerugbetalingsbeleidRoute: TerugbetalingsbeleidRoute,
+  UpdatesRoute: UpdatesRoute,
+  AgencyInviteTokenRoute: AgencyInviteTokenRoute,
+  AgencyUitnodigingTokenRoute: AgencyUitnodigingTokenRoute,
+  InviteTokenRoute: InviteTokenRoute,
+  QuoteTokenRoute: QuoteTokenRoute,
+  UitnodigingTokenRoute: UitnodigingTokenRoute,
   ReisTokenTripIdRoute: ReisTokenTripIdRoute,
+  TripTokenTripIdRoute: TripTokenTripIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

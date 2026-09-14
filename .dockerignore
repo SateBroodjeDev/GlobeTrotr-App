@@ -1,0 +1,11 @@
+.git
+.github
+.env
+.env.*
+!.env.production.example
+.output
+.tanstack
+.wrangler
+node_modules
+*.log
+supabase/tests
