@@ -4,6 +4,13 @@
 
 ## Nieuwe praktische acceptatiecontroles
 
+- [ ] Voer `20260908100000_account_communication_preferences.sql` en daarna `account_communication_preferences.sql` uit.
+- [ ] Registreer via `/register`; controleer aflevering, de eigen `/token/...`-bevestigingsroute en daarna inloggen.
+- [ ] Voeg in Account een passkey toe, log uit, log met die passkey in en verwijder hem daarna weer.
+- [ ] Schakel uitnodigingsmail uit en controleer dat geen mail wordt klaargezet; account- en beveiligingsmail blijft actief.
+- [ ] Controleer `/assets/brand/logo.png` in de header en `/assets/email/logo.png` zonder sessie.
+- [ ] Open een openbare reis met tien stops en meerdere boekingen op desktop en telefoon.
+
 - [ ] Start Node-01 met `deploy/web.compose.yml`; controleer containerhealth, HTTPS, HTTP-redirect en het TLS-certificaat.
 - [ ] Controleer dat de Node-01-webcontainer na minimaal twee minuten nog draait en niet met exitcode 0 blijft herstarten.
 - [ ] Controleer dat `globetrotr.nl` website en app bedient en dat `www.globetrotr.nl` en `dashboard.globetrotr.nl` met behoud van het pad doorsturen.

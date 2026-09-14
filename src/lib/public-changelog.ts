@@ -49,6 +49,16 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-14-production-auth-and-email", version: "Beta 0.37", publishedAt: "2026-09-14T19:00:00+02:00",
+    title: "Veiliger inloggen en gerichte communicatie", titleEn: "Safer sign-in and focused communication",
+    summary: "Registratie, accountbevestiging en e-mailvoorkeuren zijn klaargemaakt voor het eigen GlobeTrotr-domein.", summaryEn: "Registration, account confirmation and email preferences are prepared for GlobeTrotr's own domain.",
+    changes: [
+      {kind:"new",title:"Inloggen met een passkey",titleEn:"Sign in with a passkey",description:"Voeg vanuit je account een passkey toe en log veilig in met je apparaat.",descriptionEn:"Add a passkey from your account and sign in securely with your device."},
+      {kind:"improved",title:"Communicatie naar jouw voorkeur",titleEn:"Communication on your terms",description:"Kies welke uitnodigingen, reisupdates en betaalberichten je per e-mail ontvangt.",descriptionEn:"Choose which invitations, trip updates and payment messages you receive by email."},
+      {kind:"fixed",title:"Duidelijke registratie en reisverhalen",titleEn:"Clearer registration and travel stories",description:"Registratie heeft een eigen route en openbare reizen tonen meer bestemmingen naast compactere boekingen.",descriptionEn:"Registration has its own route and public trips show more destinations beside more compact bookings."},
+    ],
+  },
+  {
     id: "2026-09-14-production-hosting-preparation",
     version: "Beta 0.36",
     publishedAt: "2026-09-14T15:00:00+02:00",

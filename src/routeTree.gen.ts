@@ -30,6 +30,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrijzenRouteImport } from './routes/prijzen'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
@@ -50,6 +51,7 @@ import { Route as AgencyInviteTokenRouteImport } from './routes/agency-invite.$t
 import { Route as AgencyUitnodigingTokenRouteImport } from './routes/agency-uitnodiging.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as QuoteTokenRouteImport } from './routes/quote.$token'
+import { Route as TokenTokenHashRouteImport } from './routes/token.$tokenHash'
 import { Route as UitnodigingTokenRouteImport } from './routes/uitnodiging.$token'
 import { Route as AuthenticatedAgencyAdminIndexRouteImport } from './routes/_authenticated/agency-admin.index'
 import { Route as AuthenticatedAgencyAdminAuditRouteImport } from './routes/_authenticated/agency-admin.audit'
@@ -192,6 +194,11 @@ const RefundPolicyRoute = RefundPolicyRouteImport.update({
   path: '/refund-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoadmapRoute = RoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
@@ -294,6 +301,11 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
 const QuoteTokenRoute = QuoteTokenRouteImport.update({
   id: '/quote/$token',
   path: '/quote/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TokenTokenHashRoute = TokenTokenHashRouteImport.update({
+  id: '/token/$tokenHash',
+  path: '/token/$tokenHash',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UitnodigingTokenRoute = UitnodigingTokenRouteImport.update({
@@ -537,6 +549,7 @@ export interface FileRoutesByFullPath {
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
@@ -557,6 +570,7 @@ export interface FileRoutesByFullPath {
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
+  '/token/$tokenHash': typeof TokenTokenHashRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
   '/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
@@ -616,6 +630,7 @@ export interface FileRoutesByTo {
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
@@ -634,6 +649,7 @@ export interface FileRoutesByTo {
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
+  '/token/$tokenHash': typeof TokenTokenHashRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
   '/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
@@ -695,6 +711,7 @@ export interface FileRoutesById {
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
   '/refund-policy': typeof RefundPolicyRoute
+  '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
@@ -715,6 +732,7 @@ export interface FileRoutesById {
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
+  '/token/$tokenHash': typeof TokenTokenHashRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/_authenticated/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
   '/_authenticated/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
@@ -776,6 +794,7 @@ export interface FileRouteTypes {
     | '/prijzen'
     | '/privacy'
     | '/refund-policy'
+    | '/register'
     | '/roadmap'
     | '/status'
     | '/support'
@@ -796,6 +815,7 @@ export interface FileRouteTypes {
     | '/agency-uitnodiging/$token'
     | '/invite/$token'
     | '/quote/$token'
+    | '/token/$tokenHash'
     | '/uitnodiging/$token'
     | '/agency-admin/audit'
     | '/agency-admin/clients'
@@ -855,6 +875,7 @@ export interface FileRouteTypes {
     | '/prijzen'
     | '/privacy'
     | '/refund-policy'
+    | '/register'
     | '/roadmap'
     | '/status'
     | '/support'
@@ -873,6 +894,7 @@ export interface FileRouteTypes {
     | '/agency-uitnodiging/$token'
     | '/invite/$token'
     | '/quote/$token'
+    | '/token/$tokenHash'
     | '/uitnodiging/$token'
     | '/agency-admin/audit'
     | '/agency-admin/clients'
@@ -933,6 +955,7 @@ export interface FileRouteTypes {
     | '/prijzen'
     | '/privacy'
     | '/refund-policy'
+    | '/register'
     | '/roadmap'
     | '/status'
     | '/support'
@@ -953,6 +976,7 @@ export interface FileRouteTypes {
     | '/agency-uitnodiging/$token'
     | '/invite/$token'
     | '/quote/$token'
+    | '/token/$tokenHash'
     | '/uitnodiging/$token'
     | '/_authenticated/agency-admin/audit'
     | '/_authenticated/agency-admin/clients'
@@ -1014,6 +1038,7 @@ export interface RootRouteChildren {
   PrijzenRoute: typeof PrijzenRoute
   PrivacyRoute: typeof PrivacyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
+  RegisterRoute: typeof RegisterRoute
   RoadmapRoute: typeof RoadmapRoute
   StatusRoute: typeof StatusRoute
   SupportRoute: typeof SupportRoute
@@ -1024,6 +1049,7 @@ export interface RootRouteChildren {
   AgencyUitnodigingTokenRoute: typeof AgencyUitnodigingTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
   QuoteTokenRoute: typeof QuoteTokenRoute
+  TokenTokenHashRoute: typeof TokenTokenHashRoute
   UitnodigingTokenRoute: typeof UitnodigingTokenRoute
   ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
   TripTokenTripIdRoute: typeof TripTokenTripIdRoute
@@ -1178,6 +1204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RefundPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roadmap': {
       id: '/roadmap'
       path: '/roadmap'
@@ -1316,6 +1349,13 @@ declare module '@tanstack/react-router' {
       path: '/quote/$token'
       fullPath: '/quote/$token'
       preLoaderRoute: typeof QuoteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/token/$tokenHash': {
+      id: '/token/$tokenHash'
+      path: '/token/$tokenHash'
+      fullPath: '/token/$tokenHash'
+      preLoaderRoute: typeof TokenTokenHashRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/uitnodiging/$token': {
@@ -1763,6 +1803,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrijzenRoute: PrijzenRoute,
   PrivacyRoute: PrivacyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
+  RegisterRoute: RegisterRoute,
   RoadmapRoute: RoadmapRoute,
   StatusRoute: StatusRoute,
   SupportRoute: SupportRoute,
@@ -1773,6 +1814,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgencyUitnodigingTokenRoute: AgencyUitnodigingTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
   QuoteTokenRoute: QuoteTokenRoute,
+  TokenTokenHashRoute: TokenTokenHashRoute,
   UitnodigingTokenRoute: UitnodigingTokenRoute,
   ReisTokenTripIdRoute: ReisTokenTripIdRoute,
   TripTokenTripIdRoute: TripTokenTripIdRoute,

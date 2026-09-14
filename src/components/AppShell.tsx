@@ -44,7 +44,6 @@ import {
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import logoIcon from "@/assets/logo-icon.asset.json";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { PlatformStatusBanner } from "@/components/PlatformStatusBanner";
 import { useLocale } from "@/lib/locale";
@@ -225,7 +224,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 py-3 lg:px-6">
           <Link to="/corporate-admin" className="flex min-w-0 items-center gap-3">
-            <img src={logoIcon.url} alt="GlobeTrotr" className="size-9 rounded-xl" />
+            <img src="/assets/brand/logo.png" alt="GlobeTrotr" className="size-9 rounded-xl object-contain" />
             <span className="min-w-0"><strong className="block truncate font-display">GlobeTrotr</strong><span className="block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Corporate operations</span></span>
           </Link>
           <div className="ml-auto flex items-center gap-1">
@@ -245,7 +244,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={agencyLogoUrl ?? logoIcon.url}
+              src={agencyLogoUrl ?? "/assets/brand/logo.png"}
               alt={`${state.branding.brandName} logo`}
               className="size-9 rounded-xl"
             />
@@ -357,7 +356,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/auth">
+                    <Link to="/register">
                       <UserRound className="size-4" /> {text("Registreren", "Create account")}
                     </Link>
                   </DropdownMenuItem>

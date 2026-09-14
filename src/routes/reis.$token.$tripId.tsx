@@ -151,7 +151,7 @@ export function PublicTrip() {
     return [...days.entries()];
   })();
   const dateRange = formatDateRange(trip.start, trip.end, locale);
-  const visibleStops = showAllStops ? stops : stops.slice(0, 4);
+  const visibleStops = showAllStops ? stops : stops.slice(0, 8);
   const weatherStop = stops.find((stop) => stop.id === activeStopId) ?? stops[0];
   const countryCount = new Set(stops.map((stop) => stop.country).filter(Boolean)).size;
   const tripBranding = trip.branding;
@@ -252,7 +252,7 @@ export function PublicTrip() {
                 </button>
               );
             })}
-            {stops.length > 4 && (
+            {stops.length > 8 && (
               <Button
                 type="button"
                 variant="outline"
@@ -292,7 +292,7 @@ export function PublicTrip() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 lg:grid-cols-2">
             {groupedDays.map(([day, items], dayIndex) => (
               <Card key={day} className="surface overflow-hidden">
                 <CardHeader className="border-b border-border bg-muted/30 pb-3">

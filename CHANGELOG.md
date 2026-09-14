@@ -1,5 +1,14 @@
 # GlobeTrotr changelog
 
+## 2026-09-14 19:00 CEST — Productiemail, Auth en publieke reis afgerond
+
+- Supabase Passkeys zijn in de browserclient geactiveerd en vanuit Account te beheren.
+- Registratie heeft een eigen `/register`-route; de eigen tokenroute verwerkt Auth-links op `globetrotr.nl`.
+- Accountinstellingen bevatten communicatievoorkeuren, terwijl verplichte account- en platformmail actief blijft.
+- Het logo wordt als zelfstandige productieasset geleverd, inclusief openbaar e-maillogo.
+- De openbare reispagina toont eerst acht bestemmingen en compactere reisonderdelen.
+- Migratie `20260908100000_account_communication_preferences.sql` voegt acceptatiecontroles toe en koppelt voorkeuren aan de mailoutbox.
+
 ## 2026-09-14 15:00 CEST — Productie-uitrol over twee servers voorbereid
 
 - De webapp en achtergrondworker hebben afzonderlijke Docker Compose-configuraties gekregen.

@@ -263,6 +263,18 @@ De log moet `relay.started` met `smtpVerified:true` tonen. Laat
 `email_delivery_config.mode` tijdens deze technische controle op `test`. Zet hem
 pas op `live` nadat een gecontroleerd testbericht succesvol is bezorgd.
 
+Stuur vanaf de workercontainer één gecontroleerd relaybericht. Vervang alleen het testadres:
+
+```bash
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec -e RELAY_TEST_TO=jouw-adres@example.nl worker node -e 'const id=crypto.randomUUID();fetch(process.env.MAIL_DELIVERY_RELAY_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.MAIL_DELIVERY_RELAY_TOKEN}`,"Content-Type":"application/json","Idempotency-Key":id},body:JSON.stringify({id,to:process.env.RELAY_TEST_TO,locale:"nl",templateKey:"platform",payload:{title:"GlobeTrotr mailtest",body:"De beveiligde SMTP-relay werkt."}})}).then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)}).catch(e=>{console.error(e.message);process.exit(1)})'
+```
+
+Controleer inbox en spammap. Zet na deze test de outbox bewust aan:
+
+```sql
+UPDATE public.email_delivery_config SET mode='live',updated_at=now() WHERE id=true;
+```
+
 ## 5. Agency-domeinen en bestanden
 
 De eerste livegang gebruikt uitsluitend `globetrotr.nl`. Het huidige
@@ -296,6 +308,33 @@ Stel in Supabase onder Authentication, URL Configuration in:
 ```text
 Site URL: https://globetrotr.nl
 Redirect URL: https://globetrotr.nl/**
+```
+
+Configureer **Authentication → SMTP Settings** met dezelfde werkende SMTP-host,
+poort, gebruiker en wachtwoord. Deze Supabase-instelling verzorgt registratie,
+wachtwoordherstel en e-mailadreswijzigingen; de worker-relay doet dat niet. De
+melding `Error sending confirmation email` wijst op deze SMTP-configuratie.
+
+Gebruik onder **Authentication → Email Templates → Confirm signup**:
+
+```html
+<a href="https://globetrotr.nl/token/{{ .TokenHash }}?type=email">Bevestig mijn account</a>
+```
+
+Gebruik voor e-mailadreswijziging `?type=email_change` en voor herstel
+`?type=recovery`. Stel onder **Authentication → Passkeys** in:
+
+```text
+Relying Party Display Name: GlobeTrotr
+Relying Party ID: globetrotr.nl
+Relying Party Origins: https://globetrotr.nl
+```
+
+Controleer de eigen merkassets:
+
+```bash
+curl --fail --head https://globetrotr.nl/assets/brand/logo.png
+curl --fail --head https://globetrotr.nl/assets/email/logo.png
 ```
 
 Laat localhost tijdelijk als extra redirect staan. Test daarna registratie,

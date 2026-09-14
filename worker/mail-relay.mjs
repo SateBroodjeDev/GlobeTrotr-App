@@ -38,7 +38,7 @@ function notificationMessage(body) {
   const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
   const subject = String(payload.title || "Nieuwe melding van GlobeTrotr").trim().slice(0, 160);
   const text = String(payload.body || "Open GlobeTrotr om je nieuwe melding te bekijken.").trim().slice(0, 5000);
-  return { subject, text, html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto"><h1 style="font-size:22px">${escapeHtml(subject)}</h1><p style="white-space:pre-line;line-height:1.6">${escapeHtml(text)}</p><p><a href="https://globetrotr.nl" style="color:#0f766e">Open GlobeTrotr</a></p></div>` };
+  return { subject, text, html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr" style="display:block;margin-bottom:24px"><h1 style="font-size:22px">${escapeHtml(subject)}</h1><p style="white-space:pre-line;line-height:1.6">${escapeHtml(text)}</p><p><a href="https://globetrotr.nl" style="color:#0f766e">Open GlobeTrotr</a></p></div>` };
 }
 async function readJson(request) {
   let size = 0; const chunks = [];

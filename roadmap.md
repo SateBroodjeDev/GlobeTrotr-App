@@ -6,7 +6,7 @@ GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agenc
 
 ## Actuele stand — 14 september 2026
 
-De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd.
+De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd. Productie-Auth heeft nu een eigen registratie- en tokenroute, Passkeys en accountbrede communicatievoorkeuren; migratie 1000 en de praktische mailtest staan nog open.
 
 Alle databasemigraties en SQL-regressietests tot en met migratie 970 zijn uitgevoerd. De nieuwe reisfuncties, pre-VPS-releasepoort en productie-UI-controles zijn daarmee technisch toegepast; de praktische productacceptatie blijft open.
 
@@ -34,7 +34,7 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 970 zijn uitgev
 8. [x] **Onderhoud en privacy-inbox:** Corporate Admin kan een onderhoudsvenster beheren; gebruikers zien een countdown en kunnen vanuit hun account een privacyverzoek indienen en de actuele status volgen.
 9. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
 10. [x] **Hostingportabiliteit:** afzonderlijke Node/Nitro-web- en workerimages, Caddy/TLS, secrets, healthchecks en rollback zijn voorbereid; installatie en externe monitoring volgen tijdens de VPS-uitrol.
-11. [ ] **Communicatie en betaling:** SMTP en Paddle activeren na staging-, domein-, webhook-, privacy-, opzeg- en terugbetalingstests.
+11. [ ] **Communicatie en betaling:** de SMTP-relay en accountvoorkeuren zijn gebouwd; Supabase Auth-SMTP, end-to-end aflevering en later Paddle moeten nog worden geactiveerd en getest.
 12. [ ] **OAuth:** Apple, Google en Microsoft activeren zodra de productie-infrastructuur en providerconfiguratie gereed zijn.
 13. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
 

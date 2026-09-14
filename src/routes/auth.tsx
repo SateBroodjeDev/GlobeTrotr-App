@@ -10,13 +10,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocale } from "@/lib/locale";
 import { getPublicFeatureFlags } from "@/lib/corporate-governance.functions";
+import { KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: typeof search.redirect === "string" && search.redirect.startsWith("/") && !search.redirect.startsWith("//")
-      ? search.redirect.slice(0, 500)
-      : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+    ...(typeof search["redirect"] === "string" && search["redirect"].startsWith("/") && !search["redirect"].startsWith("//")
+      ? { redirect: search["redirect"].slice(0, 500) }
+      : {}),
+  } as { redirect?: string }),
   head: () => ({
     meta: [
       { title: "Inloggen — GlobeTrotr workspace" },
@@ -35,13 +36,14 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-function AuthPage() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | "signup" } = {}) {
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [passkeyBusy, setPasskeyBusy] = useState(false);
   const { session } = useAuth();
   const { redirect } = Route.useSearch();
   const { text } = useLocale();
@@ -99,6 +101,18 @@ function AuthPage() {
       );
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function signInWithPasskey() {
+    setPasskeyBusy(true);
+    try {
+      const { error } = await supabase.auth.signInWithPasskey();
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : text("Inloggen met passkey is mislukt.", "Passkey sign-in failed."));
+    } finally {
+      setPasskeyBusy(false);
     }
   }
 
@@ -173,15 +187,13 @@ function AuthPage() {
                     ? text("Inloggen", "Sign in")
                     : text("Account aanmaken", "Create account")}
               </Button>
+              {mode === "signin" && <><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{text("of", "or")}</span><span className="h-px flex-1 bg-border"/></div><Button type="button" variant="outline" className="w-full" disabled={passkeyBusy} onClick={() => void signInWithPasskey()}><KeyRound className="size-4"/>{passkeyBusy ? text("Passkey openen…", "Opening passkey…") : text("Inloggen met passkey", "Sign in with passkey")}</Button></>}
             </form>
           )}
 
           {registrationEnabled ? <button
             type="button"
-            onClick={() => {
-              setMode(mode === "signin" ? "signup" : "signin");
-              setSent(false);
-            }}
+            onClick={() => window.location.assign(mode === "signin" ? "/register" : "/auth")}
             className="mt-4 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
           >
             {mode === "signin"

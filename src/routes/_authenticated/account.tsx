@@ -60,7 +60,10 @@ type Profile = {
   locale: string | null;
   theme: string | null;
   timezone: string | null;
+  notification_preferences: Record<string, boolean> | null;
 };
+
+const DEFAULT_COMMUNICATION = { invitations: true, tripUpdates: true, payments: true, flightAlerts: true, productUpdates: false };
 
 type ThemePreference = "system" | "light" | "dark";
 const OAUTH_PROVIDERS = [
@@ -103,7 +106,7 @@ function AccountPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, email, phone, avatar_path, locale, theme, timezone")
+        .select("display_name, email, phone, avatar_path, locale, theme, timezone, notification_preferences")
         .eq("id", user!.id)
         .maybeSingle();
       if (error) throw error;
@@ -133,6 +136,9 @@ function AccountPage() {
   const [privacyNotes,setPrivacyNotes]=useState("");
   const privacyRequests=useQuery({queryKey:["my-privacy-requests",user.id],queryFn:()=>listMyPrivacyRequests()});
   const [submittingPrivacy,setSubmittingPrivacy]=useState(false);
+  const [communication,setCommunication]=useState(DEFAULT_COMMUNICATION);
+  const [savingCommunication,setSavingCommunication]=useState(false);
+  const passkeys=useQuery({queryKey:["account-passkeys",user.id],queryFn:async()=>{const{data,error}=await supabase.auth.passkey.list();if(error)throw error;return data??[]},retry:false});
 
   useEffect(() => {
     if (!user) return;
@@ -142,6 +148,7 @@ function AccountPage() {
     setLocale(profile?.locale === "en-GB" ? "en-GB" : "nl-NL");
     setTimezone(profile?.timezone || "Europe/Amsterdam");
     setTheme(asThemePreference(profile?.theme));
+    setCommunication({...DEFAULT_COMMUNICATION,...(profile?.notification_preferences??{})});
   }, [profile, user]);
 
   useEffect(() => {
@@ -241,6 +248,11 @@ function AccountPage() {
       setSavingPreferences(false);
     }
   }
+
+  async function saveCommunication(){setSavingCommunication(true);try{const{error}=await supabase.from("profiles").upsert({id:user.id,notification_preferences:communication});if(error)throw error;await queryClient.invalidateQueries({queryKey:["profile",user.id]});toast.success(text("Communicatievoorkeuren opgeslagen.","Communication preferences saved."));}catch(error){toast.error(error instanceof Error?error.message:text("Opslaan is mislukt.","Saving failed."));}finally{setSavingCommunication(false)}}
+
+  async function addPasskey(){try{const{error}=await supabase.auth.registerPasskey();if(error)throw error;await passkeys.refetch();toast.success(text("Passkey toegevoegd.","Passkey added."));}catch(error){toast.error(error instanceof Error?error.message:text("Passkey toevoegen is mislukt.","Adding the passkey failed."));}}
+  async function removePasskey(passkeyId:string){if(!window.confirm(text("Deze passkey verwijderen?","Delete this passkey?")))return;try{const{error}=await supabase.auth.passkey.delete({passkeyId});if(error)throw error;await passkeys.refetch();toast.success(text("Passkey verwijderd.","Passkey removed."));}catch(error){toast.error(error instanceof Error?error.message:text("Passkey verwijderen is mislukt.","Deleting the passkey failed."));}}
 
   async function uploadAvatar(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -609,6 +621,7 @@ function AccountPage() {
                   </div>
                 ))}
             </div>
+            <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-medium">Passkeys</p><p className="mt-1 text-xs text-muted-foreground">{text("Log veilig in met biometrie, een pincode of beveiligingssleutel.","Sign in securely with biometrics, a PIN or a security key.")}</p></div><Button type="button" variant="outline" onClick={()=>void addPasskey()}><KeyRound className="size-4"/>{text("Passkey toevoegen","Add passkey")}</Button></div>{passkeys.data?.map((passkey)=><div key={passkey.id} className="flex items-center justify-between gap-3 rounded-lg bg-background px-3 py-2"><span className="min-w-0"><strong className="block truncate text-sm">{passkey.friendly_name||text("Passkey","Passkey")}</strong><span className="text-xs text-muted-foreground">{new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date(passkey.created_at))}</span></span><Button type="button" size="sm" variant="ghost" onClick={()=>void removePasskey(passkey.id)}>{text("Verwijderen","Delete")}</Button></div>)}</div>
             <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
               <div>
                 <p className="font-medium">{text("Wachtwoord wijzigen", "Change password")}</p>
@@ -699,8 +712,16 @@ function AccountPage() {
             <Mail className="size-4" /> {text("Communicatie", "Communication")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {text("Meldingsvoorkeuren voor uitnodigingen, betalingen en vluchtalerts komen hier zodra de e-mailfunctie is geactiveerd.", "Notification preferences for invitations, payments and flight alerts will appear here once email is enabled.")}
+        <CardContent className="space-y-4 text-sm">
+          <p className="text-muted-foreground">{text("Kies welke niet-verplichte berichten je per e-mail ontvangt. Beveiligings- en accountberichten blijven altijd aan.","Choose which optional messages you receive by email. Security and account messages always remain enabled.")}</p>
+          <div className="grid gap-2 sm:grid-cols-2">{([
+            ["invitations",text("Uitnodigingen en toegang","Invitations and access")],
+            ["tripUpdates",text("Belangrijke reiswijzigingen","Important trip updates")],
+            ["payments",text("Betalingen en verrekeningen","Payments and settlements")],
+            ["flightAlerts",text("Vluchtmeldingen","Flight alerts")],
+            ["productUpdates",text("Productnieuws","Product news")],
+          ] as const).map(([key,label])=><label key={key} className="flex min-h-11 items-center gap-3 rounded-xl border p-3"><input type="checkbox" checked={communication[key]} onChange={event=>setCommunication(current=>({...current,[key]:event.target.checked}))}/><span>{label}</span></label>)}</div>
+          <Button type="button" disabled={savingCommunication} onClick={()=>void saveCommunication()}>{savingCommunication?text("Opslaan…","Saving…"):text("Communicatie opslaan","Save communication settings")}</Button>
         </CardContent>
       </Card>
       <Card className="border-destructive/40 surface">
