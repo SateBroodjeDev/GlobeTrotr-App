@@ -15,10 +15,12 @@ Maak in Hetzner Cloud een Network `globetrotr-private` met subnet
 
 Maak een firewall voor Node-01: TCP 22 vanaf je beheer-IP, TCP 80/443 en UDP
 443 vanaf overal. Maak een firewall voor Node-02 met alleen TCP 22 vanaf je
-beheer-IP. Maak vervolgens dit DNS-record:
+beheer-IP. Maak vervolgens deze DNS-records:
 
 ```text
-dashboard.globetrotr.nl A 2.28.36.231
+globetrotr.nl A 2.28.36.231
+www.globetrotr.nl CNAME globetrotr.nl
+dashboard.globetrotr.nl CNAME globetrotr.nl
 ```
 
 Voeg AAAA pas toe nadat IPv6 apart is getest.
@@ -117,6 +119,8 @@ docker compose --env-file .env.production -f deploy/web.compose.yml build --pull
 docker compose --env-file .env.production -f deploy/web.compose.yml up -d
 docker compose --env-file .env.production -f deploy/web.compose.yml ps
 docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=100 web caddy
+curl -I https://globetrotr.nl
+curl -I https://www.globetrotr.nl
 curl -I https://dashboard.globetrotr.nl
 ```
 
@@ -227,7 +231,7 @@ databasebezorgmodus pas op `live` nadat deze relay end-to-end is getest.
 
 ## 5. Agency-domeinen en bestanden
 
-De eerste livegang gebruikt uitsluitend `dashboard.globetrotr.nl`. Het huidige
+De eerste livegang gebruikt uitsluitend `globetrotr.nl`. Het huidige
 Caddyfile en de applicatierouter activeren nog geen Agency op basis van de
 hostname. Velden voor `agency.globetrotr.nl`, een eigen domein en DNS-verificatie
 bestaan al, maar worden pas actief nadat deze onderdelen zijn gebouwd en getest:
@@ -244,7 +248,7 @@ on-demand TLS-configuratie kan door derden worden misbruikt om certificaten aan
 te vragen.
 
 Voor een eigen Agency-domein maakt de Agency bij zijn DNS-provider een CNAME,
-bijvoorbeeld `reizen.bedrijf.nl CNAME dashboard.globetrotr.nl`. GlobeTrotr
+bijvoorbeeld `reizen.bedrijf.nl CNAME globetrotr.nl`. GlobeTrotr
 controleert daarnaast een afzonderlijk TXT-record met de bestaande
 verificatietoken. Pas na die controle mag Caddy een certificaat aanvragen en de
 hostname aan de betreffende workspace koppelen. Een apexdomein zonder subdomein
@@ -256,8 +260,8 @@ ALIAS/ANAME-flattening of verwijs een subdomein zoals `reizen`.
 Stel in Supabase onder Authentication, URL Configuration in:
 
 ```text
-Site URL: https://dashboard.globetrotr.nl
-Redirect URL: https://dashboard.globetrotr.nl/**
+Site URL: https://globetrotr.nl
+Redirect URL: https://globetrotr.nl/**
 ```
 
 Laat localhost tijdelijk als extra redirect staan. Test daarna registratie,

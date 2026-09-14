@@ -1,4 +1,4 @@
-dashboard.globetrotr.nl {
+globetrotr.nl {
   encode zstd gzip
   reverse_proxy web:3000
 
@@ -8,4 +8,8 @@ dashboard.globetrotr.nl {
     Referrer-Policy "strict-origin-when-cross-origin"
     -Server
   }
+}
+
+www.globetrotr.nl, dashboard.globetrotr.nl {
+  redir https://globetrotr.nl{uri} permanent
 }
