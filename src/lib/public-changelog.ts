@@ -28,8 +28,8 @@ export const PUBLIC_BETA_STATUS = {
     "GlobeTrotr is open to its first group of international testers, centred on planning, expenses and public trip sharing.",
   unavailable: [
     {
-      nl: "Inloggen met Apple, Google of Microsoft",
-      en: "Sign in with Apple, Google or Microsoft",
+      nl: "Inloggen met Apple of Microsoft",
+      en: "Sign in with Apple or Microsoft",
     },
     {
       nl: "Online afrekenen en abonnementsverwerking via Paddle",
@@ -44,6 +44,15 @@ export const PUBLIC_BETA_STATUS = {
 
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-14-social-sign-in", version: "Beta 0.40", publishedAt: "2026-09-14T23:30:00+02:00",
+    title: "Sneller aanmelden met je bestaande account", titleEn: "Faster sign-in with your existing account",
+    summary: "GlobeTrotr is voorbereid op aanmelden via Google, Facebook en Discord, inclusief een veilige terugkeer naar uitnodigingen.", summaryEn: "GlobeTrotr is prepared for sign-in through Google, Facebook and Discord, including a safe return to invitations.",
+    changes: [
+      {kind:"new",title:"Drie extra inlogmogelijkheden",titleEn:"Three additional sign-in options",description:"Kies op het inlogscherm Google, Facebook of Discord zodra de provider beschikbaar is.",descriptionEn:"Choose Google, Facebook or Discord on the sign-in screen once the provider is available."},
+      {kind:"secure",title:"Veilige terugkeer na aanmelden",titleEn:"Safe return after sign-in",description:"Alleen interne GlobeTrotr-paden worden na het aanmelden als bestemming gebruikt.",descriptionEn:"Only internal GlobeTrotr paths are used as destinations after sign-in."},
+    ],
+  },
   {
     id: "2026-09-14-consistent-email-design", version: "Beta 0.39", publishedAt: "2026-09-14T23:00:00+02:00",
     title: "Herkenbare e-mail van GlobeTrotr", titleEn: "Recognisable email from GlobeTrotr",

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocale } from "@/lib/locale";
 import { getPublicFeatureFlags } from "@/lib/corporate-governance.functions";
 import { KeyRound } from "lucide-react";
+import type { Provider } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
@@ -44,6 +45,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [passkeyBusy, setPasskeyBusy] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
   const { session } = useAuth();
   const { redirect } = Route.useSearch();
   const { text } = useLocale();
@@ -116,6 +118,19 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     }
   }
 
+  async function signInWithProvider(provider: "google" | "facebook" | "discord") {
+    setOauthBusy(provider);
+    try {
+      const callback = new URL("/auth", window.location.origin);
+      if (redirect) callback.searchParams.set("redirect", redirect);
+      const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: callback.toString() } });
+      if (error) throw error;
+    } catch (error) {
+      setOauthBusy(null);
+      toast.error(error instanceof Error ? error.message : text("Inloggen via deze aanbieder is mislukt.", "Sign-in with this provider failed."));
+    }
+  }
+
   return (
     <div className="mx-auto max-w-md py-8">
       <Card>
@@ -150,7 +165,12 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
               )}
             </p>
           ) : (
-            <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-4">
+              <div className="grid gap-2 sm:grid-cols-3">
+                {(["google","facebook","discord"] as const).map(provider=><Button key={provider} type="button" variant="outline" className="w-full capitalize" disabled={Boolean(oauthBusy)} onClick={()=>void signInWithProvider(provider)}>{oauthBusy===provider?text("Openen…","Opening…"):provider}</Button>)}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{text("of met e-mail","or with email")}</span><span className="h-px flex-1 bg-border"/></div>
+              <form onSubmit={submit} className="space-y-4">
               {mode === "signup" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="name">{text("Naam", "Name")}</Label>
@@ -188,7 +208,9 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                     : text("Account aanmaken", "Create account")}
               </Button>
               {mode === "signin" && <><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{text("of", "or")}</span><span className="h-px flex-1 bg-border"/></div><Button type="button" variant="outline" className="w-full" disabled={passkeyBusy} onClick={() => void signInWithPasskey()}><KeyRound className="size-4"/>{passkeyBusy ? text("Passkey openen…", "Opening passkey…") : text("Inloggen met passkey", "Sign in with passkey")}</Button></>}
-            </form>
+              </form>
+              <p className="text-center text-xs leading-5 text-muted-foreground">{text("Door verder te gaan accepteer je de voorwaarden en privacyverklaring.","By continuing, you accept the terms and privacy policy.")} <Link to="/terms" className="underline underline-offset-2">{text("Voorwaarden","Terms")}</Link> · <Link to="/privacy" className="underline underline-offset-2">Privacy</Link></p>
+            </div>
           )}
 
           {registrationEnabled ? <button

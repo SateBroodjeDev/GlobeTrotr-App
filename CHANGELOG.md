@@ -1,5 +1,12 @@
 # GlobeTrotr changelog
 
+## 2026-09-14 23:30 CEST — Inloggen met Google, Facebook en Discord
+
+- Inloggen en registreren bieden nu Google, Facebook en Discord naast e-mail, wachtwoord en passkey.
+- OAuth bewaart een veilige interne terugkeerroute, zodat aanmelden vanuit een uitnodiging de gebruiker terugbrengt naar die uitnodiging.
+- De privacyverklaring beschrijft welke minimale accountgegevens een gekozen loginprovider verwerkt en dat GlobeTrotr nooit het providerwachtwoord ontvangt.
+- Een providerhandleiding en vijf gerichte Corporate Admin-acceptatiecontroles begeleiden de externe configuratie en identiteitstest.
+
 ## 2026-09-14 23:00 CEST — Eén herkenbare stijl voor iedere e-mail
 
 - Registratie, wachtwoordherstel, e-mailwijziging en magic link hebben kant-en-klare Supabase Auth-templates met het eigen logo en de GlobeTrotr-tokenroute.
