@@ -45,6 +45,15 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-14-consistent-email-design", version: "Beta 0.39", publishedAt: "2026-09-14T23:00:00+02:00",
+    title: "Herkenbare e-mail van GlobeTrotr", titleEn: "Recognisable email from GlobeTrotr",
+    summary: "Accountbeveiliging, uitnodigingen en updates gebruiken voortaan dezelfde heldere GlobeTrotr-opmaak.", summaryEn: "Account security, invitations and updates now use the same clear GlobeTrotr design.",
+    changes: [
+      {kind:"improved",title:"Eén vertrouwde afzenderstijl",titleEn:"One trusted sender design",description:"Logo, afzender, actieknop en contactmogelijkheid zijn gelijk in belangrijke servicemails.",descriptionEn:"Logo, sender, action button and contact option are consistent across important service emails."},
+      {kind:"secure",title:"Links via GlobeTrotr",titleEn:"Links through GlobeTrotr",description:"Registratie, herstel en e-mailwijzigingen openen een beveiligde eenmalige route op globetrotr.nl.",descriptionEn:"Signup, recovery and email changes open a protected single-use route on globetrotr.nl."},
+    ],
+  },
+  {
     id: "2026-09-14-independent-production-and-invitations", version: "Beta 0.38", publishedAt: "2026-09-14T22:00:00+02:00",
     title: "Uitnodigingen rechtstreeks in je mailbox", titleEn: "Invitations delivered to your inbox",
     summary: "GlobeTrotr draait zelfstandig op de eigen productieomgeving en verstuurt reis- en Agency-uitnodigingen via de beveiligde mailrelay.", summaryEn: "GlobeTrotr now runs independently on its own production environment and delivers trip and Agency invitations through its protected mail relay.",

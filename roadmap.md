@@ -244,6 +244,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] SPF, DKIM en DMARC voor `globetrotr.nl` configureren.
 - [x] Provider-onafhankelijke, idempotente mail-outbox en veilige NL/EN-rendering in verplichte testmodus bouwen.
 - [x] Reis- en Agency-uitnodigingen voor bestaande en nieuwe accounts via de mail-outbox versturen en bij verlengen opnieuw klaarzetten.
+- [x] Eén herkenbare responsive e-mailopmaak toepassen op Auth-, uitnodigings- en servicemail, met eigen tokenroutes en platte-tekstterugval.
 - [x] Interne VPS-mailrelay met SMTP-TLS, time-outs, afzenderbegrenzing, ontvangerslimieten, veilige foutregistratie en afgeschermde secrets bouwen.
 - [ ] Relay met de echte SMTP-provider testen en daarna de databasebezorgmodus gecontroleerd op `live` zetten.
 - [ ] NL/EN-templates voor uitnodigingen, antwoorden, beveiliging, betalingen en belangrijke updates.

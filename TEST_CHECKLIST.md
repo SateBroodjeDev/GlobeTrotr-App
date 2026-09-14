@@ -6,12 +6,15 @@
 
 - [ ] Voer `20260908100000_account_communication_preferences.sql` en daarna `account_communication_preferences.sql` uit.
 - [ ] Voer `20260908101000_direct_invitation_email.sql` en daarna `direct_invitation_email.sql` uit.
+- [ ] Voer `20260908102000_email_template_acceptance.sql` en daarna `email_template_acceptance.sql` uit.
 - [ ] Registreer via `/register`; controleer aflevering, de eigen `/token/...`-bevestigingsroute en daarna inloggen.
 - [ ] Voeg in Account een passkey toe, log uit, log met die passkey in en verwijder hem daarna weer.
 - [ ] Schakel uitnodigingsmail uit en controleer dat geen mail wordt klaargezet; account- en beveiligingsmail blijft actief.
 - [ ] Controleer `/assets/brand/logo.png` in de header en `/assets/email/logo.png` zonder sessie.
 - [ ] Open alle paden uit `public/assets/brand/README.md` zonder sessie en controleer transparantie, lichte en donkere variant.
 - [ ] Nodig een nieuw en bestaand account uit voor een reis en Agency; controleer ontvangst, taal, acceptatielink en opnieuw verzenden na verlengen.
+- [ ] Plak de vier bestanden uit `supabase/templates` in Supabase Auth en test registratie, herstel, e-mailwijziging en magic link afzonderlijk.
+- [ ] Controleer Auth-, uitnodigings- en servicemail in een telefoonclient, desktopclient en donkere weergave op logo, leesbaarheid, knop en contactlink.
 - [ ] Zet uitnodigingsmail uit bij een bestaand account en controleer dat de uitnodiging bruikbaar blijft zonder mail in de outbox.
 - [ ] Bouw en start de app zonder Lovable-package, preview-authbroker of Lovable-runtimevariabelen.
 - [ ] Open een openbare reis met tien stops en meerdere boekingen op desktop en telefoon.

@@ -1,0 +1,4 @@
+- Confirm signup: `Confirm your GlobeTrotr account`
+- Reset password: `Reset your GlobeTrotr password`
+- Change email address: `Confirm your new GlobeTrotr email address`
+- Magic link: `Your secure GlobeTrotr sign-in link`

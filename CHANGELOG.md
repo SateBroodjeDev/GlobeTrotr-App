@@ -1,5 +1,12 @@
 # GlobeTrotr changelog
 
+## 2026-09-14 23:00 CEST — Eén herkenbare stijl voor iedere e-mail
+
+- Registratie, wachtwoordherstel, e-mailwijziging en magic link hebben kant-en-klare Supabase Auth-templates met het eigen logo en de GlobeTrotr-tokenroute.
+- Uitnodigingen en servicemeldingen uit de VPS-relay gebruiken dezelfde rustige kaartopmaak, primaire knop, contactlink en platte-tekstvariant.
+- Markdown-links en ontsnapte HTML uit concepttemplates zijn vervangen door geldige, direct bruikbare e-mail-HTML.
+- De Corporate Admin-testlijst bevat vijf afzonderlijke controles voor Auth-mail en visuele consistentie.
+
 ## 2026-09-14 22:00 CEST — Zelfstandige productie en uitnodigingsmail
 
 - De Vite- en Nitro-build gebruikt geen Lovable-package of preview-authbroker meer en draait zelfstandig op de eigen VPS-infrastructuur.
