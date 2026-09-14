@@ -75,6 +75,7 @@ export const PUBLIC_TODAY = {
     ["Plaatsgebonden boekingen en gekoppelde uitgaven op de routekaart", "Location-based bookings and linked expenses on the route map"],
     ["Private omslagfoto's voor reizen en dashboardkaarten", "Private cover photos for trips and dashboard cards"],
     ["Mobiele navigatie, aanraakbediening en productiegerichte teksten aanscherpen", "Refine mobile navigation, touch controls and production copy"],
+    ["Controleerbare Supabase-productieopbouw naast de Lovable-testomgeving", "Auditable Supabase production setup alongside the Lovable test environment"],
   ],
 } as const;
 

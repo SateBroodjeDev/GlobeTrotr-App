@@ -4,6 +4,12 @@
 
 ## Nieuwe praktische acceptatiecontroles
 
+- [ ] Maak een nieuw Supabase-productieproject in een EU-regio en controleer dat lokale en VPS-productieconfiguratie naar de juiste projectreferentie wijzen.
+- [ ] Controleer vóór registratie dat `auth.users`, `public.profiles` en `public.workspaces` leeg zijn; registreer via GlobeTrotr en controleer daarna dezelfde gebruikers-UUID in Auth, profiel en workspace.
+- [ ] Voer `npx supabase db push` uit en controleer dat alle migraties tot en met 990 geregistreerd en zonder fout toegepast zijn.
+- [ ] Configureer en test Auth Site URL, redirects, e-mail, Storage-buckets, policies en alle vereiste serversecrets zonder geheimen in Git.
+- [ ] Maak het eerste productieaccount, activeer Corporate Admin en controleer na volledig opnieuw inloggen de nieuwe claim en rechten.
+- [ ] Controleer dat Lovable staging geen productieaccounts, productiesleutels of echte productiegegevens gebruikt.
 - [ ] Onderhoud aanzetten met Nederlandse en Engelse reden en eindtijd; controleer de countdown als gewone gebruiker.
 - [ ] Controleer dat `/auth` tijdens onderhoud bereikbaar blijft en dat een Corporate Admin na inloggen toegang houdt.
 - [ ] Dien vanuit Account → Privacy een verzoek in, controleer direct de statusgeschiedenis en behandel het in Governance → Privacy.

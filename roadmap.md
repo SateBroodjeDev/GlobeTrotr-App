@@ -271,6 +271,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] Verdere mobiele, toegankelijkheids- en performancecontrole.
 - [x] Corporate Admin-navigatie op kleine schermen inklapbaar maken, icoonknoppen vergroten en productiegerichte foutteksten gebruiken.
 - [x] Demo anonimiseren, Contact-acties van iconen voorzien, ingelogde supportlinks logisch als laatste plaatsen en de reisomslag naast de algemene instellingen zetten.
+- [x] Volledige beginnerstutorial, klikbare migratievolgorde en CLI-procedure voor een schoon Supabase-productieproject vastleggen, inclusief beheerde Auth/Storage-schema's, sleutels, eerste beheeraccount en terugval.
 - [ ] Grote bundles splitsen waar dit de gemeten laadtijd werkelijk verbetert.
 - [ ] Automatische vertaling van feedback en bekende problemen pas na keuze van een veilige provider en bewaarbeleid.
 - [ ] Automatische vertaalconcepten voor statusberichten, bekende problemen en publieke communicatie bouwen, met verplichte menselijke controle vóór publicatie.
