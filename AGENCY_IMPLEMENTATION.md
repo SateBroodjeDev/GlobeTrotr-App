@@ -1,4 +1,4 @@
-# Agency implementeren in Lovable/Supabase
+# Agency implementeren met Supabase en de GlobeTrotr-VPS
 
 De Agency-code is gebouwd. Voer onderstaande nog niet uitgevoerde migraties in exact deze volgorde uit via de Supabase SQL Editor. Stop bij de eerste fout; voer latere bestanden dan nog niet uit.
 
@@ -34,8 +34,8 @@ Voer daarna deze tests afzonderlijk uit:
 14. `corporate_staff_management.sql`
 15. `agency_release_gate.sql`
 
-Elke test gebruikt een transactie en eindigt met `ROLLBACK`. Een leeg succesresultaat is correct. Pas nadat alle tests slagen wordt de actuele applicatiecommit naar de Lovable-branch gepusht.
+Elke test gebruikt een transactie en eindigt met `ROLLBACK`. Een leeg succesresultaat is correct. Pas nadat alle tests slagen wordt de actuele applicatiecommit naar de productiebranch gepusht.
 
-Controleer in Lovable vervolgens met een Agency-eigenaar, adviseur, finance-gebruiker en klant de secties uit `TEST_CHECKLIST.md`. Test vooral persoonlijke rechten, directe brandingupdates, klanttoegang, offertes, documenten, meldingsvoorkeuren en leveranciers. Leg alleen werkelijk afwijkend gedrag als bekend probleem vast.
+Controleer vervolgens op het stagingdomein met een Agency-eigenaar, adviseur, finance-gebruiker en klant de secties uit `TEST_CHECKLIST.md`. Test vooral persoonlijke rechten, directe brandingupdates, klanttoegang, offertes, documenten, meldingsvoorkeuren en leveranciers. Leg alleen werkelijk afwijkend gedrag als bekend probleem vast.
 
-De dagelijkse functie `public.run_scheduled_notification_maintenance(...)` hoeft in Lovable nog niet als cronjob te worden ingesteld. Dat gebeurt bij de latere VPS-implementatie. Handmatig uitvoeren met de service-role blijft uitsluitend bedoeld voor beheer en tests.
+De dagelijkse functie `public.run_scheduled_notification_maintenance(...)` wordt door de worker op Node-02 aangeroepen. Handmatig uitvoeren met de service-role blijft uitsluitend bedoeld voor beheer en tests.

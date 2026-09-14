@@ -218,12 +218,12 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 
 ### Ubuntu-VPS
 
-- [ ] Lovable-afhankelijkheden inventariseren.
+- [x] Runtime-afhankelijkheden van Lovable verwijderen; Vite, authopslag en foutregistratie draaien zelfstandig.
 - [x] Afzonderlijke Node/Nitro-productiebuild en expliciet workerstartscript bouwen.
 - [x] Containerbasis onder een niet-root gebruiker, healthcheck, automatische herstart en gestructureerde stdout-logs bouwen.
 - [ ] Nginx of Caddy voor TLS, proxyheaders, uploads en WebSockets.
 - [ ] Stagingdomein, Supabase Site URL en exacte redirect-URL's configureren.
-- [ ] Monitoring, uptimecontrole, firewall, updates, configuratieback-up en rollback naar Lovable.
+- [ ] Monitoring, uptimecontrole, firewall, updates, configuratieback-up en herstel naar de vorige stabiele containerrelease.
 - [ ] DNS pas na een volledige stagingproef omschakelen.
 - [x] Datamodel en Agency-interface voor `naam.globetrotr.nl`, eigen domeinen, DNS-verificatie en veilige SMTP-secretreferenties voorbereiden.
 - [x] Centrale providerstops, atomaire API-dagquota per workspace en een idempotente PostgreSQL-workerwachtrij voorbereiden.
@@ -243,6 +243,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] Provider en verwerkingsregio kiezen en privacyverklaring concretiseren.
 - [ ] SPF, DKIM en DMARC voor `globetrotr.nl` configureren.
 - [x] Provider-onafhankelijke, idempotente mail-outbox en veilige NL/EN-rendering in verplichte testmodus bouwen.
+- [x] Reis- en Agency-uitnodigingen voor bestaande en nieuwe accounts via de mail-outbox versturen en bij verlengen opnieuw klaarzetten.
 - [x] Interne VPS-mailrelay met SMTP-TLS, time-outs, afzenderbegrenzing, ontvangerslimieten, veilige foutregistratie en afgeschermde secrets bouwen.
 - [ ] Relay met de echte SMTP-provider testen en daarna de databasebezorgmodus gecontroleerd op `live` zetten.
 - [ ] NL/EN-templates voor uitnodigingen, antwoorden, beveiliging, betalingen en belangrijke updates.

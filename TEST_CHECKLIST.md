@@ -1,14 +1,19 @@
 # GlobeTrotr beta-testlijst
 
-> Alle databasemigraties en SQL-regressietests tot en met migratie 970 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
+> Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitgevoerd. De onderstaande praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
 
 ## Nieuwe praktische acceptatiecontroles
 
 - [ ] Voer `20260908100000_account_communication_preferences.sql` en daarna `account_communication_preferences.sql` uit.
+- [ ] Voer `20260908101000_direct_invitation_email.sql` en daarna `direct_invitation_email.sql` uit.
 - [ ] Registreer via `/register`; controleer aflevering, de eigen `/token/...`-bevestigingsroute en daarna inloggen.
 - [ ] Voeg in Account een passkey toe, log uit, log met die passkey in en verwijder hem daarna weer.
 - [ ] Schakel uitnodigingsmail uit en controleer dat geen mail wordt klaargezet; account- en beveiligingsmail blijft actief.
 - [ ] Controleer `/assets/brand/logo.png` in de header en `/assets/email/logo.png` zonder sessie.
+- [ ] Open alle paden uit `public/assets/brand/README.md` zonder sessie en controleer transparantie, lichte en donkere variant.
+- [ ] Nodig een nieuw en bestaand account uit voor een reis en Agency; controleer ontvangst, taal, acceptatielink en opnieuw verzenden na verlengen.
+- [ ] Zet uitnodigingsmail uit bij een bestaand account en controleer dat de uitnodiging bruikbaar blijft zonder mail in de outbox.
+- [ ] Bouw en start de app zonder Lovable-package, preview-authbroker of Lovable-runtimevariabelen.
 - [ ] Open een openbare reis met tien stops en meerdere boekingen op desktop en telefoon.
 
 - [ ] Start Node-01 met `deploy/web.compose.yml`; controleer containerhealth, HTTPS, HTTP-redirect en het TLS-certificaat.
@@ -25,7 +30,7 @@
 - [ ] Voer `npx supabase db push` uit en controleer dat alle migraties tot en met 990 geregistreerd en zonder fout toegepast zijn.
 - [ ] Configureer en test Auth Site URL, redirects, e-mail, Storage-buckets, policies en alle vereiste serversecrets zonder geheimen in Git.
 - [ ] Maak het eerste productieaccount, activeer Corporate Admin en controleer na volledig opnieuw inloggen de nieuwe claim en rechten.
-- [ ] Controleer dat Lovable staging geen productieaccounts, productiesleutels of echte productiegegevens gebruikt.
+- [ ] Controleer dat een eventuele niet-productieomgeving geen productieaccounts, productiesleutels of echte productiegegevens gebruikt.
 - [ ] Onderhoud aanzetten met Nederlandse en Engelse reden en eindtijd; controleer de countdown als gewone gebruiker.
 - [ ] Controleer dat `/auth` tijdens onderhoud bereikbaar blijft en dat een Corporate Admin na inloggen toegang houdt.
 - [ ] Dien vanuit Account → Privacy een verzoek in, controleer direct de statusgeschiedenis en behandel het in Governance → Privacy.

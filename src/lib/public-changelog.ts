@@ -32,22 +32,28 @@ export const PUBLIC_BETA_STATUS = {
       en: "Sign in with Apple, Google or Microsoft",
     },
     {
-      nl: "Automatische app-e-mails en reisuitnodigingen per e-mail",
-      en: "Automated app emails and trip invitations by email",
-    },
-    {
       nl: "Online afrekenen en abonnementsverwerking via Paddle",
       en: "Online checkout and subscription processing through Paddle",
     },
     {
-      nl: "Eigen Agency-domeinen en automatische e-mailbezorging",
-      en: "Custom Agency domains and automated email delivery",
+      nl: "Volledig geautomatiseerde koppeling van eigen Agency-domeinen",
+      en: "Fully automated custom Agency domain onboarding",
     },
   ],
 } as const;
 
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-14-independent-production-and-invitations", version: "Beta 0.38", publishedAt: "2026-09-14T22:00:00+02:00",
+    title: "Uitnodigingen rechtstreeks in je mailbox", titleEn: "Invitations delivered to your inbox",
+    summary: "GlobeTrotr draait zelfstandig op de eigen productieomgeving en verstuurt reis- en Agency-uitnodigingen via de beveiligde mailrelay.", summaryEn: "GlobeTrotr now runs independently on its own production environment and delivers trip and Agency invitations through its protected mail relay.",
+    changes: [
+      {kind:"new",title:"Uitnodigingen per e-mail",titleEn:"Email invitations",description:"Nieuwe en verlengde uitnodigingen bevatten een veilige directe acceptatielink en volgen je taal- en communicatievoorkeur.",descriptionEn:"New and renewed invitations include a secure direct acceptance link and follow your language and communication preference."},
+      {kind:"improved",title:"Complete merkbibliotheek",titleEn:"Complete brand library",description:"Logo's voor websites, donkere achtergronden en e-mail zijn via vaste openbare adressen beschikbaar.",descriptionEn:"Logos for websites, dark surfaces and email are available at stable public addresses."},
+      {kind:"secure",title:"Zelfstandige productieomgeving",titleEn:"Independent production runtime",description:"De webbuild, sessieopslag en foutafhandeling werken zonder een externe editor-runtime.",descriptionEn:"The web build, session storage and error handling work without an external editor runtime."},
+    ],
+  },
   {
     id: "2026-09-14-production-auth-and-email", version: "Beta 0.37", publishedAt: "2026-09-14T19:00:00+02:00",
     title: "Veiliger inloggen en gerichte communicatie", titleEn: "Safer sign-in and focused communication",

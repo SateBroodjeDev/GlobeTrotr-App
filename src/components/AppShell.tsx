@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   BarChart3,
@@ -86,7 +86,7 @@ function FooterMenu({label,children}:{label:string;children:ReactNode}) {
 }
 
 // WorkspaceProvider staat in de root-layout, direct onder AuthProvider. Zo
-// delen shell en routes ook tijdens Lovable/Vite-refreshes altijd dezelfde
+// delen shell en routes ook tijdens Vite-refreshes altijd dezelfde
 // contextinstantie.
 function AppShellContent({ children }: { children: ReactNode }) {
   const { state, cloud, refreshWorkspace } = useWorkspace();

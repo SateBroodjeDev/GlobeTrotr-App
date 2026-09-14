@@ -4,7 +4,7 @@ Voor het opbouwen van een schoon Supabase-productieproject staat de volledige mi
 
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
-De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord werkt. OAuth en automatische app-e-mails staan bewust nog niet aan. Voor productie is Paddle de gekozen Merchant of Record voor abonnementen; de applicatieserver verhuist later van Lovable naar een eigen VPS en transactionele e-mail gaat dan via een afzonderlijke SMTP-provider.
+De huidige versie draait als internationale beta op de eigen GlobeTrotr-infrastructuur. Inloggen met e-mail, wachtwoord en passkey werkt. Transactionele e-mail wordt via de afgeschermde mailrelay verzonden. Paddle is de gekozen Merchant of Record voor abonnementen zodra de commerciële onboarding is afgerond.
 
 ## Wat de applicatie bevat
 
@@ -114,6 +114,6 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 - `/prijzen`: openbare vergelijking van Free, Pro en Agency voor de actieve beta; betalingen worden via Paddle als Merchant of Record voorbereid en geactiveerd zodra de productieomgeving en domeincontrole gereed zijn.
 - `/privacy`, `/algemene-voorwaarden`, `/terugbetalingsbeleid` en `/beta-voorwaarden`: gepubliceerde privacy-, gebruiks-, terugbetalings- en betavoorwaarden in NL/EN.
 
-## Lovable
+## Productie
 
-Dit is een bestaand [Lovable](https://lovable.dev)-project. Commits op de gekoppelde branch synchroniseren terug naar Lovable. Herschrijf gepubliceerde Git-geschiedenis daarom niet met force-push, rebase of amend.
+De TanStack Start-app draait als Node/Nitro-container op Node-01. Achtergrondtaken en de SMTP-relay draaien afgescheiden op Node-02. Supabase verzorgt de Europese database, authenticatie en objectopslag. Zie `VPS_DEPLOYMENT.md` voor beheer, updates en herstel.

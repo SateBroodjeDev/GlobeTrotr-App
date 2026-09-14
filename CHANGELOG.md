@@ -1,5 +1,13 @@
 # GlobeTrotr changelog
 
+## 2026-09-14 22:00 CEST — Zelfstandige productie en uitnodigingsmail
+
+- De Vite- en Nitro-build gebruikt geen Lovable-package of preview-authbroker meer en draait zelfstandig op de eigen VPS-infrastructuur.
+- Reis- en Agency-uitnodigingen worden via de bestaande mail-outbox en beveiligde SMTP-relay verzonden, ook naar mensen zonder account en opnieuw na verlengen.
+- De relay kiest Nederlandse of Engelse uitnodigingstekst, toont een veilige acceptatieknop en weigert externe actie-URL's.
+- Alle aangeleverde GlobeTrotr-logo's zijn onder vaste openbare `/assets/brand/...`-paden beschikbaar; het e-maillogo behoudt zijn vaste adres.
+- Migratie 1010 en de bijbehorende SQL-test voegen nullable uitnodigingskoppelingen en vier gerichte productiecontroles aan Corporate Admin toe.
+
 ## 2026-09-14 19:00 CEST — Productiemail, Auth en publieke reis afgerond
 
 - Supabase Passkeys zijn in de browserclient geactiveerd en vanuit Account te beheren.

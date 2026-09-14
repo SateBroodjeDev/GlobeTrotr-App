@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { TripMemberRole } from "@/lib/types";
 import { requireTripManagementAccess, recordTripManagementAudit } from "@/lib/trip-management-access.server";
+import { queueInvitationEmail } from "@/lib/email-outbox.server";
 
 const INVITABLE_ROLES: TripMemberRole[] = ["traveler", "viewer", "advisor", "finance", "client"];
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -62,6 +63,11 @@ export const createTripInvitation = createServerFn({ method: "POST" })
       .single();
     if (error) throw error;
     await recordTripManagementAudit(db, access, context.userId, "trip_invitation.create", "invitation", invitation.id);
+    const [{ data: trip }, { data: recipient }] = await Promise.all([
+      db.from("trips").select("name").eq("trip_uuid", data.tripId).single(),
+      db.from("profiles").select("id,locale").ilike("email", email).maybeSingle(),
+    ]);
+    await queueInvitationEmail(db,{recipient:email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${trip?.name??"een reis"} / Invitation to ${trip?.name??"a trip"}`,body:`Je bent uitgenodigd om mee te werken aan ${trip?.name??"een reis"}. / You have been invited to collaborate on ${trip?.name??"a trip"}.`,actionUrl:`https://globetrotr.nl/invite/${token}`});
     return { id: invitation.id as string, token, expiresAt: invitation.expires_at as string };
   });
 
@@ -122,6 +128,14 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
       throw new Error(`INVITATION_MANAGEMENT_${String(result?.status ?? "INVALID").toUpperCase()}`);
     }
     await recordTripManagementAudit(db, access, context.userId, `trip_invitation.${data.action}`, "invitation", data.invitationId);
+    if (data.action === "renew") {
+      const { data: invitation } = await db.from("trip_invitations").select("email").eq("id", data.invitationId).single();
+      const [{ data: trip }, { data: recipient }] = await Promise.all([
+        db.from("trips").select("name").eq("trip_uuid", data.tripId).single(),
+        db.from("profiles").select("id,locale").ilike("email", invitation?.email ?? "").maybeSingle(),
+      ]);
+      if (invitation?.email) await queueInvitationEmail(db,{recipient:invitation.email,preferenceUserId:recipient?.id,locale:String(recipient?.locale??"").startsWith("en")?"en":"nl",title:`Uitnodiging voor ${trip?.name??"een reis"} / Invitation to ${trip?.name??"a trip"}`,body:`Je vernieuwde uitnodiging voor ${trip?.name??"een reis"} staat klaar. / Your renewed invitation to ${trip?.name??"a trip"} is ready.`,actionUrl:`https://globetrotr.nl/invite/${token}`});
+    }
     return {
       status: result.status as "revoked" | "renewed",
       token: token || undefined,

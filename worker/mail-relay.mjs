@@ -36,9 +36,15 @@ function safeFrom(input) {
 }
 function notificationMessage(body) {
   const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
-  const subject = String(payload.title || "Nieuwe melding van GlobeTrotr").trim().slice(0, 160);
-  const text = String(payload.body || "Open GlobeTrotr om je nieuwe melding te bekijken.").trim().slice(0, 5000);
-  return { subject, text, html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr" style="display:block;margin-bottom:24px"><h1 style="font-size:22px">${escapeHtml(subject)}</h1><p style="white-space:pre-line;line-height:1.6">${escapeHtml(text)}</p><p><a href="https://globetrotr.nl" style="color:#0f766e">Open GlobeTrotr</a></p></div>` };
+  const localized = (value, fallback) => {
+    const parts = String(value || fallback).split(" / ");
+    return String((body.locale === "en" ? parts[1] : parts[0]) || parts[0]).trim();
+  };
+  const subject = localized(payload.title, "Nieuwe melding van GlobeTrotr").slice(0, 160);
+  const text = localized(payload.body, "Open GlobeTrotr om je nieuwe melding te bekijken.").slice(0, 5000);
+  const actionUrl = typeof payload.actionUrl === "string" && /^https:\/\/globetrotr\.nl\//.test(payload.actionUrl) ? payload.actionUrl : "https://globetrotr.nl";
+  const actionLabel = body.templateKey === "invitation" ? (body.locale === "en" ? "View invitation" : "Uitnodiging bekijken") : "Open GlobeTrotr";
+  return { subject, text: `${text}\n\n${actionUrl}`, html: `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr" style="display:block;margin-bottom:24px"><h1 style="font-size:22px">${escapeHtml(subject)}</h1><p style="white-space:pre-line;line-height:1.6">${escapeHtml(text)}</p><p><a href="${escapeHtml(actionUrl)}" style="display:inline-block;border-radius:8px;background:#0f766e;color:white;padding:12px 18px;text-decoration:none">${actionLabel}</a></p></div>` };
 }
 async function readJson(request) {
   let size = 0; const chunks = [];
@@ -72,7 +78,14 @@ const server = createServer(async (request, response) => {
   if (request.method !== "POST" || request.url !== "/send") { response.writeHead(404).end(); return; }
   if (!equalSecret(String(request.headers.authorization || "").replace(/^Bearer\s+/i, ""))) { response.writeHead(401).end(); return; }
   try { await send(await readJson(request), String(request.headers["idempotency-key"] || "")); response.writeHead(202).end(); }
-  catch (error) { const errorCode = String(error?.code || "MAIL_SEND_FAILED").slice(0, 80); process.stderr.write(`${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", event: "relay.send_failed", errorCode })}\n`); response.writeHead(errorCode.startsWith("INVALID_") || errorCode === "BODY_TOO_LARGE" ? 400 : 502).end(); }
+  catch (error) {
+    const errorCode = String(error?.code || "MAIL_SEND_FAILED").slice(0, 80);
+    const smtpResponseCode = Number.isInteger(error?.responseCode) ? error.responseCode : undefined;
+    const smtpCommand = typeof error?.command === "string" ? error.command.slice(0, 40) : undefined;
+    process.stderr.write(`${JSON.stringify({ timestamp: new Date().toISOString(), level: "error", event: "relay.send_failed", errorCode, smtpResponseCode, smtpCommand })}\n`);
+    response.writeHead(errorCode.startsWith("INVALID_") || errorCode === "BODY_TOO_LARGE" ? 400 : 502, { "Content-Type": "application/json" });
+    response.end(JSON.stringify({ error: errorCode, smtpResponseCode }));
+  }
 });
 
 server.listen(port, "0.0.0.0", async () => {

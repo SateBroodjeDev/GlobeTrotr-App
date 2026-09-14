@@ -1,6 +1,6 @@
-﻿# Nieuwe Supabase-productieomgeving
+# Nieuwe Supabase-productieomgeving
 
-Deze handleiding is voor een leeg Supabase-project. De bestaande Lovable-omgeving blijft beschikbaar als staging en terugvalmogelijkheid.
+Deze handleiding is voor een leeg Supabase-productieproject naast een strikt gescheiden niet-productieomgeving.
 
 ## Wat Supabase en GlobeTrotr ieder aanmaken
 
@@ -150,7 +150,7 @@ SUPABASE_SERVICE_ROLE_KEY=sb_secret_...
 
 De `VITE_`-waarden komen in de browserbundle en mogen daarom uitsluitend de URL en publishable key bevatten. `SUPABASE_SERVICE_ROLE_KEY` mag alleen in de VPS-secretomgeving bestaan. Hoewel de variabelenaam om compatibiliteitsredenen nog `SERVICE_ROLE_KEY` zegt, kan zij de nieuwe `sb_secret_...`-sleutel bevatten. Plaats deze nooit in een Vite-variabele.
 
-Andere GlobeTrotr-waarden, zoals `TURNSTILE_SECRET_KEY`, `SKYLINK_API_KEY`, `GITHUB_ISSUES_TOKEN`, `LOVABLE_CRON_SECRET` en toekomstige SMTP- of vertaalsleutels, worden later afzonderlijk als serversecret ingesteld. De Turnstile-sitekey is een openbare buildwaarde; de Turnstile-secretkey blijft op de server.
+Andere GlobeTrotr-waarden, zoals `TURNSTILE_SECRET_KEY`, `SKYLINK_API_KEY`, `GITHUB_ISSUES_TOKEN`, `CRON_SECRET` en toekomstige SMTP- of vertaalsleutels, worden afzonderlijk als serversecret ingesteld. De Turnstile-sitekey is een openbare buildwaarde; de Turnstile-secretkey blijft op de server.
 
 ## Deel 7 — Storage controleren
 
@@ -176,10 +176,10 @@ Log na de rolwijziging volledig uit en opnieuw in. De Corporate Admin-claim zit 
 2. Open Corporate Admin → Releasecheck en controleer of de productie-items zichtbaar zijn.
 3. Maak een tweede tijdelijk account en test uitnodigen, accepteren, rechten en verwijderen.
 4. Test één reis inclusief uitgave, bestand, openbare link en export.
-5. Controleer dat Lovable nog naar de oude stagingdatabase wijst en de VPS naar het nieuwe productieproject.
+5. Controleer dat een eventuele testomgeving een afzonderlijke database gebruikt en de VPS naar het productieproject wijst.
 6. Maak vóór DNS-omschakeling een eerste logische databaseback-up.
 
-Verwijder of reset het Lovable-project niet. Het blijft voorlopig staging en terugvalmogelijkheid.
+Bewaar eventuele testdata uitsluitend in een afzonderlijke niet-productieomgeving en gebruik nooit productiesleutels in previews.
 
 ## Officiële naslag
 

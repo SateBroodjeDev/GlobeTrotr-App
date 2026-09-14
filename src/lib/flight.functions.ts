@@ -67,7 +67,7 @@ export const lookupFlight = createServerFn({ method: "GET" })
     const apiKey = process.env.SKYLINK_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "Live vluchtdata is nog niet geconfigureerd. Voeg SKYLINK_API_KEY toe aan Lovable Cloud Secrets.",
+        "Live vluchtdata is nog niet geconfigureerd. Voeg SKYLINK_API_KEY toe aan de beveiligde serveromgeving.",
       );
     }
 

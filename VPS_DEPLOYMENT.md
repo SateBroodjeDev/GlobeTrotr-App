@@ -103,7 +103,7 @@ TURNSTILE_SECRET_KEY=<TURNSTILE_SECRET_KEY>
 SKYLINK_API_KEY=<SKYLINK_API_KEY>
 GITHUB_ISSUES_TOKEN=<GITHUB_TOKEN_OF_LEEG>
 GITHUB_ISSUES_REPOSITORY=SateBroodjeDev/globetrotr-1d042353
-LOVABLE_CRON_SECRET=<LANG_WILLEKEURIG_SECRET>
+CRON_SECRET=<LANG_WILLEKEURIG_SECRET>
 WORKER_HEALTH_URL=http://10.0.0.3:9091/health
 ```
 
@@ -268,6 +268,16 @@ Stuur vanaf de workercontainer één gecontroleerd relaybericht. Vervang alleen 
 ```bash
 docker compose --env-file .env.production -f deploy/worker.compose.yml exec -e RELAY_TEST_TO=jouw-adres@example.nl worker node -e 'const id=crypto.randomUUID();fetch(process.env.MAIL_DELIVERY_RELAY_URL,{method:"POST",headers:{Authorization:`Bearer ${process.env.MAIL_DELIVERY_RELAY_TOKEN}`,"Content-Type":"application/json","Idempotency-Key":id},body:JSON.stringify({id,to:process.env.RELAY_TEST_TO,locale:"nl",templateKey:"platform",payload:{title:"GlobeTrotr mailtest",body:"De beveiligde SMTP-relay werkt."}})}).then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)}).catch(e=>{console.error(e.message);process.exit(1)})'
 ```
+
+Een HTTP 502 betekent dat de relay de aanvraag heeft geaccepteerd, maar de SMTP-server het verzenden niet afrondde. Bekijk dan direct de veilige foutcode en controleer de SMTP-verbinding:
+
+```bash
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 mail-relay
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec mail-relay node -e "fetch('http://127.0.0.1:9092/health').then(async r=>console.log(r.status,await r.text()))"
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec mail-relay node -e 'console.log({host:process.env.SMTP_HOST,port:process.env.SMTP_PORT,secure:process.env.SMTP_SECURE,requireTLS:process.env.SMTP_REQUIRE_TLS,userSet:Boolean(process.env.SMTP_USER),passwordSet:Boolean(process.env.SMTP_PASSWORD),from:process.env.SMTP_FROM_ADDRESS})'
+```
+
+Gebruik poort 587 met `SMTP_SECURE=false` en `SMTP_REQUIRE_TLS=true`, of poort 465 met `SMTP_SECURE=true`. `SMTP_FROM_ADDRESS` moet een afzender zijn die het SMTP-account werkelijk mag gebruiken. Bouw de relay na een codewijziging opnieuw met `docker compose --env-file .env.production -f deploy/worker.compose.yml up -d --build`.
 
 Controleer inbox en spammap. Zet na deze test de outbox bewust aan:
 
