@@ -1,5 +1,7 @@
 # GlobeTrotr
 
+Voor het opbouwen van een schoon Supabase-productieproject staat de volledige migratievolgorde en uitvoeringsprocedure in [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md).
+
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
 De huidige versie is een internationale beta. Inloggen met e-mail en wachtwoord werkt. OAuth en automatische app-e-mails staan bewust nog niet aan. Voor productie is Paddle de gekozen Merchant of Record voor abonnementen; de applicatieserver verhuist later van Lovable naar een eigen VPS en transactionele e-mail gaat dan via een afzonderlijke SMTP-provider.
