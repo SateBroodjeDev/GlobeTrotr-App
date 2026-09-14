@@ -10,6 +10,7 @@
 - De deploymentdocumentatie begrenst de eerste livegang tot het hoofddomein en beschrijft de veilige vervolgstappen voor Agency-subdomeinen en eigen domeinen via CNAME, TXT-verificatie en begrensde certificaatuitgifte.
 - Zelf gehoste builds gebruiken nu expliciet Nitro's `node-server`-doel, zodat de webcontainer als blijvende HTTP-server draait; Lovable behoudt binnen zijn eigen buildomgeving het Cloudflare-doel.
 - `globetrotr.nl` is de primaire URL voor website en app; `www` en `dashboard` sturen met behoud van het pad door naar hetzelfde domein.
+- Node-02 bevat een interne, tokenbeveiligde HTTP-naar-SMTP-relay met afzenderbegrenzing, ontvangerslimieten, time-outs en healthcheck; SMTP-inloggegevens blijven buiten de worker en database.
 
 Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikersgerichte versie staat op `/changelog`.
 

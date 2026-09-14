@@ -59,6 +59,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     changes: [
       { kind: "secure", title: "Gescheiden web en verwerking", titleEn: "Separated web and processing", description: "De publieke website en achtergrondtaken krijgen elk een eigen serverrol, healthcheck en begrensde netwerktoegang.", descriptionEn: "The public website and background jobs each get a dedicated server role, health check and restricted network access." },
       { kind: "improved", title: "Veilige updates en herstel", titleEn: "Safer updates and recovery", description: "De productieprocedure bevat vaste stappen voor HTTPS, configuratiecontrole, updates en terugzetten bij problemen.", descriptionEn: "The production procedure includes defined steps for HTTPS, configuration checks, updates and recovery when problems occur." },
+      { kind: "secure", title: "E-mailbezorging voorbereid", titleEn: "Email delivery prepared", description: "Transactionele berichten kunnen via een afgeschermde Europese serverrelay worden bezorgd, met begrensde afzenders, ontvangers en veilige verbindingscontrole.", descriptionEn: "Transactional messages can be delivered through a protected European server relay with restricted senders, recipients and secure connection checks." },
     ],
   },
   {

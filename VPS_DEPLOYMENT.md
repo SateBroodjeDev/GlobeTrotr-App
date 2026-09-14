@@ -197,6 +197,29 @@ MAIL_DELIVERY_RELAY_URL=
 MAIL_DELIVERY_RELAY_TOKEN=
 ```
 
+Vervang die laatste twee regels voor de mailtest door:
+
+```dotenv
+MAIL_DELIVERY_RELAY_URL=http://mail-relay:9092/send
+MAIL_DELIVERY_RELAY_TOKEN=<RELAY_TOKEN>
+```
+
+Maak hetzelfde token en het aparte relaybestand:
+
+```bash
+cd /opt/globetrotr
+openssl rand -hex 32
+cp mail-relay.env.example .env.mail-relay
+chmod 600 .env.mail-relay
+nano .env.mail-relay
+```
+
+Plaats het gegenereerde token zowel als `MAIL_DELIVERY_RELAY_TOKEN` in
+`.env.production` als `MAIL_RELAY_TOKEN` in `.env.mail-relay`. Vul in het
+relaybestand de SMTP-host, poort, gebruiker, wachtwoord en afzender van je
+bestaande maildienst in. Gebruik voor poort 465 `SMTP_SECURE=true`; gebruik voor
+poort 587 normaal `SMTP_SECURE=false` en `SMTP_REQUIRE_TLS=true`.
+
 Start Node-02:
 
 ```bash
@@ -222,12 +245,23 @@ Supabase Custom SMTP verzorgt Auth-mails zoals registratie en
 wachtwoordherstel. Als dit al werkt, hoef je daarvoor niets op de VPS te
 installeren.
 
-De GlobeTrotr-worker verwacht voor app- en bedrijfsmail een beveiligde
-HTTP-mailrelay via `MAIL_DELIVERY_RELAY_URL` en `MAIL_DELIVERY_RELAY_TOKEN`.
-Alleen bestaande SMTP-host-, poort- en inloggegevens vullen deze koppeling nog
-niet in. Laat de twee relaywaarden leeg; e-mail blijft dan veilig in de wachtrij.
-Inkomende bedrijfsmail vereist daarnaast IMAP of een provider-webhook. Zet de
-databasebezorgmodus pas op `live` nadat deze relay end-to-end is getest.
+De GlobeTrotr-worker gebruikt voor app- en bedrijfsmail de interne relaycontainer
+`http://mail-relay:9092/send`. De SMTP-inloggegevens staan uitsluitend in
+`.env.mail-relay`; poort 9092 wordt niet op de host of het internet gepubliceerd.
+Inkomende bedrijfsmail vereist daarnaast IMAP of een provider-webhook.
+
+Controleer op Node-02 eerst de relay en SMTP-verbinding:
+
+```bash
+docker compose --env-file .env.production -f deploy/worker.compose.yml up -d --build
+docker compose --env-file .env.production -f deploy/worker.compose.yml ps
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 mail-relay worker
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec mail-relay node -e "fetch('http://127.0.0.1:9092/health').then(async r=>console.log(r.status,await r.text()))"
+```
+
+De log moet `relay.started` met `smtpVerified:true` tonen. Laat
+`email_delivery_config.mode` tijdens deze technische controle op `test`. Zet hem
+pas op `live` nadat een gecontroleerd testbericht succesvol is bezorgd.
 
 ## 5. Agency-domeinen en bestanden
 

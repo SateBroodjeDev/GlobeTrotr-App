@@ -8,6 +8,7 @@
 - [ ] Controleer dat de Node-01-webcontainer na minimaal twee minuten nog draait en niet met exitcode 0 blijft herstarten.
 - [ ] Controleer dat `globetrotr.nl` website en app bedient en dat `www.globetrotr.nl` en `dashboard.globetrotr.nl` met behoud van het pad doorsturen.
 - [ ] Start Node-02 met `deploy/worker.compose.yml`; controleer een succesvolle pollcyclus en `http://127.0.0.1:9091/health` zonder poort 9091 publiek open te stellen.
+- [ ] Controleer op Node-02 dat de mailrelay SMTP kan verifiëren, poort 9092 niet publiek bereikbaar is, een verkeerd token wordt geweigerd en een testbericht exact eenmaal aankomt.
 - [ ] Controleer dat uitsluitend Node-01 poorten 80/443 aanbiedt, SSH op beide nodes met sleutels werkt en `.env.production` rechten `600` heeft.
 - [ ] Voer één nieuwe release uit en herstel daarna proefmatig de vorige commit volgens `VPS_DEPLOYMENT.md`.
 - [ ] Controleer dat onbekende Host-headers en niet-geverifieerde Agency-domeinen nooit Agency-branding of tenantdata tonen.
