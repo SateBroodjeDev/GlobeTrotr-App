@@ -36,7 +36,7 @@ export function PrivacyChoices() {
         <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Cookie className="size-5" /></span>
         <div>
           <h2 id="privacy-choice-title" className="font-display text-lg font-semibold">{text("Jouw privacykeuze", "Your privacy choice")}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{text("GlobeTrotr gebruikt geen advertentie- of trackingcookies. Noodzakelijke browseropslag houdt je veilig ingelogd en bewaart je reis tijdelijk op dit apparaat. Je kunt daarnaast toestaan dat we je taalvoorkeur op dit apparaat onthouden.", "GlobeTrotr uses no advertising or tracking cookies. Necessary browser storage keeps you securely signed in and temporarily saves your trip on this device. You can also allow us to remember your language preference on this device.")}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{text("GlobeTrotr gebruikt geen advertentie- of gedragsprofileringcookies. Noodzakelijke browseropslag houdt je veilig ingelogd, bewaart tijdelijke reisgegevens en beschermt formulieren tegen misbruik. Je kunt daarnaast toestaan dat we je taalvoorkeur op dit apparaat onthouden.", "GlobeTrotr uses no advertising or behavioural-profiling cookies. Necessary browser storage keeps you securely signed in, stores temporary trip data and protects forms against abuse. You can additionally allow us to remember your language preference on this device.")}</p>
         </div>
       </div>
       <div className="mt-4 space-y-2">

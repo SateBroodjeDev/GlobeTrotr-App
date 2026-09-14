@@ -34,7 +34,7 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 1000 zijn uitge
 8. [x] **Onderhoud en privacy-inbox:** Corporate Admin kan een onderhoudsvenster beheren; gebruikers zien een countdown en kunnen vanuit hun account een privacyverzoek indienen en de actuele status volgen.
 9. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
 10. [x] **Hostingportabiliteit:** afzonderlijke Node/Nitro-web- en workerimages, Caddy/TLS, secrets, healthchecks en rollback zijn voorbereid; installatie en externe monitoring volgen tijdens de VPS-uitrol.
-11. [ ] **Communicatie en betaling:** de SMTP-relay, uniforme templates, herstel- en magic-linkaanvraag en accountvoorkeuren zijn gebouwd; end-to-end Auth-mail en later Paddle moeten nog volledig worden geaccepteerd.
+11. [ ] **Communicatie en betaling:** de SMTP-relay, uniforme templates, herstel- en magic-linkaanvraag en accountvoorkeuren zijn gebouwd en de productieprivacy noemt ZXCS; end-to-end Auth-mail en later Paddle moeten nog volledig worden geaccepteerd.
 12. [ ] **OAuth:** de interface en veilige terugkeer voor Google, Facebook en Discord zijn gebouwd; providerapps aanmaken, in Supabase activeren en met nieuwe en bestaande accounts testen.
 13. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
 14. [x] **Inlogmethoden en mailbezorging beheren:** gebruikers koppelen Google, Facebook en Discord vanuit Account; Corporate Admin volgt bezorging en kan mislukte servicemail opnieuw aanbieden.
@@ -243,7 +243,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 
 ### SMTP
 
-- [ ] Provider en verwerkingsregio kiezen en privacyverklaring concretiseren.
+- [x] ZXCS als mailbox- en SMTP-provider en de afgeschermde relay op de Duitse VPS in de privacyverklaring opnemen.
 - [ ] SPF, DKIM en DMARC voor `globetrotr.nl` configureren.
 - [x] Provider-onafhankelijke, idempotente mail-outbox en veilige NL/EN-rendering in verplichte testmodus bouwen.
 - [x] Reis- en Agency-uitnodigingen voor bestaande en nieuwe accounts via de mail-outbox versturen en bij verlengen opnieuw klaarzetten.
@@ -260,7 +260,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] Ondertekende webhooks als enige bron voor betaalstatus.
 - [ ] Abonnement, verlenging, upgrade, downgrade, opzegging, mislukte betaling en terugbetaling verwerken.
 - [ ] Facturen en transacties uitsluitend aan bevoegde gebruikers tonen.
-- [ ] Juridische pagina's aanvullen met de uiteindelijke VPS-, SMTP- en Paddle-productiegegevens vóór livegang.
+- [ ] Juridische pagina's na activering van Paddle aanvullen met de definitieve checkout- en betaalgegevens; VPS, SMTP, OAuth, Turnstile en browseropslag zijn actueel beschreven.
 
 ## P1 — Reizen onderweg en productkwaliteit
 

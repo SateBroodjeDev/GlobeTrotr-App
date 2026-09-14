@@ -4,6 +4,10 @@
 
 ## Nieuwe praktische acceptatiecontroles
 
+- [ ] Voer `20260908108000_production_privacy_acceptance.sql` en daarna `production_privacy_acceptance.sql` uit.
+- [ ] Controleer `/privacy` in Nederlands en Engels op de actuele rollen van Hetzner, Supabase, ZXCS, Cloudflare Turnstile, Google, Facebook en Discord.
+- [ ] Controleer dat de cookie- en opslaginventaris de Supabase-sessie, lokale reiscache, privacykeuze, thema, taal, `sidebar_state` en Turnstile-beveiliging correct vermeldt.
+- [ ] Open Privacykeuzes als gast en ingelogde gebruiker; weiger en accepteer de taalvoorkeur en controleer dat noodzakelijke sessie- en beveiligingsopslag beschikbaar blijft.
 - [ ] Voer `20260908105000_identity_and_mail_delivery_management.sql` en daarna `identity_and_mail_delivery_management.sql` uit.
 - [ ] Voer `20260908106000_mail_delivery_mode_acceptance.sql` en daarna `mail_delivery_mode_acceptance.sql` uit.
 - [ ] Voer `20260908107000_worker_claim_recovery.sql` en daarna `worker_claim_recovery.sql` uit.

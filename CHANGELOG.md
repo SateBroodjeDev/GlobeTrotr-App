@@ -1,5 +1,13 @@
 # GlobeTrotr changelog
 
+## 2026-09-15 00:40 CEST — Privacy- en cookie-informatie voor productie
+
+- De privacyverklaring beschrijft de actieve productieomgeving bij Hetzner, Europese Supabase-opslag en de mailbox- en SMTP-infrastructuur van ZXCS.
+- Cloudflare Turnstile, Google, Facebook en Discord zijn met hun minimale gegevensverwerking en mogelijke externe browseropslag opgenomen.
+- De browseropslaginventaris vermeldt nu ook de functionele `sidebar_state`-cookie van zeven dagen en noodzakelijke Turnstile-beveiligingsgegevens.
+- Verouderde tekst over een toekomstige hosting- en SMTP-omschakeling is vervangen door de huidige live situatie.
+- Een afzonderlijke Corporate Admin-controle en SQL-acceptatietest dekken de uiteindelijke juridische productiecontrole.
+
 ## 2026-09-15 00:25 CEST — Accountkoppelingen en betrouwbare mailbezorging
 
 - Account koppelt en ontkoppelt de ondersteunde Google-, Facebook- en Discord-identiteiten veilig.

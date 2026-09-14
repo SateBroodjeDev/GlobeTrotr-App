@@ -26,6 +26,7 @@ Open Supabase Dashboard → **Database → Migrations**. Controleer welke versie
 6. `supabase/migrations/20260908105000_identity_and_mail_delivery_management.sql`
 7. `supabase/migrations/20260908106000_mail_delivery_mode_acceptance.sql`
 8. `supabase/migrations/20260908107000_worker_claim_recovery.sql`
+9. `supabase/migrations/20260908108000_production_privacy_acceptance.sql`
 
 Gebruik bij handmatige uitvoering voor ieder bestand afzonderlijk Supabase Dashboard → **SQL Editor → New query**:
 
@@ -45,6 +46,7 @@ Voer daarna op dezelfde manier deze tests uit. Ze wijzigen geen blijvende testda
 6. `supabase/tests/identity_and_mail_delivery_management.sql`
 7. `supabase/tests/mail_delivery_mode_acceptance.sql`
 8. `supabase/tests/worker_claim_recovery.sql`
+9. `supabase/tests/production_privacy_acceptance.sql`
 
 Stop bij een SQL-fout en bewaar de volledige foutmelding. Zet de bezorgmodus nog niet op live voordat Node-02 opnieuw is gebouwd en de relaytest HTTP `202` geeft.
 

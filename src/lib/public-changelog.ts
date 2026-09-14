@@ -45,6 +45,15 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-15-production-privacy", version: "Beta 0.43", publishedAt: "2026-09-15T00:40:00+02:00",
+    title: "Actuele privacy- en cookie-uitleg", titleEn: "Current privacy and cookie information",
+    summary: "De privacyverklaring sluit nu aan op de actieve Europese productieomgeving en gebruikte beveiligingsdiensten.", summaryEn: "The privacy notice now reflects the active European production environment and security services in use.",
+    changes: [
+      {kind:"improved",title:"Actuele leveranciers",titleEn:"Current suppliers",description:"Hetzner, Supabase, ZXCS en Cloudflare Turnstile staan met hun rol duidelijk in de verklaring.",descriptionEn:"Hetzner, Supabase, ZXCS and Cloudflare Turnstile are clearly listed with their roles."},
+      {kind:"improved",title:"Complete opslaginventaris",titleEn:"Complete storage inventory",description:"Functionele navigatieopslag, formulierbeveiliging en opslag door vrijwillig gekozen loginproviders worden uitgelegd.",descriptionEn:"Functional navigation storage, form protection and storage used by voluntarily selected sign-in providers are explained."},
+    ],
+  },
+  {
     id: "2026-09-15-account-and-mail-control", version: "Beta 0.42", publishedAt: "2026-09-15T00:25:00+02:00",
     title: "Meer grip op toegang en betrouwbare mail", titleEn: "More control over access and reliable email",
     summary: "Beheer gekoppelde inlogmethoden en volg, herstel of pauzeer de bezorging van belangrijke e-mail.", summaryEn: "Manage linked sign-in methods and track, recover or pause important email delivery.",
