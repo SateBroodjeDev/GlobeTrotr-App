@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Camera,
@@ -504,7 +504,9 @@ function AccountPage() {
     try {
       const { error } = await supabase.auth.linkIdentity({
         provider,
-        options: { redirectTo: `${window.location.origin}/account` },
+        options: {
+          redirectTo: `${window.location.origin}/oauth-callback?next=%2Faccount&linked=${provider}`,
+        },
       });
       if (error) throw error;
     } catch (error) {
@@ -973,6 +975,65 @@ function AccountPage() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+        <Card className="surface">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <CreditCard className="size-4" /> {text("Abonnement", "Plan")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {cloud === "loading" ? (
+              <p className="text-muted-foreground" role="status">
+                {text("Abonnement laden...", "Loading plan...")}
+              </p>
+            ) : (
+              <>
+                <p>
+                  {text("Huidig plan", "Current plan")}:{" "}
+                  <Badge variant="secondary">{plan.name}</Badge>
+                </p>
+                <dl className="space-y-1">
+                  <div className="flex flex-wrap justify-between gap-x-4">
+                    <dt className="text-muted-foreground">
+                      {text("Reizen in je account", "Trips in your account")}
+                    </dt>
+                    <dd>
+                      {state.trips.length} /{" "}
+                      {Number.isFinite(plan.tripLimit)
+                        ? plan.tripLimit
+                        : text("onbeperkt", "unlimited")}
+                    </dd>
+                  </div>
+                  <div className="flex flex-wrap justify-between gap-x-4">
+                    <dt className="text-muted-foreground">
+                      {text("Actieve reizen", "Active trips")}
+                    </dt>
+                    <dd>{activeTripCount}</dd>
+                  </div>
+                </dl>
+                <p className="text-muted-foreground">
+                  {text(
+                    "Vergelijk plannen en beheer je abonnement op de abonnementspagina.",
+                    "Compare plans and manage your subscription on the plan page.",
+                  )}
+                </p>
+              </>
+            )}
+            <Button asChild variant="outline">
+              <Link to="/billing">
+                {state.plan === "free"
+                  ? text("Bekijk upgrades", "View upgrades")
+                  : text("Abonnement beheren", "Manage plan")}
+              </Link>
+            </Button>
+
+            <div className="border-t pt-4">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {text("Inloggen en beveiliging", "Sign-in and security")}
+              </p>
+            </div>
             <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -1056,10 +1117,7 @@ function AccountPage() {
                 className="h-auto justify-start px-0 text-xs"
               >
                 <Link to="/contact">
-                  {text(
-                    "Geen toegang meer tot je authenticator? Neem contact op met support.",
-                    "Lost access to your authenticator? Contact support.",
-                  )}
+                  {text("2FA herstellen via support", "Recover 2FA through support")}
                 </Link>
               </Button>
             </div>
@@ -1113,59 +1171,6 @@ function AccountPage() {
                 </Button>
               </div>
             </details>
-          </CardContent>
-        </Card>
-        <Card className="surface">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <CreditCard className="size-4" /> {text("Abonnement", "Plan")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {cloud === "loading" ? (
-              <p className="text-muted-foreground" role="status">
-                {text("Abonnement laden...", "Loading plan...")}
-              </p>
-            ) : (
-              <>
-                <p>
-                  {text("Huidig plan", "Current plan")}:{" "}
-                  <Badge variant="secondary">{plan.name}</Badge>
-                </p>
-                <dl className="space-y-1">
-                  <div className="flex flex-wrap justify-between gap-x-4">
-                    <dt className="text-muted-foreground">
-                      {text("Reizen in je account", "Trips in your account")}
-                    </dt>
-                    <dd>
-                      {state.trips.length} /{" "}
-                      {Number.isFinite(plan.tripLimit)
-                        ? plan.tripLimit
-                        : text("onbeperkt", "unlimited")}
-                    </dd>
-                  </div>
-                  <div className="flex flex-wrap justify-between gap-x-4">
-                    <dt className="text-muted-foreground">
-                      {text("Actieve reizen", "Active trips")}
-                    </dt>
-                    <dd>{activeTripCount}</dd>
-                  </div>
-                </dl>
-                <p className="text-muted-foreground">
-                  {text(
-                    "Vergelijk plannen en beheer je abonnement op de abonnementspagina.",
-                    "Compare plans and manage your subscription on the plan page.",
-                  )}
-                </p>
-              </>
-            )}
-            <Button asChild variant="outline">
-              <Link to="/billing">
-                {state.plan === "free"
-                  ? text("Bekijk upgrades", "View upgrades")
-                  : text("Abonnement beheren", "Manage plan")}
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       </div>

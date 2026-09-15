@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,11 +14,14 @@ import { KeyRound } from "lucide-react";
 import type { Provider } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
-    ...(typeof search["redirect"] === "string" && search["redirect"].startsWith("/") && !search["redirect"].startsWith("//")
-      ? { redirect: search["redirect"].slice(0, 500) }
-      : {}),
-  } as { redirect?: string }),
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
+    ({
+      ...(typeof search["redirect"] === "string" &&
+      search["redirect"].startsWith("/") &&
+      !search["redirect"].startsWith("//")
+        ? { redirect: search["redirect"].slice(0, 500) }
+        : {}),
+    }) as { redirect?: string },
   head: () => ({
     meta: [
       { title: "Inloggen — GlobeTrotr workspace" },
@@ -43,19 +46,26 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaReset, setCaptchaReset] = useState(0);
   const [sent, setSent] = useState(false);
   const [sentKind, setSentKind] = useState<"confirmation" | "recovery" | "magic">("confirmation");
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
   const [emailActionBusy, setEmailActionBusy] = useState<"recovery" | "magic" | null>(null);
-  const [mfaFactorId,setMfaFactorId]=useState<string>();
-  const [mfaCode,setMfaCode]=useState("");
-  const [mfaBusy,setMfaBusy]=useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState<string>();
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaBusy, setMfaBusy] = useState(false);
   const { session } = useAuth();
-  const { redirect } = useSearch({strict:false}) as {redirect?:string};
+  const { redirect } = useSearch({ strict: false }) as { redirect?: string };
   const { text } = useLocale();
   const navigate = useNavigate();
-  const flags = useQuery({ queryKey: ["public-feature-flags"], queryFn: () => getPublicFeatureFlags(), retry: false });
+  const flags = useQuery({
+    queryKey: ["public-feature-flags"],
+    queryFn: () => getPublicFeatureFlags(),
+    retry: false,
+  });
   const registrationEnabled = flags.data?.["public.registration"] !== false;
 
   useEffect(() => {
@@ -64,25 +74,55 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
 
   useEffect(() => {
     if (!session) return;
-    let active=true;
-    void (async()=>{
-      const {data:levels}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if(!active)return;
-      if(levels?.nextLevel==="aal2"&&levels.currentLevel!=="aal2"){
-        const {data}=await supabase.auth.mfa.listFactors();
-        const factor=data?.totp?.find(item=>item.status==="verified");
-        if(factor){setMfaFactorId(factor.id);return;}
+    let active = true;
+    void (async () => {
+      const { data: levels } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (!active) return;
+      if (levels?.nextLevel === "aal2" && levels.currentLevel !== "aal2") {
+        const { data } = await supabase.auth.mfa.listFactors();
+        const factor = data?.totp?.find((item) => item.status === "verified");
+        if (factor) {
+          setMfaFactorId(factor.id);
+          return;
+        }
       }
       if (redirect) window.location.replace(redirect);
       else navigate({ to: "/dashboard", replace: true });
     })();
-    return()=>{active=false};
+    return () => {
+      active = false;
+    };
   }, [session, navigate, redirect]);
 
-  async function verifyMfa(){if(!mfaFactorId)return;setMfaBusy(true);try{const{error}=await supabase.auth.mfa.challengeAndVerify({factorId:mfaFactorId,code:mfaCode.replace(/\s/g,"")});if(error)throw error;if(redirect)window.location.replace(redirect);else navigate({to:"/dashboard",replace:true});}catch(error){toast.error(error instanceof Error?error.message:text("De verificatiecode is niet geldig.","The verification code is invalid."));}finally{setMfaBusy(false)}}
+  async function verifyMfa() {
+    if (!mfaFactorId) return;
+    setMfaBusy(true);
+    try {
+      const { error } = await supabase.auth.mfa.challengeAndVerify({
+        factorId: mfaFactorId,
+        code: mfaCode.replace(/\s/g, ""),
+      });
+      if (error) throw error;
+      if (redirect) window.location.replace(redirect);
+      else navigate({ to: "/dashboard", replace: true });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("De verificatiecode is niet geldig.", "The verification code is invalid."),
+      );
+    } finally {
+      setMfaBusy(false);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
+    if (mode === "signup" && !captchaToken) {
+      setFormError(text("Rond eerst de spamcontrole af.", "Complete the spam check first."));
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -92,6 +132,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
           options: {
             emailRedirectTo: `${window.location.origin}${redirect ?? ""}`,
             data: { full_name: name },
+            captchaToken,
           },
         });
         if (error) throw error;
@@ -112,6 +153,11 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
+      setFormError(message || text("Registreren is mislukt.", "Registration failed."));
+      if (mode === "signup") {
+        setCaptchaToken("");
+        setCaptchaReset((value) => value + 1);
+      }
       toast.error(
         /user is banned/i.test(message)
           ? text(
@@ -131,7 +177,11 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
       const { error } = await supabase.auth.signInWithPasskey();
       if (error) throw error;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : text("Inloggen met passkey is mislukt.", "Passkey sign-in failed."));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("Inloggen met passkey is mislukt.", "Passkey sign-in failed."),
+      );
     } finally {
       setPasskeyBusy(false);
     }
@@ -142,33 +192,55 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     try {
       const callback = new URL("/auth", window.location.origin);
       if (redirect) callback.searchParams.set("redirect", redirect);
-      const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: callback.toString() } });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: callback.toString() },
+      });
       if (error) throw error;
     } catch (error) {
       setOauthBusy(null);
-      toast.error(error instanceof Error ? error.message : text("Inloggen via deze aanbieder is mislukt.", "Sign-in with this provider failed."));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("Inloggen via deze aanbieder is mislukt.", "Sign-in with this provider failed."),
+      );
     }
   }
 
   async function sendEmailAction(action: "recovery" | "magic") {
     const normalized = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
-      toast.error(text("Vul eerst een geldig e-mailadres in.", "Enter a valid email address first."));
+      toast.error(
+        text("Vul eerst een geldig e-mailadres in.", "Enter a valid email address first."),
+      );
       return;
     }
     setEmailActionBusy(action);
     try {
       const callback = new URL("/auth", window.location.origin);
       if (redirect) callback.searchParams.set("redirect", redirect);
-      const result = action === "recovery"
-        ? await supabase.auth.resetPasswordForEmail(normalized, { redirectTo: callback.toString() })
-        : await supabase.auth.signInWithOtp({ email: normalized, options: { emailRedirectTo: callback.toString(), shouldCreateUser: registrationEnabled } });
+      const result =
+        action === "recovery"
+          ? await supabase.auth.resetPasswordForEmail(normalized, {
+              redirectTo: callback.toString(),
+            })
+          : await supabase.auth.signInWithOtp({
+              email: normalized,
+              options: {
+                emailRedirectTo: callback.toString(),
+                shouldCreateUser: registrationEnabled,
+              },
+            });
       if (result.error) throw result.error;
       setEmail(normalized);
       setSentKind(action);
       setSent(true);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : text("De e-mail kon niet worden aangevraagd.", "The email could not be requested."));
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : text("De e-mail kon niet worden aangevraagd.", "The email could not be requested."),
+      );
     } finally {
       setEmailActionBusy(null);
     }
@@ -191,87 +263,297 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
           </p>
         </CardHeader>
         <CardContent>
-          {mfaFactorId ? <div className="space-y-4"><div><h2 className="font-medium">{text("Tweestapsverificatie","Two-step verification")}</h2><p className="mt-1 text-sm text-muted-foreground">{text("Voer de zescijferige code uit je authenticator-app in.","Enter the six-digit code from your authenticator app.")}</p></div><Label htmlFor="login-totp">{text("Verificatiecode","Verification code")}</Label><Input id="login-totp" autoFocus inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={mfaCode} onChange={e=>setMfaCode(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")void verifyMfa()}}/><Button className="w-full" disabled={mfaBusy||mfaCode.replace(/\s/g,"").length!==6} onClick={()=>void verifyMfa()}>{mfaBusy?text("Controleren…","Verifying…"):text("Veilig inloggen","Sign in securely")}</Button></div> : sent ? (
+          {mfaFactorId ? (
+            <div className="space-y-4">
+              <div>
+                <h2 className="font-medium">
+                  {text("Tweestapsverificatie", "Two-step verification")}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {text(
+                    "Voer de zescijferige code uit je authenticator-app in.",
+                    "Enter the six-digit code from your authenticator app.",
+                  )}
+                </p>
+              </div>
+              <Label htmlFor="login-totp">{text("Verificatiecode", "Verification code")}</Label>
+              <Input
+                id="login-totp"
+                autoFocus
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={8}
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void verifyMfa();
+                }}
+              />
+              <Button
+                className="w-full"
+                disabled={mfaBusy || mfaCode.replace(/\s/g, "").length !== 6}
+                onClick={() => void verifyMfa()}
+              >
+                {mfaBusy
+                  ? text("Controleren…", "Verifying…")
+                  : text("Veilig inloggen", "Sign in securely")}
+              </Button>
+            </div>
+          ) : sent ? (
             <div className="space-y-4 text-sm">
-              <p>{text(
-                sentKind === "recovery" ? "Als dit account bestaat, hebben we een herstelmail gestuurd naar" : sentKind === "magic" ? "We hebben een veilige inloglink gestuurd naar" : "We hebben een bevestigingsmail gestuurd naar",
-                sentKind === "recovery" ? "If this account exists, we sent a recovery email to" : sentKind === "magic" ? "We sent a secure sign-in link to" : "We sent a confirmation email to",
-              )} <strong>{email}</strong>. {text(
-                sentKind === "recovery" ? "Open de link om een nieuw wachtwoord te kiezen." : sentKind === "magic" ? "De link kan een keer worden gebruikt en brengt je veilig terug naar GlobeTrotr." : redirect ? "Klik op de link om je account te bevestigen. Daarna kom je terug bij de uitnodiging." : "Klik op de link om je workspace te activeren.",
-                sentKind === "recovery" ? "Open the link to choose a new password." : sentKind === "magic" ? "The link can be used once and safely returns you to GlobeTrotr." : redirect ? "Follow the link to confirm your account. You will then return to the invitation." : "Follow the link to activate your workspace.",
-              )}</p>
-              <Button type="button" variant="outline" className="w-full" onClick={() => setSent(false)}>{text("Terug naar inloggen", "Back to sign in")}</Button>
+              <p>
+                {text(
+                  sentKind === "recovery"
+                    ? "Als dit account bestaat, hebben we een herstelmail gestuurd naar"
+                    : sentKind === "magic"
+                      ? "We hebben een veilige inloglink gestuurd naar"
+                      : "We hebben een bevestigingsmail gestuurd naar",
+                  sentKind === "recovery"
+                    ? "If this account exists, we sent a recovery email to"
+                    : sentKind === "magic"
+                      ? "We sent a secure sign-in link to"
+                      : "We sent a confirmation email to",
+                )}{" "}
+                <strong>{email}</strong>.{" "}
+                {text(
+                  sentKind === "recovery"
+                    ? "Open de link om een nieuw wachtwoord te kiezen."
+                    : sentKind === "magic"
+                      ? "De link kan een keer worden gebruikt en brengt je veilig terug naar GlobeTrotr."
+                      : redirect
+                        ? "Klik op de link om je account te bevestigen. Daarna kom je terug bij de uitnodiging."
+                        : "Klik op de link om je workspace te activeren.",
+                  sentKind === "recovery"
+                    ? "Open the link to choose a new password."
+                    : sentKind === "magic"
+                      ? "The link can be used once and safely returns you to GlobeTrotr."
+                      : redirect
+                        ? "Follow the link to confirm your account. You will then return to the invitation."
+                        : "Follow the link to activate your workspace.",
+                )}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => setSent(false)}
+              >
+                {text("Terug naar inloggen", "Back to sign in")}
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="grid gap-2 sm:grid-cols-2">
-                {(["google","discord"] as const).map(provider=><Button key={provider} type="button" variant="outline" className="w-full capitalize" disabled={Boolean(oauthBusy)} onClick={()=>void signInWithProvider(provider)}><ProviderIcon provider={provider}/>{oauthBusy===provider?text("Openen…","Opening…"):provider}</Button>)}
+                {(["google", "discord"] as const).map((provider) => (
+                  <Button
+                    key={provider}
+                    type="button"
+                    variant="outline"
+                    className="w-full capitalize"
+                    disabled={Boolean(oauthBusy)}
+                    onClick={() => void signInWithProvider(provider)}
+                  >
+                    <ProviderIcon provider={provider} />
+                    {oauthBusy === provider ? text("Openen…", "Opening…") : provider}
+                  </Button>
+                ))}
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{text("of met e-mail","or with email")}</span><span className="h-px flex-1 bg-border"/></div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                <span>{text("of met e-mail", "or with email")}</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
               <form onSubmit={submit} className="space-y-4">
-              {mode === "signup" && (
+                {mode === "signup" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="name">{text("Naam", "Name")}</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                  </div>
+                )}
                 <div className="space-y-1.5">
-                  <Label htmlFor="name">{text("Naam", "Name")}</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                  <Label htmlFor="email">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password">{text("Wachtwoord", "Password")}</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    minLength={6}
+                    autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                {mode === "signup" && (
+                  <AuthCaptcha onToken={setCaptchaToken} reset={captchaReset} />
+                )}
+                {formError && (
+                  <p
+                    role="alert"
+                    className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+                  >
+                    {formError}
+                  </p>
+                )}
+                <Button type="submit" className="w-full" disabled={busy}>
+                  {busy
+                    ? text("Bezig…", "Working…")
+                    : mode === "signin"
+                      ? text("Inloggen", "Sign in")
+                      : text("Account aanmaken", "Create account")}
+                </Button>
+                {mode === "signin" && (
+                  <>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="h-px flex-1 bg-border" />
+                      <span>{text("of", "or")}</span>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      disabled={passkeyBusy}
+                      onClick={() => void signInWithPasskey()}
+                    >
+                      <KeyRound className="size-4" />
+                      {passkeyBusy
+                        ? text("Passkey openen…", "Opening passkey…")
+                        : text("Inloggen met passkey", "Sign in with passkey")}
+                    </Button>
+                  </>
+                )}
+              </form>
+              {mode === "signin" && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-auto min-h-10 whitespace-normal text-xs"
+                    disabled={Boolean(emailActionBusy)}
+                    onClick={() => void sendEmailAction("recovery")}
+                  >
+                    {emailActionBusy === "recovery"
+                      ? text("Versturen...", "Sending...")
+                      : text("Wachtwoord vergeten?", "Forgot password?")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-auto min-h-10 whitespace-normal text-xs"
+                    disabled={Boolean(emailActionBusy)}
+                    onClick={() => void sendEmailAction("magic")}
+                  >
+                    {emailActionBusy === "magic"
+                      ? text("Versturen...", "Sending...")
+                      : text("Inloglink per e-mail", "Email me a sign-in link")}
+                  </Button>
                 </div>
               )}
-              <div className="space-y-1.5">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">{text("Wachtwoord", "Password")}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={busy}>
-                {busy
-                  ? text("Bezig…", "Working…")
-                  : mode === "signin"
-                    ? text("Inloggen", "Sign in")
-                    : text("Account aanmaken", "Create account")}
-              </Button>
-              {mode === "signin" && <><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border"/><span>{text("of", "or")}</span><span className="h-px flex-1 bg-border"/></div><Button type="button" variant="outline" className="w-full" disabled={passkeyBusy} onClick={() => void signInWithPasskey()}><KeyRound className="size-4"/>{passkeyBusy ? text("Passkey openen…", "Opening passkey…") : text("Inloggen met passkey", "Sign in with passkey")}</Button></>}
-              </form>
-              {mode === "signin" && <div className="grid gap-2 sm:grid-cols-2">
-                <Button type="button" variant="ghost" className="h-auto min-h-10 whitespace-normal text-xs" disabled={Boolean(emailActionBusy)} onClick={() => void sendEmailAction("recovery")}>{emailActionBusy === "recovery" ? text("Versturen...", "Sending...") : text("Wachtwoord vergeten?", "Forgot password?")}</Button>
-                <Button type="button" variant="ghost" className="h-auto min-h-10 whitespace-normal text-xs" disabled={Boolean(emailActionBusy)} onClick={() => void sendEmailAction("magic")}>{emailActionBusy === "magic" ? text("Versturen...", "Sending...") : text("Inloglink per e-mail", "Email me a sign-in link")}</Button>
-              </div>}
-              <p className="text-center text-xs leading-5 text-muted-foreground">{text("Door verder te gaan accepteer je de voorwaarden en privacyverklaring.","By continuing, you accept the terms and privacy policy.")} <Link to="/terms" className="underline underline-offset-2">{text("Voorwaarden","Terms")}</Link> · <Link to="/privacy" className="underline underline-offset-2">Privacy</Link></p>
+              <p className="text-center text-xs leading-5 text-muted-foreground">
+                {text(
+                  "Door verder te gaan accepteer je de voorwaarden en privacyverklaring.",
+                  "By continuing, you accept the terms and privacy policy.",
+                )}{" "}
+                <Link to="/terms" className="underline underline-offset-2">
+                  {text("Voorwaarden", "Terms")}
+                </Link>{" "}
+                ·{" "}
+                <Link to="/privacy" className="underline underline-offset-2">
+                  Privacy
+                </Link>
+              </p>
             </div>
           )}
 
-          {registrationEnabled ? <button
-            type="button"
-            onClick={() => void navigate({ to: mode === "signin" ? "/register" : "/auth" })}
-            className="mt-4 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
-          >
-            {mode === "signin"
-              ? text("Nog geen account? Registreer gratis", "No account yet? Create one for free")
-              : text("Al een account? Log in", "Already have an account? Sign in")}
-          </button> : <p className="mt-4 text-center text-sm text-muted-foreground">{text("Nieuwe registraties zijn tijdelijk gepauzeerd. Bestaande gebruikers kunnen gewoon inloggen.","New registrations are temporarily paused. Existing users can still sign in.")}</p>}
+          {registrationEnabled ? (
+            <button
+              type="button"
+              onClick={() => void navigate({ to: mode === "signin" ? "/register" : "/auth" })}
+              className="mt-4 w-full text-sm text-muted-foreground underline-offset-4 hover:underline"
+            >
+              {mode === "signin"
+                ? text("Nog geen account? Registreer gratis", "No account yet? Create one for free")
+                : text("Al een account? Log in", "Already have an account? Sign in")}
+            </button>
+          ) : (
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              {text(
+                "Nieuwe registraties zijn tijdelijk gepauzeerd. Bestaande gebruikers kunnen gewoon inloggen.",
+                "New registrations are temporarily paused. Existing users can still sign in.",
+              )}
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
 
-function ProviderIcon({provider}:{provider:"google"|"discord"}) {
-  return provider==="google"
-    ? <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4"><path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.8 2.9-4.4 2.9-7.4Z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.5c-.9.6-2.1 1-3.4 1a5.9 5.9 0 0 1-5.5-4.1H3.1v2.6A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.5 14a6 6 0 0 1 0-3.9V7.5H3.1a10 10 0 0 0 0 9.1L6.5 14Z"/><path fill="#EA4335" d="M12 6a5.4 5.4 0 0 1 3.8 1.5l2.9-2.8A9.7 9.7 0 0 0 3.1 7.5l3.4 2.6A5.9 5.9 0 0 1 12 6Z"/></svg>
-    : <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 fill-[#5865F2]"><path d="M19.5 5.3A18 18 0 0 0 15 4l-.6 1.2a16 16 0 0 0-4.8 0L9 4a18 18 0 0 0-4.5 1.3C1.7 9.5.9 13.6 1.3 17.6A18 18 0 0 0 6.8 20l1.3-1.8-1.8-.9.4-.3c3.5 1.6 7.2 1.6 10.6 0l.5.3-1.9.9 1.3 1.8a18 18 0 0 0 5.5-2.4c.5-4.7-.8-8.8-3.2-12.3ZM8.3 15.1c-1 0-1.9-1-1.9-2.2s.9-2.2 1.9-2.2 1.9 1 1.9 2.2-.9 2.2-1.9 2.2Zm7.4 0c-1 0-1.9-1-1.9-2.2s.9-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Z"/></svg>;
+function AuthCaptcha({ onToken, reset }: { onToken: (token: string) => void; reset: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const receive = useCallback((value: string) => onToken(value), [onToken]);
+  useEffect(() => {
+    let widget = "";
+    const render = () => {
+      if (ref.current && window.turnstile && !ref.current.childElementCount)
+        widget = window.turnstile.render(ref.current, {
+          sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAAEzAUfhMofYpNxJC",
+          theme: "auto",
+          callback: receive,
+          "expired-callback": () => receive(""),
+          "error-callback": () => receive(""),
+        });
+    };
+    const old = document.querySelector<HTMLScriptElement>("script[data-turnstile]");
+    if (old) {
+      if (window.turnstile) render();
+      else old.addEventListener("load", render, { once: true });
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.dataset.turnstile = "true";
+      script.addEventListener("load", render, { once: true });
+      document.head.appendChild(script);
+    }
+    return () => {
+      if (widget) window.turnstile?.remove(widget);
+    };
+  }, [receive, reset]);
+  return <div ref={ref} className="min-h-[65px]" aria-label="Spamcontrole" />;
+}
+
+function ProviderIcon({ provider }: { provider: "google" | "discord" }) {
+  return provider === "google" ? (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4">
+      <path
+        fill="#4285F4"
+        d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.4a4.6 4.6 0 0 1-2 3v2.5h3.3c1.9-1.8 2.9-4.4 2.9-7.4Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 22c2.7 0 5-.9 6.7-2.4l-3.3-2.5c-.9.6-2.1 1-3.4 1a5.9 5.9 0 0 1-5.5-4.1H3.1v2.6A10 10 0 0 0 12 22Z"
+      />
+      <path fill="#FBBC05" d="M6.5 14a6 6 0 0 1 0-3.9V7.5H3.1a10 10 0 0 0 0 9.1L6.5 14Z" />
+      <path
+        fill="#EA4335"
+        d="M12 6a5.4 5.4 0 0 1 3.8 1.5l2.9-2.8A9.7 9.7 0 0 0 3.1 7.5l3.4 2.6A5.9 5.9 0 0 1 12 6Z"
+      />
+    </svg>
+  ) : (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 fill-[#5865F2]">
+      <path d="M19.5 5.3A18 18 0 0 0 15 4l-.6 1.2a16 16 0 0 0-4.8 0L9 4a18 18 0 0 0-4.5 1.3C1.7 9.5.9 13.6 1.3 17.6A18 18 0 0 0 6.8 20l1.3-1.8-1.8-.9.4-.3c3.5 1.6 7.2 1.6 10.6 0l.5.3-1.9.9 1.3 1.8a18 18 0 0 0 5.5-2.4c.5-4.7-.8-8.8-3.2-12.3ZM8.3 15.1c-1 0-1.9-1-1.9-2.2s.9-2.2 1.9-2.2 1.9 1 1.9 2.2-.9 2.2-1.9 2.2Zm7.4 0c-1 0-1.9-1-1.9-2.2s.9-2.2 1.9-2.2 1.9 1 1.9 2.2-.8 2.2-1.9 2.2Z" />
+    </svg>
+  );
 }

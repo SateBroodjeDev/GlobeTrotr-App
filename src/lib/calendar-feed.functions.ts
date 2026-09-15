@@ -1,0 +1,69 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { createServerFn } from "@tanstack/react-start";
+import { createHash, randomBytes } from "node:crypto";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function context(userId: string, tripUuid: string) {
+  const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  const { data: trip } = await (db as any)
+    .from("trips")
+    .select("trip_uuid,workspace_user_id")
+    .eq("trip_uuid", tripUuid)
+    .maybeSingle();
+  if (!trip || trip.workspace_user_id !== userId) throw new Error("TRIP_OWNER_REQUIRED");
+  const { data: workspace } = await (db as any)
+    .from("workspaces")
+    .select("plan")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!["pro", "agency"].includes(workspace?.plan)) throw new Error("PRO_REQUIRED");
+  return db as any;
+}
+
+export const getCalendarFeedStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { tripUuid: string }) => input)
+  .handler(async ({ data, context: auth }: any) => {
+    const db = await context(auth.userId, data.tripUuid);
+    const { data: feed } = await db
+      .from("trip_calendar_feeds")
+      .select("id,created_at")
+      .eq("trip_uuid", data.tripUuid)
+      .eq("active", true)
+      .is("revoked_at", null)
+      .maybeSingle();
+    return feed ?? null;
+  });
+
+export const createCalendarFeed = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { tripUuid: string }) => input)
+  .handler(async ({ data, context: auth }: any) => {
+    const db = await context(auth.userId, data.tripUuid);
+    const token = randomBytes(32).toString("base64url");
+    await db
+      .from("trip_calendar_feeds")
+      .update({ active: false, revoked_at: new Date().toISOString() })
+      .eq("trip_uuid", data.tripUuid)
+      .eq("active", true);
+    const { error } = await db.from("trip_calendar_feeds").insert({
+      trip_uuid: data.tripUuid,
+      created_by: auth.userId,
+      token_hash: createHash("sha256").update(token).digest("hex"),
+    });
+    if (error) throw new Error("CALENDAR_FEED_CREATE_FAILED");
+    return { url: `https://globetrotr.nl/calendar/${token}.ics` };
+  });
+
+export const revokeCalendarFeed = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { tripUuid: string }) => input)
+  .handler(async ({ data, context: auth }: any) => {
+    const db = await context(auth.userId, data.tripUuid);
+    await db
+      .from("trip_calendar_feeds")
+      .update({ active: false, revoked_at: new Date().toISOString() })
+      .eq("trip_uuid", data.tripUuid)
+      .eq("active", true);
+    return { ok: true };
+  });

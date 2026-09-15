@@ -1,4 +1,13 @@
 # GlobeTrotr changelog
+## 2026-09-15 — Betaalkeuze, live agenda en gerichte reparaties
+
+- Pro en Agency bieden nu een maandelijks abonnement en een eenmalige maand zonder automatische verlenging; Paddle bepaalt welke betaalmethoden in de checkout beschikbaar zijn.
+- Eenmalige aankopen krijgen een controleerbare einddatum en verlopen automatisch, zonder de bestaande abonnementen te beïnvloeden.
+- Reizigers kunnen naast een losse ICS-export een intrekbare, alleen-lezen agenda-abonnementslink maken.
+- Discord-koppeling keert via een vaste OAuth-callback terug en vernieuwt de accountidentiteiten.
+- GPX-export weigert lege routes duidelijk en downloadt geldige routepunten als echt bestand.
+- De knop voor een nieuw bedrijfspostvak opent nu werkelijk een leeg formulier.
+- Registratie voert zichtbaar de Turnstile-controle uit, geeft Supabase Auth de CAPTCHA-token en toont een blijvende foutmelding wanneer aanmaken of mailbezorging wordt geweigerd.
 
 ## 2026-09-15 — Paddle Billing technisch aangesloten
 

@@ -7,6 +7,14 @@ export const PUBLIC_TODAY = {
   ],
   completed: [
     [
+      "Maandelijks betalen of één losse maand kiezen via Paddle",
+      "Choose monthly billing or a single month through Paddle",
+    ],
+    [
+      "Een intrekbare live reisagenda naast de losse ICS-export",
+      "A revocable live trip calendar alongside one-time ICS export",
+    ],
+    [
       "Dagplanning en boekingen als agenda-export downloaden",
       "Download itinerary items and bookings as a calendar export",
     ],
@@ -354,10 +362,6 @@ export const PUBLIC_ROADMAP = [
     ],
     items: [
       [
-        "Pro-agenda-abonnement dat wijzigingen automatisch in je agenda bijwerkt",
-        "Pro calendar subscription that automatically updates trip changes in your calendar",
-      ],
-      [
         "Zelf gehoste EU-vertaalprovider aansluiten op de voorbereide vertaalconcepten",
         "Connect a self-hosted EU translation provider to the prepared translation drafts",
       ],
@@ -378,10 +382,6 @@ export const PUBLIC_ROADMAP = [
         "Optimise route order with manual confirmation",
       ],
       ["Periodieke vluchtupdates", "Periodic flight updates"],
-      [
-        "Paddle Checkout en abonnementsbeheer praktisch valideren",
-        "Validate Paddle Checkout and subscription management",
-      ],
       [
         "Uitgebreidere Agency-werkstromen met meerdere acties",
         "Expanded Agency workflows with multiple actions",

@@ -11,6 +11,7 @@ let stopping = false;
 let lastPollAt = null;
 let lastSuccessAt = null;
 let lastErrorCode = null;
+let lastEntitlementExpiryAt = 0;
 const tlsChecks = new Map();
 
 async function readRequestBody(request, maximum = 262_144) {
@@ -18,38 +19,58 @@ async function readRequestBody(request, maximum = 262_144) {
   let size = 0;
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > maximum) throw Object.assign(new Error("REQUEST_TOO_LARGE"), { code: "REQUEST_TOO_LARGE" });
+    if (size > maximum)
+      throw Object.assign(new Error("REQUEST_TOO_LARGE"), { code: "REQUEST_TOO_LARGE" });
     chunks.push(chunk);
   }
   return Buffer.concat(chunks).toString("utf8");
 }
 
 function validPaddleSignature(rawBody, header, secret) {
-  const parts = String(header || "").split(";").map((part) => {
-    const at = part.indexOf("=");
-    return at < 1 ? [part, ""] : [part.slice(0, at), part.slice(at + 1)];
-  });
+  const parts = String(header || "")
+    .split(";")
+    .map((part) => {
+      const at = part.indexOf("=");
+      return at < 1 ? [part, ""] : [part.slice(0, at), part.slice(at + 1)];
+    });
   const timestamp = Number(parts.find(([key]) => key === "ts")?.[1]);
   if (!Number.isInteger(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
-  const expected = Buffer.from(createHmac("sha256", secret).update(`${timestamp}:${rawBody}`).digest("hex"), "hex");
-  return parts.filter(([key]) => key === "h1").some(([, value]) => {
-    if (!/^[a-f0-9]{64}$/i.test(value)) return false;
-    const supplied = Buffer.from(value, "hex");
-    return supplied.length === expected.length && timingSafeEqual(supplied, expected);
-  });
+  const expected = Buffer.from(
+    createHmac("sha256", secret).update(`${timestamp}:${rawBody}`).digest("hex"),
+    "hex",
+  );
+  return parts
+    .filter(([key]) => key === "h1")
+    .some(([, value]) => {
+      if (!/^[a-f0-9]{64}$/i.test(value)) return false;
+      const supplied = Buffer.from(value, "hex");
+      return supplied.length === expected.length && timingSafeEqual(supplied, expected);
+    });
 }
 
 async function enrichPaddleEvent(event) {
   const data = event?.data;
-  if (!data || typeof data !== "object") throw Object.assign(new Error("PADDLE_EVENT_INVALID"), { code: "PADDLE_EVENT_INVALID" });
+  if (!data || typeof data !== "object")
+    throw Object.assign(new Error("PADDLE_EVENT_INVALID"), { code: "PADDLE_EVENT_INVALID" });
   const priceIds = new Set((data.items || []).map((item) => item?.price?.id).filter(Boolean));
-  const pro = env.VITE_PADDLE_PRO_MONTHLY_PRICE_ID?.trim();
-  const agency = env.VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID?.trim();
-  data.globetrotr_plan = agency && priceIds.has(agency) ? "agency" : pro && priceIds.has(pro) ? "pro" : null;
+  const prices = [
+    [env.VITE_PADDLE_PRO_MONTHLY_PRICE_ID, "pro", "recurring"],
+    [env.VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID, "agency", "recurring"],
+    [env.VITE_PADDLE_PRO_ONETIME_PRICE_ID, "pro", "one_time"],
+    [env.VITE_PADDLE_AGENCY_ONETIME_PRICE_ID, "agency", "one_time"],
+  ];
+  const matched = prices.find(([id]) => id?.trim() && priceIds.has(id.trim()));
+  data.globetrotr_plan = matched?.[1] ?? null;
+  data.globetrotr_billing_mode = matched?.[2] ?? null;
   if ((event.event_type || "").startsWith("subscription.") && !data.globetrotr_plan)
-    throw Object.assign(new Error("PADDLE_PRICE_NOT_ALLOWED"), { code: "PADDLE_PRICE_NOT_ALLOWED" });
+    throw Object.assign(new Error("PADDLE_PRICE_NOT_ALLOWED"), {
+      code: "PADDLE_PRICE_NOT_ALLOWED",
+    });
   if (event.event_type === "transaction.completed" && env.PADDLE_API_KEY && data.id) {
-    const base = env.VITE_PADDLE_ENVIRONMENT === "production" ? "https://api.paddle.com" : "https://sandbox-api.paddle.com";
+    const base =
+      env.VITE_PADDLE_ENVIRONMENT === "production"
+        ? "https://api.paddle.com"
+        : "https://sandbox-api.paddle.com";
     try {
       const invoice = await fetch(`${base}/transactions/${encodeURIComponent(data.id)}/invoice`, {
         headers: { Authorization: `Bearer ${env.PADDLE_API_KEY}` },
@@ -354,6 +375,10 @@ async function cycle() {
     await pollJobs();
     await pollMail();
     await pollCorporateMail();
+    if (Date.now() - lastEntitlementExpiryAt > 3_600_000) {
+      await rpc("expire_billing_entitlements");
+      lastEntitlementExpiryAt = Date.now();
+    }
     lastSuccessAt = new Date().toISOString();
     lastErrorCode = null;
   } catch (error) {
@@ -370,23 +395,117 @@ createServer(async (request, response) => {
     }
     const secret = env.PADDLE_WEBHOOK_SECRET?.trim();
     if (!secret) {
-      response.writeHead(503, { "Content-Type": "application/json" }).end('{"error":"PADDLE_NOT_CONFIGURED"}');
+      response
+        .writeHead(503, { "Content-Type": "application/json" })
+        .end('{"error":"PADDLE_NOT_CONFIGURED"}');
       return;
     }
     try {
       const rawBody = await readRequestBody(request);
       if (!validPaddleSignature(rawBody, request.headers["paddle-signature"], secret)) {
-        response.writeHead(401, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end('{"error":"INVALID_SIGNATURE"}');
+        response
+          .writeHead(401, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+          .end('{"error":"INVALID_SIGNATURE"}');
         return;
       }
       const event = await enrichPaddleEvent(JSON.parse(rawBody));
       const result = await rpc("process_paddle_billing_event", { p_event: event });
-      log("info", "paddle.webhook", { eventId: event.event_id, eventType: event.event_type, result });
-      response.writeHead(result === "failed" ? 500 : 200, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify({ status: result }));
+      if (result === "processed" && event.data?.globetrotr_billing_mode === "one_time")
+        await rpc("apply_paddle_one_time_purchase", { p_event: event });
+      if (result === "processed" && /^(transaction|adjustment)\./.test(event.event_type || ""))
+        await rpc("reconcile_paddle_one_time_purchase", { p_event: event });
+      log("info", "paddle.webhook", {
+        eventId: event.event_id,
+        eventType: event.event_type,
+        result,
+      });
+      response
+        .writeHead(result === "failed" ? 500 : 200, {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        })
+        .end(JSON.stringify({ status: result }));
     } catch (error) {
       const code = String(error?.code ?? "PADDLE_WEBHOOK_FAILED").slice(0, 80);
       log("error", "paddle.webhook_failed", { errorCode: code });
-      response.writeHead(code === "REQUEST_TOO_LARGE" ? 413 : 400, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify({ error: code }));
+      response
+        .writeHead(code === "REQUEST_TOO_LARGE" ? 413 : 400, {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        })
+        .end(JSON.stringify({ error: code }));
+    }
+    return;
+  }
+  if (
+    request.method === "GET" &&
+    /^\/calendar\/[A-Za-z0-9_-]{32,200}\.ics$/.test(requestUrl.pathname)
+  ) {
+    const token = requestUrl.pathname.slice("/calendar/".length, -4);
+    try {
+      const calendar = await rpc("get_trip_calendar_feed", { p_token: token });
+      if (!calendar) {
+        response.writeHead(404).end();
+        return;
+      }
+      const esc = (value) =>
+        String(value ?? "")
+          .replace(/([,;\\])/g, "\\$1")
+          .replace(/\r?\n/g, "\\n");
+      const date = (value) => String(value ?? "").replaceAll("-", "");
+      const dayAfter = (value) => {
+        const result = new Date(`${value}T12:00:00Z`);
+        result.setUTCDate(result.getUTCDate() + 1);
+        return result.toISOString().slice(0, 10);
+      };
+      const events = [
+        ...(calendar.itinerary || []).map((item) => ({
+          id: `itinerary-${item.id}`,
+          day: item.day,
+          title: item.title,
+          notes: item.notes,
+        })),
+        ...(calendar.bookings || []).map((item) => ({
+          id: `booking-${item.id}`,
+          day: item.start_date,
+          end: item.end_date,
+          title: item.title,
+          notes: item.notes,
+        })),
+      ];
+      const body = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//GlobeTrotr//Live trip calendar//EN",
+        "CALSCALE:GREGORIAN",
+        `X-WR-CALNAME:${esc(calendar.name)}`,
+        ...events.flatMap((item) =>
+          [
+            "BEGIN:VEVENT",
+            `UID:${esc(item.id)}@globetrotr.nl`,
+            `DTSTAMP:${new Date()
+              .toISOString()
+              .replace(/[-:]/g, "")
+              .replace(/\.\d{3}/, "")}`,
+            `DTSTART;VALUE=DATE:${date(item.day)}`,
+            `DTEND;VALUE=DATE:${date(dayAfter(item.end || item.day))}`,
+            `SUMMARY:${esc(item.title)}`,
+            item.notes ? `DESCRIPTION:${esc(item.notes)}` : null,
+            "END:VEVENT",
+          ].filter(Boolean),
+        ),
+        "END:VCALENDAR",
+        "",
+      ].join("\r\n");
+      response
+        .writeHead(200, {
+          "Content-Type": "text/calendar; charset=utf-8",
+          "Cache-Control": "no-store",
+          "Content-Disposition": `inline; filename="${String(calendar.name).replace(/[^a-z0-9_-]/gi, "-")}.ics"`,
+        })
+        .end(body);
+    } catch {
+      response.writeHead(404).end();
     }
     return;
   }

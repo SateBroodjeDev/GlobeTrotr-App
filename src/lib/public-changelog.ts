@@ -41,19 +41,105 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-15-payment-choice-calendar",
+    version: "0.17.0",
+    publishedAt: "2026-09-15T16:00:00+02:00",
+    title: "Zelf je betaalvorm en agenda kiezen",
+    titleEn: "Choose your payment and calendar format",
+    summary: "Betaal per maand of koop één losse maand en houd je reisagenda automatisch actueel.",
+    summaryEn:
+      "Pay monthly or buy a single month and keep your trip calendar automatically up to date.",
+    changes: [
+      {
+        kind: "new",
+        title: "Eenmalige maand",
+        titleEn: "One-time month",
+        description:
+          "Pro en Agency zijn ook één maand te gebruiken zonder automatische verlenging.",
+        descriptionEn: "Pro and Agency can also be used for one month without automatic renewal.",
+      },
+      {
+        kind: "new",
+        title: "Live reisagenda",
+        titleEn: "Live trip calendar",
+        description:
+          "Pro-gebruikers kunnen een persoonlijke agenda-abonnementslink maken en weer intrekken.",
+        descriptionEn: "Pro users can create and revoke a personal calendar subscription link.",
+      },
+      {
+        kind: "fixed",
+        title: "Exports en accountkoppeling",
+        titleEn: "Exports and account linking",
+        description:
+          "GPX-download, Discord-koppeling en het toevoegen van bedrijfspostvakken reageren weer betrouwbaar.",
+        descriptionEn:
+          "GPX downloads, Discord linking and adding company mailboxes now respond reliably.",
+      },
+      {
+        kind: "secure",
+        title: "Registratie hersteld",
+        titleEn: "Registration restored",
+        description:
+          "Nieuwe accounts doorlopen de zichtbare spamcontrole en krijgen duidelijke feedback bij een probleem.",
+        descriptionEn:
+          "New accounts complete the visible spam check and receive clear feedback when something goes wrong.",
+      },
+    ],
+  },
+  {
     id: "2026-09-15-paddle-billing",
     version: "0.16.0",
     publishedAt: "2026-09-15T13:15:00+02:00",
     title: "Veilig afrekenen met Paddle",
     titleEn: "Secure checkout with Paddle",
-    summary: "Pro en Agency zijn gekoppeld aan checkout, abonnementen, facturen, betaalmails en selfservicebeheer.",
-    summaryEn: "Pro and Agency are connected to checkout, subscriptions, invoices, billing emails and self-service management.",
+    summary:
+      "Pro en Agency zijn gekoppeld aan checkout, abonnementen, facturen, betaalmails en selfservicebeheer.",
+    summaryEn:
+      "Pro and Agency are connected to checkout, subscriptions, invoices, billing emails and self-service management.",
     changes: [
-      { kind: "new", title: "Online checkout", titleEn: "Online checkout", description: "Kies Pro of Agency en rond de aankoop af in de beveiligde Paddle Checkout.", descriptionEn: "Choose Pro or Agency and complete the purchase through secure Paddle Checkout." },
-      { kind: "secure", title: "Betalingsstatus bepaalt toegang", titleEn: "Payment status controls access", description: "Betaalde functies worden uitsluitend na een gecontroleerd Paddle-event geactiveerd.", descriptionEn: "Paid features are activated only after a verified Paddle event." },
-      { kind: "improved", title: "Abonnement zelf beheren", titleEn: "Manage your own subscription", description: "Facturen, betaalmethode en opzegging zijn bereikbaar via Paddle Customer Portal.", descriptionEn: "Invoices, payment methods and cancellation are available through Paddle Customer Portal." },
-      { kind: "new", title: "Facturen en betaalmails", titleEn: "Invoices and billing emails", description: "Betalingen krijgen een tweetalige bevestiging en iedere factuur wordt met een verse beveiligde link opgehaald.", descriptionEn: "Payments receive a bilingual confirmation and each invoice is retrieved using a fresh secure link." },
-      { kind: "improved", title: "Terugbetalingen", titleEn: "Refunds", description: "Een terugbetaling wordt gevolgd van aanvraag tot bijgewerkte factuur en creditnota.", descriptionEn: "Refunds are tracked from request through the updated invoice and credit note." },
+      {
+        kind: "new",
+        title: "Online checkout",
+        titleEn: "Online checkout",
+        description: "Kies Pro of Agency en rond de aankoop af in de beveiligde Paddle Checkout.",
+        descriptionEn:
+          "Choose Pro or Agency and complete the purchase through secure Paddle Checkout.",
+      },
+      {
+        kind: "secure",
+        title: "Betalingsstatus bepaalt toegang",
+        titleEn: "Payment status controls access",
+        description:
+          "Betaalde functies worden uitsluitend na een gecontroleerd Paddle-event geactiveerd.",
+        descriptionEn: "Paid features are activated only after a verified Paddle event.",
+      },
+      {
+        kind: "improved",
+        title: "Abonnement zelf beheren",
+        titleEn: "Manage your own subscription",
+        description:
+          "Facturen, betaalmethode en opzegging zijn bereikbaar via Paddle Customer Portal.",
+        descriptionEn:
+          "Invoices, payment methods and cancellation are available through Paddle Customer Portal.",
+      },
+      {
+        kind: "new",
+        title: "Facturen en betaalmails",
+        titleEn: "Invoices and billing emails",
+        description:
+          "Betalingen krijgen een tweetalige bevestiging en iedere factuur wordt met een verse beveiligde link opgehaald.",
+        descriptionEn:
+          "Payments receive a bilingual confirmation and each invoice is retrieved using a fresh secure link.",
+      },
+      {
+        kind: "improved",
+        title: "Terugbetalingen",
+        titleEn: "Refunds",
+        description:
+          "Een terugbetaling wordt gevolgd van aanvraag tot bijgewerkte factuur en creditnota.",
+        descriptionEn:
+          "Refunds are tracked from request through the updated invoice and credit note.",
+      },
     ],
   },
   {

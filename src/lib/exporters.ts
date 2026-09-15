@@ -151,15 +151,22 @@ function escapeXml(value: string) {
 
 export function buildTripGpx(trip: Trip) {
   const points = trip.stops
+    .filter((stop) => Number.isFinite(Number(stop.lat)) && Number.isFinite(Number(stop.lon)))
     .map(
       (stop) =>
-        `    <rtept lat="${stop.lat}" lon="${stop.lon}"><name>${escapeXml(stop.name)}</name><desc>${escapeXml(stop.country)}</desc></rtept>`,
+        `    <rtept lat="${Number(stop.lat)}" lon="${Number(stop.lon)}"><name>${escapeXml(stop.name)}</name><desc>${escapeXml(stop.country)}</desc></rtept>`,
     )
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="GlobeTrotr" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${escapeXml(trip.name)}</name></metadata>\n  <rte><name>${escapeXml(trip.name)}</name>\n${points}\n  </rte>\n</gpx>\n`;
 }
 
 export function downloadTripGpx(trip: Trip) {
+  if (
+    !trip.stops.some(
+      (stop) => Number.isFinite(Number(stop.lat)) && Number.isFinite(Number(stop.lon)),
+    )
+  )
+    return false;
   const blob = new Blob([buildTripGpx(trip)], { type: "application/gpx+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -169,6 +176,7 @@ export function downloadTripGpx(trip: Trip) {
   anchor.click();
   anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+  return true;
 }
 
 export function openPdf(

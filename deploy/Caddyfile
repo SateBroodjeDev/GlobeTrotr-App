@@ -9,6 +9,9 @@ globetrotr.nl {
   handle /api/paddle/webhook {
     reverse_proxy 10.0.0.3:9091
   }
+  handle /calendar/* {
+    reverse_proxy 10.0.0.3:9091
+  }
   handle {
     reverse_proxy web:3000
   }

@@ -1,5 +1,5 @@
 ﻿import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Inbox, RefreshCw, Send } from "lucide-react";
 import { toast } from "sonner";
@@ -58,9 +58,13 @@ function Page() {
     [retrying, setRetrying] = useState(""),
     [modeReason, setModeReason] = useState(""),
     [changingMode, setChangingMode] = useState(false);
+  const initialMailboxSelected = useRef(false);
   useEffect(() => {
-    if (!f.id && q.data?.mailboxes[0]) edit(q.data.mailboxes[0]);
-  }, [q.data, f.id]);
+    if (!initialMailboxSelected.current && q.data) {
+      initialMailboxSelected.current = true;
+      if (q.data.mailboxes[0]) edit(q.data.mailboxes[0]);
+    }
+  }, [q.data]);
   function edit(m: any) {
     setF({
       id: m.id,
@@ -194,7 +198,7 @@ function Page() {
                 </small>
               </button>
             ))}
-            <Button variant="outline" className="w-full" onClick={() => setF(blank)}>
+            <Button variant="outline" className="w-full" onClick={() => setF({ ...blank })}>
               {text("Toevoegen", "Add")}
             </Button>
           </CardContent>

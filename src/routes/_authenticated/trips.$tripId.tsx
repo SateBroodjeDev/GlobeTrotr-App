@@ -7,7 +7,6 @@ import {
   Archive,
   ArrowDownUp,
   BookOpen,
-  CalendarDays,
   Copy,
   FileDown,
   Download,
@@ -35,14 +34,8 @@ import {
 } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
-import {
-  downloadCsv,
-  downloadJson,
-  downloadTripCalendar,
-  downloadTripGpx,
-  openGuide,
-  openPdf,
-} from "@/lib/exporters";
+import { downloadCsv, downloadJson, downloadTripGpx, openGuide, openPdf } from "@/lib/exporters";
+import { TripCalendarExport } from "@/components/TripCalendarExport";
 import { uid } from "@/lib/workspace";
 import {
   normalizeExpenseParticipants,
@@ -768,20 +761,20 @@ function TripDetail() {
           >
             <FileDown className="size-4" /> CSV
           </Button>
+          <TripCalendarExport trip={trip} paid={state.plan === "pro" || state.plan === "agency"} />
           <Button
+            type="button"
             variant="outline"
             onClick={() => {
-              downloadTripCalendar(trip);
-              toast.success(text("Reisagenda gedownload", "Trip calendar downloaded"));
-            }}
-          >
-            <CalendarDays className="size-4" /> ICS
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              downloadTripGpx(trip);
-              toast.success(text("GPX-route gedownload", "GPX route downloaded"));
+              if (downloadTripGpx(trip))
+                toast.success(text("GPX-route gedownload", "GPX route downloaded"));
+              else
+                toast.error(
+                  text(
+                    "Voeg eerst een bestemming met kaartcoördinaten toe.",
+                    "Add a destination with map coordinates first.",
+                  ),
+                );
             }}
           >
             <Download className="size-4" /> GPX

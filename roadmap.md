@@ -268,7 +268,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Reisstatistieken met reisdagen, landen, bestemmingen, overnachtingen, totale uitgaven, daggemiddelde en categorieën.
 - [x] Budgettempo met besteed bedrag, resterend budget en een prognose voor lopende reizen.
 - [x] Provider-onafhankelijke ICS-agenda-export voor dagplanning en boekingen, geschikt voor gangbare agenda-apps.
-- [ ] Pro-agenda-abonnement bouwen met een intrekbare, willekeurige feed-URL, alleen-lezen iCalendar-uitvoer en een duidelijke keuze tussen eenmalig exporteren en automatisch bijwerken.
+- [x] Pro-agenda-abonnement met een intrekbare, willekeurige feed-URL, alleen-lezen iCalendar-uitvoer en een duidelijke keuze tussen eenmalig exporteren en automatisch bijwerken.
 - [x] GPX-export van bestemmingen en routevolgorde voor kaart- en navigatie-apps.
 - [x] Route gecontroleerd omkeren met bevestiging en opslag via de bestaande versiecontrole.
 - [x] Reis als veilige private variant dupliceren.

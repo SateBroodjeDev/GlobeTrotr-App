@@ -7,8 +7,8 @@ Deze handleiding begint bij de huidige situatie:
 - Node-02 (`178.105.243.191`) draait worker, mailrelay en IMAP-sync;
 - het private adres van Node-02 is `10.0.0.3`;
 - DNS, firewall, Supabase, SMTP en OAuth werken al;
-- SQL tot en met migratie 1130 is uitgevoerd;
-- migraties 1140, 1150 en 1160 moeten met deze uitrol worden toegepast.
+- SQL en tests tot en met migratie 1160 zijn uitgevoerd;
+- alleen migratie en test 1170 uit deze release staan nog open.
 
 Voer de stappen in deze volgorde uit. Bewaar echte keys uitsluitend in de
 genoemde `.env`-bestanden op de servers. Plak ze nooit in Git, een issue of een
@@ -40,21 +40,25 @@ git push origin lovable
 Stop wanneer `.env`, `.env.production` of `.env.mail-relay` in de staged lijst
 staat. Verwijder zo'n bestand dan eerst met `git restore --staged BESTANDSNAAM`.
 
-## 2. In Supabase: SQL uitvoeren
+## 2. In Supabase: alleen de nieuwe SQL uitvoeren
 
-Open Supabase Dashboard, kies het productieproject en open **SQL Editor**.
-Open ieder bestand lokaal, kopieer de volledige inhoud naar een nieuwe query en
-kies **Run**. Gebruik exact deze volgorde:
+Open **Supabase Dashboard → SQL Editor** en voer in deze volgorde uit:
 
-1. `supabase/migrations/20260908114000_notification_and_invitation_reliability.sql`
-2. `supabase/tests/notification_and_invitation_reliability.sql`
-3. `supabase/migrations/20260908115000_mailbox_credentials_and_agency_domains.sql`
-4. `supabase/tests/mailbox_credentials_and_agency_domains.sql`
-5. `supabase/migrations/20260908116000_paddle_billing_runtime.sql`
-6. `supabase/tests/paddle_billing_runtime.sql`
+1. `supabase/migrations/20260908117000_payment_modes_and_live_calendars.sql`
+2. `supabase/tests/payment_modes_and_live_calendars.sql`
 
-De drie testbestanden eindigen met `ROLLBACK` en laten geen testdata achter. Ga
-alleen verder als alle zes queries zonder foutmelding eindigen.
+Migraties en tests tot en met 1160 zijn al uitgevoerd. Voer die niet opnieuw uit.
+
+### Registratie en Turnstile controleren
+
+Open daarna **Supabase Dashboard → Authentication → Attack Protection → CAPTCHA**:
+
+1. kies **Cloudflare Turnstile**;
+2. vul daar de geheime Turnstile-key in die hoort bij de publieke sitekey uit `VITE_TURNSTILE_SITE_KEY`;
+3. sla op en controleer bij Cloudflare dat `globetrotr.nl` als toegestaan domein staat;
+4. zet CAPTCHA aan voor registratie.
+
+De geheime key hoort alleen in Supabase en nooit in een `VITE_...`-variabele. De registratiepagina stuurt de verkregen CAPTCHA-token rechtstreeks met `signUp` mee.
 
 ## 3. In Paddle Sandbox: producten en toegang maken
 
@@ -113,7 +117,7 @@ Je bent ingelogd als `globetrotr` op Node-01.
 cd /opt/globetrotr
 git status
 git pull --ff-only origin lovable
-cp .env.production .env.production.backup-before-1160
+cp .env.production .env.production.backup-before-1170
 nano .env.production
 ```
 
@@ -128,6 +132,8 @@ VITE_PADDLE_ENVIRONMENT=sandbox
 VITE_PADDLE_CLIENT_TOKEN=test_VUL_IN
 VITE_PADDLE_PRO_MONTHLY_PRICE_ID=pri_VUL_PRO_IN
 VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID=pri_VUL_AGENCY_IN
+VITE_PADDLE_PRO_ONETIME_PRICE_ID=pri_VUL_PRO_EEN_MAAND_IN
+VITE_PADDLE_AGENCY_ONETIME_PRICE_ID=pri_VUL_AGENCY_EEN_MAAND_IN
 PADDLE_API_KEY=pdl_sdbx_apikey_VUL_IN
 ```
 
@@ -170,8 +176,8 @@ Voer op Node-02 uit:
 cd /opt/globetrotr
 git status
 git pull --ff-only origin lovable
-cp .env.production .env.production.backup-before-1160
-cp .env.mail-relay .env.mail-relay.backup-before-1160
+cp .env.production .env.production.backup-before-1170
+cp .env.mail-relay .env.mail-relay.backup-before-1170
 nano .env.production
 ```
 
@@ -202,6 +208,8 @@ MAILBOX_CREDENTIALS_KEY=DEZELFDE_BASE64_SLEUTEL_ALS_NODE_01
 VITE_PADDLE_ENVIRONMENT=sandbox
 VITE_PADDLE_PRO_MONTHLY_PRICE_ID=pri_VUL_PRO_IN
 VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID=pri_VUL_AGENCY_IN
+VITE_PADDLE_PRO_ONETIME_PRICE_ID=pri_VUL_PRO_EEN_MAAND_IN
+VITE_PADDLE_AGENCY_ONETIME_PRICE_ID=pri_VUL_AGENCY_EEN_MAAND_IN
 PADDLE_API_KEY=pdl_sdbx_apikey_VUL_IN
 PADDLE_WEBHOOK_SECRET=pdl_ntfset_VUL_IN
 ```
@@ -340,15 +348,15 @@ Als Node-01 door een configuratiefout niet start, herstel daar het vorige
 omgevingbestand en bouw de webstack opnieuw:
 
 ```bash
-cp .env.production.backup-before-1160 .env.production
+cp .env.production.backup-before-1170 .env.production
 docker compose --env-file .env.production -f deploy/web.compose.yml up -d --build
 ```
 
 Als Node-02 door een configuratiefout niet start, voer daar uit:
 
 ```bash
-cp .env.production.backup-before-1160 .env.production
-cp .env.mail-relay.backup-before-1160 .env.mail-relay
+cp .env.production.backup-before-1170 .env.production
+cp .env.mail-relay.backup-before-1170 .env.mail-relay
 docker compose --env-file .env.production -f deploy/worker.compose.yml up -d --build
 ```
 

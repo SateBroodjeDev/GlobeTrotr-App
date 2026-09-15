@@ -26,6 +26,7 @@ import { Route as ForGroupsRouteImport } from './routes/for-groups'
 import { Route as ForTravelersRouteImport } from './routes/for-travelers'
 import { Route as KnownIssuesRouteImport } from './routes/known-issues'
 import { Route as MogelijkhedenRouteImport } from './routes/mogelijkheden'
+import { Route as OauthCallbackRouteImport } from './routes/oauth-callback'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrijzenRouteImport } from './routes/prijzen'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -172,6 +173,11 @@ const KnownIssuesRoute = KnownIssuesRouteImport.update({
 const MogelijkhedenRoute = MogelijkhedenRouteImport.update({
   id: '/mogelijkheden',
   path: '/mogelijkheden',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth-callback',
+  path: '/oauth-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -545,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/for-travelers': typeof ForTravelersRoute
   '/known-issues': typeof KnownIssuesRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/pricing': typeof PricingRoute
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
@@ -626,6 +633,7 @@ export interface FileRoutesByTo {
   '/for-travelers': typeof ForTravelersRoute
   '/known-issues': typeof KnownIssuesRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/pricing': typeof PricingRoute
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
@@ -707,6 +715,7 @@ export interface FileRoutesById {
   '/for-travelers': typeof ForTravelersRoute
   '/known-issues': typeof KnownIssuesRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/pricing': typeof PricingRoute
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
@@ -790,6 +799,7 @@ export interface FileRouteTypes {
     | '/for-travelers'
     | '/known-issues'
     | '/mogelijkheden'
+    | '/oauth-callback'
     | '/pricing'
     | '/prijzen'
     | '/privacy'
@@ -871,6 +881,7 @@ export interface FileRouteTypes {
     | '/for-travelers'
     | '/known-issues'
     | '/mogelijkheden'
+    | '/oauth-callback'
     | '/pricing'
     | '/prijzen'
     | '/privacy'
@@ -951,6 +962,7 @@ export interface FileRouteTypes {
     | '/for-travelers'
     | '/known-issues'
     | '/mogelijkheden'
+    | '/oauth-callback'
     | '/pricing'
     | '/prijzen'
     | '/privacy'
@@ -1034,6 +1046,7 @@ export interface RootRouteChildren {
   ForTravelersRoute: typeof ForTravelersRoute
   KnownIssuesRoute: typeof KnownIssuesRoute
   MogelijkhedenRoute: typeof MogelijkhedenRoute
+  OauthCallbackRoute: typeof OauthCallbackRoute
   PricingRoute: typeof PricingRoute
   PrijzenRoute: typeof PrijzenRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1174,6 +1187,13 @@ declare module '@tanstack/react-router' {
       path: '/mogelijkheden'
       fullPath: '/mogelijkheden'
       preLoaderRoute: typeof MogelijkhedenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth-callback': {
+      id: '/oauth-callback'
+      path: '/oauth-callback'
+      fullPath: '/oauth-callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -1799,6 +1819,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForTravelersRoute: ForTravelersRoute,
   KnownIssuesRoute: KnownIssuesRoute,
   MogelijkhedenRoute: MogelijkhedenRoute,
+  OauthCallbackRoute: OauthCallbackRoute,
   PricingRoute: PricingRoute,
   PrijzenRoute: PrijzenRoute,
   PrivacyRoute: PrivacyRoute,

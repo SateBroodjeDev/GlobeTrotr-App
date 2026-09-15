@@ -1,5 +1,17 @@
 # GlobeTrotr beta-testlijst
 
+## Release 1170 — betaalvormen, agenda en reparaties
+
+- [ ] Registreer een volledig nieuw e-mailadres, rond Turnstile af en controleer Supabase plus bevestigingsmail.
+- [ ] Koop Pro één maand met iDEAL en controleer dat geen automatische verlenging ontstaat.
+- [ ] Start een maandelijks Pro-abonnement met kaart of PayPal en controleer Customer Portal.
+- [ ] Controleer automatische afloop van een eenmalig recht zonder een actief abonnement te raken.
+- [ ] Koppel Discord vanuit Account en controleer dat Discord na terugkeer als gekoppeld staat.
+- [ ] Download een geldige GPX en controleer ook de fout bij een reis zonder coördinaten.
+- [ ] Download ICS, maak een live agendalink, abonneer, wijzig de reis en controleer verversing.
+- [ ] Trek de agendalink in en controleer dat de oude URL niet meer opent.
+- [ ] Voeg vanuit Corporate Admin een postvak met IMAP-gegevens toe en controleer synchronisatie.
+
 ## Laatste productie-update (na migraties 1130-1160)
 
 - [ ] Voer migratie `20260908116000_paddle_billing_runtime.sql` en daarna `paddle_billing_runtime.sql` uit.

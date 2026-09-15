@@ -1,5 +1,16 @@
 # Paddle van nul naar productie
 
+## Twee betaalvormen per betaald plan
+
+Maak bij zowel **GlobeTrotr Pro** als **GlobeTrotr Agency** een terugkerende maandprijs en een eenmalige prijs voor één maand toegang. Kopieer de vier `pri_...`-waarden. De eenmalige prijs maakt geen abonnement. Paddle toont iDEAL alleen wanneer dit voor de klant en checkout beschikbaar is.
+
+```dotenv
+VITE_PADDLE_PRO_MONTHLY_PRICE_ID=pri_...
+VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID=pri_...
+VITE_PADDLE_PRO_ONETIME_PRICE_ID=pri_...
+VITE_PADDLE_AGENCY_ONETIME_PRICE_ID=pri_...
+```
+
 GlobeTrotr gebruikt Paddle als Merchant of Record. Gebruik voor de daadwerkelijke
 uitrol de lineaire stappen en servercommando's in
 [`IMPLEMENTATION_PENDING.md`](IMPLEMENTATION_PENDING.md). Dit document geeft de
