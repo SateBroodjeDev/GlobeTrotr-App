@@ -1,6 +1,17 @@
+{
+  on_demand_tls {
+    ask http://10.0.0.3:9091/tls/ask
+  }
+}
+
 globetrotr.nl {
   encode zstd gzip
-  reverse_proxy web:3000
+  handle /api/paddle/webhook {
+    reverse_proxy 10.0.0.3:9091
+  }
+  handle {
+    reverse_proxy web:3000
+  }
 
   header {
     Strict-Transport-Security "max-age=31536000; includeSubDomains"
@@ -12,4 +23,12 @@ globetrotr.nl {
 
 www.globetrotr.nl, dashboard.globetrotr.nl {
   redir https://globetrotr.nl{uri} permanent
+}
+
+https:// {
+  tls {
+    on_demand
+  }
+  encode zstd gzip
+  reverse_proxy web:3000
 }

@@ -35,7 +35,14 @@ import {
 } from "@/lib/types";
 import { CURRENCIES, convert, formatMoney } from "@/lib/services";
 import type { GeoResult } from "@/lib/services";
-import { downloadCsv, downloadJson, downloadTripCalendar, downloadTripGpx, openGuide, openPdf } from "@/lib/exporters";
+import {
+  downloadCsv,
+  downloadJson,
+  downloadTripCalendar,
+  downloadTripGpx,
+  openGuide,
+  openPdf,
+} from "@/lib/exporters";
 import { uid } from "@/lib/workspace";
 import {
   normalizeExpenseParticipants,
@@ -168,18 +175,32 @@ function TripDetail() {
   });
   const agencyPermissions = agencyAccessQuery.data?.permissions;
   const agencyAccessPending = agencyAccessQuery.isLoading && accessRole !== "owner";
-  const mayManageMembers = accessRole === "owner" || resolveTripCapability(agencyAccessPending, agencyPermissions, "members_manage", false);
+  const mayManageMembers =
+    accessRole === "owner" ||
+    resolveTripCapability(agencyAccessPending, agencyPermissions, "members_manage", false);
   const ownerName = accessRole === "owner" ? currentAccountName : text("Eigenaar", "Owner");
   const ownerParticipant = {
     id: ownerParticipantId(trip.ownerId ?? (accessRole === "owner" ? user?.id : undefined)),
     name: ownerName,
   };
   const financialParticipants = participantsOf(trip, ownerParticipant);
-  const editable = resolveTripCapability(agencyAccessPending, agencyPermissions, "trips_plan", canPlanTrip(accessRole));
-  const moneyEditable = resolveTripCapability(agencyAccessPending, agencyPermissions, "expenses_manage", canManageTripMoney(accessRole));
+  const editable = resolveTripCapability(
+    agencyAccessPending,
+    agencyPermissions,
+    "trips_plan",
+    canPlanTrip(accessRole),
+  );
+  const moneyEditable = resolveTripCapability(
+    agencyAccessPending,
+    agencyPermissions,
+    "expenses_manage",
+    canManageTripMoney(accessRole),
+  );
   const tripOwner = ownsTrip(accessRole);
-  const settingsEditable = tripOwner || resolveTripCapability(agencyAccessPending, agencyPermissions, "trip_settings_manage", false);
-  const [exportBrandingOverride,setExportBrandingOverride]=useState(trip.branding);
+  const settingsEditable =
+    tripOwner ||
+    resolveTripCapability(agencyAccessPending, agencyPermissions, "trip_settings_manage", false);
+  const [exportBrandingOverride, setExportBrandingOverride] = useState(trip.branding);
   const exportBranding = resolveBranding(state.plan, null, state.branding, exportBrandingOverride);
   const [editingBooking, setEditingBooking] = useState<TravelItem | null>(null);
   async function updateItineraryItem(item: ItineraryItem) {
@@ -232,7 +253,9 @@ function TripDetail() {
   const [fuelTravelItemId, setFuelTravelItemId] = useState<string>();
   const [expenseSaving, setExpenseSaving] = useState(false);
   const [expenseSearch, setExpenseSearch] = useState("");
-  const [expenseCategoryFilter, setExpenseCategoryFilter] = useState<"all"|ExpenseCategory>("all");
+  const [expenseCategoryFilter, setExpenseCategoryFilter] = useState<"all" | ExpenseCategory>(
+    "all",
+  );
   const [expensePayerFilter, setExpensePayerFilter] = useState("all");
   const [uploadingReceiptId, setUploadingReceiptId] = useState<string>();
   const [sharePin, setSharePin] = useState("");
@@ -243,10 +266,15 @@ function TripDetail() {
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [activeStopId, setActiveStopId] = useState<string>();
   const visibleStops = showAllStops ? trip.stops : trip.stops.slice(0, 4);
-  const visibleExpenses = trip.expenses.filter((expense) =>
-    (expenseCategoryFilter === "all" || expense.category === expenseCategoryFilter) &&
-    (expensePayerFilter === "all" || resolveParticipantId(expense.paidBy, financialParticipants) === expensePayerFilter) &&
-    (!expenseSearch.trim() || `${expense.title} ${expense.notes ?? ""}`.toLocaleLowerCase(locale).includes(expenseSearch.trim().toLocaleLowerCase(locale)))
+  const visibleExpenses = trip.expenses.filter(
+    (expense) =>
+      (expenseCategoryFilter === "all" || expense.category === expenseCategoryFilter) &&
+      (expensePayerFilter === "all" ||
+        resolveParticipantId(expense.paidBy, financialParticipants) === expensePayerFilter) &&
+      (!expenseSearch.trim() ||
+        `${expense.title} ${expense.notes ?? ""}`
+          .toLocaleLowerCase(locale)
+          .includes(expenseSearch.trim().toLocaleLowerCase(locale))),
   );
   const selectStop = useCallback((id: string) => setActiveStopId(id), []);
 
@@ -742,15 +770,28 @@ function TripDetail() {
           </Button>
           <Button
             variant="outline"
+            onClick={() => {
+              downloadTripCalendar(trip);
+              toast.success(text("Reisagenda gedownload", "Trip calendar downloaded"));
+            }}
+          >
+            <CalendarDays className="size-4" /> ICS
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              downloadTripGpx(trip);
+              toast.success(text("GPX-route gedownload", "GPX route downloaded"));
+            }}
+          >
+            <Download className="size-4" /> GPX
+          </Button>
+          <Button
+            variant="outline"
             disabled={false}
             onClick={() => {
-              if (!openGuide(trip, base, rates, exportBranding, locale, coverUrl))
-                toast.error(
-                  text(
-                    "Sta pop-ups toe om de reisgids te openen.",
-                    "Allow pop-ups to open the trip guide.",
-                  ),
-                );
+              openGuide(trip, base, rates, exportBranding, locale, coverUrl);
+              toast.success(text("Reisgids gedownload", "Trip guide downloaded"));
             }}
           >
             <BookOpen className="size-4" /> {text("Reisgids", "Trip guide")}
@@ -828,347 +869,420 @@ function TripDetail() {
           <TabsTrigger value="settings">{text("Instellingen", "Settings")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="today" className="space-y-4"><TripToday trip={trip} editable={editable} weatherEnabled={hasFeature(state.plan, "weather")} text={text}/></TabsContent>
+        <TabsContent value="today" className="space-y-4">
+          <TripToday
+            trip={trip}
+            editable={editable}
+            weatherEnabled={hasFeature(state.plan, "weather")}
+            text={text}
+          />
+        </TabsContent>
 
         <TabsContent value="settings" className="space-y-4">
-          <Tabs defaultValue="general"><TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="general">{text("Algemeen","General")}</TabsTrigger><TabsTrigger value="notifications">{text("Meldingen","Notifications")}</TabsTrigger>{state.plan==="agency"&&<TabsTrigger value="branding">{text("Huisstijl","Branding")}</TabsTrigger>}<TabsTrigger value="sharing">{text("Delen","Sharing")}</TabsTrigger><TabsTrigger value="members">{text("Reisgenoten","Travellers")}</TabsTrigger><TabsTrigger value="danger">{text("Beheer","Management")}</TabsTrigger></TabsList>
-          <TabsContent value="general" className="mt-4"><div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]"><Card className="surface">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Settings2 className="size-4" /> {text("Reisinstellingen", "Trip settings")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveTripSettings}>
-                <label className="space-y-1.5 text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">{text("Reisnaam", "Trip name")}</span>
-                  <Input
-                    value={settings.name}
-                    maxLength={TRIP_NAME_MAX_LENGTH}
-                    disabled={!settingsEditable || settingsSaving}
-                    required
-                    onChange={(event) =>
-                      setSettings((current) => ({ ...current, name: event.target.value }))
-                    }
-                  />
-                  <span className="block text-right text-xs text-muted-foreground">
-                    {settings.name.length}/{TRIP_NAME_MAX_LENGTH}
-                  </span>
-                </label>
-                <label className="space-y-1.5 text-sm sm:col-span-2">
-                  <span className="text-muted-foreground">
-                    {text("Reisomschrijving", "Trip description")}
-                  </span>
-                  <Textarea
-                    value={settings.description}
-                    disabled={!settingsEditable || settingsSaving}
-                    maxLength={TRIP_DESCRIPTION_MAX_LENGTH}
-                    rows={4}
-                    placeholder={text(
-                      "Vertel kort wat deze reis bijzonder maakt. Deze tekst verschijnt ook op de publieke reispagina.",
-                      "Briefly describe what makes this trip special. This text also appears on the public trip page.",
-                    )}
-                    onChange={(event) =>
-                      setSettings((current) => ({ ...current, description: event.target.value }))
-                    }
-                  />
-                  <span className="block text-right text-xs text-muted-foreground">
-                    {settings.description.length}/{TRIP_DESCRIPTION_MAX_LENGTH}
-                  </span>
-                </label>
-                <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">{text("Startdatum", "Start date")}</span>
-                  <Input
-                    type="date"
-                    value={settings.start}
-                    disabled={!settingsEditable || settingsSaving}
-                    required
-                    onChange={(event) => {
-                      const start = event.target.value;
-                      setSettings((current) => ({
-                        ...current,
-                        start,
-                        end: current.end && current.end < start ? start : current.end,
-                      }));
-                    }}
-                  />
-                </label>
-                <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">{text("Einddatum", "End date")}</span>
-                  <Input
-                    type="date"
-                    value={settings.end}
-                    min={settings.start || undefined}
-                    disabled={!settingsEditable || settingsSaving}
-                    required
-                    onChange={(event) =>
-                      setSettings((current) => ({ ...current, end: event.target.value }))
-                    }
-                  />
-                </label>
-                <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">Budget ({base})</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={settings.budget}
-                    disabled={!settingsEditable || settingsSaving}
-                    required
-                    onChange={(event) =>
-                      setSettings((current) => ({ ...current, budget: event.target.value }))
-                    }
-                  />
-                </label>
-                <label className="space-y-1.5 text-sm">
-                  <span className="text-muted-foreground">
-                    {text("Reistemplate", "Trip template")}
-                  </span>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={settings.template}
-                    disabled={!settingsEditable || settingsSaving}
-                    onChange={(event) =>
-                      setSettings((current) => ({
-                        ...current,
-                        template: event.target.value as Trip["template"],
-                      }))
-                    }
-                  >
-                    {TEMPLATES.map((template) => (
-                      <option key={template.id} value={template.id}>
-                        {template.emoji} {template.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="mt-2 flex items-end sm:col-span-2">
-                  <Button type="submit" disabled={!settingsEditable || settingsSaving}>
-                    {settingsSaving
-                      ? text("Opslaan…", "Saving…")
-                      : text("Wijzigingen opslaan", "Save changes")}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card><Card className="surface"><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm"><ImagePlus className="size-4"/>{text("Uitstraling","Appearance")}</CardTitle></CardHeader><CardContent><TripCover tripId={trip.id} editable={editable} text={text} onUrlChange={setCoverUrl}/></CardContent></Card></div></TabsContent>
+          <Tabs defaultValue="general">
+            <TabsList className="h-auto flex-wrap justify-start">
+              <TabsTrigger value="general">{text("Algemeen", "General")}</TabsTrigger>
+              <TabsTrigger value="notifications">{text("Meldingen", "Notifications")}</TabsTrigger>
+              {state.plan === "agency" && (
+                <TabsTrigger value="branding">{text("Huisstijl", "Branding")}</TabsTrigger>
+              )}
+              <TabsTrigger value="sharing">{text("Delen", "Sharing")}</TabsTrigger>
+              <TabsTrigger value="members">{text("Reisgenoten", "Travellers")}</TabsTrigger>
+              <TabsTrigger value="danger">{text("Beheer", "Management")}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general" className="mt-4">
+              <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+                <Card className="surface">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <Settings2 className="size-4" /> {text("Reisinstellingen", "Trip settings")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="grid gap-4 sm:grid-cols-2" onSubmit={saveTripSettings}>
+                      <label className="space-y-1.5 text-sm sm:col-span-2">
+                        <span className="text-muted-foreground">
+                          {text("Reisnaam", "Trip name")}
+                        </span>
+                        <Input
+                          value={settings.name}
+                          maxLength={TRIP_NAME_MAX_LENGTH}
+                          disabled={!settingsEditable || settingsSaving}
+                          required
+                          onChange={(event) =>
+                            setSettings((current) => ({ ...current, name: event.target.value }))
+                          }
+                        />
+                        <span className="block text-right text-xs text-muted-foreground">
+                          {settings.name.length}/{TRIP_NAME_MAX_LENGTH}
+                        </span>
+                      </label>
+                      <label className="space-y-1.5 text-sm sm:col-span-2">
+                        <span className="text-muted-foreground">
+                          {text("Reisomschrijving", "Trip description")}
+                        </span>
+                        <Textarea
+                          value={settings.description}
+                          disabled={!settingsEditable || settingsSaving}
+                          maxLength={TRIP_DESCRIPTION_MAX_LENGTH}
+                          rows={4}
+                          placeholder={text(
+                            "Vertel kort wat deze reis bijzonder maakt. Deze tekst verschijnt ook op de publieke reispagina.",
+                            "Briefly describe what makes this trip special. This text also appears on the public trip page.",
+                          )}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              description: event.target.value,
+                            }))
+                          }
+                        />
+                        <span className="block text-right text-xs text-muted-foreground">
+                          {settings.description.length}/{TRIP_DESCRIPTION_MAX_LENGTH}
+                        </span>
+                      </label>
+                      <label className="space-y-1.5 text-sm">
+                        <span className="text-muted-foreground">
+                          {text("Startdatum", "Start date")}
+                        </span>
+                        <Input
+                          type="date"
+                          value={settings.start}
+                          disabled={!settingsEditable || settingsSaving}
+                          required
+                          onChange={(event) => {
+                            const start = event.target.value;
+                            setSettings((current) => ({
+                              ...current,
+                              start,
+                              end: current.end && current.end < start ? start : current.end,
+                            }));
+                          }}
+                        />
+                      </label>
+                      <label className="space-y-1.5 text-sm">
+                        <span className="text-muted-foreground">
+                          {text("Einddatum", "End date")}
+                        </span>
+                        <Input
+                          type="date"
+                          value={settings.end}
+                          min={settings.start || undefined}
+                          disabled={!settingsEditable || settingsSaving}
+                          required
+                          onChange={(event) =>
+                            setSettings((current) => ({ ...current, end: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label className="space-y-1.5 text-sm">
+                        <span className="text-muted-foreground">Budget ({base})</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={settings.budget}
+                          disabled={!settingsEditable || settingsSaving}
+                          required
+                          onChange={(event) =>
+                            setSettings((current) => ({ ...current, budget: event.target.value }))
+                          }
+                        />
+                      </label>
+                      <label className="space-y-1.5 text-sm">
+                        <span className="text-muted-foreground">
+                          {text("Reistemplate", "Trip template")}
+                        </span>
+                        <select
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          value={settings.template}
+                          disabled={!settingsEditable || settingsSaving}
+                          onChange={(event) =>
+                            setSettings((current) => ({
+                              ...current,
+                              template: event.target.value as Trip["template"],
+                            }))
+                          }
+                        >
+                          {TEMPLATES.map((template) => (
+                            <option key={template.id} value={template.id}>
+                              {template.emoji} {template.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="mt-2 flex items-end sm:col-span-2">
+                        <Button type="submit" disabled={!settingsEditable || settingsSaving}>
+                          {settingsSaving
+                            ? text("Opslaan…", "Saving…")
+                            : text("Wijzigingen opslaan", "Save changes")}
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+                <Card className="surface">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <ImagePlus className="size-4" />
+                      {text("Uitstraling", "Appearance")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <TripCover
+                      tripId={trip.id}
+                      editable={editable}
+                      text={text}
+                      onUrlChange={setCoverUrl}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
 
-          <TabsContent value="notifications" className="mt-4"><TripNotificationPreferences tripId={trip.id} /></TabsContent>
+            <TabsContent value="notifications" className="mt-4">
+              <TripNotificationPreferences tripId={trip.id} />
+            </TabsContent>
 
-          {state.plan === "agency" && (
-            <TabsContent value="branding" className="mt-4 space-y-4"><TripTemplateApply trip={trip} editable={editable} save={(fn)=>saveTripNow(trip.id,fn)} /><TripBrandingSettings tripId={trip.id} agencyBranding={state.branding} onSaved={setExportBrandingOverride} /></TabsContent>
-          )}
+            {state.plan === "agency" && (
+              <TabsContent value="branding" className="mt-4 space-y-4">
+                <TripTemplateApply
+                  trip={trip}
+                  editable={editable}
+                  save={(fn) => saveTripNow(trip.id, fn)}
+                />
+                <TripBrandingSettings
+                  tripId={trip.id}
+                  agencyBranding={state.branding}
+                  onSaved={setExportBrandingOverride}
+                />
+              </TabsContent>
+            )}
 
-          <TabsContent value="sharing" className="mt-4"><Card className="surface">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Globe2 className="size-4" /> {text("Openbaar delen", "Public sharing")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <ToggleSetting
-                label={text("Reis openbaar maken", "Make trip public")}
-                description={text(
-                  "Toon deze reis op de homepage via een unieke link.",
-                  "Show this trip on the homepage through a unique link.",
-                )}
-                checked={trip.public ?? false}
-                disabled={!settingsEditable || sharingSaving}
-                onChange={(checked) =>
-                  void saveSharing(
-                    { isPublic: checked },
-                    checked
-                      ? text("Reis is openbaar gemaakt.", "Trip is now public.")
-                      : text("Reis is privé gemaakt.", "Trip is now private."),
-                  )
-                }
-              />
-              {trip.public && (
-                <>
+            <TabsContent value="sharing" className="mt-4">
+              <Card className="surface">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Globe2 className="size-4" /> {text("Openbaar delen", "Public sharing")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
                   <ToggleSetting
-                    label={text("Budget delen", "Share budget")}
+                    label={text("Reis openbaar maken", "Make trip public")}
                     description={text(
-                      "Toon het budget op de openbare reispagina.",
-                      "Show the budget on the public trip page.",
+                      "Toon deze reis op de homepage via een unieke link.",
+                      "Show this trip on the homepage through a unique link.",
                     )}
-                    checked={trip.shareFinancials ?? false}
+                    checked={trip.public ?? false}
                     disabled={!settingsEditable || sharingSaving}
                     onChange={(checked) =>
                       void saveSharing(
-                        { shareFinancials: checked },
+                        { isPublic: checked },
                         checked
-                          ? "Budget wordt openbaar gedeeld."
-                          : "Budget wordt niet meer gedeeld.",
+                          ? text("Reis is openbaar gemaakt.", "Trip is now public.")
+                          : text("Reis is privé gemaakt.", "Trip is now private."),
                       )
                     }
                   />
-                  <div className="space-y-2">
-                    <p className="font-medium">PIN-beveiliging</p>
-                    <p className="text-muted-foreground">
-                      Beveilig deze openbare reis met een PIN van 6 tot 12 cijfers.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Input
-                        className="max-w-48"
-                        type="password"
-                        inputMode="numeric"
-                        minLength={6}
-                        maxLength={12}
-                        value={sharePin}
+                  {trip.public && (
+                    <>
+                      <ToggleSetting
+                        label={text("Budget delen", "Share budget")}
+                        description={text(
+                          "Toon het budget op de openbare reispagina.",
+                          "Show the budget on the public trip page.",
+                        )}
+                        checked={trip.shareFinancials ?? false}
                         disabled={!settingsEditable || sharingSaving}
-                        onChange={(e) => setSharePin(e.target.value.replace(/\D/g, ""))}
-                        placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
+                        onChange={(checked) =>
+                          void saveSharing(
+                            { shareFinancials: checked },
+                            checked
+                              ? "Budget wordt openbaar gedeeld."
+                              : "Budget wordt niet meer gedeeld.",
+                          )
+                        }
                       />
-                      <Button
-                        variant="outline"
-                        disabled={!settingsEditable || sharingSaving || sharePin.length < 6}
-                        onClick={async () => {
-                          const sharePinHash = await hashSharingPin(sharePin);
-                          await saveSharing(
-                            { sharePinHash },
-                            trip.sharePinHash
-                              ? "PIN-beveiliging is gewijzigd."
-                              : "PIN-beveiliging is ingeschakeld.",
+                      <div className="space-y-2">
+                        <p className="font-medium">PIN-beveiliging</p>
+                        <p className="text-muted-foreground">
+                          Beveilig deze openbare reis met een PIN van 6 tot 12 cijfers.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Input
+                            className="max-w-48"
+                            type="password"
+                            inputMode="numeric"
+                            minLength={6}
+                            maxLength={12}
+                            value={sharePin}
+                            disabled={!settingsEditable || sharingSaving}
+                            onChange={(e) => setSharePin(e.target.value.replace(/\D/g, ""))}
+                            placeholder={trip.sharePinHash ? "Nieuwe PIN" : "Kies een PIN"}
+                          />
+                          <Button
+                            variant="outline"
+                            disabled={!settingsEditable || sharingSaving || sharePin.length < 6}
+                            onClick={async () => {
+                              const sharePinHash = await hashSharingPin(sharePin);
+                              await saveSharing(
+                                { sharePinHash },
+                                trip.sharePinHash
+                                  ? "PIN-beveiliging is gewijzigd."
+                                  : "PIN-beveiliging is ingeschakeld.",
+                              );
+                              setSharePin("");
+                            }}
+                          >
+                            {trip.sharePinHash ? "PIN wijzigen" : "PIN instellen"}
+                          </Button>
+                          {trip.sharePinHash && (
+                            <Button
+                              variant="ghost"
+                              disabled={!settingsEditable || sharingSaving}
+                              onClick={() =>
+                                void saveSharing(
+                                  { sharePinHash: undefined },
+                                  "PIN-beveiliging is verwijderd.",
+                                )
+                              }
+                            >
+                              PIN verwijderen
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="members" className="mt-4">
+              <TripMembers
+                members={trip.members ?? []}
+                tripId={trip.id}
+                plan={state.plan}
+                editable={mayManageMembers}
+                ownerName={ownerName}
+                ownerEmail={user?.email ?? "Eigenaar van deze reis"}
+                onChange={(members) =>
+                  saveTripNow(trip.id, (current) => ({
+                    ...current,
+                    expenses: current.expenses.map((expense) =>
+                      normalizeExpenseParticipants(expense, financialParticipants),
+                    ),
+                    members,
+                    travelers: [ownerName, ...members.map((member) => member.name)],
+                  }))
+                }
+              />
+            </TabsContent>
+
+            <TabsContent value="danger" className="mt-4">
+              <Card className="border-destructive/40 surface">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">
+                    {text("Reisbeheer en exports", "Trip management and exports")}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm">
+                  <p className="text-muted-foreground">
+                    {text(
+                      "Archiveer de reis of verwijder hem definitief.",
+                      "Archive the trip or delete it permanently.",
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      disabled={!settingsEditable}
+                      onClick={() => void toggleArchive()}
+                    >
+                      <Archive className="size-4" />{" "}
+                      {trip.archived
+                        ? text("Heractiveren", "Reactivate")
+                        : text("Archiveren", "Archive")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={!tripOwner}
+                      onClick={() => {
+                        downloadJson({ trips: [trip] }, trip.name);
+                        toast.success(text("Reisback-up gedownload", "Trip backup downloaded"));
+                      }}
+                    >
+                      <Download className="size-4" />{" "}
+                      {text("Back-up downloaden", "Download backup")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      disabled={!tripOwner}
+                      onClick={async () => {
+                        let newId: string | undefined;
+                        try {
+                          const name = duplicateTripName(
+                            trip.name,
+                            text("kopie", "copy"),
+                            TRIP_NAME_MAX_LENGTH,
                           );
-                          setSharePin("");
-                        }}
-                      >
-                        {trip.sharePinHash ? "PIN wijzigen" : "PIN instellen"}
-                      </Button>
-                      {trip.sharePinHash && (
-                        <Button
-                          variant="ghost"
-                          disabled={!settingsEditable || sharingSaving}
-                          onClick={() =>
-                            void saveSharing(
-                              { sharePinHash: undefined },
-                              "PIN-beveiliging is verwijderd.",
-                            )
+                          newId = await addTrip(name, trip.template);
+                          await saveTripNow(newId, (created) => ({
+                            ...buildTripDuplicate(trip, created, () => crypto.randomUUID()),
+                            name,
+                          }));
+                          toast.success(text("Reisvariant aangemaakt", "Trip variant created"));
+                          navigate({ to: "/trips/$tripId", params: { tripId: newId } });
+                        } catch (error) {
+                          if (newId) await removeTrip(newId).catch(() => undefined);
+                          toast.error(
+                            error instanceof Error
+                              ? error.message
+                              : text(
+                                  "De reis kon niet worden gekopieerd.",
+                                  "The trip could not be copied.",
+                                ),
+                          );
+                        }
+                      }}
+                    >
+                      <Copy className="size-4" /> {text("Reis dupliceren", "Duplicate trip")}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      disabled={!tripOwner}
+                      onClick={async () => {
+                        if (
+                          window.confirm(
+                            text(
+                              `Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`,
+                              `Are you sure you want to permanently delete ${trip.name}?`,
+                            ),
+                          )
+                        ) {
+                          try {
+                            await removeTrip(trip.id);
+                            toast.success(text("Reis verwijderd", "Trip deleted"));
+                            navigate({ to: "/dashboard" });
+                          } catch (error) {
+                            toast.error(
+                              error instanceof Error
+                                ? error.message
+                                : text(
+                                    "Reis kon niet worden verwijderd.",
+                                    "Trip could not be deleted.",
+                                  ),
+                            );
                           }
-                        >
-                          PIN verwijderen
-                        </Button>
-                      )}
-                    </div>
+                        }
+                      }}
+                    >
+                      <Trash2 className="size-4" /> {text("Verwijderen", "Delete")}
+                    </Button>
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card></TabsContent>
-
-          <TabsContent value="members" className="mt-4"><TripMembers
-            members={trip.members ?? []}
-            tripId={trip.id}
-            plan={state.plan}
-            editable={mayManageMembers}
-            ownerName={ownerName}
-            ownerEmail={user?.email ?? "Eigenaar van deze reis"}
-            onChange={(members) =>
-              saveTripNow(trip.id, (current) => ({
-                ...current,
-                expenses: current.expenses.map((expense) =>
-                  normalizeExpenseParticipants(expense, financialParticipants),
-                ),
-                members,
-                travelers: [ownerName, ...members.map((member) => member.name)],
-              }))
-            }
-          /></TabsContent>
-
-          <TabsContent value="danger" className="mt-4"><Card className="border-destructive/40 surface">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">{text("Reisbeheer en exports", "Trip management and exports")}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 text-sm">
-              <p className="text-muted-foreground">
-                {text(
-                  "Archiveer de reis of verwijder hem definitief.",
-                  "Archive the trip or delete it permanently.",
-                )}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    downloadTripCalendar(trip);
-                    toast.success(text("Reisagenda gedownload", "Trip calendar downloaded"));
-                  }}
-                >
-                  <CalendarDays className="size-4" /> {text("Agenda exporteren", "Export calendar")}
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={!settingsEditable}
-                  onClick={() => void toggleArchive()}
-                >
-                  <Archive className="size-4" />{" "}
-                  {trip.archived
-                    ? text("Heractiveren", "Reactivate")
-                    : text("Archiveren", "Archive")}
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={!tripOwner}
-                  onClick={() => {
-                    downloadJson({ trips: [trip] }, trip.name);
-                    toast.success(text("Reisback-up gedownload", "Trip backup downloaded"));
-                  }}
-                >
-                  <Download className="size-4" /> {text("Back-up downloaden", "Download backup")}
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={!tripOwner}
-                  onClick={async () => {
-                    let newId: string | undefined;
-                    try {
-                      const name = duplicateTripName(trip.name, text("kopie", "copy"), TRIP_NAME_MAX_LENGTH);
-                      newId = await addTrip(name, trip.template);
-                      await saveTripNow(newId, (created) => ({ ...buildTripDuplicate(trip, created, () => crypto.randomUUID()), name }));
-                      toast.success(text("Reisvariant aangemaakt", "Trip variant created"));
-                      navigate({ to: "/trips/$tripId", params: { tripId: newId } });
-                    } catch (error) {
-                      if (newId) await removeTrip(newId).catch(() => undefined);
-                      toast.error(error instanceof Error ? error.message : text("De reis kon niet worden gekopieerd.", "The trip could not be copied."));
-                    }
-                  }}
-                >
-                  <Copy className="size-4" /> {text("Reis dupliceren", "Duplicate trip")}
-                </Button>
-                <Button
-                  variant="destructive"
-                  disabled={!tripOwner}
-                  onClick={async () => {
-                    if (
-                      window.confirm(
-                        text(
-                          `Weet je zeker dat je ${trip.name} definitief wilt verwijderen?`,
-                          `Are you sure you want to permanently delete ${trip.name}?`,
-                        ),
-                      )
-                    ) {
-                      try {
-                        await removeTrip(trip.id);
-                        toast.success(text("Reis verwijderd", "Trip deleted"));
-                        navigate({ to: "/dashboard" });
-                      } catch (error) {
-                        toast.error(
-                          error instanceof Error
-                            ? error.message
-                            : text(
-                                "Reis kon niet worden verwijderd.",
-                                "Trip could not be deleted.",
-                              ),
-                        );
-                      }
-                    }
-                  }}
-                >
-                  <Trash2 className="size-4" /> {text("Verwijderen", "Delete")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card></TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </TabsContent>
 
@@ -1198,11 +1312,36 @@ function TripDetail() {
                       stops={trip.stops}
                       points={(trip.travelItems ?? []).flatMap((item) => {
                         const location = item.location ?? item.departure ?? item.arrival;
-                        if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon)) return [];
-                        const expense = item.expenseId ? trip.expenses.find((entry) => entry.id === item.expenseId) : undefined;
+                        if (
+                          !location ||
+                          !Number.isFinite(location.lat) ||
+                          !Number.isFinite(location.lon)
+                        )
+                          return [];
+                        const expense = item.expenseId
+                          ? trip.expenses.find((entry) => entry.id === item.expenseId)
+                          : undefined;
                         return [
-                          { id: `booking-${item.id}`, lat: location.lat, lon: location.lon, title: item.title, detail: item.provider, kind: "booking" as const },
-                          ...(expense ? [{ id: `expense-${expense.id}`, lat: location.lat, lon: location.lon, title: expense.title, detail: formatMoney(expense.amount, expense.currency), kind: "expense" as const }] : []),
+                          {
+                            id: `booking-${item.id}`,
+                            lat: location.lat,
+                            lon: location.lon,
+                            title: item.title,
+                            detail: item.provider,
+                            kind: "booking" as const,
+                          },
+                          ...(expense
+                            ? [
+                                {
+                                  id: `expense-${expense.id}`,
+                                  lat: location.lat,
+                                  lon: location.lon,
+                                  title: expense.title,
+                                  detail: formatMoney(expense.amount, expense.currency),
+                                  kind: "expense" as const,
+                                },
+                              ]
+                            : []),
                         ];
                       })}
                       activeStopId={activeStopId}
@@ -1288,10 +1427,45 @@ function TripDetail() {
                           )}
                     </Button>
                   )}
-                  {trip.stops.length > 0 && <div className="grid gap-2 sm:grid-cols-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => { downloadTripGpx(trip); toast.success(text("GPX-route gedownload", "GPX route downloaded")); }}><Download className="size-4"/>{text("GPX exporteren", "Export GPX")}</Button>
-                    <Button type="button" variant="outline" size="sm" disabled={!editable || trip.stops.length < 2} onClick={async () => { if (!window.confirm(text("Wil je de volledige volgorde van de bestemmingen omkeren?", "Reverse the complete destination order?"))) return; try { await saveTripNow(trip.id, (current) => ({ ...current, stops: [...current.stops].reverse() })); setActiveStopId(undefined); toast.success(text("Route omgekeerd", "Route reversed")); } catch { toast.error(text("De route kon niet worden omgekeerd.", "The route could not be reversed.")); } }}><ArrowDownUp className="size-4"/>{text("Route omkeren", "Reverse route")}</Button>
-                  </div>}
+                  {trip.stops.length > 0 && (
+                    <div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!editable || trip.stops.length < 2}
+                        onClick={async () => {
+                          if (
+                            !window.confirm(
+                              text(
+                                "Wil je de volledige volgorde van de bestemmingen omkeren?",
+                                "Reverse the complete destination order?",
+                              ),
+                            )
+                          )
+                            return;
+                          try {
+                            await saveTripNow(trip.id, (current) => ({
+                              ...current,
+                              stops: [...current.stops].reverse(),
+                            }));
+                            setActiveStopId(undefined);
+                            toast.success(text("Route omgekeerd", "Route reversed"));
+                          } catch {
+                            toast.error(
+                              text(
+                                "De route kon niet worden omgekeerd.",
+                                "The route could not be reversed.",
+                              ),
+                            );
+                          }
+                        }}
+                      >
+                        <ArrowDownUp className="size-4" />
+                        {text("Route omkeren", "Reverse route")}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
               <WeatherWidget
@@ -1338,61 +1512,72 @@ function TripDetail() {
               )}
             </p>
             <Tabs defaultValue="bookings">
-              <TabsList className="h-auto flex-wrap justify-start"><TabsTrigger value="bookings">{text("Geboekte onderdelen","Booked items")}</TabsTrigger><TabsTrigger value="days">{text("Dagplanning","Day planning")}</TabsTrigger></TabsList>
-              <TabsContent value="bookings" className="mt-4"><TripBookings
-              trip={trip}
-              editable={editable}
-              payers={financialParticipants}
-              onSave={saveTravelItem}
-              onRemove={removeTravelItem}
-              /></TabsContent>
-              <TabsContent value="days" className="mt-4"><TripTimeline
-              trip={trip}
-              baseCurrency={base}
-              editable={editable}
-              onUpdate={updateItineraryItem}
-              onEditBooking={setEditingBooking}
-              onAdd={async (next) => {
-                try {
-                  await saveTripNow(trip.id, (current) => ({
-                    ...current,
-                    itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) =>
-                      a.day.localeCompare(b.day),
-                    ),
-                  }));
-                  toast.success(text("Programma-item opgeslagen.", "Itinerary item saved."));
-                } catch (error) {
-                  toast.error(
-                    error instanceof Error
-                      ? error.message
-                      : text(
-                          "Programma-item kon niet worden opgeslagen.",
-                          "Itinerary item could not be saved.",
+              <TabsList className="h-auto flex-wrap justify-start">
+                <TabsTrigger value="bookings">
+                  {text("Geboekte onderdelen", "Booked items")}
+                </TabsTrigger>
+                <TabsTrigger value="days">{text("Dagplanning", "Day planning")}</TabsTrigger>
+              </TabsList>
+              <TabsContent value="bookings" className="mt-4">
+                <TripBookings
+                  trip={trip}
+                  editable={editable}
+                  payers={financialParticipants}
+                  onSave={saveTravelItem}
+                  onRemove={removeTravelItem}
+                />
+              </TabsContent>
+              <TabsContent value="days" className="mt-4">
+                <TripTimeline
+                  trip={trip}
+                  baseCurrency={base}
+                  editable={editable}
+                  onUpdate={updateItineraryItem}
+                  onEditBooking={setEditingBooking}
+                  onAdd={async (next) => {
+                    try {
+                      await saveTripNow(trip.id, (current) => ({
+                        ...current,
+                        itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) =>
+                          a.day.localeCompare(b.day),
                         ),
-                  );
-                  throw error;
-                }
-              }}
-              onRemove={async (id) => {
-                try {
-                  await saveTripNow(trip.id, (current) => ({
-                    ...current,
-                    itinerary: current.itinerary.filter((planningItem) => planningItem.id !== id),
-                  }));
-                  toast.success(text("Programma-item verwijderd.", "Itinerary item deleted."));
-                } catch (error) {
-                  toast.error(
-                    error instanceof Error
-                      ? error.message
-                      : text(
-                          "Programma-item kon niet worden verwijderd.",
-                          "Itinerary item could not be deleted.",
+                      }));
+                      toast.success(text("Programma-item opgeslagen.", "Itinerary item saved."));
+                    } catch (error) {
+                      toast.error(
+                        error instanceof Error
+                          ? error.message
+                          : text(
+                              "Programma-item kon niet worden opgeslagen.",
+                              "Itinerary item could not be saved.",
+                            ),
+                      );
+                      throw error;
+                    }
+                  }}
+                  onRemove={async (id) => {
+                    try {
+                      await saveTripNow(trip.id, (current) => ({
+                        ...current,
+                        itinerary: current.itinerary.filter(
+                          (planningItem) => planningItem.id !== id,
                         ),
-                  );
-                  throw error;
-                }
-              }}
-              /></TabsContent>
+                      }));
+                      toast.success(text("Programma-item verwijderd.", "Itinerary item deleted."));
+                    } catch (error) {
+                      toast.error(
+                        error instanceof Error
+                          ? error.message
+                          : text(
+                              "Programma-item kon niet worden verwijderd.",
+                              "Itinerary item could not be deleted.",
+                            ),
+                      );
+                      throw error;
+                    }
+                  }}
+                />
+              </TabsContent>
             </Tabs>
           </TabsContent>
         )}
@@ -1602,11 +1787,47 @@ function TripDetail() {
           </Card>
 
           <div className="grid gap-2 sm:grid-cols-3">
-            <Input value={expenseSearch} onChange={(event)=>setExpenseSearch(event.target.value)} placeholder={text("Zoek in uitgaven…","Search expenses…")} aria-label={text("Uitgaven zoeken","Search expenses")}/>
-            <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={expenseCategoryFilter} onChange={(event)=>setExpenseCategoryFilter(event.target.value as "all"|ExpenseCategory)} aria-label={text("Filter op categorie","Filter by category")}><option value="all">{text("Alle categorieën","All categories")}</option>{CATEGORIES.map(category=><option key={category.id} value={category.id}>{expenseCategoryLabel(category.id,category.label,text)}</option>)}</select>
-            <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={expensePayerFilter} onChange={(event)=>setExpensePayerFilter(event.target.value)} aria-label={text("Filter op betaler","Filter by payer")}><option value="all">{text("Alle betalers","All payers")}</option>{financialParticipants.map(person=><option key={person.id} value={person.id}>{person.name}</option>)}</select>
+            <Input
+              value={expenseSearch}
+              onChange={(event) => setExpenseSearch(event.target.value)}
+              placeholder={text("Zoek in uitgaven…", "Search expenses…")}
+              aria-label={text("Uitgaven zoeken", "Search expenses")}
+            />
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+              value={expenseCategoryFilter}
+              onChange={(event) =>
+                setExpenseCategoryFilter(event.target.value as "all" | ExpenseCategory)
+              }
+              aria-label={text("Filter op categorie", "Filter by category")}
+            >
+              <option value="all">{text("Alle categorieën", "All categories")}</option>
+              {CATEGORIES.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {expenseCategoryLabel(category.id, category.label, text)}
+                </option>
+              ))}
+            </select>
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+              value={expensePayerFilter}
+              onChange={(event) => setExpensePayerFilter(event.target.value)}
+              aria-label={text("Filter op betaler", "Filter by payer")}
+            >
+              <option value="all">{text("Alle betalers", "All payers")}</option>
+              {financialParticipants.map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
           </div>
-          <p className="text-xs text-muted-foreground">{text(`${visibleExpenses.length} van ${trip.expenses.length} uitgaven`,`${visibleExpenses.length} of ${trip.expenses.length} expenses`)}</p>
+          <p className="text-xs text-muted-foreground">
+            {text(
+              `${visibleExpenses.length} van ${trip.expenses.length} uitgaven`,
+              `${visibleExpenses.length} of ${trip.expenses.length} expenses`,
+            )}
+          </p>
 
           <Card className="surface min-w-0 overflow-hidden">
             <CardContent

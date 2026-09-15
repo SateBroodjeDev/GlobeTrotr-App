@@ -4,7 +4,7 @@ Voor het opbouwen van een schoon Supabase-productieproject staat de volledige mi
 
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
-De huidige versie draait als internationale beta op de eigen GlobeTrotr-infrastructuur. Inloggen met e-mail, wachtwoord en passkey werkt. Transactionele e-mail wordt via de afgeschermde mailrelay verzonden. Paddle is de gekozen Merchant of Record voor abonnementen zodra de commerciële onboarding is afgerond.
+De huidige versie draait als internationale beta op de eigen GlobeTrotr-infrastructuur. Inloggen met e-mail, wachtwoord en passkey werkt. Transactionele e-mail wordt via de afgeschermde mailrelay verzonden. Paddle is als Merchant of Record aangesloten voor checkout, abonnementen, belastingen, facturen en terugbetalingen.
 
 ## Wat de applicatie bevat
 
@@ -111,7 +111,7 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.
 - `/changelog`: publieke release notes.
-- `/prijzen`: openbare vergelijking van Free, Pro en Agency voor de actieve beta; betalingen worden via Paddle als Merchant of Record voorbereid en geactiveerd zodra de productieomgeving en domeincontrole gereed zijn.
+- `/prijzen`: openbare vergelijking van Free, Pro en Agency; de beveiligde Paddle Checkout activeert betaalde rechten pas na een geverifieerd provider-event.
 - `/privacy`, `/algemene-voorwaarden`, `/terugbetalingsbeleid` en `/beta-voorwaarden`: gepubliceerde privacy-, gebruiks-, terugbetalings- en betavoorwaarden in NL/EN.
 
 ## Productie

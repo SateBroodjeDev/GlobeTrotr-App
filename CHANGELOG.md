@@ -1,5 +1,33 @@
 # GlobeTrotr changelog
 
+## 2026-09-15 — Paddle Billing technisch aangesloten
+
+- Pro en Agency openen een echte Paddle Checkout met vaste, servergeleverde price-ID's.
+- Paddle-webhooks worden op Node-02 tegen de ongewijzigde body en `Paddle-Signature` gecontroleerd en idempotent verwerkt.
+- Alleen een geldige actieve of trialstatus kan betaalde workspace-rechten activeren; browsergestuurde planwijzigingen zijn afgesloten.
+- De abonnements­pagina toont de werkelijke betaalperiode en opent Paddle Customer Portal voor facturen, betaalmethode en opzegging.
+- Klanten zien hun laatste transacties en halen per klik een verse officiële Paddle-factuur op; tijdelijke factuurlinks worden niet als blijvende download gebruikt.
+- Betaling, mislukte betaling, planwijziging, beëindiging en refund sturen een tweetalige HTML-servicemail en in-appmelding met een directe facturatieknop.
+- Corporate Admin kan een volledige refund aanvragen, de reden auditen, creditstatus volgen en een gefaald webhookevent gecontroleerd opnieuw verwerken.
+- De Sandbox- en productievariabelen, SQL-volgorde en acceptatiescenario's staan in een afzonderlijke Paddle-handleiding.
+
+## 2026-09-15 — Postvakken en Agency-domeinen
+
+- Corporate Admin koppelt een IMAP-postvak aan een persoonlijke gebruiker of gedeelde groep; wachtwoorden worden met AES-256-GCM versleuteld en nooit teruggestuurd naar de browser.
+- De IMAP-worker gebruikt per postvak de gekoppelde inloggegevens en blijft voor bestaande adressen de centrale catch-all ondersteunen.
+- Bedrijfsmail wordt als HTML en platte tekst verzonden met logo, actieknop en persoonlijke of gedeelde handtekening.
+- Agency Admin toont de exacte CNAME- en TXT-records, controleert DNS en activeert pas daarna het eigen domein.
+- Caddy vraagt een snelle, geïndexeerde toestemmingscontrole voordat voor een eigen domein een certificaat mag worden uitgegeven; herhaalde aanvragen worden begrensd.
+
+## 2026-09-15 — Meldingen, uitnodigingen en accountherstel
+
+- Nieuwe in-appmeldingen verschijnen direct rechtsboven; privacyantwoorden, contactverzoeken en binnenkomende bedrijfsmail gebruiken dit kanaal.
+- Dezelfde reis- of Agency-uitnodigingslink kan nog maar één e-mailbezorging opleveren.
+- Google en Discord kunnen weer handmatig vanuit Account worden gekoppeld.
+- Corporate Admin kan na identiteitscontrole en met auditreden een verloren TOTP-factor herstellen.
+- CSV, reisgids, ICS en GPX staan samen in de exportbalk en download-URL's blijven lang genoeg geldig.
+- Overbodige secretvelden zijn uit mailboxbeheer verwijderd; een nieuw postvak is direct selecteerbaar voor rechtenbeheer.
+
 ## 2026-09-15 — Volwaardige bedrijfsmail
 
 - Alle migraties en SQL-tests tot en met 1120 zijn door de eigenaar uitgevoerd en als voltooid vastgelegd.
@@ -15,7 +43,7 @@
 - Nieuwe mailboxen krijgen automatisch een GlobeTrotr-handtekening; bestaande aangepaste handtekeningen blijven behouden bij latere rechtenwijzigingen.
 - De implementatiehandleiding is na uitvoering van migraties 1090–1120 doorgeschoven naar de eerstvolgende wijziging.
 
-## 2026-09-14 23:55 CEST ? Productietoegang, mail en privacy
+## 2026-09-14 23:55 CEST — Productietoegang, mail en privacy
 
 - Google en Discord zijn de enige externe inlogproviders; passkeys en TOTP zijn vanuit Account te beheren.
 - `/register` en beide uitnodigingslinks werken rechtstreeks door route-onafhankelijke parameters.
@@ -25,7 +53,7 @@
 - GPX-download, reisgidsdownload en kaartbegrenzing zijn robuuster; betaalverzoeken zijn gericht op gekoppelde reisaccounts.
 - Agency-uitnodigingen nemen organisatienaam en accentkleur mee binnen de GlobeTrotr-mailstijl.
 - De privacy- en cookie-informatie beschrijft de actieve Europese infrastructuur, ZXCS-mail, Turnstile, Google Search Console en browseropslag.
-- Migraties 1090?1110 voegen de bijbehorende Corporate Admin-acceptatiecontroles toe.
+- Migraties 1090–1110 voegen de bijbehorende Corporate Admin-acceptatiecontroles toe.
 
 ## 2026-09-15 00:40 CEST — Privacy- en cookie-informatie voor productie
 
@@ -99,6 +127,7 @@
 Technisch wijzigingsoverzicht voor GitHub en beheerders. De publieke, gebruikersgerichte versie staat op `/changelog`.
 
 Tijden gebruiken `Europe/Amsterdam` (CEST/CET). Nieuwe vermeldingen komen bovenaan. Noteer databasewijzigingen, benodigde migraties en uitgevoerde controles; zet geen secrets, persoonsgegevens of interne tokens in dit bestand.
+
 ## 2026-09-14 12:00 CEST — Onderhoud, privacyverzoeken en laatste acceptatievoorbereiding
 
 - De productdemo gebruikt voortaan volledig fictieve reis- en persoonsnamen; de route-, dag-, paklijst- en verrekenbediening blijft interactief.

@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Inbox, RefreshCw, Send, ShieldCheck } from "lucide-react";
+import { Inbox, RefreshCw, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,11 @@ const blank = {
   inboundSecretRef: "",
   outboundSecretRef: "",
   active: true,
+  imapHost: "mail.globetrotr.nl",
+  imapPort: 993,
+  imapSecure: true,
+  imapUsername: "",
+  imapPassword: "",
 };
 
 function Page() {
@@ -45,11 +50,14 @@ function Page() {
     queryFn: () => getEmailDeliveryOverview(),
     refetchInterval: 30000,
   });
-  const deliveryMode = useQuery({queryKey:["email-delivery-mode"],queryFn:()=>getEmailDeliveryMode()});
+  const deliveryMode = useQuery({
+    queryKey: ["email-delivery-mode"],
+    queryFn: () => getEmailDeliveryMode(),
+  });
   const [f, setF] = useState(blank),
     [retrying, setRetrying] = useState(""),
-    [modeReason,setModeReason]=useState(""),
-    [changingMode,setChangingMode]=useState(false);
+    [modeReason, setModeReason] = useState(""),
+    [changingMode, setChangingMode] = useState(false);
   useEffect(() => {
     if (!f.id && q.data?.mailboxes[0]) edit(q.data.mailboxes[0]);
   }, [q.data, f.id]);
@@ -64,18 +72,34 @@ function Page() {
       inboundSecretRef: m.inbound_secret_ref ?? "",
       outboundSecretRef: m.outbound_secret_ref ?? "",
       active: m.active,
+      imapHost: m.imap_host ?? "mail.globetrotr.nl",
+      imapPort: m.imap_port ?? 993,
+      imapSecure: m.imap_secure !== false,
+      imapUsername: m.imap_username ?? m.address,
+      imapPassword: "",
     });
   }
   async function save() {
     try {
-      await saveCorporateMailbox({
+      const result = await saveCorporateMailbox({
         data: {
-          address:f.address,displayName:f.displayName,mailboxType:f.mailboxType,
-          signatureText:f.signatureText,inboundSecretRef:f.inboundSecretRef,
-          outboundSecretRef:f.outboundSecretRef,active:f.active,
-          ...(f.id?{id:f.id}:{}),...(f.ownerUserId?{ownerUserId:f.ownerUserId}:{}),
+          address: f.address,
+          displayName: f.displayName,
+          mailboxType: f.mailboxType,
+          signatureText: f.signatureText,
+          inboundSecretRef: f.inboundSecretRef,
+          outboundSecretRef: f.outboundSecretRef,
+          active: f.active,
+          imapHost: f.imapHost,
+          imapPort: f.imapPort,
+          imapSecure: f.imapSecure,
+          imapUsername: f.imapUsername,
+          imapPassword: f.imapPassword,
+          ...(f.id ? { id: f.id } : {}),
+          ...(f.ownerUserId ? { ownerUserId: f.ownerUserId } : {}),
         },
       });
+      setF((current) => ({ ...current, id: result.id }));
       await qc.invalidateQueries({ queryKey: ["corporate-business"] });
       toast.success(text("Mailbox opgeslagen.", "Mailbox saved."));
     } catch {
@@ -105,13 +129,47 @@ function Page() {
       setRetrying("");
     }
   }
-  async function changeMode(){
-    if(modeReason.trim().length<10){toast.error(text("Geef een reden van minimaal 10 tekens.","Enter a reason of at least 10 characters."));return}
-    const next=deliveryMode.data?.mode==="live"?"test":"live";
-    const question=next==="live"?text("Livemodus activeren en alle vastgehouden berichten vrijgeven?","Enable live mode and release all held messages?"):text("Nieuwe uitgaande servicemail direct pauzeren?","Pause new outgoing service email immediately?");
-    if(!window.confirm(question))return;
+  async function changeMode() {
+    if (modeReason.trim().length < 10) {
+      toast.error(
+        text("Geef een reden van minimaal 10 tekens.", "Enter a reason of at least 10 characters."),
+      );
+      return;
+    }
+    const next = deliveryMode.data?.mode === "live" ? "test" : "live";
+    const question =
+      next === "live"
+        ? text(
+            "Livemodus activeren en alle vastgehouden berichten vrijgeven?",
+            "Enable live mode and release all held messages?",
+          )
+        : text(
+            "Nieuwe uitgaande servicemail direct pauzeren?",
+            "Pause new outgoing service email immediately?",
+          );
+    if (!window.confirm(question)) return;
     setChangingMode(true);
-    try{const result=await setEmailDeliveryMode({data:{mode:next,releaseHeld:next==="live",reason:modeReason.trim()}});setModeReason("");await Promise.all([deliveryMode.refetch(),delivery.refetch()]);toast.success(next==="live"?text(`${result.released} berichten vrijgegeven.`,`${result.released} messages released.`):text("Uitgaande servicemail gepauzeerd.","Outgoing service email paused."))}catch{toast.error(text("Bezorgmodus kon niet worden aangepast.","Delivery mode could not be changed."))}finally{setChangingMode(false)}
+    try {
+      const result = await setEmailDeliveryMode({
+        data: { mode: next, releaseHeld: next === "live", reason: modeReason.trim() },
+      });
+      setModeReason("");
+      await Promise.all([deliveryMode.refetch(), delivery.refetch()]);
+      toast.success(
+        next === "live"
+          ? text(
+              `${result.released} berichten vrijgegeven.`,
+              `${result.released} messages released.`,
+            )
+          : text("Uitgaande servicemail gepauzeerd.", "Outgoing service email paused."),
+      );
+    } catch {
+      toast.error(
+        text("Bezorgmodus kon niet worden aangepast.", "Delivery mode could not be changed."),
+      );
+    } finally {
+      setChangingMode(false);
+    }
   }
   return (
     <div className="space-y-6">
@@ -147,12 +205,6 @@ function Page() {
               <CardTitle>{f.address || text("Nieuwe mailbox", "New mailbox")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm">
-                {text(
-                  "SMTP verzendt via de beveiligde relay en de IMAP-worker leest ontvangen berichten in. Maak hetzelfde adres ook als postvak of alias aan bij ZXCS.",
-                  "SMTP sends through the protected relay and the IMAP worker imports received messages. Create the same address as a mailbox or alias in ZXCS as well.",
-                )}
-              </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label={text("E-mailadres", "Email address")}
@@ -192,16 +244,6 @@ function Page() {
                     </select>
                   </label>
                 )}
-                <Field
-                  label="IMAP secret reference"
-                  value={f.inboundSecretRef}
-                  set={(v) => setF({ ...f, inboundSecretRef: v })}
-                />
-                <Field
-                  label="SMTP secret reference"
-                  value={f.outboundSecretRef}
-                  set={(v) => setF({ ...f, outboundSecretRef: v })}
-                />
               </div>
               <label className="block space-y-2">
                 <Label>{text("Handtekening", "Signature")}</Label>
@@ -212,13 +254,53 @@ function Page() {
                   onChange={(e) => setF({ ...f, signatureText: e.target.value })}
                 />
               </label>
-              <p className="flex gap-2 text-xs text-muted-foreground">
-                <ShieldCheck className="size-4" />
-                {text(
-                  "Alleen secret-namen; nooit wachtwoorden of tokens.",
-                  "Secret names only; never passwords or tokens.",
-                )}
-              </p>
+              <div className="rounded-xl border p-4">
+                <p className="mb-3 text-sm font-medium">
+                  {text("Postvak uitlezen", "Read mailbox")}
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label={text("IMAP-server", "IMAP server")}
+                    value={f.imapHost}
+                    set={(v) => setF({ ...f, imapHost: v })}
+                  />
+                  <Field
+                    label={text("IMAP-gebruiker", "IMAP username")}
+                    value={f.imapUsername}
+                    set={(v) => setF({ ...f, imapUsername: v })}
+                  />
+                  <label className="space-y-2">
+                    <Label>{text("Poort", "Port")}</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={65535}
+                      value={f.imapPort}
+                      onChange={(e) => setF({ ...f, imapPort: Number(e.target.value) })}
+                    />
+                  </label>
+                  <Field
+                    label={text("Wachtwoord", "Password")}
+                    type="password"
+                    value={f.imapPassword}
+                    set={(v) => setF({ ...f, imapPassword: v })}
+                  />
+                </div>
+                <label className="mt-3 flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={f.imapSecure}
+                    onChange={(e) => setF({ ...f, imapSecure: e.target.checked })}
+                  />
+                  {text("Versleutelde IMAP-verbinding", "Encrypted IMAP connection")}
+                </label>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {text(
+                    "Laat het wachtwoord leeg om het opgeslagen wachtwoord te behouden. Het wachtwoord wordt versleuteld opgeslagen en nooit teruggestuurd naar de browser.",
+                    "Leave the password empty to keep the stored password. It is stored encrypted and never returned to the browser.",
+                  )}
+                </p>
+              </div>
               <Button disabled={!f.address || !f.displayName} onClick={() => void save()}>
                 {text("Opslaan", "Save")}
               </Button>
@@ -264,7 +346,11 @@ function Page() {
           <CardTitle className="flex items-center gap-2">
             <Send className="size-5" />
             {text("Bezorging van servicemail", "Service email delivery")}
-            <Badge variant={deliveryMode.data?.mode==="live"?"default":"secondary"}>{deliveryMode.data?.mode==="live"?text("Live","Live"):text("Gepauzeerd","Paused")}</Badge>
+            <Badge variant={deliveryMode.data?.mode === "live" ? "default" : "secondary"}>
+              {deliveryMode.data?.mode === "live"
+                ? text("Live", "Live")
+                : text("Gepauzeerd", "Paused")}
+            </Badge>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             {text(
@@ -275,8 +361,27 @@ function Page() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-2 rounded-xl border p-4 sm:flex-row sm:items-end">
-            <label className="min-w-0 flex-1 space-y-2"><Label>{text("Reden voor wijziging","Reason for change")}</Label><Input maxLength={300} value={modeReason} onChange={event=>setModeReason(event.target.value)} placeholder={text("Bijvoorbeeld: relay succesvol getest","For example: relay tested successfully")}/></label>
-            <Button variant={deliveryMode.data?.mode==="live"?"destructive":"default"} disabled={changingMode||deliveryMode.isLoading} onClick={()=>void changeMode()}>{deliveryMode.data?.mode==="live"?text("Verzending pauzeren","Pause delivery"):text("Livemodus activeren","Enable live mode")}</Button>
+            <label className="min-w-0 flex-1 space-y-2">
+              <Label>{text("Reden voor wijziging", "Reason for change")}</Label>
+              <Input
+                maxLength={300}
+                value={modeReason}
+                onChange={(event) => setModeReason(event.target.value)}
+                placeholder={text(
+                  "Bijvoorbeeld: relay succesvol getest",
+                  "For example: relay tested successfully",
+                )}
+              />
+            </label>
+            <Button
+              variant={deliveryMode.data?.mode === "live" ? "destructive" : "default"}
+              disabled={changingMode || deliveryMode.isLoading}
+              onClick={() => void changeMode()}
+            >
+              {deliveryMode.data?.mode === "live"
+                ? text("Verzending pauzeren", "Pause delivery")
+                : text("Livemodus activeren", "Enable live mode")}
+            </Button>
           </div>
           <div className="flex flex-wrap gap-2">
             {Object.entries(delivery.data?.counts ?? {}).map(([status, count]) => (
@@ -371,11 +476,21 @@ function deliveryLabel(status: string, text: (nl: string, en: string) => string)
     )[status] ?? status
   );
 }
-function Field({ label, value, set }: { label: string; value: string; set: (v: string) => void }) {
+function Field({
+  label,
+  value,
+  set,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  set: (v: string) => void;
+  type?: string;
+}) {
   return (
     <label className="space-y-2">
       <Label>{label}</Label>
-      <Input value={value} onChange={(e) => set(e.target.value)} />
+      <Input type={type} value={value} onChange={(e) => set(e.target.value)} />
     </label>
   );
 }

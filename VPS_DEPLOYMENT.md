@@ -1,5 +1,9 @@
 # GlobeTrotr op twee kale Ubuntu 22.04-servers
 
+> Deze handleiding is voor de eerste installatie van kale servers. Gebruik voor
+> de huidige uitrol vanaf migratie 1140 de enige actuele stappenlijst in
+> [`IMPLEMENTATION_PENDING.md`](IMPLEMENTATION_PENDING.md).
+
 Git en SSH verzorgen de deployment.
 
 | Server | IPv4 | Functie |

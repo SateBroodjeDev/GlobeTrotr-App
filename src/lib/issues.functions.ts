@@ -94,10 +94,27 @@ export const getCorporateAgencies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await adminDb(context.userId);
-    const { data, error } = await db.from("workspaces").select("workspace_uuid,user_id,created_at,agency_settings(system_name,sender_name,contact_email,default_locale,timezone,currency,domain,tagline,accent,logo_path,updated_at)").eq("plan","agency").order("created_at",{ascending:false});
-    if(error)throw error;
-    const owners=await Promise.all((data??[]).map(async(row:any)=>{const user=await db.auth.admin.getUserById(row.user_id);return {...row,ownerEmail:user.data.user?.email??"",settings:Array.isArray(row.agency_settings)?row.agency_settings[0]:row.agency_settings}}));
-    await audit(db,context.userId,"admin.agencies.view","agency",null,"success");
+    const { data, error } = await db
+      .from("workspaces")
+      .select(
+        "workspace_uuid,user_id,created_at,agency_settings(system_name,sender_name,contact_email,default_locale,timezone,currency,domain,tagline,accent,logo_path,updated_at)",
+      )
+      .eq("plan", "agency")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    const owners = await Promise.all(
+      (data ?? []).map(async (row: any) => {
+        const user = await db.auth.admin.getUserById(row.user_id);
+        return {
+          ...row,
+          ownerEmail: user.data.user?.email ?? "",
+          settings: Array.isArray(row.agency_settings)
+            ? row.agency_settings[0]
+            : row.agency_settings,
+        };
+      }),
+    );
+    await audit(db, context.userId, "admin.agencies.view", "agency", null, "success");
     return owners;
   });
 
@@ -105,58 +122,138 @@ export const listPublicTripsForModeration = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await adminDb(context.userId);
-    const { data, error } = await db.from("trips").select("trip_uuid,workspace_user_id,name,description,start_date,end_date,is_public,archived,updated_at").or("is_public.eq.true,archived.eq.true").order("updated_at",{ascending:false}).limit(250);
+    const { data, error } = await db
+      .from("trips")
+      .select(
+        "trip_uuid,workspace_user_id,name,description,start_date,end_date,is_public,archived,updated_at",
+      )
+      .or("is_public.eq.true,archived.eq.true")
+      .order("updated_at", { ascending: false })
+      .limit(250);
     if (error) throw error;
-    const owners=await Promise.all((data??[]).map(async(row:any)=>{const result=await db.auth.admin.getUserById(row.workspace_user_id);return{...row,ownerEmail:result.data.user?.email??""}}));
-    await audit(db,context.userId,"public_trips.moderation.view","trip",null,"success");
+    const owners = await Promise.all(
+      (data ?? []).map(async (row: any) => {
+        const result = await db.auth.admin.getUserById(row.workspace_user_id);
+        return { ...row, ownerEmail: result.data.user?.email ?? "" };
+      }),
+    );
+    await audit(db, context.userId, "public_trips.moderation.view", "trip", null, "success");
     return owners;
   });
 
 export const moderatePublicTrip = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input:{tripId:string;action:"unpublish"|"archive"|"restore";reason:string})=>input)
-  .handler(async({data,context})=>{
-    const db=await adminDb(context.userId),reason=data.reason.trim();
-    if(!/^[0-9a-f-]{36}$/i.test(data.tripId)||reason.length<5||reason.length>500)throw new Error("INVALID_MODERATION");
-    const{data:trip,error:loadError}=await db.from("trips").select("trip_uuid,workspace_user_id,name").eq("trip_uuid",data.tripId).maybeSingle();
-    if(loadError||!trip)throw new Error("TRIP_NOT_FOUND");
-    const changes=data.action==="unpublish"?{is_public:false}:data.action==="archive"?{archived:true,is_public:false}:{archived:false};
-    const{error}=await db.from("trips").update({...changes,updated_at:new Date().toISOString()}).eq("trip_uuid",data.tripId);if(error)throw error;
-    await db.from("notifications").upsert({user_id:trip.workspace_user_id,kind:"platform",title:"Openbare reis beoordeeld / Public trip reviewed",body:`${data.action}|${trip.name}|${reason}`,trip_uuid:trip.trip_uuid,event_key:`trip-moderation:${trip.trip_uuid}`,created_at:new Date().toISOString(),dismissed_at:null},{onConflict:"user_id,event_key"});
-    await audit(db,context.userId,`public_trip.${data.action}`,"trip",data.tripId,"success",{reason});
-    return{ok:true};
+  .validator(
+    (input: { tripId: string; action: "unpublish" | "archive" | "restore"; reason: string }) =>
+      input,
+  )
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId),
+      reason = data.reason.trim();
+    if (!/^[0-9a-f-]{36}$/i.test(data.tripId) || reason.length < 5 || reason.length > 500)
+      throw new Error("INVALID_MODERATION");
+    const { data: trip, error: loadError } = await db
+      .from("trips")
+      .select("trip_uuid,workspace_user_id,name")
+      .eq("trip_uuid", data.tripId)
+      .maybeSingle();
+    if (loadError || !trip) throw new Error("TRIP_NOT_FOUND");
+    const changes =
+      data.action === "unpublish"
+        ? { is_public: false }
+        : data.action === "archive"
+          ? { archived: true, is_public: false }
+          : { archived: false };
+    const { error } = await db
+      .from("trips")
+      .update({ ...changes, updated_at: new Date().toISOString() })
+      .eq("trip_uuid", data.tripId);
+    if (error) throw error;
+    await db
+      .from("notifications")
+      .upsert(
+        {
+          user_id: trip.workspace_user_id,
+          kind: "platform",
+          title: "Openbare reis beoordeeld / Public trip reviewed",
+          body: `${data.action}|${trip.name}|${reason}`,
+          trip_uuid: trip.trip_uuid,
+          event_key: `trip-moderation:${trip.trip_uuid}`,
+          created_at: new Date().toISOString(),
+          dismissed_at: null,
+        },
+        { onConflict: "user_id,event_key" },
+      );
+    await audit(db, context.userId, `public_trip.${data.action}`, "trip", data.tripId, "success", {
+      reason,
+    });
+    return { ok: true };
   });
 
-export const saveCorporateAgencySettings = createServerFn({method:"POST"})
+export const saveCorporateAgencySettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input:{ownerId:string;settings:{systemName:string;senderName:string;contactEmail:string;defaultLocale:"nl"|"en";timezone:string;currency:string;domain:string;tagline:string;accent:number;logoPath:string|null};reason:string})=>input)
-  .handler(async({data,context})=>{
-    const db=await adminDb(context.userId);const reason=data.reason.trim();
-    if(!/^[0-9a-f-]{36}$/i.test(data.ownerId)||reason.length<5)throw new Error("INVALID_INPUT");
-    const {data:result,error}=await db.rpc("save_agency_settings",{p_owner_id:data.ownerId,p_settings:data.settings});
-    await audit(db,context.userId,"admin.agency_settings.update","agency",data.ownerId,error||!result?.ok?"failure":"success",{reason});
-    if(error||!result?.ok)throw new Error("AGENCY_SETTINGS_SAVE_FAILED");
-    return {ok:true};
+  .validator(
+    (input: {
+      ownerId: string;
+      settings: {
+        systemName: string;
+        senderName: string;
+        contactEmail: string;
+        defaultLocale: "nl" | "en";
+        timezone: string;
+        currency: string;
+        domain: string;
+        tagline: string;
+        accent: number;
+        logoPath: string | null;
+      };
+      reason: string;
+    }) => input,
+  )
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    const reason = data.reason.trim();
+    if (!/^[0-9a-f-]{36}$/i.test(data.ownerId) || reason.length < 5)
+      throw new Error("INVALID_INPUT");
+    const { data: result, error } = await db.rpc("save_agency_settings", {
+      p_owner_id: data.ownerId,
+      p_settings: data.settings,
+    });
+    await audit(
+      db,
+      context.userId,
+      "admin.agency_settings.update",
+      "agency",
+      data.ownerId,
+      error || !result?.ok ? "failure" : "success",
+      { reason },
+    );
+    if (error || !result?.ok) throw new Error("AGENCY_SETTINGS_SAVE_FAILED");
+    return { ok: true };
   });
 
 export const getCorporateAdminData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await adminDb(context.userId);
-    const [feedback, feedbackReplies, issues, workspaces, trips, auditLog, profiles, authUsers] = await Promise.all([
-      db.from("beta_feedback").select("*").order("created_at", { ascending: false }),
-      db.from("feedback_replies").select("id,feedback_id,author_user_id,body,created_at").order("created_at"),
-      db.from("known_issues").select("*").order("created_at", { ascending: false }),
-      db.from("workspaces").select("user_id, plan, created_at, updated_at"),
-      db.from("trips").select("archived, is_public"),
-      db
-        .from("platform_admin_audit_log")
-        .select("id, actor_user_id, action, target_type, target_id, result, details, created_at")
-        .order("created_at", { ascending: false })
-        .limit(30),
-      db.from("profiles").select("id, display_name, email, locale, created_at, updated_at"),
-      db.auth.admin.listUsers({ page: 1, perPage: 1000 }),
-    ]);
+    const [feedback, feedbackReplies, issues, workspaces, trips, auditLog, profiles, authUsers] =
+      await Promise.all([
+        db.from("beta_feedback").select("*").order("created_at", { ascending: false }),
+        db
+          .from("feedback_replies")
+          .select("id,feedback_id,author_user_id,body,created_at")
+          .order("created_at"),
+        db.from("known_issues").select("*").order("created_at", { ascending: false }),
+        db.from("workspaces").select("user_id, plan, created_at, updated_at"),
+        db.from("trips").select("archived, is_public"),
+        db
+          .from("platform_admin_audit_log")
+          .select("id, actor_user_id, action, target_type, target_id, result, details, created_at")
+          .order("created_at", { ascending: false })
+          .limit(30),
+        db.from("profiles").select("id, display_name, email, locale, created_at, updated_at"),
+        db.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+      ]);
     if (feedback.error) throw feedback.error;
     if (feedbackReplies.error) throw feedbackReplies.error;
     if (issues.error) throw issues.error;
@@ -369,6 +466,40 @@ export const setPlatformUserBlocked = createServerFn({ method: "POST" })
     return { ok: true, blocked: data.blocked };
   });
 
+export const resetPlatformUserMfa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { userId: string; reason: string }) => input)
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context.userId);
+    const reason = data.reason.trim();
+    if (!/^[0-9a-f-]{36}$/i.test(data.userId) || reason.length < 10 || reason.length > 500)
+      throw new Error("INVALID_INPUT");
+    const { data: factors, error } = await db.auth.admin.mfa.listFactors({ userId: data.userId });
+    if (error) throw error;
+    const totp = [...(factors?.factors ?? [])].filter(
+      (factor: any) => factor.factor_type === "totp",
+    );
+    for (const factor of totp) {
+      const result = await db.auth.admin.mfa.deleteFactor({ userId: data.userId, id: factor.id });
+      if (result.error) throw result.error;
+    }
+    await audit(db, context.userId, "user.mfa.reset", "user", data.userId, "success", {
+      reason,
+      removed: totp.length,
+    });
+    await db
+      .from("notifications")
+      .insert({
+        user_id: data.userId,
+        kind: "account",
+        title: "Tweestapsverificatie hersteld / Two-step verification reset",
+        body: "security|mfa-reset",
+        event_key: `mfa-reset:${Date.now()}`,
+        link: "/account",
+      });
+    return { ok: true, removed: totp.length };
+  });
+
 export const updatePlatformUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(
@@ -454,7 +585,14 @@ async function reachable(url: string, headers?: Record<string, string>) {
   }
 }
 
-const providerNames = ["weather", "flight_lookup", "routing", "email", "domain_verification", "object_storage"] as const;
+const providerNames = [
+  "weather",
+  "flight_lookup",
+  "routing",
+  "email",
+  "domain_verification",
+  "object_storage",
+] as const;
 
 export const getPlatformOperations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -462,17 +600,29 @@ export const getPlatformOperations = createServerFn({ method: "GET" })
     const db = await adminDb(context.userId);
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const [controls, usage, failedJobs] = await Promise.all([
-      db.from("platform_provider_controls").select("provider,enabled,reason,updated_at").order("provider"),
+      db
+        .from("platform_provider_controls")
+        .select("provider,enabled,reason,updated_at")
+        .order("provider"),
       db.from("external_api_usage").select("usage_date,provider,calls").gte("usage_date", since),
-      db.from("worker_jobs").select("id,provider,job_type,status,attempts,last_error_code,available_at,updated_at")
-        .in("status", ["failed", "cancelled"]).order("updated_at", { ascending: false }).limit(25),
+      db
+        .from("worker_jobs")
+        .select("id,provider,job_type,status,attempts,last_error_code,available_at,updated_at")
+        .in("status", ["failed", "cancelled"])
+        .order("updated_at", { ascending: false })
+        .limit(25),
     ]);
-    if (controls.error || usage.error || failedJobs.error) throw new Error("PLATFORM_OPERATIONS_UNAVAILABLE");
+    if (controls.error || usage.error || failedJobs.error)
+      throw new Error("PLATFORM_OPERATIONS_UNAVAILABLE");
     const totals = new Map<string, number>();
-    for (const row of usage.data ?? []) totals.set(row.provider, (totals.get(row.provider) ?? 0) + row.calls);
+    for (const row of usage.data ?? [])
+      totals.set(row.provider, (totals.get(row.provider) ?? 0) + row.calls);
     await audit(db, context.userId, "platform.operations.view", "platform", null, "success");
     return {
-      providers: (controls.data ?? []).map((row: any) => ({ ...row, calls7d: totals.get(row.provider) ?? 0 })),
+      providers: (controls.data ?? []).map((row: any) => ({
+        ...row,
+        calls7d: totals.get(row.provider) ?? 0,
+      })),
       failedJobs: failedJobs.data ?? [],
     };
   });
@@ -482,14 +632,30 @@ export const setPlatformProviderEnabled = createServerFn({ method: "POST" })
   .validator((input: { provider: string; enabled: boolean; reason: string }) => input)
   .handler(async ({ data, context }) => {
     const db = await adminDb(context.userId);
-    if (!providerNames.includes(data.provider as typeof providerNames[number])) throw new Error("INVALID_PROVIDER");
+    if (!providerNames.includes(data.provider as (typeof providerNames)[number]))
+      throw new Error("INVALID_PROVIDER");
     const reason = data.reason.trim();
     if (!data.enabled && reason.length < 5) throw new Error("PROVIDER_REASON_REQUIRED");
-    const { data: updated, error } = await db.from("platform_provider_controls").update({
-      enabled: data.enabled, reason: data.enabled ? null : reason.slice(0, 240),
-      updated_by: context.userId, updated_at: new Date().toISOString(),
-    }).eq("provider", data.provider).select("provider").maybeSingle();
-    await audit(db, context.userId, data.enabled ? "platform.provider.enable" : "platform.provider.disable", "provider", data.provider, error || !updated ? "failure" : "success", { reason: data.enabled ? "restored" : reason });
+    const { data: updated, error } = await db
+      .from("platform_provider_controls")
+      .update({
+        enabled: data.enabled,
+        reason: data.enabled ? null : reason.slice(0, 240),
+        updated_by: context.userId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("provider", data.provider)
+      .select("provider")
+      .maybeSingle();
+    await audit(
+      db,
+      context.userId,
+      data.enabled ? "platform.provider.enable" : "platform.provider.disable",
+      "provider",
+      data.provider,
+      error || !updated ? "failure" : "success",
+      { reason: data.enabled ? "restored" : reason },
+    );
     if (error || !updated) throw new Error("PROVIDER_UPDATE_FAILED");
     return { ok: true };
   });
@@ -510,14 +676,17 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
           !(await db.from("workspaces").select("user_id", { head: true, count: "exact" })).error,
       ),
       timedCheck("storage", async () => !(await db.storage.listBuckets()).error),
-      timedCheck("weather", async () =>
-        (await reachable(
-          "https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current=temperature_2m,weather_code",
-          { Accept: "application/json" },
-        )) || reachable(
-          "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=52.37&lon=4.90",
-          { Accept: "application/json", "User-Agent": "GlobeTrotr/1.0 info@globetrotr.nl" },
-        ),
+      timedCheck(
+        "weather",
+        async () =>
+          (await reachable(
+            "https://api.open-meteo.com/v1/forecast?latitude=52.37&longitude=4.90&current=temperature_2m,weather_code",
+            { Accept: "application/json" },
+          )) ||
+          reachable(
+            "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=52.37&lon=4.90",
+            { Accept: "application/json", "User-Agent": "GlobeTrotr/1.0 info@globetrotr.nl" },
+          ),
       ),
       timedCheck("rates", () => reachable("https://api.frankfurter.app/latest?from=EUR&to=USD")),
       timedCheck(
@@ -531,16 +700,43 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
         Boolean(githubToken && githubRepository),
       ),
       timedCheck("flights", async () => true, Boolean(process.env["SKYLINK_API_KEY"]?.trim())),
-      timedCheck("worker", () => reachable(process.env["WORKER_HEALTH_URL"]!), Boolean(process.env["WORKER_HEALTH_URL"]?.trim())),
+      timedCheck(
+        "worker",
+        () => reachable(process.env["WORKER_HEALTH_URL"]!),
+        Boolean(process.env["WORKER_HEALTH_URL"]?.trim()),
+      ),
     ]);
-    const publicKeys: Record<string,string> = { database:"database", storage:"storage", weather:"weather", rates:"rates", flights:"flights", worker:"worker" };
-    await Promise.all(checks.filter((check) => publicKeys[check.name]).map((check) => db.from("platform_status_components").update({
-      status: check.status === "not_configured" ? "unknown" : check.status,
-      response_ms: check.durationMs,
-      checked_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }).eq("component_key", publicKeys[check.name])));
-    await db.from("platform_status_components").update({ status:"operational", checked_at:new Date().toISOString(), updated_at:new Date().toISOString() }).eq("component_key","web");
+    const publicKeys: Record<string, string> = {
+      database: "database",
+      storage: "storage",
+      weather: "weather",
+      rates: "rates",
+      flights: "flights",
+      worker: "worker",
+    };
+    await Promise.all(
+      checks
+        .filter((check) => publicKeys[check.name])
+        .map((check) =>
+          db
+            .from("platform_status_components")
+            .update({
+              status: check.status === "not_configured" ? "unknown" : check.status,
+              response_ms: check.durationMs,
+              checked_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("component_key", publicKeys[check.name]),
+        ),
+    );
+    await db
+      .from("platform_status_components")
+      .update({
+        status: "operational",
+        checked_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("component_key", "web");
     await audit(db, context.userId, "platform.health_check", "platform", null, "success", {
       overall_status: checks.some((check) => check.status === "degraded")
         ? "degraded"
@@ -668,11 +864,21 @@ export const replyToFeedback = createServerFn({ method: "POST" })
     const body = data.body.trim();
     if (!/^[0-9a-f-]{36}$/i.test(data.id) || body.length < 2 || body.length > 2000)
       throw new Error("INVALID_FEEDBACK_REPLY");
-    const { data: feedback, error: feedbackError } = await db.from("beta_feedback").select("id,status").eq("id", data.id).maybeSingle();
+    const { data: feedback, error: feedbackError } = await db
+      .from("beta_feedback")
+      .select("id,status")
+      .eq("id", data.id)
+      .maybeSingle();
     if (feedbackError || !feedback) throw new Error("FEEDBACK_NOT_FOUND");
-    const { error } = await db.from("feedback_replies").insert({ feedback_id: data.id, author_user_id: context.userId, body });
+    const { error } = await db
+      .from("feedback_replies")
+      .insert({ feedback_id: data.id, author_user_id: context.userId, body });
     if (error) throw error;
-    if (feedback.status === "new") await db.from("beta_feedback").update({ status: "reviewing", updated_at: new Date().toISOString() }).eq("id", data.id);
+    if (feedback.status === "new")
+      await db
+        .from("beta_feedback")
+        .update({ status: "reviewing", updated_at: new Date().toISOString() })
+        .eq("id", data.id);
     await audit(db, context.userId, "feedback.reply.create", "feedback", data.id, "success");
     return { ok: true };
   });
@@ -695,8 +901,13 @@ export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
     const values = [data.titleNl, data.titleEn, data.bodyNl, data.bodyEn].map((value) =>
       value.trim(),
     );
-    if (values.some((value) => value.length < 3) || values[0]!.length > 120 ||
-      values[1]!.length > 120 || values[2]!.length > 1000 || values[3]!.length > 1000) {
+    if (
+      values.some((value) => value.length < 3) ||
+      values[0]!.length > 120 ||
+      values[1]!.length > 120 ||
+      values[2]!.length > 1000 ||
+      values[3]!.length > 1000
+    ) {
       throw new Error("INVALID_ANNOUNCEMENT");
     }
     const { data: announcementId, error } = await db.rpc("publish_platform_announcement_v2", {
@@ -710,8 +921,15 @@ export const publishPlatformAnnouncement = createServerFn({ method: "POST" })
       p_status_key: data.type === "status" && data.statusKey ? data.statusKey : null,
     });
     if (error) throw error;
-    await audit(db, context.userId, "platform.announcement.publish", "platform_announcement",
-      announcementId, "success", { type: data.type, severity: data.severity });
+    await audit(
+      db,
+      context.userId,
+      "platform.announcement.publish",
+      "platform_announcement",
+      announcementId,
+      "success",
+      { type: data.type, severity: data.severity },
+    );
     return { published: true };
   });
 
@@ -721,7 +939,9 @@ export const listPlatformAnnouncements = createServerFn({ method: "GET" })
     const db = await adminDb(context.userId);
     const { data, error } = await db
       .from("platform_announcements")
-      .select("id,announcement_type,severity,title_nl,title_en,body_nl,body_en,status_key,published_at")
+      .select(
+        "id,announcement_type,severity,title_nl,title_en,body_nl,body_en,status_key,published_at",
+      )
       .not("published_at", "is", null)
       .order("published_at", { ascending: false })
       .limit(100);
@@ -729,7 +949,8 @@ export const listPlatformAnnouncements = createServerFn({ method: "GET" })
     const latestStatus = new Set<string>();
     return (data ?? []).map((item: any) => {
       const key = item.status_key as string | null;
-      const current = item.announcement_type === "status" && Boolean(key) && !latestStatus.has(key!);
+      const current =
+        item.announcement_type === "status" && Boolean(key) && !latestStatus.has(key!);
       if (key) latestStatus.add(key);
       return { ...item, current };
     });
@@ -739,11 +960,17 @@ export const getNotificationDeliveryOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const db = await adminDb(context.userId);
-    const { data, error } = await db.from("notifications")
-      .select("kind,dismissed_at,created_at").order("created_at", { ascending: false }).limit(1000);
+    const { data, error } = await db
+      .from("notifications")
+      .select("kind,dismissed_at,created_at")
+      .order("created_at", { ascending: false })
+      .limit(1000);
     if (error) throw error;
     const rows = data ?? [];
-    const byKind = new Map<string, { kind: string; sent: number; dismissed: number; open: number }>();
+    const byKind = new Map<
+      string,
+      { kind: string; sent: number; dismissed: number; open: number }
+    >();
     for (const row of rows) {
       const value = byKind.get(row.kind) ?? { kind: row.kind, sent: 0, dismissed: 0, open: 0 };
       value.sent += 1;
@@ -751,7 +978,15 @@ export const getNotificationDeliveryOverview = createServerFn({ method: "GET" })
       else value.open += 1;
       byKind.set(row.kind, value);
     }
-    await audit(db, context.userId, "notifications.delivery.view", "notification", null, "success", { sample: rows.length });
+    await audit(
+      db,
+      context.userId,
+      "notifications.delivery.view",
+      "notification",
+      null,
+      "success",
+      { sample: rows.length },
+    );
     return { sample: rows.length, groups: [...byKind.values()].sort((a, b) => b.sent - a.sent) };
   });
 

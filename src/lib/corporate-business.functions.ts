@@ -69,7 +69,12 @@ export const getCorporateBusinessData = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const db = await dbFor(context.userId, "mail");
     const [m, mm, p, a] = await Promise.all([
-      db.from("corporate_mailboxes").select("*").order("address"),
+      db
+        .from("corporate_mailboxes")
+        .select(
+          "id,address,display_name,mailbox_type,owner_user_id,signature_text,sync_status,last_synced_at,active,imap_host,imap_port,imap_secure,imap_username,credentials_updated_at",
+        )
+        .order("address"),
       db.from("corporate_mailbox_members").select("mailbox_id,user_id,permission"),
       db.from("profiles").select("id,display_name,email"),
       db.from("platform_admins").select("user_id,role,active"),
@@ -106,6 +111,11 @@ export const saveCorporateMailbox = createServerFn({ method: "POST" })
       inboundSecretRef: string;
       outboundSecretRef: string;
       active: boolean;
+      imapHost?: string;
+      imapPort?: number;
+      imapSecure?: boolean;
+      imapUsername?: string;
+      imapPassword?: string;
     }) => input,
   )
   .handler(async ({ data, context }) => {
@@ -119,7 +129,7 @@ export const saveCorporateMailbox = createServerFn({ method: "POST" })
       throw new Error("INVALID_MAILBOX");
     if (data.mailboxType === "personal" && !data.ownerUserId)
       throw new Error("MAILBOX_OWNER_REQUIRED");
-    const row = {
+    const row: Record<string, unknown> = {
       address,
       display_name: data.displayName.trim(),
       mailbox_type: data.mailboxType,
@@ -129,7 +139,16 @@ export const saveCorporateMailbox = createServerFn({ method: "POST" })
       outbound_secret_ref: data.outboundSecretRef.trim() || null,
       active: data.active,
       updated_at: new Date().toISOString(),
+      imap_host: data.imapHost?.trim() || null,
+      imap_port: Math.min(65535, Math.max(1, Number(data.imapPort) || 993)),
+      imap_secure: data.imapSecure !== false,
+      imap_username: data.imapUsername?.trim() || null,
     };
+    if (data.imapPassword?.trim()) {
+      const { encryptSecret } = await import("@/lib/secret-crypto.server");
+      row.imap_password_ciphertext = encryptSecret(data.imapPassword);
+      row.credentials_updated_at = new Date().toISOString();
+    }
     const q = data.id
       ? db.from("corporate_mailboxes").update(row).eq("id", data.id)
       : db.from("corporate_mailboxes").insert(row);
@@ -449,12 +468,12 @@ export const getCorporateFinanceData = createServerFn({ method: "GET" })
         ),
       db
         .from("billing_transactions")
-        .select("id,status,currency,total_minor,refunded_minor,occurred_at")
+        .select("id,provider_transaction_id,status,currency,total_minor,refunded_minor,occurred_at")
         .gte("occurred_at", since)
         .order("occurred_at"),
       db
         .from("billing_webhook_events")
-        .select("status")
+        .select("id,provider_event_id,event_type,status,attempts,last_error_code,received_at,processed_at")
         .in("status", ["received", "processing", "failed"]),
     ]);
     if (invoices.error || subscriptions.error || transactions.error || webhooks.error)
@@ -491,6 +510,8 @@ export const getCorporateFinanceData = createServerFn({ method: "GET" })
       days,
       invoices: invoices.data ?? [],
       subscriptions: subs,
+      transactions: tx,
+      webhooks: webhooks.data ?? [],
       metrics: {
         mrrMinor,
         revenueMinor,
@@ -501,6 +522,47 @@ export const getCorporateFinanceData = createServerFn({ method: "GET" })
       },
       dailyRevenue: Array.from(daily, ([date, totalMinor]) => ({ date, totalMinor })),
     };
+  });
+
+export const refundPaddleTransaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { transactionId: string; reason: string }) => input)
+  .handler(async ({ data, context }) => {
+    const reason = data.reason.trim();
+    if (!/^txn_[a-z0-9]{10,}$/i.test(data.transactionId) || reason.length < 10 || reason.length > 500)
+      throw new Error("INVALID_REFUND_REQUEST");
+    const apiKey = process.env.PADDLE_API_KEY?.trim();
+    if (!apiKey) throw new Error("PADDLE_NOT_CONFIGURED");
+    const db = await dbFor(context.userId, "finance");
+    const { data: transaction } = await db.from("billing_transactions").select("id,status,total_minor,refunded_minor").eq("provider_transaction_id", data.transactionId).maybeSingle();
+    if (!transaction || transaction.status !== "completed" || Number(transaction.refunded_minor) > 0)
+      throw new Error("TRANSACTION_NOT_REFUNDABLE");
+    const base = process.env.VITE_PADDLE_ENVIRONMENT === "production" ? "https://api.paddle.com" : "https://sandbox-api.paddle.com";
+    const response = await fetch(`${base}/adjustments`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "refund", type: "full", transaction_id: data.transactionId, reason: "requested_by_customer" }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!response.ok) throw new Error(`PADDLE_REFUND_${response.status}`);
+    const result = await response.json() as { data?: { id?: string; status?: string } };
+    await log(db, context.userId, "billing.refund.request", transaction.id, { providerTransactionId: data.transactionId, adjustmentId: result.data?.id, status: result.data?.status, reason });
+    return { ok: true, status: result.data?.status ?? "pending_approval" };
+  });
+
+export const retryPaddleWebhook = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { eventId: string; reason: string }) => input)
+  .handler(async ({ data, context }) => {
+    if (!/^evt_[a-z0-9]{10,}$/i.test(data.eventId) || data.reason.trim().length < 10)
+      throw new Error("INVALID_WEBHOOK_RETRY");
+    const db = await dbFor(context.userId, "finance");
+    const { data: event } = await db.from("billing_webhook_events").select("payload,status").eq("provider_event_id", data.eventId).maybeSingle();
+    if (!event || event.status !== "failed") throw new Error("WEBHOOK_NOT_RETRYABLE");
+    const { data: result, error } = await db.rpc("process_paddle_billing_event", { p_event: event.payload });
+    if (error || result === "failed") throw new Error("WEBHOOK_RETRY_FAILED");
+    await log(db, context.userId, "billing.webhook.retry", data.eventId, { reason: data.reason.trim(), result });
+    return { ok: true, result };
   });
 
 export const getCorporateStaff = createServerFn({ method: "GET" })

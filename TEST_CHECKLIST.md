@@ -1,6 +1,21 @@
 # GlobeTrotr beta-testlijst
 
-## Laatste productie-update (na migratie 1130)
+## Laatste productie-update (na migraties 1130-1160)
+
+- [ ] Voer migratie `20260908116000_paddle_billing_runtime.sql` en daarna `paddle_billing_runtime.sql` uit.
+- [ ] Open in Sandbox vanuit Free de Pro- en Agency-checkout; controleer product, maandprijs, belasting en accountadres.
+- [ ] Annuleer een checkout en controleer dat het Free-plan behouden blijft.
+- [ ] Rond een Sandbox-checkout af; controleer webhook HTTP 200, één transactie en het juiste Pro- of Agency-plan na vernieuwen.
+- [ ] Stuur hetzelfde Paddle-event opnieuw en controleer dat geen dubbele transactie of melding ontstaat.
+- [ ] Stuur een webhook met ongeldige handtekening en controleer HTTP 401 zonder databasewijziging.
+- [ ] Open Paddle Customer Portal vanuit Facturatie; controleer betaalmethode, facturen, verlengdatum en opzegging.
+- [ ] Open op Facturatie de laatste betalingen en download per voltooide betaling een verse officiële Paddle-factuur.
+- [ ] Wijzig Pro naar Agency en terug; controleer de verrekening in Paddle en wacht op de webhook voordat de rechten wijzigen.
+- [ ] Test `past_due`, herstel, geplande opzegging en definitieve beëindiging; alleen een actieve/trialstatus mag betaalde rechten geven.
+- [ ] Controleer Corporate Admin op werkelijke omzet, abonnement, transactie en webhookstatus.
+- [ ] Vraag vanuit Corporate Admin een volledige refund aan; controleer auditreden, adjustmentstatus, bijgewerkte transactie/factuur en Paddle-creditnota.
+- [ ] Forceer in Sandbox een gefaald event en verwerk het met reden opnieuw; na succes mag het niet opnieuw uitvoerbaar zijn.
+- [ ] Controleer betaling, mislukte betaling, abonnementswijziging, einde en refund als in-appmelding én verzorgde NL/EN HTML-mail met knop naar Facturatie.
 
 - [ ] Open `/register` rechtstreeks en maak een account aan; controleer bevestigingslink en juiste terugkeer naar GlobeTrotr.
 - [ ] Vraag op `/auth` een herstelmail en magic link aan in NL en EN; controleer opmaak, taal, tokenroute en eenmalig gebruik.
@@ -14,12 +29,20 @@
 - [ ] Open de medewerkeruitnodiging uit de Supabase-template `invite.html`; controleer de eigen `/token/...?...type=invite`-route en de eerste login.
 - [ ] Laat een bestaand extern adres mail sturen naar een GlobeTrotr-postvak; controleer IMAP-inleesstatus, volledige inhoud en beantwoorden vanuit het portaal.
 - [ ] Verstuur vanuit een persoonlijke en gedeelde mailbox een bericht; controleer logo, afzendernaam, tagline, website, contactlink, CTA en de mailboxhandtekening in mobiel, desktop en donkere mailweergave.
+- [ ] Beantwoord een privacyverzoek en stuur nieuwe bedrijfsmail en een contactformulier; controleer dat elk direct één melding rechtsboven geeft.
+- [ ] Maak één reisuitnodiging en controleer dat exact één verzorgde e-mail met reisnaam, uitleg en actieknop aankomt.
+- [ ] Koppel Google en Discord handmatig vanuit Account en controleer de veilige terugkeer.
+- [ ] Laat Corporate Admin na identiteitscontrole een TOTP-factor herstellen en controleer auditlog en accountmelding.
+- [ ] Download CSV, reisgids, ICS en GPX vanuit de exportbalk bovenaan en open ieder bestand.
+- [ ] Voeg in Corporate Admin een ZXCS-postvak met IMAP-server, gebruikersnaam en wachtwoord toe; controleer dat het wachtwoord nooit terug in de browser verschijnt en dat nieuwe mail wordt ingelezen.
+- [ ] Verstuur vanuit dat postvak een bericht en controleer HTML-opmaak, logo, CTA en de ingestelde persoonlijke of gedeelde handtekening.
+- [ ] Koppel een testdomein met de getoonde CNAME en TXT, verifieer het in Agency Admin en controleer HTTPS; een onbekend domein moet worden geweigerd.
 - [ ] Download GPX en reisgids, open beide bestanden en controleer routevolgorde, tekst, omslag en taal.
 - [ ] Verstuur een betaalverzoek in een reis met echt gekoppelde accounts; controleer melding bij de ontvanger en duidelijke uitleg wanneer alleen naamdeelnemers bestaan.
 - [ ] Controleer de routekaart op telefoon en desktop; de kaart mag niet buiten zijn kaartvak lopen.
 - [ ] Controleer beide serverklokken en voer een geldige en ongeldige SMTP-test uit; leg bij 550 de volledige serverrespons vast.
 
-> Alle databasemigraties en SQL-regressietests tot en met migratie 1120 zijn uitgevoerd. Alleen migratie 1130 en zijn SQL-test horen nog bij de volgende uitrol. De praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
+> Alle databasemigraties en SQL-regressietests tot en met migratie 1130 zijn uitgevoerd. Migraties 1140–1160 en hun SQL-tests horen nog bij de volgende uitrol. De praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
 
 ## Nieuwe praktische acceptatiecontroles
 
@@ -92,7 +115,7 @@
 - [ ] Depubliceer en archiveer een openbare reis vanuit Corporate Admin; controleer eigenaarsmelding, auditlog en herstel als privé-reis.
 - [ ] Open het bezorgoverzicht in Corporate Admin en controleer aantallen per meldingstype na openen en wegklikken.
 - [ ] Controleer canonical-URL, social preview en structured data op Home, Demo, Prijzen, Over, Contact en Status.
-Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar, een Agency-medewerker en een klant. Test belangrijke schermen eenmaal op telefoon en eenmaal op desktop.
+      Gebruik bij voorkeur vier testaccounts: een gewone reiziger, een Agency-eigenaar, een Agency-medewerker en een klant. Test belangrijke schermen eenmaal op telefoon en eenmaal op desktop.
 
 ## Account
 

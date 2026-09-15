@@ -32,18 +32,61 @@ export const PUBLIC_BETA_STATUS = {
       en: "Sign in with Apple or Microsoft",
     },
     {
-      nl: "Online afrekenen en abonnementsverwerking via Paddle",
-      en: "Online checkout and subscription processing through Paddle",
-    },
-    {
-      nl: "Volledig geautomatiseerde koppeling van eigen Agency-domeinen",
-      en: "Fully automated custom Agency domain onboarding",
+      nl: "Geautomatiseerde DNS-inrichting bij de domeinprovider",
+      en: "Automated DNS configuration at the domain provider",
     },
   ],
 } as const;
 
 /** Public-safe release notes. Never include secrets, private data or internal identifiers. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-15-paddle-billing",
+    version: "0.16.0",
+    publishedAt: "2026-09-15T13:15:00+02:00",
+    title: "Veilig afrekenen met Paddle",
+    titleEn: "Secure checkout with Paddle",
+    summary: "Pro en Agency zijn gekoppeld aan checkout, abonnementen, facturen, betaalmails en selfservicebeheer.",
+    summaryEn: "Pro and Agency are connected to checkout, subscriptions, invoices, billing emails and self-service management.",
+    changes: [
+      { kind: "new", title: "Online checkout", titleEn: "Online checkout", description: "Kies Pro of Agency en rond de aankoop af in de beveiligde Paddle Checkout.", descriptionEn: "Choose Pro or Agency and complete the purchase through secure Paddle Checkout." },
+      { kind: "secure", title: "Betalingsstatus bepaalt toegang", titleEn: "Payment status controls access", description: "Betaalde functies worden uitsluitend na een gecontroleerd Paddle-event geactiveerd.", descriptionEn: "Paid features are activated only after a verified Paddle event." },
+      { kind: "improved", title: "Abonnement zelf beheren", titleEn: "Manage your own subscription", description: "Facturen, betaalmethode en opzegging zijn bereikbaar via Paddle Customer Portal.", descriptionEn: "Invoices, payment methods and cancellation are available through Paddle Customer Portal." },
+      { kind: "new", title: "Facturen en betaalmails", titleEn: "Invoices and billing emails", description: "Betalingen krijgen een tweetalige bevestiging en iedere factuur wordt met een verse beveiligde link opgehaald.", descriptionEn: "Payments receive a bilingual confirmation and each invoice is retrieved using a fresh secure link." },
+      { kind: "improved", title: "Terugbetalingen", titleEn: "Refunds", description: "Een terugbetaling wordt gevolgd van aanvraag tot bijgewerkte factuur en creditnota.", descriptionEn: "Refunds are tracked from request through the updated invoice and credit note." },
+    ],
+  },
+  {
+    id: "2026-09-15-mailboxes-domains",
+    version: "0.15.0",
+    publishedAt: "2026-09-15T12:30:00+02:00",
+    title: "Eigen postvakken en Agency-domeinen",
+    titleEn: "Connected mailboxes and Agency domains",
+    summary:
+      "Postvakken zijn veilig te koppelen en geverifieerde Agency-domeinen krijgen automatisch HTTPS.",
+    summaryEn:
+      "Mailboxes can be connected securely and verified Agency domains receive HTTPS automatically.",
+    changes: [
+      {
+        kind: "improved",
+        title: "Verzorgde bedrijfsmail",
+        titleEn: "Polished company email",
+        description:
+          "HTML-mail bevat de ingestelde handtekening, het GlobeTrotr-logo en een duidelijke actie.",
+        descriptionEn:
+          "HTML email contains the configured signature, GlobeTrotr logo and a clear action.",
+      },
+      {
+        kind: "new",
+        title: "Eigen domein activeren",
+        titleEn: "Activate a custom domain",
+        description:
+          "Agency Admin controleert CNAME en TXT voordat het domein en certificaat worden geactiveerd.",
+        descriptionEn:
+          "Agency Admin verifies CNAME and TXT before activating the domain and certificate.",
+      },
+    ],
+  },
   {
     id: "2026-09-14-production-access-mail-privacy",
     version: "Beta 0.43",
@@ -133,6 +176,24 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Persoonlijke en gedeelde mailboxen gebruiken een verzorgde opmaak met logo, tagline, website en contactmogelijkheid.",
         descriptionEn:
           "Personal and shared mailboxes use a polished layout with logo, tagline, website and contact option.",
+      },
+      {
+        kind: "fixed",
+        title: "Uitnodiging komt één keer aan",
+        titleEn: "Invitations arrive once",
+        description:
+          "Eén geldige reis- of Agency-uitnodigingslink levert precies één verzorgde e-mail op.",
+        descriptionEn:
+          "Each valid trip or Agency invitation link produces exactly one polished email.",
+      },
+      {
+        kind: "improved",
+        title: "Directe meldingen en accountherstel",
+        titleEn: "Instant notifications and account recovery",
+        description:
+          "Belangrijke berichten verschijnen direct en support kan verloren authenticatortoegang gecontroleerd herstellen.",
+        descriptionEn:
+          "Important messages appear immediately and support can safely reset lost authenticator access.",
       },
     ],
   },

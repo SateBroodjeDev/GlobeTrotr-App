@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 const env = process.env;
 const supabaseUrl = required("SUPABASE_URL").replace(/\/$/, "");
@@ -10,6 +11,55 @@ let stopping = false;
 let lastPollAt = null;
 let lastSuccessAt = null;
 let lastErrorCode = null;
+const tlsChecks = new Map();
+
+async function readRequestBody(request, maximum = 262_144) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > maximum) throw Object.assign(new Error("REQUEST_TOO_LARGE"), { code: "REQUEST_TOO_LARGE" });
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+function validPaddleSignature(rawBody, header, secret) {
+  const parts = String(header || "").split(";").map((part) => {
+    const at = part.indexOf("=");
+    return at < 1 ? [part, ""] : [part.slice(0, at), part.slice(at + 1)];
+  });
+  const timestamp = Number(parts.find(([key]) => key === "ts")?.[1]);
+  if (!Number.isInteger(timestamp) || Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
+  const expected = Buffer.from(createHmac("sha256", secret).update(`${timestamp}:${rawBody}`).digest("hex"), "hex");
+  return parts.filter(([key]) => key === "h1").some(([, value]) => {
+    if (!/^[a-f0-9]{64}$/i.test(value)) return false;
+    const supplied = Buffer.from(value, "hex");
+    return supplied.length === expected.length && timingSafeEqual(supplied, expected);
+  });
+}
+
+async function enrichPaddleEvent(event) {
+  const data = event?.data;
+  if (!data || typeof data !== "object") throw Object.assign(new Error("PADDLE_EVENT_INVALID"), { code: "PADDLE_EVENT_INVALID" });
+  const priceIds = new Set((data.items || []).map((item) => item?.price?.id).filter(Boolean));
+  const pro = env.VITE_PADDLE_PRO_MONTHLY_PRICE_ID?.trim();
+  const agency = env.VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID?.trim();
+  data.globetrotr_plan = agency && priceIds.has(agency) ? "agency" : pro && priceIds.has(pro) ? "pro" : null;
+  if ((event.event_type || "").startsWith("subscription.") && !data.globetrotr_plan)
+    throw Object.assign(new Error("PADDLE_PRICE_NOT_ALLOWED"), { code: "PADDLE_PRICE_NOT_ALLOWED" });
+  if (event.event_type === "transaction.completed" && env.PADDLE_API_KEY && data.id) {
+    const base = env.VITE_PADDLE_ENVIRONMENT === "production" ? "https://api.paddle.com" : "https://sandbox-api.paddle.com";
+    try {
+      const invoice = await fetch(`${base}/transactions/${encodeURIComponent(data.id)}/invoice`, {
+        headers: { Authorization: `Bearer ${env.PADDLE_API_KEY}` },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (invoice.ok) data.globetrotr_invoice_url = (await invoice.json())?.data?.url || null;
+    } catch {}
+  }
+  return event;
+}
 
 function required(name) {
   const value = env[name]?.trim();
@@ -311,7 +361,56 @@ async function cycle() {
     log("error", "worker.cycle_failed", { errorCode: lastErrorCode });
   }
 }
-createServer((request, response) => {
+createServer(async (request, response) => {
+  const requestUrl = new URL(request.url || "/", "http://worker");
+  if (requestUrl.pathname === "/api/paddle/webhook") {
+    if (request.method !== "POST") {
+      response.writeHead(405, { Allow: "POST" }).end();
+      return;
+    }
+    const secret = env.PADDLE_WEBHOOK_SECRET?.trim();
+    if (!secret) {
+      response.writeHead(503, { "Content-Type": "application/json" }).end('{"error":"PADDLE_NOT_CONFIGURED"}');
+      return;
+    }
+    try {
+      const rawBody = await readRequestBody(request);
+      if (!validPaddleSignature(rawBody, request.headers["paddle-signature"], secret)) {
+        response.writeHead(401, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end('{"error":"INVALID_SIGNATURE"}');
+        return;
+      }
+      const event = await enrichPaddleEvent(JSON.parse(rawBody));
+      const result = await rpc("process_paddle_billing_event", { p_event: event });
+      log("info", "paddle.webhook", { eventId: event.event_id, eventType: event.event_type, result });
+      response.writeHead(result === "failed" ? 500 : 200, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify({ status: result }));
+    } catch (error) {
+      const code = String(error?.code ?? "PADDLE_WEBHOOK_FAILED").slice(0, 80);
+      log("error", "paddle.webhook_failed", { errorCode: code });
+      response.writeHead(code === "REQUEST_TOO_LARGE" ? 413 : 400, { "Content-Type": "application/json", "Cache-Control": "no-store" }).end(JSON.stringify({ error: code }));
+    }
+    return;
+  }
+  if (requestUrl.pathname === "/tls/ask") {
+    const domain = String(requestUrl.searchParams.get("domain") || "").toLowerCase();
+    const now = Date.now(),
+      recent = (tlsChecks.get(domain) || []).filter((time) => now - time < 60_000);
+    recent.push(now);
+    tlsChecks.set(domain, recent);
+    if (!/^[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])$/.test(domain) || recent.length > 10) {
+      response.writeHead(429).end();
+      return;
+    }
+    const check = await fetch(
+      `${supabaseUrl}/rest/v1/agency_domains?custom_domain=eq.${encodeURIComponent(domain)}&verification_status=eq.verified&select=custom_domain&limit=1`,
+      {
+        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        signal: AbortSignal.timeout(3000),
+      },
+    );
+    const allowed = check.ok && (await check.json()).length === 1;
+    response.writeHead(allowed ? 204 : 403, { "Cache-Control": "no-store" }).end();
+    return;
+  }
   if (request.url !== "/health") {
     response.writeHead(404).end();
     return;

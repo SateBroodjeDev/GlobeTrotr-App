@@ -769,7 +769,10 @@ export const saveWorkspace = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
     const workspace = data.data as Partial<WorkspaceState>;
-    const plan = ["free", "pro", "agency"].includes(workspace.plan ?? "") ? workspace.plan : "free";
+    const { data: stored } = await db.from("workspaces").select("plan").eq("user_id", context.userId).maybeSingle();
+    // Het betaalplan is providergestuurd. Nooit een browserwaarde vertrouwen.
+    const plan = ["free", "pro", "agency"].includes(stored?.plan ?? "") ? stored.plan : "free";
+    const safeWorkspace = { ...workspace, plan };
     const baseCurrency =
       typeof workspace.baseCurrency === "string" && /^[A-Z]{3}$/.test(workspace.baseCurrency)
         ? workspace.baseCurrency
@@ -777,7 +780,7 @@ export const saveWorkspace = createServerFn({ method: "POST" })
     const { error } = await db.from("workspaces").upsert(
       {
         user_id: context.userId,
-        data: workspace as never,
+        data: safeWorkspace as never,
         plan,
         base_currency: baseCurrency,
         branding: workspace.branding ?? {},

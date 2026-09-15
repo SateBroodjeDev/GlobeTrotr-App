@@ -1,4 +1,4 @@
-import { CATEGORIES, type Trip } from "./types.ts";
+﻿import { CATEGORIES, type Trip } from "./types.ts";
 import { convert, formatMoney, type Rates } from "./services.ts";
 import type { AppLocale } from "./locale.tsx";
 import { localizeCountry } from "./localized-values.ts";
@@ -45,7 +45,7 @@ export function downloadCsv(trip: Trip, base: string, rates: Rates, locale: AppL
   a.href = url;
   a.download = `${slug(trip.name)}-${en ? "expenses" : "uitgaven"}.csv`;
   a.click();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 
 function slug(s: string) {
@@ -56,7 +56,11 @@ function slug(s: string) {
 }
 
 function icsText(value: string) {
-  return value.replace(/\\/g, "\\\\").replace(/\r?\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
 }
 
 function icsDate(value: string) {
@@ -71,7 +75,10 @@ function nextIcsDate(value: string) {
 
 /** Provider-onafhankelijke agenda-export voor Apple Calendar, Google Calendar en Outlook. */
 export function buildTripCalendar(trip: Trip) {
-  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const stamp = new Date()
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}Z$/, "Z");
   const events = [
     ...trip.itinerary.map((item) => ({
       id: `itinerary-${item.id}`,
@@ -94,15 +101,25 @@ export function buildTripCalendar(trip: Trip) {
       location: item.location?.name ?? item.departure?.name ?? item.arrival?.name ?? "",
     })),
   ].filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.date));
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//GlobeTrotr//Trip Calendar//NL", "CALSCALE:GREGORIAN", `X-WR-CALNAME:${icsText(trip.name)}`];
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//GlobeTrotr//Trip Calendar//NL",
+    "CALSCALE:GREGORIAN",
+    `X-WR-CALNAME:${icsText(trip.name)}`,
+  ];
   for (const event of events) {
     const timed = /^\d{2}:\d{2}$/.test(event.startTime);
     lines.push("BEGIN:VEVENT", `UID:${event.id}@globetrotr.nl`, `DTSTAMP:${stamp}`);
     if (timed) {
       lines.push(`DTSTART:${icsDate(event.date)}T${event.startTime.replace(":", "")}00`);
-      if (/^\d{2}:\d{2}$/.test(event.endTime)) lines.push(`DTEND:${icsDate(event.endDate)}T${event.endTime.replace(":", "")}00`);
+      if (/^\d{2}:\d{2}$/.test(event.endTime))
+        lines.push(`DTEND:${icsDate(event.endDate)}T${event.endTime.replace(":", "")}00`);
     } else {
-      lines.push(`DTSTART;VALUE=DATE:${icsDate(event.date)}`, `DTEND;VALUE=DATE:${nextIcsDate(event.endDate)}`);
+      lines.push(
+        `DTSTART;VALUE=DATE:${icsDate(event.date)}`,
+        `DTEND;VALUE=DATE:${nextIcsDate(event.endDate)}`,
+      );
     }
     lines.push(`SUMMARY:${icsText(event.title)}`);
     if (event.notes) lines.push(`DESCRIPTION:${icsText(event.notes)}`);
@@ -120,15 +137,25 @@ export function downloadTripCalendar(trip: Trip) {
   anchor.href = url;
   anchor.download = `${slug(trip.name)}-agenda.ics`;
   anchor.click();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 
 function escapeXml(value: string) {
-  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
 }
 
 export function buildTripGpx(trip: Trip) {
-  const points = trip.stops.map((stop) => `    <rtept lat="${stop.lat}" lon="${stop.lon}"><name>${escapeXml(stop.name)}</name><desc>${escapeXml(stop.country)}</desc></rtept>`).join("\n");
+  const points = trip.stops
+    .map(
+      (stop) =>
+        `    <rtept lat="${stop.lat}" lon="${stop.lon}"><name>${escapeXml(stop.name)}</name><desc>${escapeXml(stop.country)}</desc></rtept>`,
+    )
+    .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="GlobeTrotr" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${escapeXml(trip.name)}</name></metadata>\n  <rte><name>${escapeXml(trip.name)}</name>\n${points}\n  </rte>\n</gpx>\n`;
 }
 
@@ -141,7 +168,7 @@ export function downloadTripGpx(trip: Trip) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 
 export function openPdf(
@@ -225,7 +252,7 @@ export function downloadJson(data: unknown, name: string) {
   a.href = url;
   a.download = `${slug(name)}-backup.json`;
   a.click();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 
 /** Printklare reisgids: schema per dag, bestemmingen, paklijst en navigatielinks */
@@ -311,7 +338,7 @@ ${
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
   return true;
 }
 

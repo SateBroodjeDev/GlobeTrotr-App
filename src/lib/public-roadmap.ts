@@ -303,6 +303,18 @@ export const PUBLIC_TODAY = {
       "Reis- en Agency-uitnodigingen betrouwbaar per e-mail bezorgen",
       "Reliably deliver trip and Agency invitations by email",
     ],
+    [
+      "Directe meldingen voor privacyantwoorden, contact en bedrijfsmail",
+      "Instant notifications for privacy replies, contact and company email",
+    ],
+    [
+      "Persoonlijke en gedeelde postvakken veilig koppelen",
+      "Securely connect personal and shared mailboxes",
+    ],
+    [
+      "Eigen Agency-domeinen via CNAME/TXT verifiëren en HTTPS activeren",
+      "Verify custom Agency domains using CNAME/TXT and enable HTTPS",
+    ],
   ],
 } as const;
 
@@ -367,8 +379,8 @@ export const PUBLIC_ROADMAP = [
       ],
       ["Periodieke vluchtupdates", "Periodic flight updates"],
       [
-        "Agency-facturen en betaalstatus zodra Paddle is aangesloten",
-        "Agency invoices and payment status once Paddle is connected",
+        "Paddle Checkout en abonnementsbeheer praktisch valideren",
+        "Validate Paddle Checkout and subscription management",
       ],
       [
         "Uitgebreidere Agency-werkstromen met meerdere acties",

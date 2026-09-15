@@ -1,162 +1,78 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Lock } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Check, Download, ExternalLink, Lock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useWorkspace } from "@/lib/workspace";
-import { PLANS, canBill, planOf } from "@/lib/plans";
-import { CURRENCIES } from "@/lib/services";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { changePaddlePlan, createPaddleInvoiceLink, createPaddlePortalSession, getBillingOverview } from "@/lib/billing.functions";
 import { useLocale } from "@/lib/locale";
+import { loadPaddle } from "@/lib/paddle-client";
+import { PLANS, canBill, planOf } from "@/lib/plans";
+import { CURRENCIES } from "@/lib/services";
+import { useWorkspace } from "@/lib/workspace";
 
 export const Route = createFileRoute("/_authenticated/billing")({
-  head: () => ({
-    meta: [
-      { title: "Abonnement & facturatie — GlobeTrotr" },
-      {
-        name: "description",
-        content: "Vergelijk Free, Pro en Agency en beheer je GlobeTrotr-abonnement.",
-      },
-      { property: "og:title", content: "Abonnement & facturatie — GlobeTrotr" },
-      {
-        property: "og:description",
-        content: "Vergelijk plannen en beheer de beschikbare functies van je GlobeTrotr-account.",
-      },
-    ],
-  }),
-  component: Billing,
+  head: () => ({ meta: [{ title: "Abonnement & facturatie — GlobeTrotr" }] }), component: Billing,
 });
 
 function Billing() {
-  const { state, update, changePlan } = useWorkspace();
-  const { text } = useLocale();
-  const current = planOf(state.plan);
+  const { state, update, refreshWorkspace } = useWorkspace();
+  const { text, locale } = useLocale();
+  const billing = useQuery({ queryKey: ["billing-overview"], queryFn: () => getBillingOverview(), retry: false });
+  const current = planOf(billing.data?.plan ?? state.plan);
   const mayBill = canBill(state.role);
-  const [changingPlan, setChangingPlan] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
 
-  return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-semibold">{text("Abonnement & facturatie", "Plan & billing")}</h1>
-        <p className="text-sm text-muted-foreground">
-          {text("Huidig plan", "Current plan")}: <strong>{current.name}</strong> · {seatLabel(current.id, current.seats, text)} ·{" "}
-          {current.price === 0 ? text("gratis", "free") : `€${current.price}/${text("maand", "month")}`}
-        </p>
-      </div>
+  async function checkout(plan: "pro" | "agency") {
+    if (!billing.data) return;
+    const priceId = billing.data.checkout.prices[plan];
+    if (!billing.data.checkout.clientToken || !priceId) return toast.error(text("Paddle is nog niet volledig geconfigureerd.", "Paddle is not fully configured yet."));
+    setBusy(plan);
+    try {
+      const paddle = await loadPaddle(billing.data.checkout.clientToken, billing.data.checkout.environment);
+      paddle.Checkout.open({ items: [{ priceId, quantity: 1 }], customer: billing.data.checkout.email ? { email: billing.data.checkout.email } : undefined, customData: { workspace_uuid: billing.data.workspaceId, plan }, settings: { displayMode: "overlay", theme: "light", locale: locale.startsWith("nl") ? "nl" : "en", successUrl: `${window.location.origin}/billing?checkout=success` } });
+    } catch { toast.error(text("De checkout kon niet worden geopend.", "Checkout could not be opened.")); }
+    finally { setBusy(null); }
+  }
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {PLANS.map((p) => {
-          const active = p.id === state.plan;
-          return (
-            <Card key={p.id} className={`surface ${active ? "ring-2 ring-primary" : ""}`}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{p.name}</CardTitle>
-                  {active && <Badge>{text("Actief", "Active")}</Badge>}
-                </div>
-                <p className="font-display text-3xl font-semibold">
-                  €{p.price}
-                  <span className="text-sm font-normal text-muted-foreground">/{text("mnd", "mo")}</span>
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-1.5 text-sm">
-                  {p.highlights.map((h) => (
-                    <li key={h} className="flex items-start gap-2">
-                      <Check className="mt-0.5 size-4 text-success" /> {highlightLabel(h, text)}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  className="w-full"
-                  variant={active ? "outline" : "default"}
-                  disabled={active || !mayBill || changingPlan}
-                  onClick={async () => {
-                    setChangingPlan(true);
-                    try {
-                      const saved = await changePlan(p.id);
-                      if (saved) {
-                        toast.success(text(`Je abonnement is gewijzigd naar ${p.name}.`, `Your plan has been changed to ${p.name}.`));
-                      } else {
-                        toast.error(text("Je abonnement kon niet worden opgeslagen. Probeer opnieuw.", "Your plan could not be saved. Please try again."));
-                      }
-                    } finally {
-                      setChangingPlan(false);
-                    }
-                  }}
-                >
-                  {active
-                    ? text("Huidig plan", "Current plan")
-                    : changingPlan
-                      ? text("Wijzigen…", "Changing…")
-                      : mayBill
-                        ? text(`Kies ${p.name}`, `Choose ${p.name}`)
-                        : text("Alleen eigenaar", "Owner only")}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+  async function portal() {
+    setBusy("portal");
+    try { window.location.assign((await createPaddlePortalSession()).url); }
+    catch { toast.error(text("Het abonnementsbeheer kon niet worden geopend.", "Subscription management could not be opened.")); }
+    finally { setBusy(null); }
+  }
 
-      {!mayBill && (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Lock className="size-4" /> {text("Alleen de workspace-eigenaar kan het abonnement wijzigen.", "Only the workspace owner can change the plan.")}
-        </p>
-      )}
+  async function selectPaidPlan(plan: "pro" | "agency") {
+    if (!billing.data?.subscription) return checkout(plan);
+    if (!window.confirm(text(`Wil je je abonnement nu wijzigen naar ${planOf(plan).name}? Paddle verwerkt de evenredige verrekening meteen.`, `Change your subscription to ${planOf(plan).name} now? Paddle will process the prorated difference immediately.`))) return;
+    setBusy(plan);
+    try { await changePaddlePlan({ data: { plan } }); toast.success(text("De bevestiging volgt na verwerking door Paddle.", "Confirmation follows after Paddle processes the change.")); await billing.refetch(); }
+    catch { toast.error(text("Het abonnement kon niet worden gewijzigd.", "The subscription could not be changed.")); }
+    finally { setBusy(null); }
+  }
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="surface">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">{text("Betalingen & facturen", "Payments & invoices")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>{text("Er zijn nog geen echte GlobeTrotr-facturen of betalingen gekoppeld.", "No real GlobeTrotr invoices or payments are connected yet.")}</p>
-            <p>
-              {text("Tot Paddle Checkout en ondertekende webhookverificatie zijn gebouwd, wijzigt deze pagina alleen de beschikbare functies in je testomgeving en wordt er niets afgeschreven.", "Until Paddle Checkout and signed webhook verification are available, this page only changes features in your test environment and no money is charged.")}
-            </p>
-          </CardContent>
-        </Card>
+  async function invoice(transactionId: string) {
+    setBusy(transactionId);
+    try { window.open((await createPaddleInvoiceLink({ data: { transactionId } })).url, "_blank", "noopener,noreferrer"); }
+    catch { toast.error(text("De factuur kon niet worden opgehaald.", "Invoice could not be retrieved.")); }
+    finally { setBusy(null); }
+  }
 
-        <Card className="surface">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">{text("Reisinstellingen", "Trip settings")}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <label className="block">
-              <span className="text-muted-foreground">{text("Rapportagevaluta", "Reporting currency")}</span>
-              <select
-                className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2"
-                value={state.baseCurrency}
-                onChange={(e) => update((s) => ({ ...s, baseCurrency: e.target.value }))}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} — {c.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="text-muted-foreground">
-              {text("Alle uitgaven worden live omgerekend naar deze valuta met dagkoersen van de ECB.", "All expenses are converted to this currency using daily ECB rates.")}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+  return <div className="space-y-8">
+    <header><h1 className="font-display text-2xl font-semibold">{text("Abonnement & facturatie", "Plan & billing")}</h1><p className="text-sm text-muted-foreground">{text("Huidig plan", "Current plan")}: <strong>{current.name}</strong> · {current.price ? `€${current.price}/${text("maand", "month")}` : text("gratis", "free")}</p></header>
+    <div className="grid gap-4 md:grid-cols-3">{PLANS.map((plan) => { const active = plan.id === current.id; return <Card key={plan.id} className={`surface ${active ? "ring-2 ring-primary" : ""}`}><CardHeader className="pb-2"><div className="flex items-center justify-between"><CardTitle className="text-base">{plan.name}</CardTitle>{active && <Badge>{text("Actief", "Active")}</Badge>}</div><p className="font-display text-3xl font-semibold">€{plan.price}<span className="text-sm font-normal text-muted-foreground">/{text("mnd", "mo")}</span></p></CardHeader><CardContent className="space-y-4"><ul className="space-y-1.5 text-sm">{plan.highlights.map((item) => <li key={item} className="flex items-start gap-2"><Check className="mt-0.5 size-4 text-success" />{highlightLabel(item, text)}</li>)}</ul>{plan.id === "free" ? <Button className="w-full" variant="outline" disabled>{active ? text("Huidig plan", "Current plan") : text("Via abonnement beheren", "Use subscription management")}</Button> : <Button className="w-full" variant={active ? "outline" : "default"} disabled={!mayBill || busy !== null || active} onClick={() => selectPaidPlan(plan.id)}>{busy === plan.id ? text("Laden…", "Loading…") : active ? text("Huidig plan", "Current plan") : mayBill ? text(`Kies ${plan.name}`, `Choose ${plan.name}`) : text("Alleen eigenaar", "Owner only")}</Button>}</CardContent></Card>; })}</div>
+    {!mayBill && <p className="flex items-center gap-2 text-sm text-muted-foreground"><Lock className="size-4" />{text("Alleen de workspace-eigenaar kan het abonnement wijzigen.", "Only the workspace owner can change the subscription.")}</p>}
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Card className="surface"><CardHeader><CardTitle className="text-sm">{text("Betaling en verlenging", "Payment and renewal")}</CardTitle></CardHeader><CardContent className="space-y-3 text-sm">{billing.data?.subscription ? <><p><strong>{billing.data.subscription.status}</strong> · {billing.data.subscription.currency} {(billing.data.subscription.recurring_total_minor / 100).toFixed(2)} / {billing.data.subscription.billing_interval}</p><p className="text-muted-foreground">{billing.data.subscription.current_period_end ? `${text("Volgende periode/einddatum", "Next period/end date")}: ${new Date(billing.data.subscription.current_period_end).toLocaleDateString(locale)}` : text("De betaalperiode wordt door Paddle bijgewerkt.", "The billing period is updated by Paddle.")}</p><Button variant="outline" disabled={!mayBill || busy !== null} onClick={portal}><ExternalLink className="size-4" />{text("Abonnement en facturen beheren", "Manage subscription and invoices")}</Button></> : <p className="text-muted-foreground">{text("Je hebt nog geen betaald Paddle-abonnement. De definitieve prijs en belasting worden vóór betaling in de beveiligde checkout getoond.", "You do not have a paid Paddle subscription yet. The final price and tax are shown in secure checkout before payment.")}</p>}<Button variant="ghost" size="sm" onClick={async () => { await Promise.all([billing.refetch(), refreshWorkspace()]); toast.success(text("Abonnementsstatus bijgewerkt.", "Subscription status refreshed.")); }}>{text("Status vernieuwen", "Refresh status")}</Button></CardContent></Card>
+      <Card className="surface"><CardHeader><CardTitle className="text-sm">{text("Rapportagevaluta", "Reporting currency")}</CardTitle></CardHeader><CardContent><select className="w-full rounded-lg border border-input bg-card px-3 py-2" value={state.baseCurrency} onChange={(event) => update((value) => ({ ...value, baseCurrency: event.target.value }))}>{CURRENCIES.map((currency) => <option key={currency.code} value={currency.code}>{currency.code} — {currency.label}</option>)}</select></CardContent></Card>
     </div>
-  );
-}
-
-function seatLabel(id: string, fallback: string, text: (nl: string, en: string) => string) {
-  return text(fallback, id === "free" ? "For you" : id === "pro" ? "For you and your travel group" : "Unlimited");
+    <Card className="surface"><CardHeader><CardTitle className="text-sm">{text("Betalingen en facturen", "Payments and invoices")}</CardTitle></CardHeader><CardContent>{billing.data?.transactions?.length ? <div className="divide-y">{billing.data.transactions.map((transaction: any) => <div key={transaction.provider_transaction_id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-medium">{transaction.currency} {(transaction.total_minor / 100).toFixed(2)} <Badge variant="outline" className="ml-2">{transaction.status}</Badge></p><p className="text-xs text-muted-foreground">{new Date(transaction.occurred_at).toLocaleString(locale)}</p></div><Button size="sm" variant="outline" disabled={busy !== null || transaction.total_minor <= 0 || !["paid", "completed", "refunded", "partially_refunded"].includes(transaction.status)} onClick={() => invoice(transaction.provider_transaction_id)}><Download className="size-4" />{text("Factuur downloaden", "Download invoice")}</Button></div>)}</div> : <p className="text-sm text-muted-foreground">{text("Er zijn nog geen betalingen geregistreerd.", "No payments have been recorded yet.")}</p>}</CardContent></Card>
+  </div>;
 }
 
 function highlightLabel(value: string, text: (nl: string, en: string) => string) {
-  const translations: Record<string, string> = {
-    "2 actieve reizen": "2 active trips", "Routekaart & uitgaven": "Route map & expenses", "CSV-export": "CSV export",
-    "Onbeperkt reizen": "Unlimited trips", "Live weer & valutakoersen": "Live weather & exchange rates", "PDF-reisoverzicht": "PDF trip overview",
-    "Eigen merk en domein": "Your own brand and domain", "Rollen en rechten": "Roles and permissions", "Declarabele klantuitgaven": "Billable client expenses", "Bonnetjes bij uitgaven": "Expense receipts",
-  };
+  const translations: Record<string, string> = { "2 actieve reizen":"2 active trips", "Routekaart & uitgaven":"Route map & expenses", "CSV-export":"CSV export", "Onbeperkt reizen":"Unlimited trips", "Live weer & valutakoersen":"Live weather & exchange rates", "PDF-reisoverzicht":"PDF trip overview", "Eigen merk en domein":"Your own brand and domain", "Rollen en rechten":"Roles and permissions", "Declarabele klantuitgaven":"Billable client expenses", "Bonnetjes bij uitgaven":"Expense receipts" };
   return text(value, translations[value] ?? value);
 }

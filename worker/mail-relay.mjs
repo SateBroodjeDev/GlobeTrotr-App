@@ -91,7 +91,9 @@ function notificationMessage(body) {
       ? body.locale === "en"
         ? "View invitation"
         : "Uitnodiging bekijken"
-      : "Open GlobeTrotr";
+      : body.templateKey === "billing"
+        ? body.locale === "en" ? "View subscription and invoice" : "Abonnement en factuur bekijken"
+        : "Open GlobeTrotr";
   const supportLabel = body.locale === "en" ? "Contact GlobeTrotr" : "Contact met GlobeTrotr";
   const serviceNote =
     body.locale === "en"
