@@ -1,10 +1,10 @@
 # GlobeTrotr
 
-Voor het opbouwen van een schoon Supabase-productieproject staat de volledige migratievolgorde en uitvoeringsprocedure in [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md).
+Voor de bestaande productie-beta gebruik je [de actuele uitrol](IMPLEMENTATION_PENDING.md). [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md) is alleen voor een volledig nieuw, leeg Supabase-project.
 
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
-De huidige versie draait als internationale beta op de eigen GlobeTrotr-infrastructuur. Inloggen met e-mail, wachtwoord en passkey werkt. Transactionele e-mail wordt via de afgeschermde mailrelay verzonden. Paddle is als Merchant of Record aangesloten voor checkout, abonnementen, belastingen, facturen en terugbetalingen.
+De huidige versie draait als internationale beta op eigen GlobeTrotr-infrastructuur. E-mail/wachtwoord, passkey, Google en Discord zijn aangesloten. Transactionele e-mail loopt via de afgeschermde mailrelay. Paddle is live gekoppeld, maar betaalverwerking en de overige [open beta-incidenten](IMPLEMENTATION_PENDING.md#fase-7--vrijgavebesluit) worden nog met echte accounts gecontroleerd.
 
 ## Wat de applicatie bevat
 
@@ -28,7 +28,7 @@ De huidige versie draait als internationale beta op de eigen GlobeTrotr-infrastr
 
 - React 19 en TypeScript
 - TanStack Router, Start en React Query
-- Vite 8 en Nitro met Cloudflare-build
+- Vite 8 en Nitro als Node-container
 - Tailwind CSS en Radix UI-componenten
 - Supabase Auth, PostgreSQL, Row Level Security en voorlopig Supabase Storage
 - Leaflet en OpenStreetMap
@@ -60,9 +60,9 @@ npm run build
 npm run check
 ```
 
-`npm run check` voert de regressietests en de volledige client-, SSR- en Cloudflare-productiebuild uit. GitHub Actions voert dezelfde scriptset uit en installeert dependencies reproduceerbaar vanuit `bun.lock`.
+`npm run verify` voert ESLint, 78 regressietests, de volledige TypeScript-controle, de beveiligingsaudit, de release-preflight en syntaxiscontroles van de workers uit. De beveiligingsaudit blokkeert onbeveiligd service-rolegebruik, browserreferenties naar servergeheimen, nieuwe niet-beoordeelde HTML-sinks, onveilige externe links, gevoelige logging en nieuwe `SECURITY DEFINER`-functies zonder vastgezet zoekpad. De preflight controleert onder meer de migratie/testvolgorde, verwijderde handleidingen en kapotte UTF-8-tekst. `npm run check` voert daarna ook de productiebuild uit. De lockfile is `package-lock.json`. De Nitro-build kan lokaal op Windows tijdens de laatste bestandstrace door bestandstoegang (`EPERM`) stranden; de Linux-build in CI en op Node-01 is daarom de beslissende productiecontrole.
 
-Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Iedere test draait in een transactie en eindigt met `ROLLBACK`.
+Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Sommige zijn alleen-lezen, andere draaien in een transactie met `ROLLBACK`; controleer de kop van ieder bestand.
 
 Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`TEST_CHECKLIST.md`](TEST_CHECKLIST.md).
 
@@ -70,11 +70,11 @@ Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`T
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-De migraties en SQL-regressietests tot en met `20260908096000_pre_vps_release_gate.sql` zijn toegepast en uitgevoerd. De Agency-implementatievolgorde en releasepoort staan in [`AGENCY_IMPLEMENTATION.md`](AGENCY_IMPLEMENTATION.md).
+Volgens de eigenaar zijn migraties en SQL-tests tot en met **1170** uitgevoerd. De open reeks loopt van **1180 tot en met 1300**; de laatste stap synchroniseert de profieltaal met de voorwaardelijke Supabase Auth-templates. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md).
 
-De beoogde productieopzet gebruikt één Hetzner-VPS voor de webapp en proxy en een tweede voor workers, geplande taken en e-mail. Supabase blijft aanvankelijk de beheerde database, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft hoe bestanden later zonder publieke buckets of padgebonden autorisatie naar Hetzner Object Storage kunnen worden verplaatst.
+De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
 
-De eerste productiecontainer staat in `Dockerfile`; `compose.production.yml` definieert afzonderlijke web- en workerservices. De workerhandleiding en vereiste omgevingsvariabelen staan in [`worker/README.md`](worker/README.md). De worker blijft vóór de VPS-implementatie buiten gebruik en e-mail blijft standaard vastgehouden in testmodus.
+De productiecontainers gebruiken `Dockerfile`, `deploy/web.compose.yml` en `deploy/worker.compose.yml`. De worker en mailrelay draaien op Node-02. De actuele e-mailmodus staat in Supabase `email_delivery_config`; ga niet uit van testmodus. Zie [`worker/README.md`](worker/README.md).
 
 De concrete installatie voor `GBT-Node-01` en `GBT-Node-02`, inclusief Caddy,
 HTTPS, omgevingsvariabelen, healthchecks en rollback, staat in
@@ -87,7 +87,7 @@ De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke mig
 - `/agency-admin`: workspaceoverzicht en teambeheer.
 - `/agency-admin/settings`: organisatiegegevens, standaardtaal, valuta, tijdzone, domein, accentkleur en logo.
 - `/agency-admin/permissions`: standaardrechten per rol en persoonlijke uitzonderingen.
-- `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Een bestaand account met hetzelfde e-mailadres krijgt automatisch de rol `client` op die reizen; archiveren trekt deze automatische toegang in en herstellen bouwt haar opnieuw op. Voor een nieuw account blijft een uitnodiging nodig.
+- `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Migratie 1270 koppelt een vooraf aangemaakte klant na bevestigde registratie; deze toegang blijft een open praktijktest totdat de volgende release is uitgerold.
 - `/agency-admin/suppliers`: herbruikbare accommodaties, vervoerders en activiteiten met contactgegevens, afspraken, commissie, archief en reiskoppelingen.
 - `/contact`: publiek contactformulier met Cloudflare Turnstile; bevoegde medewerkers behandelen berichten via `/corporate-admin/contact`.
 - `/agency-admin/operations`: portfolio, kosten en concrete aandachtspunten uit relationele reisdata.
@@ -106,8 +106,8 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 
 ## Projectdocumentatie
 
+- `IMPLEMENTATION_PENDING.md`: enige actuele uitrolroute voor de bestaande beta.
 - `roadmap.md`: interne technische roadmap en migratiestatus.
-- `AGENCY_IMPLEMENTATION.md`: vaste uitvoervolgorde en releasepoort voor de Agency-implementatie.
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.
 - `/changelog`: publieke release notes.

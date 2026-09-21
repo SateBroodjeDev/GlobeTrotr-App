@@ -104,7 +104,9 @@ function asThemePreference(value: string | null | undefined): ThemePreference {
 }
 
 function AccountPage() {
-  const { user } = useAuth();
+  const { user: authenticatedUser } = useAuth();
+  // This route is mounted below the authenticated layout, which guarantees a user.
+  const user = authenticatedUser!;
   const { state, cloud, addTrip, saveTripNow } = useWorkspace();
   const { setLocale: applyLocale, text } = useLocale();
   const plan = planOf(state.plan);

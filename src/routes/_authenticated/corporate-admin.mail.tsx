@@ -14,6 +14,7 @@ import {
   getEmailDeliveryMode,
   getEmailDeliveryOverview,
   retryEmailDelivery,
+  requestCorporateMailboxSync,
   saveCorporateMailbox,
   setCorporateMailboxMember,
   setEmailDeliveryMode,
@@ -39,11 +40,12 @@ const blank = {
 };
 
 function Page() {
-  const { text } = useLocale(),
+  const { text, locale } = useLocale(),
     qc = useQueryClient();
   const q = useQuery({
     queryKey: ["corporate-business"],
     queryFn: () => getCorporateBusinessData(),
+    refetchInterval: 30000,
   });
   const delivery = useQuery({
     queryKey: ["email-delivery-overview"],
@@ -56,6 +58,7 @@ function Page() {
   });
   const [f, setF] = useState(blank),
     [retrying, setRetrying] = useState(""),
+    [requestingSync, setRequestingSync] = useState(false),
     [modeReason, setModeReason] = useState(""),
     [changingMode, setChangingMode] = useState(false);
   const initialMailboxSelected = useRef(false);
@@ -113,6 +116,19 @@ function Page() {
   async function permission(userId: string, value: any) {
     await setCorporateMailboxMember({ data: { mailboxId: f.id, userId, permission: value } });
     await qc.invalidateQueries({ queryKey: ["corporate-business"] });
+  }
+  async function requestSync() {
+    if (!f.id) return;
+    setRequestingSync(true);
+    try {
+      await requestCorporateMailboxSync({ data: { mailboxId: f.id } });
+      await qc.invalidateQueries({ queryKey: ["corporate-business"] });
+      toast.success(text("Synchronisatie aangevraagd voor de volgende worker-ronde.", "Sync requested for the next worker cycle."));
+    } catch {
+      toast.error(text("Synchronisatie is al aangevraagd of dit postvak is niet actief.", "Sync is already requested or this mailbox is inactive."));
+    } finally {
+      setRequestingSync(false);
+    }
   }
   async function retry(id: string) {
     setRetrying(id);
@@ -193,9 +209,7 @@ function Page() {
                 className="w-full rounded-xl border p-3 text-left"
               >
                 <strong className="block truncate">{m.address}</strong>
-                <small>
-                  {m.mailbox_type} · {m.sync_status}
-                </small>
+                <small>{m.mailbox_type} · {mailboxSyncLabel(m.sync_status, text)}</small>
               </button>
             ))}
             <Button variant="outline" className="w-full" onClick={() => setF({ ...blank })}>
@@ -310,6 +324,22 @@ function Page() {
               </Button>
             </CardContent>
           </Card>
+          {f.id && (() => {
+            const mailbox = q.data?.mailboxes.find((item: any) => item.id === f.id);
+            if (!mailbox) return null;
+            return <Card><CardHeader><CardTitle>{text("Synchronisatie", "Synchronisation")}</CardTitle></CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <Badge variant={mailbox.sync_status === "error" ? "destructive" : "secondary"}>{mailboxSyncLabel(mailbox.sync_status, text)}</Badge>
+                <p>{text("Laatste succesvolle ronde", "Last successful cycle")}: {formatSyncTime(mailbox.last_synced_at, locale, text)}</p>
+                <p>{text("Laatste poging", "Last attempt")}: {formatSyncTime(mailbox.last_sync_attempt_at, locale, text)}</p>
+                {mailbox.last_sync_error_code && <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-destructive"><p className="break-all">{text("Foutcode", "Error code")}: <code>{mailbox.last_sync_error_code}</code></p><p className="mt-1 text-xs">{mailboxErrorHint(mailbox.last_sync_error_code, text)}</p></div>}
+                {mailbox.sync_requested_at && <p className="text-muted-foreground">{text("Een nieuwe ronde staat klaar.", "A new cycle is queued.")}</p>}
+                <Button variant="outline" disabled={requestingSync || !mailbox.active || Boolean(mailbox.sync_requested_at) || mailbox.sync_status === "syncing"} onClick={() => void requestSync()}>
+                  <RefreshCw className="mr-2 size-4" />{text("Opnieuw synchroniseren", "Synchronise again")}
+                </Button>
+                <p className="text-xs text-muted-foreground">{text("De worker probeert dit postvak in de volgende ronde opnieuw. Er wordt geen extra mail verstuurd.", "The worker retries this mailbox in the next cycle. No additional email is sent.")}</p>
+              </CardContent></Card>;
+          })()}
           {f.id && (
             <Card>
               <CardHeader>
@@ -465,6 +495,25 @@ function Page() {
       </Card>
     </div>
   );
+}
+function mailboxSyncLabel(status: string, text: (nl: string, en: string) => string) {
+  return ({ not_configured: text("Niet ingesteld", "Not configured"), ready: text("Gereed", "Ready"), syncing: text("Bezig", "Syncing"), error: text("Fout", "Error"), disabled: text("Uitgeschakeld", "Disabled") } as Record<string, string>)[status] ?? status;
+}
+function mailboxErrorHint(code: string, text: (nl: string, en: string) => string) {
+  const hints: Record<string, [string, string]> = {
+    IMAP_AUTH_FAILED: ["Controleer postvakadres en IMAP-wachtwoord.", "Check the mailbox address and IMAP password."],
+    IMAP_TLS_FAILED: ["Controleer certificaat, servernaam en TLS-instellingen.", "Check the certificate, server name and TLS settings."],
+    IMAP_TIMEOUT: ["De mailserver reageerde niet op tijd; controleer de verbinding.", "The mail server did not respond in time; check connectivity."],
+    IMAP_UNREACHABLE: ["De mailserver is niet bereikbaar; controleer host en netwerk.", "The mail server is unreachable; check the host and network."],
+    IMAP_STORAGE_ERROR: ["De opslag is tijdelijk niet beschikbaar; probeer later opnieuw.", "Storage is temporarily unavailable; try again later."],
+    MALWARE_SCANNER_UNAVAILABLE: ["De bijlagenscanner is niet beschikbaar; herstel deze op Node-02.", "The attachment scanner is unavailable; restore it on Node-02."],
+  };
+  return text(...(hints[code] ?? ["Bekijk de privacyveilige IMAP-workerlog op Node-02.", "Check the privacy-safe IMAP worker log on Node-02."]));
+}
+function formatSyncTime(value: string | null, locale: string, text: (nl: string, en: string) => string) {
+  if (!value) return text("Nog niet", "Not yet");
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? text("Onbekend", "Unknown") : new Intl.DateTimeFormat(locale === "en-GB" ? "en-GB" : "nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 function deliveryLabel(status: string, text: (nl: string, en: string) => string) {
   return (

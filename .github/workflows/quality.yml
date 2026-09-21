@@ -22,5 +22,5 @@ jobs:
         uses: oven-sh/setup-bun@v2
       - name: Dependencies installeren
         run: bun install --frozen-lockfile
-      - name: Tests en productiebuild controleren
+      - name: Volledige releasecontrole en productiebuild uitvoeren
         run: bun run check

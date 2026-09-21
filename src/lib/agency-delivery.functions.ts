@@ -103,7 +103,9 @@ export const verifyAgencyDomain = createServerFn({ method: "POST" })
         resolveCname(domain.custom_domain),
         resolveTxt(`_globetrotr.${domain.custom_domain}`),
       ]);
-    } catch {}
+    } catch {
+      // DNS lookup failures are represented by cnameOk/txtOk=false below.
+    }
     const cnameOk = cname.some((value) =>
       ["globetrotr.nl", "dashboard.globetrotr.nl"].includes(value.replace(/\.$/, "").toLowerCase()),
     );

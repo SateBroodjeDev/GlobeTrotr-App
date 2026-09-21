@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import nodemailer from "nodemailer";
+import { notificationCopy } from "./notification-copy.mjs";
 
 const env = process.env;
 const token = required("MAIL_RELAY_TOKEN");
@@ -73,18 +74,19 @@ function safeFrom(input) {
 }
 function notificationMessage(body) {
   const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
-  const localized = (value, fallback) => {
-    const parts = String(value || fallback).split(" / ");
-    return String((body.locale === "en" ? parts[1] : parts[0]) || parts[0]).trim();
-  };
-  const subject = localized(payload.title, "Nieuwe melding van GlobeTrotr").slice(0, 160);
-  const text = localized(payload.body, "Open GlobeTrotr om je nieuwe melding te bekijken.").slice(
-    0,
-    5000,
-  );
+  const copy = notificationCopy(body);
+  const subject = copy.subject;
+  const text = copy.body;
+  const formattedBody = text
+    .split(/\n\s*\n/)
+    .map(
+      (paragraph) =>
+        `<p style="margin:0 0 16px;font-size:16px;line-height:25px;color:#52606b">${escapeHtml(paragraph).replace(/\n/g, "<br>")}</p>`,
+    )
+    .join("");
   const actionUrl =
-    typeof payload.actionUrl === "string" && /^https:\/\/globetrotr\.nl\//.test(payload.actionUrl)
-      ? payload.actionUrl
+    typeof copy.actionUrl === "string" && /^https:\/\/globetrotr\.nl\//.test(copy.actionUrl)
+      ? copy.actionUrl
       : "https://globetrotr.nl";
   const actionLabel =
     body.templateKey === "invitation"
@@ -92,7 +94,9 @@ function notificationMessage(body) {
         ? "View invitation"
         : "Uitnodiging bekijken"
       : body.templateKey === "billing"
-        ? body.locale === "en" ? "View subscription and invoice" : "Abonnement en factuur bekijken"
+        ? body.locale === "en"
+          ? "View subscription and invoice"
+          : "Abonnement en factuur bekijken"
         : "Open GlobeTrotr";
   const supportLabel = body.locale === "en" ? "Contact GlobeTrotr" : "Contact met GlobeTrotr";
   const serviceNote =
@@ -109,17 +113,21 @@ function notificationMessage(body) {
   return {
     subject,
     text: `${subject}\n\n${text}\n\n${actionUrl}\n\n${serviceNote}`,
-    html: `<!doctype html><html lang="${body.locale === "en" ? "en" : "nl"}"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:40px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td align="center" style="padding:36px 40px 24px"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr"><div style="margin-top:13px;font-size:22px;font-weight:700">${escapeHtml(brandName)}</div><div style="margin-top:5px;font-size:13px;color:#748078">Powered by GlobeTrotr · Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:36px 40px 40px;border-top:1px solid #edf1ef"><h1 style="margin:0 0 18px;font-size:27px">${escapeHtml(subject)}</h1><p style="margin:0 0 28px;font-size:16px;line-height:25px;color:#52606b;white-space:pre-line">${escapeHtml(text)}</p><table role="presentation" cellspacing="0" cellpadding="0"><tr><td bgcolor="${accent}" style="border-radius:10px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:15px 26px;color:#fff;text-decoration:none;font-weight:600">${escapeHtml(actionLabel)}</a></td></tr></table><p style="margin:24px 0 0;font-size:13px;color:#77827c"><a href="https://globetrotr.nl/contact" style="color:${accent};text-decoration:none;font-weight:600">${escapeHtml(supportLabel)}</a></p></td></tr><tr><td align="center" style="padding:24px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:11px;color:#99a39e">${escapeHtml(brandName)} · powered by GlobeTrotr</td></tr></table></td></tr></table></body></html>`,
+    html: `<!doctype html><html lang="${body.locale === "en" ? "en" : "nl"}"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:40px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td align="center" style="padding:36px 40px 24px"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr"><div style="margin-top:13px;font-size:22px;font-weight:700">${escapeHtml(brandName)}</div><div style="margin-top:5px;font-size:13px;color:#748078">Powered by GlobeTrotr · Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:36px 40px 40px;border-top:1px solid #edf1ef">${copy.severity === "critical" ? `<p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#a12a2a">${body.locale === "en" ? "Critical service incident" : "Kritieke storing"}</p>` : ""}<h1 style="margin:0 0 18px;font-size:27px">${escapeHtml(subject)}</h1>${formattedBody}<table role="presentation" cellspacing="0" cellpadding="0"><tr><td bgcolor="${accent}" style="border-radius:10px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:15px 26px;color:#fff;text-decoration:none;font-weight:600">${escapeHtml(actionLabel)}</a></td></tr></table><p style="margin:24px 0 0;font-size:13px;color:#77827c"><a href="https://globetrotr.nl/contact" style="color:${accent};text-decoration:none;font-weight:600">${escapeHtml(supportLabel)}</a></p></td></tr><tr><td align="center" style="padding:24px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:11px;color:#99a39e">${escapeHtml(brandName)} · powered by GlobeTrotr</td></tr></table></td></tr></table></body></html>`,
   };
 }
 function corporateMessage(body) {
   const subject = body.subject.trim().slice(0, 160);
   const text = body.text.trim().slice(0, 20_000);
   const name = safeFrom(body.from).name;
+  const messageHtml =
+    typeof body.html === "string" && body.html.trim()
+      ? body.html.trim().slice(0, 100_000)
+      : `<div style="white-space:pre-line">${escapeHtml(text)}</div>`;
   return {
     subject,
     text,
-    html: `<!doctype html><html lang="en"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:32px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td style="padding:28px 36px;border-bottom:1px solid #edf1ef"><img src="https://globetrotr.nl/assets/email/logo.png" width="48" height="48" alt="GlobeTrotr" style="display:block"><div style="margin-top:12px;font-size:13px;color:#748078">Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:32px 36px"><h1 style="margin:0 0 22px;font-size:24px">${escapeHtml(subject)}</h1><div style="font-size:16px;line-height:25px;color:#3d4d58;white-space:pre-line">${escapeHtml(text)}</div><table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:30px"><tr><td bgcolor="#168b78" style="border-radius:10px"><a href="https://globetrotr.nl" style="display:inline-block;padding:13px 22px;color:#fff;text-decoration:none;font-weight:600">Open GlobeTrotr</a></td></tr></table></td></tr><tr><td style="padding:22px 36px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:12px;line-height:19px;color:#77827c"><strong style="color:#102039">${escapeHtml(name)}</strong><br>GlobeTrotr · Plan every trip. Track every euro.<br><a href="https://globetrotr.nl" style="color:#168b78;text-decoration:none">globetrotr.nl</a> · <a href="https://globetrotr.nl/contact" style="color:#168b78;text-decoration:none">Contact</a></td></tr></table></td></tr></table></body></html>`,
+    html: `<!doctype html><html lang="en"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:32px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td style="padding:28px 36px;border-bottom:1px solid #edf1ef"><img src="https://globetrotr.nl/assets/email/logo.png" width="48" height="48" alt="GlobeTrotr" style="display:block"><div style="margin-top:12px;font-size:13px;color:#748078">Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:32px 36px"><h1 style="margin:0 0 22px;font-size:24px">${escapeHtml(subject)}</h1><div style="font-size:16px;line-height:25px;color:#3d4d58">${messageHtml}</div><table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:30px"><tr><td bgcolor="#168b78" style="border-radius:10px"><a href="https://globetrotr.nl" style="display:inline-block;padding:13px 22px;color:#fff;text-decoration:none;font-weight:600">Open GlobeTrotr</a></td></tr></table></td></tr><tr><td style="padding:22px 36px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:12px;line-height:19px;color:#77827c"><strong style="color:#102039">${escapeHtml(name)}</strong><br>GlobeTrotr · Plan every trip. Track every euro.<br><a href="https://globetrotr.nl" style="color:#168b78;text-decoration:none">globetrotr.nl</a> · <a href="https://globetrotr.nl/contact" style="color:#168b78;text-decoration:none">Contact</a></td></tr></table></td></tr></table></body></html>`,
   };
 }
 async function readJson(request) {
@@ -127,7 +135,7 @@ async function readJson(request) {
   const chunks = [];
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > 64 * 1024) throw code("BODY_TOO_LARGE");
+    if (size > 30 * 1024 * 1024) throw code("BODY_TOO_LARGE");
     chunks.push(chunk);
   }
   try {
@@ -147,6 +155,25 @@ async function send(body, idempotencyKey) {
   const corporate = typeof body.subject === "string" && typeof body.text === "string";
   const content = corporate ? corporateMessage(body) : notificationMessage(body);
   if (!content.subject || !content.text) throw code("INVALID_CONTENT");
+  const attachments = corporate && Array.isArray(body.attachments) ? body.attachments : [];
+  let attachmentBytes = 0;
+  const safeAttachments = attachments.map((attachment) => {
+    if (
+      typeof attachment?.filename !== "string" ||
+      !attachment.filename.trim() ||
+      attachment.filename.length > 255 ||
+      typeof attachment?.contentType !== "string" ||
+      attachment.contentType.length > 150 ||
+      typeof attachment?.content !== "string"
+    )
+      throw code("INVALID_ATTACHMENT");
+    const content = Buffer.from(attachment.content, "base64");
+    attachmentBytes += content.length;
+    if (content.length < 1 || content.length > 10 * 1024 * 1024 || attachmentBytes > 20 * 1024 * 1024)
+      throw code("INVALID_ATTACHMENT");
+    return { filename: attachment.filename, contentType: attachment.contentType, content };
+  });
+  if (safeAttachments.length > 5) throw code("INVALID_ATTACHMENT");
   await transporter.sendMail({
     from: safeFrom(corporate ? body.from : undefined),
     to: addresses(body.to),
@@ -154,8 +181,13 @@ async function send(body, idempotencyKey) {
     subject: content.subject,
     text: content.text,
     html: content.html,
+    inReplyTo:
+      corporate && typeof body.inReplyTo === "string" ? body.inReplyTo.slice(0, 500) : undefined,
+    references:
+      corporate && typeof body.references === "string" ? body.references.slice(0, 500) : undefined,
     messageId: `<${body.id}@globetrotr.nl>`,
     headers: { "X-GlobeTrotr-Message-ID": body.id },
+    attachments: safeAttachments,
   });
 }
 

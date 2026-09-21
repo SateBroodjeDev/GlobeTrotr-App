@@ -1,5 +1,6 @@
 ﻿import { createServerFn } from "@tanstack/react-start";
 import { queueInvitationEmail } from "@/lib/email-outbox.server";
+import { mailLocale } from "@/lib/mail-locale";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   AGENCY_PERMISSIONS,
@@ -233,16 +234,14 @@ async function agencyAudit(
   targetId?: string,
   context: Record<string, unknown> = {},
 ) {
-  const { error } = await db
-    .from("agency_audit_log")
-    .insert({
-      workspace_uuid: workspaceId,
-      actor_user_id: actorId,
-      action,
-      target_type: targetType ?? null,
-      target_id: targetId ?? null,
-      context,
-    });
+  const { error } = await db.from("agency_audit_log").insert({
+    workspace_uuid: workspaceId,
+    actor_user_id: actorId,
+    action,
+    target_type: targetType ?? null,
+    target_id: targetId ?? null,
+    context,
+  });
   if (error) throw new Error("AGENCY_AUDIT_FAILED");
 }
 
@@ -537,7 +536,7 @@ export const setAgencyClientArchived = createServerFn({ method: "POST" })
 
 export const getAgencyAudit = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<any> => {
     const db = await adminClient();
     const workspaceId = await ownerWorkspace(db, context.userId);
     const { data, error } = await db
@@ -740,19 +739,17 @@ export const saveAgencyAutomation = createServerFn({ method: "POST" })
       throw new Error("INVALID_AUTOMATION");
     const db = await adminClient();
     const access = await workspaceForPermission(db, context.userId, "trips_plan");
-    const { error } = await db
-      .from("agency_automation_settings")
-      .upsert({
-        workspace_uuid: access.workspaceId,
-        task_reminders_enabled: data.taskRemindersEnabled,
-        task_reminder_days: data.taskReminderDays,
-        quote_expiry_enabled: data.quoteExpiryEnabled,
-        quote_expiry_days: data.quoteExpiryDays,
-        document_expiry_enabled: data.documentExpiryEnabled,
-        document_expiry_days: data.documentExpiryDays,
-        updated_by: context.userId,
-        updated_at: new Date().toISOString(),
-      });
+    const { error } = await db.from("agency_automation_settings").upsert({
+      workspace_uuid: access.workspaceId,
+      task_reminders_enabled: data.taskRemindersEnabled,
+      task_reminder_days: data.taskReminderDays,
+      quote_expiry_enabled: data.quoteExpiryEnabled,
+      quote_expiry_days: data.quoteExpiryDays,
+      document_expiry_enabled: data.documentExpiryEnabled,
+      document_expiry_days: data.documentExpiryDays,
+      updated_by: context.userId,
+      updated_at: new Date().toISOString(),
+    });
     if (error) throw new Error("AUTOMATION_SAVE_FAILED");
     await agencyAudit(
       db,
@@ -947,11 +944,7 @@ export const getAgencyOperations = createServerFn({ method: "GET" })
             .lte("expires_on", new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10))
             .order("expires_on"),
         ])
-      : [
-          { data: [], error: null },
-          { data: [], error: null },
-          { data: [], error: null },
-        ];
+      : [{ data: [], error: null }, { data: [], error: null }, { data: [] }];
     if (travelError || expenseError) throw new Error("AGENCY_OPERATIONS_UNAVAILABLE");
     const travelByTrip = new Map<string, any[]>(),
       expensesByTrip = new Map<string, any[]>();
@@ -1555,10 +1548,10 @@ export const createAgencyInvitation = createServerFn({ method: "POST" })
       db.from("profiles").select("id,locale").ilike("email", email).maybeSingle(),
     ]);
     const agencyName = settings?.system_name ?? "GlobeTrotr Agency";
-    await queueInvitationEmail(db, {
+    const mailDelivery = await queueInvitationEmail(db, {
       recipient: email,
       preferenceUserId: recipient?.id,
-      locale: String(recipient?.locale ?? "en").startsWith("nl") ? "nl" : "en",
+      locale: mailLocale(recipient?.locale),
       title: `Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,
       body: `Je bent als ${data.role} uitgenodigd voor het team van ${agencyName}. Bekijk je rol en accepteer de persoonlijke uitnodiging binnen zeven dagen. / You have been invited to the ${agencyName} team as ${data.role}. Review your role and accept this personal invitation within seven days.`,
       actionUrl: `https://globetrotr.nl/agency-invite/${rawToken}`,
@@ -1570,6 +1563,7 @@ export const createAgencyInvitation = createServerFn({ method: "POST" })
       id: invitation.id as string,
       token: rawToken,
       expiresAt: invitation.expires_at as string,
+      mailDelivery,
     };
   });
 
@@ -1597,6 +1591,7 @@ export const manageAgencyInvitation = createServerFn({ method: "POST" })
       "invitation",
       data.invitationId,
     );
+    let mailDelivery: "queued" | "skipped" | "failed" | undefined;
     if (data.action === "renew") {
       const [{ data: invitation }, { data: settings }] = await Promise.all([
         db.from("workspace_invitations").select("email").eq("id", data.invitationId).single(),
@@ -1613,10 +1608,10 @@ export const manageAgencyInvitation = createServerFn({ method: "POST" })
         .maybeSingle();
       const agencyName = settings?.system_name ?? "GlobeTrotr Agency";
       if (invitation?.email)
-        await queueInvitationEmail(db, {
+        mailDelivery = await queueInvitationEmail(db, {
           recipient: invitation.email,
           preferenceUserId: recipient?.id,
-          locale: String(recipient?.locale ?? "en").startsWith("nl") ? "nl" : "en",
+          locale: mailLocale(recipient?.locale),
           title: `Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,
           body: `Je vernieuwde uitnodiging voor ${agencyName} staat klaar. / Your renewed invitation to ${agencyName} is ready.`,
           actionUrl: `https://globetrotr.nl/agency-invite/${rawToken}`,
@@ -1625,10 +1620,11 @@ export const manageAgencyInvitation = createServerFn({ method: "POST" })
           branding: { brandName: agencyName, accentHue: Number(settings?.accent ?? 174) },
         });
     }
-    return { ...result, token: rawToken || undefined } as {
+    return { ...result, token: rawToken || undefined, mailDelivery } as {
       status: "renewed" | "revoked";
       token?: string;
       expiresAt?: string;
+      mailDelivery?: "queued" | "skipped" | "failed";
     };
   });
 
@@ -1828,13 +1824,11 @@ export const saveAgencyQuote = createServerFn({ method: "POST" })
     const title = clean(data.title, 120),
       introduction = clean(data.introduction, 3000),
       currency = data.currency.trim().toUpperCase(),
-      variants = data.variants
-        .slice(0, 10)
-        .map((v) => ({
-          name: clean(v.name, 80),
-          description: clean(v.description, 2000),
-          amount: Number(v.amount),
-        }));
+      variants = data.variants.slice(0, 10).map((v) => ({
+        name: clean(v.name, 80),
+        description: clean(v.description, 2000),
+        amount: Number(v.amount),
+      }));
     if (
       (data.id && !UUID.test(data.id)) ||
       !UUID.test(data.clientId) ||

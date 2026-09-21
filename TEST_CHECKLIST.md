@@ -1,5 +1,32 @@
 # GlobeTrotr beta-testlijst
 
+> Releasecontrole 21 september 2026: alle migraties en SQL-tests tot en met 1170 zijn volgens de eigenaar uitgevoerd. Migraties 1180 tot en met 1300, de Linux-productiebouw en de praktische beta-controles zijn nog open. Zie [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md). Deze lijst vult de Corporate Admin-releasecheck aan; markeer de nieuwe controles daar pas na uitrol en een echte proef.
+
+## Releases 1180–1300 — actieve beta, bedrijfsmail, betalingen en privacy
+
+- [ ] Ontvang een uitnodiging zonder profieltaal in het Engels en met expliciet Nederlandse profieltaal in het Nederlands.
+- [ ] Bekijk een publieke gedeelde reis met meerdaags programma en boekingen: één leesbaar schema, geen privéboekingsgegevens.
+- [ ] Open een uitgave en boeking op een smalle telefoon met een lange betalersnaam: geen overlap.
+- [ ] Ontvang één reisuitnodiging met juiste huisstijl en werkende link; controleer de in-appmelding.
+- [ ] Bouw de productie-images op Node-01 en Node-02 en controleer alle container-healthchecks en logs.
+- [x] `npx tsc --noEmit` slaagt met actuele Supabase-schematypen.
+- [ ] Voer na uitrol `npm run smoke` uit en controleer homepage, registratie, login, status, contact, roadmap, updates en beide publieke logo's.
+- [ ] Verstuur Contact met een geldig Turnstile-token en controleer dat een verlopen token of token met een andere actie wordt geweigerd zonder een bericht op te slaan.
+- [ ] Open `/auth?redirect=/dashboard` en controleer de interne terugkeer; probeer daarna `//example.com`, `/\\example.com` en `/%5cexample.com` en controleer dat GlobeTrotr deze negeert.
+- [x] `npm run security` vindt geen onbeoordeelde service-role-serverfunctie, browsergeheim, nieuwe ruwe HTML-sink, onveilige externe link, gevoelige logging of nieuwe `SECURITY DEFINER`-functie zonder vastgezet zoekpad.
+- [x] `npm audit --omit=dev --audit-level=high` meldt op 21 september 2026 geen bekende kwetsbaarheden in productie-afhankelijkheden; herhaal deze tijdsgebonden controle vlak vóór vrijgave.
+- [x] `npm run verify` controleert automatisch dat iedere open migratie in de implementatiehandleiding een bestaande SQL-test heeft en dat actuele bronbestanden geen bekende kapotte UTF-8-patronen bevatten.
+- [ ] Controleer NL/EN HTML-opmaak voor planwijziging en kritieke storing.
+- [ ] Maak een bedrijfsbeheerder aan, wijzig rol/rechten/mailbox en controleer opslaan plus opnieuw inloggen.
+- [ ] Koppel een Agency-klant en open het dashboard met diens eigen account.
+- [ ] Download GPX met routepunten, importeer activiteiten uit ICS en open/ververs een live agendalink.
+- [ ] Betaal eenmalig en maandelijks via Paddle; controleer entitlement na een herhaalde webhook.
+- [ ] Verstuur bedrijfsmail en controleer HTML plus platte-tekstalternatief; lees een inkomend HTML-bericht.
+- [ ] Beantwoord een extern bericht en controleer dat ontvangen en verzonden antwoorden chronologisch als één gesprek verschijnen.
+- [ ] Verzend en ontvang een PDF en afbeelding; controleer downloaden, de limieten van 5 bestanden/10 MB per bestand/20 MB totaal en weigering zonder postvakrecht.
+- [ ] Breek een bijlage-upload af, laat de reservering testmatig verlopen en controleer dat worker-event `corporate_mail.uploads_cleaned` verschijnt en het object weg is.
+- [ ] Verstuur een schoon testbestand; controleer daarna dat EICAR en een gestopte ClamAV-container allebei blokkeren zonder bestandsinhoud in logs.
+
 ## Release 1170 — betaalvormen, agenda en reparaties
 
 - [ ] Registreer een volledig nieuw e-mailadres, rond Turnstile af en controleer Supabase plus bevestigingsmail.
@@ -14,7 +41,7 @@
 
 ## Laatste productie-update (na migraties 1130-1160)
 
-- [ ] Voer migratie `20260908116000_paddle_billing_runtime.sql` en daarna `paddle_billing_runtime.sql` uit.
+- [x] Voer migratie `20260908116000_paddle_billing_runtime.sql` en daarna `paddle_billing_runtime.sql` uit.
 - [ ] Open in Sandbox vanuit Free de Pro- en Agency-checkout; controleer product, maandprijs, belasting en accountadres.
 - [ ] Annuleer een checkout en controleer dat het Free-plan behouden blijft.
 - [ ] Rond een Sandbox-checkout af; controleer webhook HTTP 200, één transactie en het juiste Pro- of Agency-plan na vernieuwen.
@@ -54,28 +81,32 @@
 - [ ] Controleer de routekaart op telefoon en desktop; de kaart mag niet buiten zijn kaartvak lopen.
 - [ ] Controleer beide serverklokken en voer een geldige en ongeldige SMTP-test uit; leg bij 550 de volledige serverrespons vast.
 
-> Alle databasemigraties en SQL-regressietests tot en met migratie 1130 zijn uitgevoerd. Migraties 1140–1160 en hun SQL-tests horen nog bij de volgende uitrol. De praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
+> Alle databasemigraties en SQL-regressietests tot en met migratie 1170 zijn uitgevoerd. Alleen migraties 1180 tot en met 1300 en hun SQL-tests horen nog bij de volgende uitrol. De praktische product- en acceptatiecontroles blijven open totdat ze handmatig zijn getest.
 
 ## Nieuwe praktische acceptatiecontroles
 
-- [ ] Voer `20260908108000_production_privacy_acceptance.sql` en daarna `production_privacy_acceptance.sql` uit.
+- [x] Voer `20260908108000_production_privacy_acceptance.sql` en daarna `production_privacy_acceptance.sql` uit.
 - [ ] Controleer `/privacy` in Nederlands en Engels op de actuele rollen van Hetzner, Supabase, ZXCS, Cloudflare Turnstile, Google en Discord.
+- [ ] Controleer na migratie 1240 ook de bedrijfsmailvelden, versleutelde IMAP-wachtwoorden, private bijlagen, ClamAV, LibreTranslate en de feitelijke bewaartermijnen in beide talen; vinken in Corporate Admin pas af na uitrol en controle.
+- [ ] Schakel ClamAV kort uit tijdens een inkomend testbericht met bijlage; bevestig dat IMAP later het volledige bericht opnieuw verwerkt. Een besmette bijlage moet geblokkeerd worden en als zodanig herkenbaar zijn in de berichtpreview.
+- [ ] Test na migratie 1250 twee postvakken: laat één IMAP-authenticatie mislukken, controleer dat alleen dat postvak een foutcode toont, vraag opnieuw synchroniseren aan en bevestig herstel in de volgende worker-ronde. Herhaald klikken mag geen tweede verzoek maken.
+- [ ] Zoek na migratie 1260 in Corporate Admin een geslaagde eenmalige én een terugkerende Paddle-transactie op ID. Controleer klant, account, workspace, plan, entitlement/abonnement en eventstatus. Een vreemde workspacekoppeling mag geen herverwerking aanbieden; een toegestaan mislukt event mag na reden wel worden herverwerkt.
 - [ ] Controleer dat de cookie- en opslaginventaris de Supabase-sessie, lokale reiscache, privacykeuze, thema, taal, `sidebar_state` en Turnstile-beveiliging correct vermeldt.
 - [ ] Open Privacykeuzes als gast en ingelogde gebruiker; weiger en accepteer de taalvoorkeur en controleer dat noodzakelijke sessie- en beveiligingsopslag beschikbaar blijft.
-- [ ] Voer `20260908105000_identity_and_mail_delivery_management.sql` en daarna `identity_and_mail_delivery_management.sql` uit.
-- [ ] Voer `20260908106000_mail_delivery_mode_acceptance.sql` en daarna `mail_delivery_mode_acceptance.sql` uit.
-- [ ] Voer `20260908107000_worker_claim_recovery.sql` en daarna `worker_claim_recovery.sql` uit.
+- [x] Voer `20260908105000_identity_and_mail_delivery_management.sql` en daarna `identity_and_mail_delivery_management.sql` uit.
+- [x] Voer `20260908106000_mail_delivery_mode_acceptance.sql` en daarna `mail_delivery_mode_acceptance.sql` uit.
+- [x] Voer `20260908107000_worker_claim_recovery.sql` en daarna `worker_claim_recovery.sql` uit.
 - [ ] Controleer op Node-02 herstel van een claim ouder dan tien minuten, begrenzing na tien pogingen en een herkenbare maar privacyveilige SMTP-foutcode.
 - [ ] Pauzeer en hervat servicemail vanuit Corporate Admin met een reden; controleer auditlog en het gecontroleerd vrijgeven van vastgehouden mail.
 - [ ] Koppel in Account Google en Discord en controleer dat de laatste inlogmethode nooit kan worden verwijderd.
 - [ ] Open Corporate Admin → Bedrijfsmail; controleer status, pogingen en foutcode en bied één mislukt testbericht opnieuw aan.
 - [ ] Maak en verleng een reis- en Agency-uitnodiging; controleer de actuele bezorgstatus bij de uitnodiging en in het centrale overzicht.
 - [ ] Registreer via iedere OAuth-provider en controleer één netjes gevuld profiel en één workspace.
-- [ ] Voer `20260908100000_account_communication_preferences.sql` en daarna `account_communication_preferences.sql` uit.
-- [ ] Voer `20260908101000_direct_invitation_email.sql` en daarna `direct_invitation_email.sql` uit.
-- [ ] Voer `20260908102000_email_template_acceptance.sql` en daarna `email_template_acceptance.sql` uit.
-- [ ] Voer `20260908103000_social_login_acceptance.sql` en daarna `social_login_acceptance.sql` uit.
-- [ ] Voer `20260908104000_passwordless_auth_acceptance.sql` en daarna `passwordless_auth_acceptance.sql` uit.
+- [x] Voer `20260908100000_account_communication_preferences.sql` en daarna `account_communication_preferences.sql` uit.
+- [x] Voer `20260908101000_direct_invitation_email.sql` en daarna `direct_invitation_email.sql` uit.
+- [x] Voer `20260908102000_email_template_acceptance.sql` en daarna `email_template_acceptance.sql` uit.
+- [x] Voer `20260908103000_social_login_acceptance.sql` en daarna `social_login_acceptance.sql` uit.
+- [x] Voer `20260908104000_passwordless_auth_acceptance.sql` en daarna `passwordless_auth_acceptance.sql` uit.
 - [ ] Registreer via `/register`; controleer aflevering, de eigen `/token/...`-bevestigingsroute en daarna inloggen.
 - [ ] Vraag op `/auth` wachtwoordherstel aan, open de mail en stel vanuit Account daadwerkelijk een nieuw wachtwoord in.
 - [ ] Vraag op `/auth` een magic link aan; controleer eenmalig gebruik, verlopen link en veilige terugkeer naar een uitnodiging.
@@ -87,7 +118,7 @@
 - [ ] Controleer `/assets/brand/logo.png` in de header en `/assets/email/logo.png` zonder sessie.
 - [ ] Open alle paden uit `public/assets/brand/README.md` zonder sessie en controleer transparantie, lichte en donkere variant.
 - [ ] Nodig een nieuw en bestaand account uit voor een reis en Agency; controleer ontvangst, taal, acceptatielink en opnieuw verzenden na verlengen.
-- [ ] Plak de vier bestanden uit `supabase/templates` in Supabase Auth en test registratie, herstel, e-mailwijziging en magic link afzonderlijk.
+- [ ] Plak de vijf bestanden uit `supabase/templates` in Supabase Auth, gebruik de conditionele onderwerpen uit `subjects.md` en test registratie, herstel, e-mailwijziging, magic link en uitnodiging afzonderlijk met een Nederlands en Engels profiel.
 - [ ] Controleer Auth-, uitnodigings- en servicemail in een telefoonclient, desktopclient en donkere weergave op logo, leesbaarheid, knop en contactlink.
 - [ ] Zet uitnodigingsmail uit bij een bestaand account en controleer dat de uitnodiging bruikbaar blijft zonder mail in de outbox.
 - [ ] Bouw en start de app zonder Lovable-package, preview-authbroker of Lovable-runtimevariabelen.
@@ -235,6 +266,18 @@
 
 ## Corporate Admin
 
+- [ ] Publiceer een teststoring voor een Nederlands en Engels testaccount. Controleer in beide mailboxen dat de opgemaakte mail precies één taal toont, een statuslink heeft en bij een kritieke storing een duidelijk label toont. Controleer ook dat de pop-up rechtsboven titel en omschrijving in de juiste taal toont, zonder `status|`-code.
+- [ ] Controleer met twee testworkspaces dat een nieuwe Paddle-checkout alleen het aangemelde account activeert. Een gewijzigde `workspace_uuid` in browserdata mag geen andere workspace activeren; verifieer webhookstatus en recht in Corporate Admin.
+- [ ] Download een GPX voor een reis met geldige bestemmingen en open het bestand op het apparaat waarop de knop eerder niet reageerde. Controleer dat een bestemming zonder locatie niet als punt `(0,0)` verschijnt.
+- [ ] Sla een vooraf gekoppeld Agency-klantprofiel opnieuw op terwijl het nieuwe klantaccount nog niet is bevestigd: geen reistoegang vóór bevestiging, wel de bedoelde reis erna.
+- [ ] Abonneer met een agenda-app op een live reisfeed met een activiteit mét tijd en een hotelboeking zonder tijd. Controleer uurafspraak en hele-dagafspraak, wijzig de activiteitstijd en laat de app verversen.
+- [ ] Maak in Agency een klantprofiel met één gekoppelde reis voordat het klantaccount bestaat. Registreer daarna met dat e-mailadres: vóór bevestiging geen toegang, erna alleen die reis in het klantportaal. Wijzig het adres en archiveer het profiel; de automatisch verleende toegang moet verdwijnen. Controleer deze nieuwe releasecheck ook in Corporate Admin.
+- [ ] Begin een bedrijfsmail, wacht op “Concept opgeslagen”, sluit de editor en open hetzelfde concept opnieuw; onderwerp, ontvangers, HTML en tekst moeten gelijk blijven.
+- [ ] Controleer Inbox, Verzonden, Concepten, Wachtrij en Archief, zoek op onderwerp en adres en verwijder daarna een testconcept.
+- [ ] Beantwoord een ontvangen mail vanuit het portaal, antwoord opnieuw vanuit de externe mailclient en controleer dat alle berichten in dezelfde chronologische thread staan.
+- [ ] Koppel een bestaand persoonlijk en gedeeld postvak en verstuur vanuit beide een bericht met vet, cursief, lijst en veilige link.
+- [ ] Controleer in een echte mailclient dat HTML, handtekening en platte-tekstalternatief aanwezig zijn en dat scripts en `javascript:`-links zijn verwijderd.
+- [ ] Maak via LibreTranslate een Engels concept voor een bekend probleem en platformbericht; corrigeer het concept handmatig vóór opslaan of publiceren.
 - [ ] Alleen Corporate Admin kan gebruikers, Agencies, auditlog en platformbeheer openen.
 - [ ] Gebruiker bekijken, plan wijzigen, blokkeren en herstellen met verplichte reden.
 - [ ] Agency-instellingen bekijken en gecontroleerd aanpassen.

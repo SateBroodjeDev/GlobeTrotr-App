@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Weather } from "@/lib/services";
+import type { PlanId } from "@/lib/types";
 
 type OpenMeteoResponse = {
   current?: { temperature_2m?: number; wind_speed_10m?: number; weather_code?: number };
@@ -142,7 +143,7 @@ export const getWeather = createServerFn({ method: "GET" })
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { consumeProviderQuota } = await import("@/lib/provider-quota.server");
-    await consumeProviderQuota(supabaseAdmin, workspace.workspace_uuid, context.userId, workspace.plan, "weather");
+    await consumeProviderQuota(supabaseAdmin, workspace.workspace_uuid, context.userId, workspace.plan as PlanId, "weather");
     return fetchWeatherForecast(data.lat, data.lon);
   });
 

@@ -12,16 +12,13 @@ import { useLocale } from "@/lib/locale";
 import { getPublicFeatureFlags } from "@/lib/corporate-governance.functions";
 import { KeyRound } from "lucide-react";
 import type { Provider } from "@supabase/supabase-js";
+import { safeInternalRedirect } from "@/lib/safe-redirect";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
-    ({
-      ...(typeof search["redirect"] === "string" &&
-      search["redirect"].startsWith("/") &&
-      !search["redirect"].startsWith("//")
-        ? { redirect: search["redirect"].slice(0, 500) }
-        : {}),
-    }) as { redirect?: string },
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+    const redirect = safeInternalRedirect(search["redirect"]);
+    return redirect ? { redirect } : {};
+  },
   head: () => ({
     meta: [
       { title: "Inloggen — GlobeTrotr workspace" },
@@ -59,7 +56,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const [mfaBusy, setMfaBusy] = useState(false);
   const { session } = useAuth();
   const { redirect } = useSearch({ strict: false }) as { redirect?: string };
-  const { text } = useLocale();
+  const { text, language } = useLocale();
   const navigate = useNavigate();
   const flags = useQuery({
     queryKey: ["public-feature-flags"],
@@ -131,7 +128,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
           password,
           options: {
             emailRedirectTo: `${window.location.origin}${redirect ?? ""}`,
-            data: { full_name: name },
+            data: { full_name: name, language },
             captchaToken,
           },
         });
@@ -229,6 +226,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
               options: {
                 emailRedirectTo: callback.toString(),
                 shouldCreateUser: registrationEnabled,
+                data: { language },
               },
             });
       if (result.error) throw result.error;

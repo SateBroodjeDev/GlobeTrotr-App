@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createHmac } from "node:crypto";
 
 type Plan = "pro" | "agency";
 
@@ -18,9 +19,29 @@ async function ownedWorkspace(db: any, userId: string) {
   return data;
 }
 
+export const createPaddleCheckoutBinding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { plan: Plan; mode: "one_time" | "recurring" }) => input)
+  .handler(async ({ data, context }) => {
+    if (!["pro", "agency"].includes(data.plan) || !["one_time", "recurring"].includes(data.mode))
+      throw new Error("PADDLE_CHECKOUT_INVALID");
+    const secret = process.env.PADDLE_CHECKOUT_BINDING_SECRET?.trim();
+    if (!secret || secret.length < 32) throw new Error("PADDLE_BINDING_NOT_CONFIGURED");
+    const db = await database();
+    const workspace = await ownedWorkspace(db, context.userId);
+    const encoded = Buffer.from(JSON.stringify({
+      w: workspace.workspace_uuid,
+      p: data.plan,
+      m: data.mode,
+      t: Date.now(),
+    })).toString("base64url");
+    const signature = createHmac("sha256", secret).update(encoded).digest("base64url");
+    return { token: `${encoded}.${signature}` };
+  });
+
 export const getBillingOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<any> => {
     const db = await database();
     const workspace = await ownedWorkspace(db, context.userId);
     const { data: customer } = await db

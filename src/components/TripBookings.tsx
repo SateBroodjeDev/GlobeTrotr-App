@@ -803,7 +803,7 @@ export function TripBookings({
             </Field>
             <Field label={text("Betaald door", "Paid by")}>
               <select
-                className="form-control"
+                className="form-control min-w-0 w-full max-w-full truncate"
                 value={paidBy}
                 disabled={!editable}
                 onChange={(e) => setPaidBy(e.target.value)}

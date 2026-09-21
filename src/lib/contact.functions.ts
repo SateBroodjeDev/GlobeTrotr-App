@@ -75,13 +75,21 @@ export const submitContact = createServerFn({ method: "POST" })
       throw new Error("INVALID");
     const secret = process.env["TURNSTILE_SECRET_KEY"]?.trim();
     if (secret) {
+      if (!data.captchaToken || data.captchaToken.length > 2048) throw new Error("CAPTCHA");
       const body = new URLSearchParams({ secret, response: data.captchaToken });
-      const check = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
-        body,
-      });
-      const result = (await check.json()) as { success: boolean };
-      if (!result.success) throw new Error("CAPTCHA");
+      let check: Response;
+      try {
+        check = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+          method: "POST",
+          body,
+          signal: AbortSignal.timeout(8_000),
+        });
+      } catch {
+        throw new Error("CAPTCHA_UNAVAILABLE");
+      }
+      if (!check.ok) throw new Error("CAPTCHA_UNAVAILABLE");
+      const result = (await check.json()) as { success?: boolean; action?: string };
+      if (result.success !== true || result.action !== "contact") throw new Error("CAPTCHA");
     } else if (process.env["NODE_ENV"] === "production") throw new Error("CAPTCHA_UNAVAILABLE");
     const categories = [
       "question",

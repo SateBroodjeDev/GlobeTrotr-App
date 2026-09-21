@@ -40,10 +40,22 @@ export function TripCalendarExport({ trip, paid }: { trip: Trip; paid: boolean }
       const result = await createCalendarFeed({ data: { tripUuid: trip.id } });
       setUrl(result.url);
       setActive(true);
-      await navigator.clipboard.writeText(result.url);
-      toast.success(
-        text("Abonnementslink aangemaakt en gekopieerd.", "Subscription link created and copied."),
-      );
+      try {
+        await navigator.clipboard.writeText(result.url);
+        toast.success(
+          text(
+            "Abonnementslink aangemaakt en gekopieerd.",
+            "Subscription link created and copied.",
+          ),
+        );
+      } catch {
+        toast.success(
+          text(
+            "Abonnementslink aangemaakt. Kopieer de link hieronder.",
+            "Subscription link created. Copy the link below.",
+          ),
+        );
+      }
     } catch {
       toast.error(
         text("De agendalink kon niet worden gemaakt.", "The calendar link could not be created."),
@@ -128,6 +140,15 @@ export function TripCalendarExport({ trip, paid }: { trip: Trip; paid: boolean }
                     <Trash2 className="size-4" />
                     {text("Intrekken", "Revoke")}
                   </Button>
+                )}
+                {url && (
+                  <input
+                    aria-label={text("Persoonlijke agendalink", "Personal calendar link")}
+                    className="w-full min-w-0 rounded-md border bg-background px-3 py-2 text-sm"
+                    readOnly
+                    value={url}
+                    onFocus={(event) => event.currentTarget.select()}
+                  />
                 )}
               </div>
             )}

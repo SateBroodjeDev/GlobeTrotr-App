@@ -27,7 +27,6 @@ export default function TripMap({
       const L = (await import("leaflet")).default;
       if (cancelled || !ref.current) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let map = mapRef.current as any;
       if (!map) {
         map = L.map(ref.current, { scrollWheelZoom: false }).setView([20, 10], 2);
@@ -38,7 +37,6 @@ export default function TripMap({
         mapRef.current = map;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       map.eachLayer((layer: any) => {
         if (layer instanceof L.Marker || layer instanceof L.Polyline || layer instanceof L.CircleMarker) map.removeLayer(layer);
       });
@@ -90,7 +88,6 @@ export default function TripMap({
 
   useEffect(() => {
     return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const map = mapRef.current as any;
       if (map) {
         map.remove();

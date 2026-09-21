@@ -13,14 +13,14 @@ export async function queueInvitationEmail(
     invitationId: string;
     branding?: { brandName: string; accentHue: number };
   },
-): Promise<boolean> {
+): Promise<"queued" | "skipped" | "failed"> {
   if (input.preferenceUserId) {
     const { data: profile } = await db
       .from("profiles")
       .select("notification_preferences")
       .eq("id", input.preferenceUserId)
       .maybeSingle();
-    if (profile?.notification_preferences?.invitations === false) return false;
+    if (profile?.notification_preferences?.invitations === false) return "skipped";
   }
   const { data: config, error: configError } = await db
     .from("email_delivery_config")
@@ -31,14 +31,14 @@ export async function queueInvitationEmail(
     console.error("[Invitation email] Delivery configuration unavailable.", {
       code: configError.code,
     });
-    return false;
+    return "failed";
   }
   const { error } = await db.from("email_outbox").upsert(
     {
       notification_id: null,
       user_id: input.preferenceUserId ?? null,
       recipient_email: input.recipient,
-      locale: input.locale === "en" ? "en" : "nl",
+      locale: input.locale === "nl" ? "nl" : "en",
       template_key: "invitation",
       payload: {
         title: input.title,
@@ -54,7 +54,7 @@ export async function queueInvitationEmail(
   );
   if (error) {
     console.error("[Invitation email] Could not queue message.", { code: error.code });
-    return false;
+    return "failed";
   }
-  return true;
+  return "queued";
 }

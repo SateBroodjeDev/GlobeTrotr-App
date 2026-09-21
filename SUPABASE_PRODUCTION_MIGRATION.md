@@ -1,5 +1,10 @@
 # Nieuwe Supabase-productieomgeving
 
+> Historische handleiding voor het eenmalig opbouwen van een leeg project.
+> GlobeTrotr draait inmiddels met bestaande accounts en migraties tot en met
+> 1170 zijn door de eigenaar uitgevoerd. Gebruik voor updates van het actieve
+> project [de actuele uitrol](IMPLEMENTATION_PENDING.md).
+
 Deze handleiding is voor een leeg Supabase-productieproject naast een strikt gescheiden niet-productieomgeving.
 
 ## Wat Supabase en GlobeTrotr ieder aanmaken
@@ -93,7 +98,7 @@ Bekijk eerst zonder wijzigingen wat de CLI wil toepassen:
 npx supabase@latest db push --dry-run
 ```
 
-Controleer dat de lijst begint met `20260902095509` en eindigt met `20260908099000`. Voer daarna alle migraties uit:
+Voor een werkelijk nieuw project moet de lijst beginnen met `20260902095509` en eindigen met de **laatste migratie in de checkout**. Het vroegere eindnummer `20260908099000` is verouderd. Voer daarna alle migraties uit:
 
 ```powershell
 npx supabase@latest db push
@@ -126,7 +131,7 @@ Hierdoor behouden Auth, profiel en workspace hetzelfde UUID. Zelf rijen invoegen
 
 Stel onder **Authentication → URL Configuration** uiteindelijk in:
 
-- **Site URL:** `https://dashboard.globetrotr.nl`;
+- **Site URL:** `https://globetrotr.nl`;
 - alleen de werkelijk gebruikte HTTPS-redirects voor productie en eventueel een afzonderlijk stagingdomein.
 
 Voeg geen brede productie-wildcards toe wanneer enkele concrete redirect-URL's voldoende zijn. Configureer SMTP vóór je externe gebruikers uitnodigt, zodat bevestiging, wachtwoordherstel en e-mailwijzigingen betrouwbaar aankomen.

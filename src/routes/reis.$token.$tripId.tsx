@@ -6,7 +6,6 @@ import {
   BedDouble,
   CalendarDays,
   Car,
-  Clock3,
   LockKeyhole,
   MapPin,
   Plane,
@@ -145,11 +144,17 @@ export function PublicTrip() {
   const trip = q.data.trip;
   const template = TEMPLATES.find((item) => item.id === trip.template);
   const stops: Stop[] = trip.stops.map((stop, index) => ({ ...stop, id: `public-stop-${index}` }));
-  const groupedDays = (() => {
-    const days = new Map<string, typeof trip.itinerary>();
-    for (const item of trip.itinerary) days.set(item.day, [...(days.get(item.day) ?? []), item]);
-    return [...days.entries()];
-  })();
+  type ScheduleEntry =
+    | { kind: "plan"; item: (typeof trip.itinerary)[number] }
+    | { kind: "booking"; item: (typeof trip.travelItems)[number] };
+  const schedule = new Map<string, ScheduleEntry[]>();
+  for (const item of trip.itinerary) {
+    schedule.set(item.day, [...(schedule.get(item.day) ?? []), { kind: "plan", item }]);
+  }
+  for (const item of trip.travelItems ?? []) {
+    schedule.set(item.date, [...(schedule.get(item.date) ?? []), { kind: "booking", item }]);
+  }
+  const scheduleDays = [...schedule.entries()].sort(([a], [b]) => a.localeCompare(b));
   const dateRange = formatDateRange(trip.start, trip.end, locale);
   const visibleStops = showAllStops ? stops : stops.slice(0, 8);
   const weatherStop = stops.find((stop) => stop.id === activeStopId) ?? stops[0];
@@ -282,18 +287,19 @@ export function PublicTrip() {
             {text("Van dag tot dag", "Day by day")}
           </p>
           <h2 className="mt-1 font-display text-2xl font-semibold">
-            {text("Dagplanning", "Itinerary")}
+            {text("Reisschema", "Trip itinerary")}
           </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {text("Dagplanning en bewust gedeelde reisonderdelen op datum. Privéboekingsgegevens blijven verborgen.", "Daily plans and intentionally shared bookings by date. Private booking details stay hidden.")}
+          </p>
         </div>
-        {groupedDays.length === 0 ? (
-          <Card className="surface">
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              {text("Nog geen dagplanning gedeeld.", "No itinerary shared yet.")}
-            </CardContent>
-          </Card>
+        {scheduleDays.length === 0 ? (
+          <Card className="surface"><CardContent className="py-8 text-center text-sm text-muted-foreground">
+            {text("Nog geen reisschema gedeeld.", "No itinerary shared yet.")}
+          </CardContent></Card>
         ) : (
-          <div className="grid gap-3 lg:grid-cols-2">
-            {groupedDays.map(([day, items], dayIndex) => (
+          <div className="space-y-3">
+            {scheduleDays.map(([day, entries], dayIndex) => (
               <Card key={day} className="surface overflow-hidden">
                 <CardHeader className="border-b border-border bg-muted/30 pb-3">
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -301,104 +307,35 @@ export function PublicTrip() {
                   </p>
                   <CardTitle className="text-base">{formatDate(day, locale)}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 pt-4">
-                  {items.map((item, index) => (
-                    <div
-                      key={`${item.day}-${index}`}
-                      className="relative border-l-2 border-primary/30 pl-4"
-                    >
-                      <span className="absolute -left-[5px] top-1 size-2 rounded-full bg-primary" />
-                      <p className="text-sm font-medium">{item.title}</p>
-                      {item.notes && (
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                          {item.notes}
-                        </p>
-                      )}
-                    </div>
-                  ))}
+                <CardContent className="divide-y divide-border pt-1">
+                  {entries.map((entry, index) => {
+                    if (entry.kind === "plan") return (
+                      <div key={`plan-${index}`} className="py-3">
+                        <p className="text-sm font-medium">{entry.item.title}</p>
+                        {entry.item.notes && <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{entry.item.notes}</p>}
+                      </div>
+                    );
+                    const item = entry.item;
+                    const ItemIcon = item.type === "flight" ? Plane : item.type === "lodging" ? BedDouble : item.type === "car_rental" ? Car : item.type === "transport" ? TrainFront : Ticket;
+                    const typeLabel = item.type === "flight" ? text("Vlucht", "Flight") : item.type === "lodging" ? text("Overnachting", "Accommodation") : item.type === "car_rental" ? text("Huurauto", "Rental car") : item.type === "transport" ? text("Vervoer", "Transport") : text("Activiteit", "Activity");
+                    const location = item.departure?.name ? [item.departure.name, item.arrival?.name].filter(Boolean).join(" → ") : item.location?.name;
+                    return (
+                      <div key={`booking-${index}`} className="flex min-w-0 gap-3 py-3">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><ItemIcon className="size-4" /></span>
+                        <div className="min-w-0 space-y-1">
+                          <p className="text-sm font-medium break-anywhere">{item.title}</p>
+                          <p className="text-xs text-muted-foreground">{typeLabel}{item.startTime ? ` · ${item.startTime}${item.endTime ? `–${item.endTime}` : ""}` : ""}{item.endDate && item.endDate !== item.date ? ` · ${formatDate(item.endDate, locale)}` : ""}</p>
+                          {location && <p className="text-xs text-muted-foreground break-anywhere">{location}</p>}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
       </section>
-
-      {(trip.travelItems ?? []).length > 0 && (
-        <section className="space-y-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
-              {text("Bewust gedeeld", "Shared intentionally")}
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-semibold">
-              {text("Reisonderdelen", "Travel bookings")}
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {text(
-                "De eigenaar heeft deze samenvattingen openbaar gemaakt. Privéboekingsgegevens worden niet getoond.",
-                "The owner made these summaries public. Private booking details are not shown.",
-              )}
-            </p>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {(trip.travelItems ?? []).map((item, index) => {
-              const ItemIcon =
-                item.type === "flight"
-                  ? Plane
-                  : item.type === "lodging"
-                    ? BedDouble
-                    : item.type === "car_rental"
-                      ? Car
-                      : item.type === "transport"
-                        ? TrainFront
-                        : Ticket;
-              const typeLabel =
-                item.type === "flight"
-                  ? text("Vlucht", "Flight")
-                  : item.type === "lodging"
-                    ? text("Overnachting", "Accommodation")
-                    : item.type === "car_rental"
-                      ? text("Huurauto", "Rental car")
-                      : item.type === "transport"
-                        ? text("Vervoer", "Transport")
-                        : text("Activiteit", "Activity");
-              const route = item.departure?.name
-                ? [item.departure.name, item.arrival?.name].filter(Boolean).join(" → ")
-                : item.location?.name;
-              return (
-                <Card key={`${item.date}-${item.title}-${index}`} className="surface">
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-3">
-                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                        <ItemIcon className="size-5" />
-                      </span>
-                      <div className="min-w-0">
-                        <Badge variant="secondary">{typeLabel}</Badge>
-                        <h3 className="mt-2 break-anywhere font-medium">{item.title}</h3>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {formatDate(item.date, locale)}
-                          {item.endDate ? ` – ${formatDate(item.endDate, locale)}` : ""}
-                        </p>
-                        {(item.startTime || item.endTime) && (
-                          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Clock3 className="size-3.5" />
-                            {[item.startTime, item.endTime].filter(Boolean).join(" – ")}
-                          </p>
-                        )}
-                        {route && (
-                          <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
-                            <MapPin className="mt-0.5 size-3.5 shrink-0" />
-                            <span className="break-anywhere">{route}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       {typeof trip.budget === "number" && (
         <Card className="surface overflow-hidden border-primary/20 bg-primary/5">

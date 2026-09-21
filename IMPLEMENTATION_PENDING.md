@@ -1,364 +1,200 @@
-# Eén implementatiehandleiding voor GlobeTrotr
+# GlobeTrotr — draaiboek voor de volgende release
 
-Deze handleiding begint bij de huidige situatie:
+**Stand:** 21 september 2026
 
-- de code staat op branch `lovable`;
-- Node-01 (`2.28.36.231`) draait de website en Caddy;
-- Node-02 (`178.105.243.191`) draait worker, mailrelay en IMAP-sync;
-- het private adres van Node-02 is `10.0.0.3`;
-- DNS, firewall, Supabase, SMTP en OAuth werken al;
-- SQL en tests tot en met migratie 1160 zijn uitgevoerd;
-- alleen migratie en test 1170 uit deze release staan nog open.
+**Startpunt:** productie heeft migraties en SQL-tests tot en met 1170
 
-Voer de stappen in deze volgorde uit. Bewaar echte keys uitsluitend in de
-genoemde `.env`-bestanden op de servers. Plak ze nooit in Git, een issue of een
-chatbericht.
+**Doel:** wijzigingen 1180–1300 gecontroleerd migreren, beide nodes uitrollen en de kritieke productstromen testen.
 
-## 1. Op je Windows-pc: controleren, committen en pushen
+Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige foutmelding zonder wachtwoorden, tokens, mailinhoud of persoonsgegevens.
 
-Open PowerShell in de projectmap:
+## Voortgang
 
-```powershell
-cd "C:\Users\info\Desktop\Travelplanner\GIT Clone\globetrotr-1d042353"
-git branch --show-current
-git status
-npm test
-git diff --check
-```
+- [ ] Fase 1 — code controleren, committen en pushen
+- [ ] Fase 2 — dertien migraties en SQL-tests uitvoeren
+- [ ] Fase 3 — productiegeheimen en optionele vertaling configureren
+- [ ] Fase 4 — Node-02 uitrollen en gezond verklaren
+- [ ] Fase 5 — Node-01 uitrollen en smoketest uitvoeren
+- [ ] Fase 6 — kritieke praktijktests uitvoeren
+- [ ] Fase 7 — vrijgavebesluit nemen en incidenten bijwerken
 
-De branch moet `lovable` zijn. Voeg daarna alles toe, controleer expliciet dat
-`.env` niet wordt meegenomen en commit:
+Lokaal zijn 78 tests, TypeScript, lint zonder fouten, de securityaudit en de release-preflight groen. De nieuwe productiefunctionaliteit is pas bewezen nadat alle fasen zijn afgerond.
+
+## Fase 1 — Windows: controleren, committen en pushen
+
+Voer dit uit in de projectmap:
 
 ```powershell
+git status --short
+npm run verify
+npm audit --omit=dev --audit-level=high
+git -c core.safecrlf=false diff --check
 git add -A
-git status
 git diff --cached --name-only
-git commit -m "Complete production mail domains and Paddle billing"
-git push origin lovable
+git commit -m "Improve mail, billing and release reliability"
+git push
 ```
 
-Stop wanneer `.env`, `.env.production` of `.env.mail-relay` in de staged lijst
-staat. Verwijder zo'n bestand dan eerst met `git restore --staged BESTANDSNAAM`.
+Verwacht:
 
-## 2. In Supabase: alleen de nieuwe SQL uitvoeren
+- `npm run verify`: 78 tests, TypeScript, securityaudit en release-preflight slagen;
+- `npm audit`: geen hoge of kritieke productiekwetsbaarheden;
+- `git diff --check`: geen uitvoer;
+- geen `.env`, wachtwoord, API-sleutel of mailboxcredential in de staged bestanden.
 
-Open **Supabase Dashboard → SQL Editor** en voer in deze volgorde uit:
+De Windows-Nitrobouw kan aan het einde stranden op `EPERM: readlink C:\Users\info`. De Linux-build op Node-01 en in CI is daarom beslissend. Herschrijf geen gepubliceerde Gitgeschiedenis.
 
-1. `supabase/migrations/20260908117000_payment_modes_and_live_calendars.sql`
-2. `supabase/tests/payment_modes_and_live_calendars.sql`
+## Fase 2 — Supabase SQL Editor
 
-Migraties en tests tot en met 1160 zijn al uitgevoerd. Voer die niet opnieuw uit.
+Open de SQL Editor van het productieproject. Voer steeds eerst de migratie en direct daarna de test uit. Iedere test moet zonder fout eindigen voordat je doorgaat.
 
-### Registratie en Turnstile controleren
+| Volgorde | Migratie                                                                                                            | Test                                                                                                  |
+| -------: | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+|        1 | [1180 — betrouwbaarheid mail en betaling](supabase/migrations/20260908118000_beta_mail_and_billing_reliability.sql) | [beta_mail_and_billing_reliability.sql](supabase/tests/beta_mail_and_billing_reliability.sql)         |
+|        2 | [1190 — bedrijfsmailwerkplek](supabase/migrations/20260908119000_corporate_mail_workspace.sql)                      | [corporate_mail_workspace.sql](supabase/tests/corporate_mail_workspace.sql)                           |
+|        3 | [1200 — mailgesprekken](supabase/migrations/20260908120000_corporate_mail_threads.sql)                              | [corporate_mail_threads.sql](supabase/tests/corporate_mail_threads.sql)                               |
+|        4 | [1210 — mailbijlagen](supabase/migrations/20260908121000_corporate_mail_attachments.sql)                            | [corporate_mail_attachments.sql](supabase/tests/corporate_mail_attachments.sql)                       |
+|        5 | [1220 — afgebroken uploads opruimen](supabase/migrations/20260908122000_corporate_mail_upload_cleanup.sql)          | [corporate_mail_upload_cleanup.sql](supabase/tests/corporate_mail_upload_cleanup.sql)                 |
+|        6 | [1230 — malwarescan](supabase/migrations/20260908123000_corporate_mail_malware_acceptance.sql)                      | [corporate_mail_malware_acceptance.sql](supabase/tests/corporate_mail_malware_acceptance.sql)         |
+|        7 | [1240 — privacycontrole mail](supabase/migrations/20260908124000_privacy_mail_acceptance.sql)                       | [privacy_mail_acceptance.sql](supabase/tests/privacy_mail_acceptance.sql)                             |
+|        8 | [1250 — postvakdiagnose](supabase/migrations/20260908125000_mailbox_sync_diagnostics.sql)                           | [mailbox_sync_diagnostics.sql](supabase/tests/mailbox_sync_diagnostics.sql)                           |
+|        9 | [1260 — Paddle-accountdiagnose](supabase/migrations/20260908126000_paddle_account_diagnostics_acceptance.sql)       | [paddle_account_diagnostics_acceptance.sql](supabase/tests/paddle_account_diagnostics_acceptance.sql) |
+|       10 | [1270 — Agency-klantregistratie](supabase/migrations/20260908127000_agency_client_registration_link.sql)            | [agency_client_registration_link.sql](supabase/tests/agency_client_registration_link.sql)             |
+|       11 | [1280 — ondertekende Paddle-checkout](supabase/migrations/20260908128000_paddle_checkout_binding_acceptance.sql)    | [paddle_checkout_binding_acceptance.sql](supabase/tests/paddle_checkout_binding_acceptance.sql)       |
+|       12 | [1290 — gelokaliseerde platformmail](supabase/migrations/20260908129000_localized_platform_service_mail.sql)        | [localized_platform_service_mail.sql](supabase/tests/localized_platform_service_mail.sql)             |
+|       13 | [1300 — taalkeuze voor Auth-mail](supabase/migrations/20260908130000_auth_email_locale.sql)                         | [auth_email_locale.sql](supabase/tests/auth_email_locale.sql)                                         |
 
-Open daarna **Supabase Dashboard → Authentication → Attack Protection → CAPTCHA**:
+De tests bewijzen schema, rechten en releasechecklist. Ze vervangen geen echte mail-, betaal- of accounttest. Voer oudere migraties niet opnieuw uit en draai een toegepaste productiemigratie niet handmatig terug.
 
-1. kies **Cloudflare Turnstile**;
-2. vul daar de geheime Turnstile-key in die hoort bij de publieke sitekey uit `VITE_TURNSTILE_SITE_KEY`;
-3. sla op en controleer bij Cloudflare dat `globetrotr.nl` als toegestaan domein staat;
-4. zet CAPTCHA aan voor registratie.
+## Fase 3 — configuratie vóór de containers starten
 
-De geheime key hoort alleen in Supabase en nooit in een `VITE_...`-variabele. De registratiepagina stuurt de verkregen CAPTCHA-token rechtstreeks met `signUp` mee.
+### Op beide nodes
 
-## 3. In Paddle Sandbox: producten en toegang maken
+Controleer in `/opt/globetrotr/.env.production` dezelfde vier Paddle-price-ID’s:
 
-Volg voor de schermafbeeldingen en achtergrondinformatie
-[`PADDLE_IMPLEMENTATION.md`](PADDLE_IMPLEMENTATION.md). De korte verplichte
-volgorde is:
-
-1. Schakel Paddle naar **Sandbox**.
-2. Maak `GlobeTrotr Pro`, EUR 9,00 per maand.
-3. Maak `GlobeTrotr Agency`, EUR 29,00 per maand.
-4. Kopieer beide `pri_...` price-ID's.
-5. Maak een Sandbox client-side token (`test_...`).
-6. Maak een Sandbox API-key met toegang tot customer portal sessions,
-   subscriptions, transactions en adjustments/refunds.
-7. Maak onder **Developer tools > Notifications** deze destination:
-
-   `https://globetrotr.nl/api/paddle/webhook`
-
-8. Selecteer subscription-, transaction-, adjustment- en customer-events uit
-   de Paddle-handleiding.
-9. Kopieer het endpointsecret (`pdl_ntfset_...`).
-
-Je hebt nu vijf waarden:
-
-```text
-PADDLE_CLIENT_TOKEN=test_...
-PADDLE_PRO_PRICE_ID=pri_...
-PADDLE_AGENCY_PRICE_ID=pri_...
-PADDLE_API_KEY=pdl_sdbx_apikey_...
-PADDLE_WEBHOOK_SECRET=pdl_ntfset_...
+```dotenv
+VITE_PADDLE_PRO_MONTHLY_PRICE_ID=pri_...
+VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID=pri_...
+VITE_PADDLE_PRO_ONETIME_PRICE_ID=pri_...
+VITE_PADDLE_AGENCY_ONETIME_PRICE_ID=pri_...
 ```
 
-## 4. Een gedeelde mailboxencryptiesleutel maken
+Maak eenmaal een checkoutgeheim met `openssl rand -hex 32`. Zet exact dezelfde uitvoer op Node-01 en Node-02:
 
-Open PowerShell en log in op Node-01:
-
-```powershell
-ssh globetrotr@2.28.36.231
+```dotenv
+PADDLE_CHECKOUT_BINDING_SECRET=<64-hex-tekens>
 ```
 
-Maak op Node-01 één sleutel:
+### Alleen Node-02
 
-```bash
-openssl rand -base64 32
+Controleer de bestaande Supabase-serviceconfiguratie, Paddle API/webhook, SMTP/IMAP, relaytoken en mailboxsleutel. Voeg voor de private bijlagenscanner toe:
+
+```dotenv
+CLAMAV_HOST=clamav
+CLAMAV_PORT=3310
+CLAMAV_TIMEOUT_MS=30000
 ```
 
-Kopieer de uitvoer tijdelijk naar je wachtwoordmanager. Exact dezelfde waarde
-moet op beide nodes als `MAILBOX_CREDENTIALS_KEY` worden ingesteld. Verlies of
-wijzig deze sleutel niet zolang versleutelde mailboxwachtwoorden bestaan.
+Open poort 3310 niet in UFW of de providerfirewall.
 
-## 5. Node-01: code en `.env.production` bijwerken
+### Supabase Auth-templates
 
-Je bent ingelogd als `globetrotr` op Node-01.
+Na migratie 1300 open je in het Supabase Dashboard **Authentication → Email Templates**. Vervang daar de inhoud van Confirm signup, Reset password, Change email address, Magic link en Invite user door de gelijknamige bestanden uit `supabase/templates`. Neem per type ook het conditionele onderwerp uit `supabase/templates/subjects.md` over. De templates gebruiken `user_metadata.language`; Nederlands wordt alleen gekozen bij `nl`, anders blijft Engels de veilige standaard.
+
+Controleer dat de Site URL `https://globetrotr.nl` is en dat de toegestane redirects de eigen `/auth`- en `/token/...`-routes niet blokkeren. Deze Dashboard-stap wordt niet door een Git-push uitgevoerd.
+
+### Optioneel: gratis NL/EN-vertaalconcepten
+
+Zet op Node-02 `TRANSLATION_BIND_ADDRESS=10.0.0.3`. Zet op Node-01:
+
+```dotenv
+TRANSLATION_API_URL=http://10.0.0.3:5000/translate
+TRANSLATION_API_KEY=
+```
+
+Sta TCP 5000 uitsluitend toe van Node-01 naar het private IP van Node-02. Vertalingen blijven handmatig te controleren concepten; gebruik ze niet voor juridische tekst.
+
+## Fase 4 — Node-02 eerst uitrollen
 
 ```bash
 cd /opt/globetrotr
-git status
-git pull --ff-only origin lovable
-cp .env.production .env.production.backup-before-1170
-nano .env.production
+git pull --ff-only
+docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation config --quiet
+docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation up -d --build
+docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation ps
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=150 worker imap-sync mail-relay clamav
+curl --fail http://127.0.0.1:9091/health
 ```
 
-Laat bestaande Supabase-, Turnstile-, GitHub- en providerwaarden staan. Voeg
-deze regels toe of werk ze bij:
+Laat `--profile translation` weg als je vertaling nog niet activeert. Wacht bij de eerste ClamAV-start op de virusdefinities. Ga pas verder wanneer `worker`, `imap-sync`, `mail-relay` en `clamav` draaien en de workerhealth groen is.
 
-```dotenv
-MAILBOX_CREDENTIALS_KEY=DE_GEDEELDE_BASE64_SLEUTEL
-WORKER_HEALTH_URL=http://10.0.0.3:9091/health
-
-VITE_PADDLE_ENVIRONMENT=sandbox
-VITE_PADDLE_CLIENT_TOKEN=test_VUL_IN
-VITE_PADDLE_PRO_MONTHLY_PRICE_ID=pri_VUL_PRO_IN
-VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID=pri_VUL_AGENCY_IN
-VITE_PADDLE_PRO_ONETIME_PRICE_ID=pri_VUL_PRO_EEN_MAAND_IN
-VITE_PADDLE_AGENCY_ONETIME_PRICE_ID=pri_VUL_AGENCY_EEN_MAAND_IN
-PADDLE_API_KEY=pdl_sdbx_apikey_VUL_IN
-```
-
-`PADDLE_WEBHOOK_SECRET` is niet nodig op Node-01. Sla nano op met `Ctrl+O`,
-Enter en sluit met `Ctrl+X`. Controleer zonder waarden te tonen:
+Test een actieve vertaalservice met:
 
 ```bash
-chmod 600 .env.production
+curl --fail http://10.0.0.3:5000/languages
+curl --fail --request POST http://10.0.0.3:5000/translate \
+  --header 'Content-Type: application/json' \
+  --data '{"q":"Goede reis","source":"nl","target":"en","format":"text"}'
+```
+
+## Fase 5 — Node-01 uitrollen
+
+```bash
+cd /opt/globetrotr
+git pull --ff-only
+curl --fail http://10.0.0.3:9091/health
 docker compose --env-file .env.production -f deploy/web.compose.yml config --quiet
-```
-
-Bouw en start daarna Node-01:
-
-```bash
-docker compose --env-file .env.production -f deploy/web.compose.yml build --pull
-docker compose --env-file .env.production -f deploy/web.compose.yml up -d
-docker compose --env-file .env.production -f deploy/web.compose.yml ps
-docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=100 web caddy
-curl -fsSI https://globetrotr.nl
-curl -fsSI https://www.globetrotr.nl
-```
-
-Beide containers moeten `Up` of `healthy` zijn. Verlaat Node-01:
-
-```bash
-exit
-```
-
-## 6. Node-02: code en `.env.production` bijwerken
-
-Open vanaf je Windows-pc een nieuwe verbinding:
-
-```powershell
-ssh globetrotr@178.105.243.191
-```
-
-Voer op Node-02 uit:
-
-```bash
-cd /opt/globetrotr
-git status
-git pull --ff-only origin lovable
-cp .env.production .env.production.backup-before-1170
-cp .env.mail-relay .env.mail-relay.backup-before-1170
-nano .env.production
-```
-
-Behoud alle bestaande Supabase-, worker-, relay- en IMAP-waarden. Controleer of
-deze regels aanwezig en correct zijn:
-
-```dotenv
-SUPABASE_URL=https://mucvqudlzntywnyqucfo.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=JOUW_BESTAANDE_SERVICE_ROLE_KEY
-
-WORKER_POLL_MS=5000
-WORKER_BATCH_SIZE=20
-WORKER_HEALTH_PORT=9091
-WORKER_BIND_ADDRESS=10.0.0.3
-MAIL_DELIVERY_RELAY_URL=http://mail-relay:9092/send
-MAIL_DELIVERY_RELAY_TOKEN=JOUW_BESTAANDE_RELAY_TOKEN
-
-IMAP_HOST=mail.globetrotr.nl
-IMAP_PORT=993
-IMAP_SECURE=true
-IMAP_USER=JOUW_BESTAANDE_IMAP_GEBRUIKER
-IMAP_PASSWORD=JOUW_BESTAANDE_IMAP_WACHTWOORD
-IMAP_MAILBOX=INBOX
-IMAP_SYNC_INTERVAL_MS=60000
-IMAP_INITIAL_LOOKBACK_DAYS=14
-MAILBOX_CREDENTIALS_KEY=DEZELFDE_BASE64_SLEUTEL_ALS_NODE_01
-
-VITE_PADDLE_ENVIRONMENT=sandbox
-VITE_PADDLE_PRO_MONTHLY_PRICE_ID=pri_VUL_PRO_IN
-VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID=pri_VUL_AGENCY_IN
-VITE_PADDLE_PRO_ONETIME_PRICE_ID=pri_VUL_PRO_EEN_MAAND_IN
-VITE_PADDLE_AGENCY_ONETIME_PRICE_ID=pri_VUL_AGENCY_EEN_MAAND_IN
-PADDLE_API_KEY=pdl_sdbx_apikey_VUL_IN
-PADDLE_WEBHOOK_SECRET=pdl_ntfset_VUL_IN
-```
-
-Het Paddle client-token is niet nodig op Node-02. Controleer daarna de
-mailrelayconfiguratie zonder de wachtwoorden te wijzigen:
-
-```bash
-nano .env.mail-relay
-```
-
-Daarin moeten in ieder geval de bestaande SMTP-host, poort, gebruiker,
-wachtwoord, afzender en hetzelfde relaytoken staan. Sla op en start alles:
-
-```bash
-chmod 600 .env.production .env.mail-relay
-docker compose --env-file .env.production -f deploy/worker.compose.yml config --quiet
-docker compose --env-file .env.production -f deploy/worker.compose.yml build --pull
-docker compose --env-file .env.production -f deploy/worker.compose.yml up -d
-docker compose --env-file .env.production -f deploy/worker.compose.yml ps
-docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=150 worker mail-relay imap-sync
-curl -fsS http://10.0.0.3:9091/health
-```
-
-`worker`, `mail-relay` en `imap-sync` moeten draaien. De workerhealth hoort JSON
-met `status` terug te geven.
-
-## 7. Node-01: private verbinding en webhookroute controleren
-
-Log opnieuw in op Node-01:
-
-```powershell
-ssh globetrotr@2.28.36.231
-```
-
-Voer uit:
-
-```bash
-curl -fsS http://10.0.0.3:9091/health
-curl -i -X POST https://globetrotr.nl/api/paddle/webhook -H 'Content-Type: application/json' --data '{}'
-```
-
-De eerste opdracht moet workerhealth tonen. De tweede moet `HTTP/2 401` met
-`INVALID_SIGNATURE` geven. Dat bewijst dat Caddy de publieke route naar Node-02
-stuurt en dat een ongesigneerd verzoek wordt geweigerd.
-
-## 8. Servicemail en IMAP controleren
-
-Voer op Node-02 uit:
-
-```bash
-cd /opt/globetrotr
-docker compose --env-file .env.production -f deploy/worker.compose.yml exec mail-relay node -e "fetch('http://127.0.0.1:9092/health').then(async r=>console.log(r.status,await r.text()))"
-docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 mail-relay imap-sync
-```
-
-De relayhealth moet `200` en `smtp:"reachable"` tonen. Test daarna vanuit het
-portaal:
-
-1. open **Corporate Admin > Bedrijfsmail**;
-2. maak of selecteer een werkelijk bestaand ZXCS-postvak;
-3. stuur één bericht naar een bestaand extern adres;
-4. antwoord vanaf dat externe adres;
-5. controleer verzending, HTML-handtekening, inboxsync en melding rechtsboven.
-
-Een mailbox in GlobeTrotr maakt geen fysiek ZXCS-postvak. Maak het postvak of de
-alias dus eerst bij ZXCS aan.
-
-## 9. Paddle Sandbox end-to-end controleren
-
-Open GlobeTrotr met een nieuw testaccount en volg deze volgorde:
-
-1. Open **Abonnement & facturatie**.
-2. Kies Pro en rond de Sandbox-checkout af.
-3. Wacht enkele seconden en kies **Status vernieuwen**.
-4. Controleer dat Pro actief is en precies één transactie bestaat.
-5. Download de factuur.
-6. Open Customer Portal.
-7. Wijzig Pro naar Agency en controleer de verrekening.
-8. Controleer de NL- of EN-betaalmail en melding rechtsboven.
-9. Open **Corporate Admin > Financiën** en controleer abonnement, omzet,
-   transactie, factuur en webhookstatus.
-10. Vraag vanuit Corporate Admin een volledige terugbetaling aan.
-11. Controleer daarna refundstatus, aangepaste factuur en Paddle-creditnota.
-
-Doorloop vervolgens alle Paddle-punten in **Corporate Admin > Releasecheck**.
-Vink alleen scenario's af die werkelijk zijn uitgevoerd.
-
-## 10. Agency-domein controleren
-
-1. Open Agency Admin en sla een testdomein op.
-2. Maak bij de DNS-provider de getoonde CNAME naar `globetrotr.nl`.
-3. Maak het getoonde TXT-record op `_globetrotr.<domein>`.
-4. Kies **DNS controleren en activeren**.
-5. Open het domein via HTTPS.
-6. Controleer dat een onbekend domein geen certificaat krijgt.
-
-Een `naam.globetrotr.nl`-subdomein gebruikt de bestaande wildcard-DNS. Een
-extern Agency-domein heeft altijd de CNAME- en TXT-controle nodig.
-
-## 11. Pas na geslaagde Sandbox-tests naar Paddle Live
-
-Herhaal in Paddle Live de product-, token-, API-key- en webhookstappen. Live en
-Sandbox hebben andere waarden. Zet daarna op beide nodes:
-
-```dotenv
-VITE_PADDLE_ENVIRONMENT=production
-```
-
-Vervang alle Paddlewaarden door hun livevariant en bouw beide composeprojecten
-opnieuw met de commando's uit stap 5 en 6. Doe daarna één echte Pro-betaling,
-factuurdownload en volledige terugbetaling.
-
-## 12. Eindcontrole en rollback
-
-Node-01:
-
-```bash
-cd /opt/globetrotr
-docker compose --env-file .env.production -f deploy/web.compose.yml ps
-docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=100 web caddy
-curl -fsSI https://globetrotr.nl
-curl -fsS http://10.0.0.3:9091/health
-```
-
-Node-02:
-
-```bash
-cd /opt/globetrotr
-docker compose --env-file .env.production -f deploy/worker.compose.yml ps
-docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 worker mail-relay imap-sync
-curl -fsS http://10.0.0.3:9091/health
-```
-
-Als Node-01 door een configuratiefout niet start, herstel daar het vorige
-omgevingbestand en bouw de webstack opnieuw:
-
-```bash
-cp .env.production.backup-before-1170 .env.production
 docker compose --env-file .env.production -f deploy/web.compose.yml up -d --build
+docker compose --env-file .env.production -f deploy/web.compose.yml ps
+docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=150 web caddy
+npm run smoke
 ```
 
-Als Node-02 door een configuratiefout niet start, voer daar uit:
+`web` en `caddy` moeten gezond zijn. De smoketest controleert homepage, registratie, login, status, contact, roadmap, updates en publieke logo’s. Open daarna `https://globetrotr.nl` in een privévenster.
 
-```bash
-cp .env.production.backup-before-1170 .env.production
-cp .env.mail-relay.backup-before-1170 .env.mail-relay
-docker compose --env-file .env.production -f deploy/worker.compose.yml up -d --build
-```
+## Fase 6 — kritieke praktijktests
 
-Een databasemigratie wordt niet teruggedraaid door een oude container te
-starten; los een SQL-probleem daarom op met een nieuwe, voorwaartse migratie.
+Gebruik een Corporate Admin, Agency-beheerder, Agency-klant en twee normale accounts. Test minstens één Nederlands en één Engels profiel.
+
+### P0 — moet slagen vóór vrijgave
+
+- [ ] Registratie, bevestiging, login, herstelmail, magic link, Google, Discord, passkey en TOTP.
+- [ ] Confirm signup, herstel, magic link, e-mailwijziging en Auth-uitnodiging ieder eenmaal met een Nederlands en Engels profiel; onderwerp én inhoud gebruiken precies één taal.
+- [ ] Eén reisuitnodiging geeft precies één verzorgde e-mail, één in-appmelding en een werkende link.
+- [ ] Kritieke storing en herstel geven nette NL/EN HTML-mail en leesbare pop-uptekst.
+- [ ] Pro en Agency: maandelijks en eenmalig betalen; juiste workspace, plan, factuur, opzegging, verval en refund.
+- [ ] Webhookherhaling geeft geen dubbel recht; een gewijzigde browser-workspace-ID geeft geen toegang.
+- [ ] Persoonlijk en gedeeld postvak koppelen; HTML-mail met handtekening heen en terug sturen.
+- [ ] Inbox, Verzonden, Concepten, Wachtrij, Archief, zoeken, gespreksthread en veilige HTML-weergave.
+- [ ] PDF en afbeelding verzenden en ontvangen; EICAR en uitgeschakelde ClamAV blokkeren zonder inhoud te loggen.
+- [ ] Agency-klant vóór registratie koppelen; na bevestiging alleen de bedoelde reis en na archiveren geen toegang.
+- [ ] GPX openen; losse ICS en live agenda importeren, reis wijzigen, verversen en link intrekken.
+- [ ] Publieke reis toont een leesbare dagindeling zonder prijzen, boekingsnummers, notities of andere privévelden.
+- [ ] Corporate Admin-releasecheck uitvoeren; geen kritieke of hoge securitybevinding open laten.
+
+### P1 — direct daarna controleren
+
+- [ ] Reis maken; meerdere velden tegelijk wijzigen; planning, boeking, activiteit, taak, document en uitgave beheren.
+- [ ] Lange betalersnamen op 320 en 375 pixels zonder overlap.
+- [ ] Agency-team, rollen, offerte maken/delen/beantwoorden/omzetten, branding en eigen domein.
+- [ ] Bedrijfsbeheerder maken, rechten en mailbox wijzigen, opnieuw inloggen en opslag controleren.
+- [ ] Privacyverzoek indienen, beantwoorden en de melding ontvangen.
+- [ ] Home, demo, prijzen, contact, status, roadmap, updates, juridische pagina’s, cookies, talen en onderhoud op telefoon en desktop.
+
+Leg iedere afwijking vast met rol, route, apparaat of mailclient, tijdstip en verwacht versus werkelijk gedrag. Deel alleen gemaskeerde Paddle-ID’s en nooit secrets of klantinhoud.
+
+## Fase 7 — vrijgavebesluit
+
+Vrijgeven mag alleen wanneer:
+
+- alle dertien migraties en tests zijn geslaagd;
+- Node-01 en Node-02 gezond zijn en `npm run smoke` slaagt;
+- alle P0-tests en nieuwe Corporate Admin-controles zijn afgevinkt;
+- Paddle-rechten, uitnodigingsmail, bedrijfsmail, Agency-klanttoegang, GPX en agenda echt werken;
+- geen kritisch of hoog beveiligingsprobleem openstaat.
+
+Zet incidenten pas op **Opgelost** na een geslaagde praktijktest. Openstaande incidenten zijn: dubbele of kale servicemail, verkeerde mailtaal, bedrijfsbeheerder opslaan, Agency-klantkoppeling, GPX, Paddle-rechten, iCal-activiteiten of 404, platte bedrijfsmail, lange publieke deelpagina en overlappende betalersnaam.
+
+Bij een fout na uitrol: stop nieuwe tests, bewaar logs zonder persoonsgegevens en herstel met een nieuwe commit en zo nodig een nieuwe voorwaartse migratie. Gebruik geen force-push en draai geen toegepaste productiemigratie handmatig terug.
+
+Voor een volledig nieuwe serverinstallatie gebruik je [VPS_DEPLOYMENT.md](VPS_DEPLOYMENT.md). Voor een nieuw leeg Supabase-project gebruik je [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md). Voor overige acceptatiescenario’s gebruik je [TEST_CHECKLIST.md](TEST_CHECKLIST.md).

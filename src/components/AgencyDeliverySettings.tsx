@@ -61,19 +61,20 @@ export function AgencyDeliverySettings() {
     try {
       const result = await verifyAgencyDomain();
       await q.refetch();
-      result.verified
-        ? toast.success(
-            text(
-              "Domein geverifieerd. HTTPS wordt automatisch geactiveerd.",
-              "Domain verified. HTTPS will be enabled automatically.",
-            ),
-          )
-        : toast.error(
-            text(
-              `DNS is nog niet compleet. CNAME: ${result.cnameOk ? "ok" : "mist"}, TXT: ${result.txtOk ? "ok" : "mist"}.`,
-              `DNS is incomplete. CNAME: ${result.cnameOk ? "ok" : "missing"}, TXT: ${result.txtOk ? "ok" : "missing"}.`,
-            ),
-          );
+      if (result.verified)
+        toast.success(
+          text(
+            "Domein geverifieerd. HTTPS wordt automatisch geactiveerd.",
+            "Domain verified. HTTPS will be enabled automatically.",
+          ),
+        );
+      else
+        toast.error(
+          text(
+            `DNS is nog niet compleet. CNAME: ${result.cnameOk ? "ok" : "mist"}, TXT: ${result.txtOk ? "ok" : "mist"}.`,
+            `DNS is incomplete. CNAME: ${result.cnameOk ? "ok" : "missing"}, TXT: ${result.txtOk ? "ok" : "missing"}.`,
+          ),
+        );
     } finally {
       setVerifying(false);
     }

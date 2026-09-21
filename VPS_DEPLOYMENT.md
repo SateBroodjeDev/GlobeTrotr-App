@@ -1,15 +1,15 @@
 # GlobeTrotr op twee kale Ubuntu 22.04-servers
 
 > Deze handleiding is voor de eerste installatie van kale servers. Gebruik voor
-> de huidige uitrol vanaf migratie 1140 de enige actuele stappenlijst in
+> de huidige uitrol vanaf migratie 1180 de actuele stappenlijst in
 > [`IMPLEMENTATION_PENDING.md`](IMPLEMENTATION_PENDING.md).
 
 Git en SSH verzorgen de deployment.
 
-| Server | IPv4 | Functie |
-|---|---|---|
-| GBT-Node-01 | `2.28.36.231` | webapp, Caddy, HTTPS |
-| GBT-Node-02 | `178.105.243.191` | worker, later mailrelay |
+| Server      | IPv4              | Functie                        |
+| ----------- | ----------------- | ------------------------------ |
+| GBT-Node-01 | `2.28.36.231`     | webapp, Caddy, HTTPS           |
+| GBT-Node-02 | `178.105.243.191` | worker, mailrelay en IMAP-sync |
 
 ## 1. Hetzner en DNS
 
@@ -197,6 +197,9 @@ WORKER_BATCH_SIZE=20
 WORKER_HEALTH_PORT=9091
 WORKER_BIND_ADDRESS=10.0.0.3
 WORKER_HEALTHCHECK_HOSTS=api.open-meteo.com,api.met.no,api.frankfurter.app,data.skylinkapi.com
+CLAMAV_HOST=clamav
+CLAMAV_PORT=3310
+CLAMAV_TIMEOUT_MS=30000
 MAIL_DELIVERY_RELAY_URL=
 MAIL_DELIVERY_RELAY_TOKEN=
 ```
@@ -232,10 +235,15 @@ docker compose --env-file .env.production -f deploy/worker.compose.yml config --
 docker compose --env-file .env.production -f deploy/worker.compose.yml build --pull
 docker compose --env-file .env.production -f deploy/worker.compose.yml up -d
 docker compose --env-file .env.production -f deploy/worker.compose.yml ps
-docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 worker
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 worker imap-sync mail-relay clamav
+docker compose --env-file .env.production -f deploy/worker.compose.yml ps clamav worker imap-sync mail-relay
 curl --fail http://127.0.0.1:9091/health
 curl --fail http://10.0.0.3:9091/health
 ```
+
+ClamAV is verplicht voor bedrijfsmailbijlagen en blijft alleen binnen het Compose-netwerk bereikbaar. Open TCP 3310 niet in UFW of de providerfirewall. Wacht bij de eerste start totdat `clamav` healthy is; het downloaden en laden van virusdefinities kan enkele minuten duren. Bij scanneruitval blokkeert GlobeTrotr bijlagen bewust.
+
+Voor gratis NL/EN-vertaalconcepten draait optioneel LibreTranslate op Node-02. Vul daar `TRANSLATION_BIND_ADDRESS=10.0.0.3` in en start `docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation up -d`. Zet op Node-01 `TRANSLATION_API_URL=http://10.0.0.3:5000/translate`, laat `TRANSLATION_API_KEY` leeg en bouw de webcontainer opnieuw. Sta TCP 5000 uitsluitend toe tussen de private adressen van Node-01 en Node-02. De actuele commando's en acceptatietest staan in [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md).
 
 De eerste healthcheck kan kort `503` geven. Voer op Node-01 daarna uit:
 

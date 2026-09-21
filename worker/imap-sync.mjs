@@ -1,6 +1,8 @@
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
-import { createDecipheriv } from "node:crypto";
+import { createDecipheriv, createHash, randomUUID } from "node:crypto";
+import { scanBuffer } from "./clamav.mjs";
+import { safeImapErrorCode } from "./imap-diagnostics.mjs";
 
 const env = process.env,
   supabaseUrl = required("SUPABASE_URL").replace(/\/$/, ""),
@@ -65,6 +67,15 @@ function decrypt(value) {
     decipher.final(),
   ]).toString("utf8");
 }
+async function updateSyncState(boxes, changes) {
+  const ids = boxes.map((box) => box.id).filter(Boolean);
+  if (!ids.length) return;
+  await rest(`corporate_mailboxes?id=in.(${ids.join(",")})`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ ...changes, updated_at: new Date().toISOString() }),
+  });
+}
 async function sync() {
   const mailboxes = await rest(
     "corporate_mailboxes?active=eq.true&select=id,address,display_name,owner_user_id,last_synced_at,imap_host,imap_port,imap_secure,imap_username,imap_password_ciphertext",
@@ -78,24 +89,31 @@ async function sync() {
     port: box.imap_port,
     secure: box.imap_secure,
     user: box.imap_username,
-    pass: decrypt(box.imap_password_ciphertext),
+    password: () => decrypt(box.imap_password_ciphertext),
   }));
   if (fallback.length)
     connections.push({
       boxes: fallback,
-      host: required("IMAP_HOST"),
+      host: env.IMAP_HOST,
       port: bounded(env.IMAP_PORT, 993, 1, 65535),
       secure: env.IMAP_SECURE !== "false",
-      user: required("IMAP_USER"),
-      pass: required("IMAP_PASSWORD"),
+      user: env.IMAP_USER,
+      password: () => required("IMAP_PASSWORD"),
     });
+  let succeeded = 0;
+  let failed = 0;
   for (const connection of connections) {
+    try {
+    await updateSyncState(connection.boxes, {
+      sync_status: "syncing", last_sync_attempt_at: new Date().toISOString(),
+      last_sync_error_code: null,
+    });
     const byAddress = new Map(connection.boxes.map((box) => [normalized(box.address), box]));
     const client = new ImapFlow({
-      host: connection.host,
+      host: connection.host || required("IMAP_HOST"),
       port: connection.port,
       secure: connection.secure,
-      auth: { user: connection.user, pass: connection.pass },
+      auth: { user: connection.user || required("IMAP_USER"), pass: connection.password() },
       logger: false,
       tls: { rejectUnauthorized: env.IMAP_REJECT_UNAUTHORIZED !== "false" },
     });
@@ -127,10 +145,30 @@ async function sync() {
             const providerId = String(
               parsed.messageId || `imap:${client.mailbox.uidValidity}:${message.uid}`,
             ).slice(0, 500);
-            const body = String(parsed.text || parsed.html || "")
+            const bodyHtml = String(parsed.html || "").replace(/\0/g, "").slice(0, 100_000);
+            const body = String(parsed.text || bodyHtml.replace(/<[^>]*>/g, " "))
               .replace(/\0/g, "")
               .slice(0, 100_000);
             const sender = normalized(parsed.from?.value?.[0]?.address) || "unknown@globetrotr.nl";
+            const safeAttachments = [];
+            let blockedAttachmentCount = 0;
+            let attachmentBytes = 0;
+            for (const attachment of (parsed.attachments || []).slice(0, 5)) {
+              const content = Buffer.from(attachment.content || []);
+              attachmentBytes += content.length;
+              if (!content.length || content.length > 10 * 1024 * 1024 || attachmentBytes > 20 * 1024 * 1024)
+                continue;
+              try {
+                await scanBuffer(content);
+                safeAttachments.push({ attachment, content });
+              } catch (error) {
+                if (error?.code !== "MALWARE_DETECTED") throw error;
+                blockedAttachmentCount += 1;
+                log("error", "imap.attachment_rejected", {
+                  errorCode: "MALWARE_DETECTED",
+                });
+              }
+            }
             for (const box of targets) {
               try {
                 const inserted = await rest("corporate_mail_messages", {
@@ -147,12 +185,63 @@ async function sync() {
                     sender_address: sender,
                     recipient_addresses: [...new Set(recipients)].slice(0, 50),
                     subject: String(parsed.subject || "").slice(0, 500),
-                    preview_text: body.slice(0, 1000),
+                    preview_text: `${blockedAttachmentCount ? `[${blockedAttachmentCount} bijlage(n) geblokkeerd / attachment(s) blocked] ` : ""}${body}`.slice(0, 1000),
                     body_text: body,
+                    body_html: bodyHtml || null,
                     received_at: (parsed.date || message.internalDate || new Date()).toISOString(),
                   }),
                 });
                 if (inserted?.length) {
+                  for (const { attachment, content } of safeAttachments) {
+                    const contentType = String(attachment.contentType || "application/octet-stream").slice(0, 150);
+                    const fileName = String(attachment.filename || "attachment")
+                      .replace(/[\0\r\n]/g, "")
+                      .slice(0, 255);
+                    const extension = fileName.includes(".")
+                      ? `.${fileName.split(".").pop().replace(/[^a-z0-9]/gi, "").slice(0, 10)}`
+                      : "";
+                    const storageKey = `${box.id}/inbound/${randomUUID()}${extension}`;
+                    const encodedPath = storageKey.split("/").map(encodeURIComponent).join("/");
+                    const upload = await fetch(
+                      `${supabaseUrl}/storage/v1/object/corporate-mail/${encodedPath}`,
+                      {
+                        method: "POST",
+                        headers: {
+                          apikey: serviceKey,
+                          Authorization: `Bearer ${serviceKey}`,
+                          "Content-Type": contentType,
+                          "x-upsert": "false",
+                        },
+                        body: content,
+                      },
+                    );
+                    if (!upload.ok) {
+                      log("error", "imap.attachment_upload_failed", {
+                        mailboxId: box.id,
+                        status: upload.status,
+                      });
+                      continue;
+                    }
+                    try {
+                      await rest("corporate_mail_attachments", {
+                        method: "POST",
+                        headers: { Prefer: "return=minimal" },
+                        body: JSON.stringify({
+                          message_id: inserted[0].id,
+                          storage_key: storageKey,
+                          file_name: fileName || "attachment",
+                          content_type: contentType,
+                          size_bytes: content.length,
+                          sha256: createHash("sha256").update(content).digest("hex"),
+                        }),
+                      });
+                    } catch (error) {
+                      log("error", "imap.attachment_record_failed", {
+                        mailboxId: box.id,
+                        errorCode: String(error?.code || "ATTACHMENT_RECORD_FAILED").slice(0, 80),
+                      });
+                    }
+                  }
                   const members = await rest(
                     `corporate_mailbox_members?mailbox_id=eq.${box.id}&select=user_id`,
                   );
@@ -191,14 +280,23 @@ async function sync() {
     } finally {
       await client.logout();
     }
+    await updateSyncState(connection.boxes, {
+      sync_status: "ready", last_synced_at: new Date().toISOString(),
+      last_sync_error_code: null, sync_requested_at: null,
+    });
+    succeeded += connection.boxes.length;
+    } catch (error) {
+      failed += connection.boxes.length;
+      const errorCode = safeImapErrorCode(error);
+      await updateSyncState(connection.boxes, {
+        sync_status: "error", last_sync_error_code: errorCode, sync_requested_at: null,
+      });
+      log("error", "imap.connection_failed", {
+        mailboxIds: connection.boxes.map((box) => box.id), errorCode,
+      });
+    }
   }
-  const now = new Date().toISOString();
-  await rest("corporate_mailboxes?active=eq.true", {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({ sync_status: "ready", last_synced_at: now, updated_at: now }),
-  });
-  log("info", "imap.synced", { mailboxCount: mailboxes.length });
+  log(failed ? "error" : "info", "imap.synced", { succeeded, failed });
 }
 while (!stopping) {
   try {

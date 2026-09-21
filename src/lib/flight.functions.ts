@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { PlanId } from "@/lib/types";
 import {
   findScheduledFlight,
   formatScheduleDate,
@@ -46,7 +47,7 @@ export const lookupFlight = createServerFn({ method: "GET" })
       .maybeSingle();
     if (workspaceError || !workspace) throw new Error("WORKSPACE_NOT_FOUND");
     const { consumeProviderQuota } = await import("@/lib/provider-quota.server");
-    await consumeProviderQuota(supabaseAdmin, workspace.workspace_uuid, context.userId, workspace.plan, "flight_lookup");
+    await consumeProviderQuota(supabaseAdmin, workspace.workspace_uuid, context.userId, workspace.plan as PlanId, "flight_lookup");
     const { data: allowed, error: quotaError } = await supabaseAdmin.rpc(
       "consume_flight_lookup_quota" as never,
       { p_user_id: context.userId, p_limit: 20 } as never,

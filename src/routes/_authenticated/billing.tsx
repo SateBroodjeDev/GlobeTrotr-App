@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   changePaddlePlan,
+  createPaddleCheckoutBinding,
   createPaddleInvoiceLink,
   createPaddlePortalSession,
   getBillingOverview,
@@ -39,12 +40,17 @@ function Billing() {
   async function checkout(plan: "pro" | "agency") {
     if (!billing.data) return;
     const priceId = billing.data.checkout.prices[billingMode][plan];
-    if (!billing.data.checkout.clientToken || !priceId)
-      return toast.error(
+    if (!billing.data.checkout.clientToken || !priceId) {
+      toast.error(
         text("Paddle is nog niet volledig geconfigureerd.", "Paddle is not fully configured yet."),
       );
+      return;
+    }
     setBusy(plan);
     try {
+      const binding = await createPaddleCheckoutBinding({
+        data: { plan, mode: billingMode === "oneTime" ? "one_time" : "recurring" },
+      });
       const paddle = await loadPaddle(
         billing.data.checkout.clientToken,
         billing.data.checkout.environment,
@@ -53,9 +59,7 @@ function Billing() {
         items: [{ priceId, quantity: 1 }],
         customer: billing.data.checkout.email ? { email: billing.data.checkout.email } : undefined,
         customData: {
-          workspace_uuid: billing.data.workspaceId,
-          plan,
-          billing_mode: billingMode === "oneTime" ? "one_time" : "recurring",
+          checkout_binding: binding.token,
         },
         settings: {
           displayMode: "overlay",
@@ -88,7 +92,10 @@ function Billing() {
   }
 
   async function selectPaidPlan(plan: "pro" | "agency") {
-    if (billingMode === "oneTime" || !billing.data?.subscription) return checkout(plan);
+    if (billingMode === "oneTime" || !billing.data?.subscription) {
+      await checkout(plan);
+      return;
+    }
     if (
       !window.confirm(
         text(
@@ -218,7 +225,7 @@ function Billing() {
                     className="w-full"
                     variant={active ? "outline" : "default"}
                     disabled={!mayBill || busy !== null || (active && billingMode === "recurring")}
-                    onClick={() => selectPaidPlan(plan.id)}
+                    onClick={() => plan.id !== "free" && selectPaidPlan(plan.id)}
                   >
                     {busy === plan.id
                       ? text("Laden…", "Loading…")

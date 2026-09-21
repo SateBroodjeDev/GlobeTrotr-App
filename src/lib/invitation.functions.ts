@@ -6,6 +6,7 @@ import {
   recordTripManagementAudit,
 } from "@/lib/trip-management-access.server";
 import { queueInvitationEmail } from "@/lib/email-outbox.server";
+import { mailLocale } from "@/lib/mail-locale";
 
 const INVITABLE_ROLES: TripMemberRole[] = ["traveler", "viewer", "advisor", "finance", "client"];
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -84,17 +85,22 @@ export const createTripInvitation = createServerFn({ method: "POST" })
       db.from("trips").select("name").eq("trip_uuid", data.tripId).single(),
       db.from("profiles").select("id,locale").ilike("email", email).maybeSingle(),
     ]);
-    await queueInvitationEmail(db, {
+    const mailDelivery = await queueInvitationEmail(db, {
       recipient: email,
       preferenceUserId: recipient?.id,
-      locale: String(recipient?.locale ?? "").startsWith("en") ? "en" : "nl",
+      locale: mailLocale(recipient?.locale),
       title: `Uitnodiging voor ${trip?.name ?? "een reis"} / Invitation to ${trip?.name ?? "a trip"}`,
       body: `Je bent als ${data.role} uitgenodigd voor ${trip?.name ?? "een reis"}. Bekijk eerst de reisgegevens en kies daarna zelf of je deelneemt. Deze persoonlijke link is zeven dagen geldig. / You have been invited to ${trip?.name ?? "a trip"} as ${data.role}. Review the trip details and then choose whether to join. This personal link is valid for seven days.`,
       actionUrl: `https://globetrotr.nl/invite/${token}`,
       invitationType: "trip",
       invitationId: invitation.id,
     });
-    return { id: invitation.id as string, token, expiresAt: invitation.expires_at as string };
+    return {
+      id: invitation.id as string,
+      token,
+      expiresAt: invitation.expires_at as string,
+      mailDelivery,
+    };
   });
 
 export const listPendingTripInvitations = createServerFn({ method: "GET" })
@@ -188,6 +194,7 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
       "invitation",
       data.invitationId,
     );
+    let mailDelivery: "queued" | "skipped" | "failed" | undefined;
     if (data.action === "renew") {
       const { data: invitation } = await db
         .from("trip_invitations")
@@ -203,10 +210,10 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
           .maybeSingle(),
       ]);
       if (invitation?.email)
-        await queueInvitationEmail(db, {
+        mailDelivery = await queueInvitationEmail(db, {
           recipient: invitation.email,
           preferenceUserId: recipient?.id,
-          locale: String(recipient?.locale ?? "").startsWith("en") ? "en" : "nl",
+          locale: mailLocale(recipient?.locale),
           title: `Uitnodiging voor ${trip?.name ?? "een reis"} / Invitation to ${trip?.name ?? "a trip"}`,
           body: `Je vernieuwde uitnodiging voor ${trip?.name ?? "een reis"} staat klaar. / Your renewed invitation to ${trip?.name ?? "a trip"} is ready.`,
           actionUrl: `https://globetrotr.nl/invite/${token}`,
@@ -218,6 +225,7 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
       status: result.status as "revoked" | "renewed",
       token: token || undefined,
       expiresAt: result.expiresAt as string | undefined,
+      mailDelivery,
     };
   });
 

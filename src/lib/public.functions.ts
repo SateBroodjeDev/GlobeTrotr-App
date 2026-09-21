@@ -224,93 +224,10 @@ function card(row: Row, t: AnyTrip, authorName: string): PublicTripCard {
 
 export const listPublicTrips = createServerFn({ method: "GET" }).handler(async () => {
   const publicDb = await createPublicDatabaseClient();
-  const { data: publicCards, error: publicError } = await publicDb.rpc(
-    "list_public_trip_cards" as never,
-  );
-  if (!publicError && Array.isArray(publicCards)) return publicCards as PublicTripCard[];
-  // Tijdens de uitrol kan de veilige RPC nog ontbreken. Geef lokaal een lege
-  // lijst terug in plaats van een wit scherm; lees nooit het volledige
-  // workspace-JSON met de publishable key.
-  if (!process.env["SUPABASE_SERVICE_ROLE_KEY"]) return [] as PublicTripCard[];
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const db = supabaseAdmin as unknown as UntypedSupabase;
-  const { data: normalizedTrips, error: normalizedError } = await db
-    .from("trips")
-    .select(
-      "trip_uuid, workspace_user_id, name, description, template, start_date, end_date, budget, share_financials, share_pin_hash",
-    )
-    .eq("is_public", true)
-    .is("share_pin_hash", null)
-    .eq("archived", false)
-    .limit(60);
-
-  if (!normalizedError && Array.isArray(normalizedTrips)) {
-    const trips = normalizedTrips as RelationalTrip[];
-    if (trips.length === 0) return [] as PublicTripCard[];
-    const tripIds = trips.map((trip) => trip.trip_uuid);
-    const workspaceIds = [...new Set(trips.map((trip) => trip.workspace_user_id))];
-    const [{ data: stops }, { data: workspaces }, { data: profiles }] = await Promise.all([
-      db
-        .from("trip_stops")
-        .select("trip_uuid, name, country, lat, lon, arrive_date, nights, position")
-        .in("trip_uuid", tripIds)
-        .order("position"),
-      db
-        .from("workspaces")
-        .select("user_id, public_token, branding, data, plan")
-        .in("user_id", workspaceIds),
-      db.from("profiles").select("id, display_name").in("id", workspaceIds),
-    ]);
-    const stopsByTrip = new Map<string, RelationalStop[]>();
-    for (const stop of (stops ?? []) as RelationalStop[]) {
-      stopsByTrip.set(stop.trip_uuid, [...(stopsByTrip.get(stop.trip_uuid) ?? []), stop]);
-    }
-    const workspacesByUser = new Map(
-      ((workspaces ?? []) as WorkspaceBrand[]).map((workspace) => [workspace.user_id, workspace]),
-    );
-    const profilesByUser = new Map(
-      ((profiles ?? []) as PublicProfile[]).map((profile) => [profile.id, profile]),
-    );
-    return trips.flatMap((trip) => {
-      const workspace = workspacesByUser.get(trip.workspace_user_id);
-      return workspace
-        ? [
-            relationalCard(
-              workspace,
-              trip,
-              stopsByTrip.get(trip.trip_uuid) ?? [],
-              authorOf(profilesByUser.get(trip.workspace_user_id)),
-            ),
-          ]
-        : [];
-    });
-  }
-
-  // Voor bestaande omgevingen vóór de relationele migratie blijft JSON werken.
-  const { data, error } = await supabaseAdmin
-    .from("workspaces")
-    .select("user_id, data, public_token")
-    .limit(100);
-  if (error) return [] as PublicTripCard[];
-  const rows = (data ?? []) as Row[];
-  const { data: profiles } = await db
-    .from("profiles")
-    .select("id, display_name")
-    .in(
-      "id",
-      rows.map((row) => row.user_id),
-    );
-  const profilesByUser = new Map(
-    ((profiles ?? []) as PublicProfile[]).map((profile) => [profile.id, profile]),
-  );
-  const out: PublicTripCard[] = [];
-  for (const row of rows) {
-    const authorName = authorOf(profilesByUser.get(row.user_id));
-    for (const t of tripsOf(row, false)) out.push(card(row, t, authorName));
-  }
-  return out.slice(0, 60);
+  const { data, error } = await publicDb.rpc("list_public_trip_cards" as never);
+  if (error || !Array.isArray(data)) return [] as PublicTripCard[];
+  return data as PublicTripCard[];
 });
-
 export const getPublicTrip = createServerFn({ method: "GET" })
   .validator((input: { token: string; tripId: string; pin?: string }) => input)
   .handler(async ({ data: input }) => {
@@ -361,7 +278,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       .select("id, display_name")
       .eq("id", workspace.user_id)
       .maybeSingle();
-    const authorName = authorOf(profile as PublicProfile | null | undefined);
+    const authorName = authorOf((profile as PublicProfile | null | undefined) ?? undefined);
     const { data: byUuid, error: uuidError } = await db
       .from("trips")
       .select(

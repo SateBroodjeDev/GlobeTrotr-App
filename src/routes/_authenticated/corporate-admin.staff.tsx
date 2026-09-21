@@ -82,7 +82,11 @@ function Page() {
               "De laatste eigenaar kan niet worden verwijderd.",
               "The last owner cannot be removed.",
             )
-          : text("Medewerker kon niet worden bijgewerkt.", "Staff member could not be updated."),
+          : e?.message === "STAFF_MAILBOX_IN_USE"
+            ? text("Dit mailadres is al aan een ander postvak gekoppeld.", "This address belongs to another mailbox.")
+            : e?.message === "INVALID_STAFF"
+              ? text("Controleer het mailadres, de functie en de reden.", "Check the email address, job title and reason.")
+              : text(`Medewerker kon niet worden bijgewerkt (${e?.message || "ONBEKEND"}).`, `Staff member could not be updated (${e?.message || "UNKNOWN"}).`),
       );
     }
   }

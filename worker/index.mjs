@@ -1,5 +1,8 @@
 import { createServer } from "node:http";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { scanBuffer } from "./clamav.mjs";
+import { buildLiveCalendar } from "./live-calendar.mjs";
+import { trustedPaddleCustomData } from "./paddle-binding.mjs";
 
 const env = process.env;
 const supabaseUrl = required("SUPABASE_URL").replace(/\/$/, "");
@@ -12,6 +15,7 @@ let lastPollAt = null;
 let lastSuccessAt = null;
 let lastErrorCode = null;
 let lastEntitlementExpiryAt = 0;
+let lastAttachmentCleanupAt = 0;
 const tlsChecks = new Map();
 
 async function readRequestBody(request, maximum = 262_144) {
@@ -62,6 +66,14 @@ async function enrichPaddleEvent(event) {
   const matched = prices.find(([id]) => id?.trim() && priceIds.has(id.trim()));
   data.globetrotr_plan = matched?.[1] ?? null;
   data.globetrotr_billing_mode = matched?.[2] ?? null;
+  // Paddle tekent de webhook, maar custom_data komt oorspronkelijk uit de
+  // browser. Accepteer een workspace alleen met onze serverhandtekening.
+  data.custom_data = trustedPaddleCustomData(
+    data.custom_data,
+    env.PADDLE_CHECKOUT_BINDING_SECRET,
+    data.globetrotr_plan,
+    data.globetrotr_billing_mode,
+  );
   if ((event.event_type || "").startsWith("subscription.") && !data.globetrotr_plan)
     throw Object.assign(new Error("PADDLE_PRICE_NOT_ALLOWED"), {
       code: "PADDLE_PRICE_NOT_ALLOWED",
@@ -238,6 +250,40 @@ async function pollCorporateMail() {
       );
       if (!mailbox?.address)
         throw Object.assign(new Error("MAILBOX_NOT_FOUND"), { code: "MAILBOX_NOT_FOUND" });
+      const parent = message.in_reply_to_message_id
+        ? await restSingle(
+            `corporate_mail_messages?id=eq.${encodeURIComponent(message.in_reply_to_message_id)}&select=provider_message_id,thread_key`,
+          )
+        : null;
+      const attachmentRows = await restRead(
+        `corporate_mail_attachments?send_queue_id=eq.${encodeURIComponent(message.id)}&select=id,storage_key,file_name,content_type,size_bytes,sha256`,
+      );
+      const attachments = [];
+      let attachmentBytes = 0;
+      for (const attachment of attachmentRows ?? []) {
+        attachmentBytes += Number(attachment.size_bytes || 0);
+        if (attachmentBytes > 20 * 1024 * 1024)
+          throw Object.assign(new Error("ATTACHMENTS_TOO_LARGE"), { code: "ATTACHMENTS_TOO_LARGE" });
+        const path = String(attachment.storage_key)
+          .split("/")
+          .map(encodeURIComponent)
+          .join("/");
+        const file = await fetch(`${supabaseUrl}/storage/v1/object/authenticated/corporate-mail/${path}`, {
+          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+          signal: AbortSignal.timeout(20_000),
+        });
+        if (!file.ok)
+          throw Object.assign(new Error("ATTACHMENT_READ_FAILED"), { code: `STORAGE_${file.status}` });
+        const content = Buffer.from(await file.arrayBuffer());
+        if (content.length !== Number(attachment.size_bytes) || createHash("sha256").update(content).digest("hex") !== attachment.sha256)
+          throw Object.assign(new Error("ATTACHMENT_INTEGRITY_FAILED"), { code: "ATTACHMENT_INTEGRITY_FAILED" });
+        await scanBuffer(content);
+        attachments.push({
+          filename: attachment.file_name,
+          contentType: attachment.content_type,
+          content: content.toString("base64"),
+        });
+      }
       const response = await fetch(relayUrl, {
         method: "POST",
         headers: {
@@ -252,11 +298,15 @@ async function pollCorporateMail() {
           cc: message.cc_addresses,
           subject: message.subject,
           text: message.body_text,
+          html: message.body_html,
+          inReplyTo: parent?.provider_message_id || undefined,
+          references: parent?.thread_key || parent?.provider_message_id || undefined,
+          attachments,
         }),
         signal: AbortSignal.timeout(20_000),
       });
       if (!response.ok) throw await relayFailure(response);
-      await updateCorporateOutbox(message, mailbox.address, "sent", null);
+      await updateCorporateOutbox(message, mailbox.address, "sent", null, parent);
       log("info", "corporate_mail.sent", {
         messageId: message.id,
         mailboxId: message.mailbox_id,
@@ -264,11 +314,18 @@ async function pollCorporateMail() {
       });
     } catch (error) {
       const code = String(error?.code ?? "MAIL_RELAY_FAILED").slice(0, 80);
-      await updateCorporateOutbox(message, null, "failed", code);
+      const permanent = new Set([
+        "MALWARE_DETECTED",
+        "MALWARE_SCAN_INVALID_FILE",
+        "ATTACHMENT_INTEGRITY_FAILED",
+        "ATTACHMENTS_TOO_LARGE",
+      ]).has(code);
+      await updateCorporateOutbox(message, null, permanent ? "cancelled" : "failed", code);
       log("error", "corporate_mail.failed", {
         messageId: message.id,
         mailboxId: message.mailbox_id,
         errorCode: code,
+        permanent,
       });
     }
   }
@@ -288,7 +345,51 @@ async function restSingle(path) {
   return response.json();
 }
 
-async function updateCorporateOutbox(message, senderAddress, status, errorCode) {
+async function restRead(path) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok)
+    throw Object.assign(new Error("REST_READ_FAILED"), { code: `REST_${response.status}` });
+  return response.json();
+}
+
+async function cleanupExpiredCorporateMailUploads() {
+  const expired = await restRead(
+    `corporate_mail_uploads?expires_at=lt.${encodeURIComponent(new Date().toISOString())}&select=id,storage_key&order=expires_at.asc&limit=100`,
+  );
+  if (!expired?.length) return;
+  const storage = await fetch(`${supabaseUrl}/storage/v1/object/corporate-mail`, {
+    method: "DELETE",
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prefixes: expired.map((row) => row.storage_key) }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!storage.ok)
+    throw Object.assign(new Error("ATTACHMENT_CLEANUP_FAILED"), { code: `STORAGE_${storage.status}` });
+  const removed = await fetch(
+    `${supabaseUrl}/rest/v1/corporate_mail_uploads?id=in.(${expired.map((row) => row.id).join(",")})`,
+    {
+      method: "DELETE",
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        Prefer: "return=minimal",
+      },
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+  if (!removed.ok)
+    throw Object.assign(new Error("ATTACHMENT_CLEANUP_RECORD_FAILED"), { code: `REST_${removed.status}` });
+  log("info", "corporate_mail.uploads_cleaned", { count: expired.length });
+}
+
+async function updateCorporateOutbox(message, senderAddress, status, errorCode, parent = null) {
   const now = new Date().toISOString();
   const response = await fetch(
     `${supabaseUrl}/rest/v1/corporate_mail_send_queue?id=eq.${encodeURIComponent(message.id)}&status=eq.processing`,
@@ -322,17 +423,19 @@ async function updateCorporateOutbox(message, senderAddress, status, errorCode) 
       apikey: serviceKey,
       Authorization: `Bearer ${serviceKey}`,
       "Content-Type": "application/json",
-      Prefer: "return=minimal",
+      Prefer: "return=representation",
     },
     body: JSON.stringify({
       mailbox_id: message.mailbox_id,
       provider_message_id: `outbox:${message.id}`,
+      thread_key: parent?.thread_key || parent?.provider_message_id || `outbox:${message.id}`,
       direction: "outbound",
       sender_address: senderAddress,
       recipient_addresses: message.recipient_addresses,
       subject: message.subject,
       preview_text: message.body_text.slice(0, 1000),
       body_text: message.body_text,
+      body_html: message.body_html,
       received_at: now,
       read_at: now,
     }),
@@ -342,6 +445,28 @@ async function updateCorporateOutbox(message, senderAddress, status, errorCode) 
     throw Object.assign(new Error("SENT_MESSAGE_RECORD_FAILED"), {
       code: `REST_${recorded.status}`,
     });
+  if (recorded.ok) {
+    const rows = await recorded.json();
+    const recordedId = rows?.[0]?.id;
+    if (recordedId) {
+      const moved = await fetch(
+        `${supabaseUrl}/rest/v1/corporate_mail_attachments?send_queue_id=eq.${encodeURIComponent(message.id)}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({ message_id: recordedId, send_queue_id: null }),
+          signal: AbortSignal.timeout(15_000),
+        },
+      );
+      if (!moved.ok)
+        throw Object.assign(new Error("SENT_ATTACHMENT_RECORD_FAILED"), { code: `REST_${moved.status}` });
+    }
+  }
 }
 
 async function updateOutbox(id, status, errorCode) {
@@ -379,6 +504,10 @@ async function cycle() {
       await rpc("expire_billing_entitlements");
       lastEntitlementExpiryAt = Date.now();
     }
+    if (Date.now() - lastAttachmentCleanupAt > 3_600_000) {
+      await cleanupExpiredCorporateMailUploads();
+      lastAttachmentCleanupAt = Date.now();
+    }
     lastSuccessAt = new Date().toISOString();
     lastErrorCode = null;
   } catch (error) {
@@ -410,9 +539,17 @@ createServer(async (request, response) => {
       }
       const event = await enrichPaddleEvent(JSON.parse(rawBody));
       const result = await rpc("process_paddle_billing_event", { p_event: event });
-      if (result === "processed" && event.data?.globetrotr_billing_mode === "one_time")
+      // A previous delivery may have committed the event before entitlement creation failed.
+      // Re-run the idempotent entitlement step on verified Paddle retries.
+      if (
+        ["processed", "duplicate"].includes(result) &&
+        event.data?.globetrotr_billing_mode === "one_time"
+      )
         await rpc("apply_paddle_one_time_purchase", { p_event: event });
-      if (result === "processed" && /^(transaction|adjustment)\./.test(event.event_type || ""))
+      if (
+        ["processed", "duplicate"].includes(result) &&
+        /^(transaction|adjustment)\./.test(event.event_type || "")
+      )
         await rpc("reconcile_paddle_one_time_purchase", { p_event: event });
       log("info", "paddle.webhook", {
         eventId: event.event_id,
@@ -448,55 +585,7 @@ createServer(async (request, response) => {
         response.writeHead(404).end();
         return;
       }
-      const esc = (value) =>
-        String(value ?? "")
-          .replace(/([,;\\])/g, "\\$1")
-          .replace(/\r?\n/g, "\\n");
-      const date = (value) => String(value ?? "").replaceAll("-", "");
-      const dayAfter = (value) => {
-        const result = new Date(`${value}T12:00:00Z`);
-        result.setUTCDate(result.getUTCDate() + 1);
-        return result.toISOString().slice(0, 10);
-      };
-      const events = [
-        ...(calendar.itinerary || []).map((item) => ({
-          id: `itinerary-${item.id}`,
-          day: item.day,
-          title: item.title,
-          notes: item.notes,
-        })),
-        ...(calendar.bookings || []).map((item) => ({
-          id: `booking-${item.id}`,
-          day: item.start_date,
-          end: item.end_date,
-          title: item.title,
-          notes: item.notes,
-        })),
-      ];
-      const body = [
-        "BEGIN:VCALENDAR",
-        "VERSION:2.0",
-        "PRODID:-//GlobeTrotr//Live trip calendar//EN",
-        "CALSCALE:GREGORIAN",
-        `X-WR-CALNAME:${esc(calendar.name)}`,
-        ...events.flatMap((item) =>
-          [
-            "BEGIN:VEVENT",
-            `UID:${esc(item.id)}@globetrotr.nl`,
-            `DTSTAMP:${new Date()
-              .toISOString()
-              .replace(/[-:]/g, "")
-              .replace(/\.\d{3}/, "")}`,
-            `DTSTART;VALUE=DATE:${date(item.day)}`,
-            `DTEND;VALUE=DATE:${date(dayAfter(item.end || item.day))}`,
-            `SUMMARY:${esc(item.title)}`,
-            item.notes ? `DESCRIPTION:${esc(item.notes)}` : null,
-            "END:VEVENT",
-          ].filter(Boolean),
-        ),
-        "END:VCALENDAR",
-        "",
-      ].join("\r\n");
+      const body = buildLiveCalendar(calendar);
       response
         .writeHead(200, {
           "Content-Type": "text/calendar; charset=utf-8",
@@ -504,8 +593,11 @@ createServer(async (request, response) => {
           "Content-Disposition": `inline; filename="${String(calendar.name).replace(/[^a-z0-9_-]/gi, "-")}.ics"`,
         })
         .end(body);
-    } catch {
-      response.writeHead(404).end();
+    } catch (error) {
+      log("error", "calendar.feed_failed", {
+        errorCode: String(error?.code || "CALENDAR_FEED_FAILED").slice(0, 80),
+      });
+      response.writeHead(503, { "Cache-Control": "no-store" }).end();
     }
     return;
   }

@@ -359,7 +359,7 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
     const candidateWorkspaceIds = agencyMemberships.map((membership: any) => membership.workspace_uuid);
     const { data: permissionRows } = await agencyClient.from("agency_role_permissions").select("workspace_uuid, role, permissions").in("workspace_uuid", candidateWorkspaceIds);
     const defaultsByRole = new Map((permissionRows ?? []).map((row: any) => [`${row.workspace_uuid}:${row.role}`, row.permissions]));
-    const visibleMemberships = agencyMemberships.filter((membership: any) => effectiveAgencyPermissions(membership.role, defaultsByRole.get(`${membership.workspace_uuid}:${membership.role}`), membership.permission_overrides).trips_view);
+    const visibleMemberships = agencyMemberships.filter((membership: any) => effectiveAgencyPermissions(membership.role, defaultsByRole.get(`${membership.workspace_uuid}:${membership.role}`) as Partial<AgencyPermissionMap> | undefined, membership.permission_overrides as Partial<AgencyPermissionMap> | null).trips_view);
     const workspaceIds = visibleMemberships.map((membership: any) => membership.workspace_uuid);
     const roleByWorkspace = new Map<string, TripMemberRole>(visibleMemberships.map((membership: any) => [
       String(membership.workspace_uuid),

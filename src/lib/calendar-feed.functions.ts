@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createServerFn } from "@tanstack/react-start";
 import { createHash, randomBytes } from "node:crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -41,17 +40,26 @@ export const createCalendarFeed = createServerFn({ method: "POST" })
   .handler(async ({ data, context: auth }: any) => {
     const db = await context(auth.userId, data.tripUuid);
     const token = randomBytes(32).toString("base64url");
-    await db
+    const { data: created, error } = await db
+      .from("trip_calendar_feeds")
+      .insert({
+        trip_uuid: data.tripUuid,
+        created_by: auth.userId,
+        token_hash: createHash("sha256").update(token).digest("hex"),
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error("CALENDAR_FEED_CREATE_FAILED");
+    const { error: revokeError } = await db
       .from("trip_calendar_feeds")
       .update({ active: false, revoked_at: new Date().toISOString() })
       .eq("trip_uuid", data.tripUuid)
-      .eq("active", true);
-    const { error } = await db.from("trip_calendar_feeds").insert({
-      trip_uuid: data.tripUuid,
-      created_by: auth.userId,
-      token_hash: createHash("sha256").update(token).digest("hex"),
-    });
-    if (error) throw new Error("CALENDAR_FEED_CREATE_FAILED");
+      .eq("active", true)
+      .neq("id", created.id);
+    if (revokeError) {
+      await db.from("trip_calendar_feeds").delete().eq("id", created.id);
+      throw new Error("CALENDAR_FEED_ROTATE_FAILED");
+    }
     return { url: `https://globetrotr.nl/calendar/${token}.ics` };
   });
 

@@ -1,4 +1,118 @@
 # GlobeTrotr changelog
+
+## 2026-09-21 — Auth-mail per gekozen taal (niet uitgerold)
+
+- Registratie en nieuwe magic-linkaccounts bewaren Nederlands of Engels in Auth-metadata; een profieltaalwijziging houdt deze voorkeur voortaan gelijk.
+- Migratie 1300 vult de taal voor bestaande accounts en voegt een Corporate Admin-acceptatiecontrole toe.
+- De vijf Supabase Auth-templates en hun onderwerpen tonen voortaan één taal per bericht. Zonder Nederlandse voorkeur is Engels de veilige standaard.
+- Nieuwe en vernieuwde reis- en Agency-uitnodigingen gebruiken dezelfde veilige taalkeuze. Agency-rechten, betaalverzoeken en overige servicemail zetten interne berichtcodes om in leesbare NL/EN-tekst met een passende actieknop.
+- Privacy- en cookietekst maakt nu expliciet onderscheid tussen noodzakelijke opslag, taaltoestemming en door de gebruiker ingestelde thema- en zijbalkvoorkeuren.
+
+## 2026-09-21 — Uitgebreide automatische securitypoort (niet uitgerold)
+
+- De releasecontrole scant nu alle TypeScript-bronnen op onbeveiligde service-role-serverfuncties, servergeheimen in browsercode, nieuwe niet-beoordeelde HTML-sinks, externe links zonder openerbescherming en mogelijk gevoelige logging.
+- Nieuwe migraties na de bevestigde 1170-baseline worden gecontroleerd op een vastgezet `search_path` voor iedere `SECURITY DEFINER`-functie en op risicovolle uitvoerrechten.
+- Vijf regressietests bewaken de scanner zelf. Een gevonden externe privacy-link is direct voorzien van expliciete `noopener`-bescherming.
+- De productie-afhankelijkheden zijn aanvullend tegen de actuele npm-advisories gecontroleerd; op 21 september 2026 zijn geen bekende kwetsbaarheden gemeld.
+- De handmatige aanvalstests, infrastructuurscan en finale vrijgavebeoordeling blijven open; deze automatische poort claimt geen afgeronde productie-audit.
+
+## 2026-09-21 — Storingsmail in de juiste taal (niet uitgerold)
+
+- De mailwachtrij haalt bij platformmeldingen de Nederlandse of Engelse tekst uit de oorspronkelijke aankondiging. Intern opgemaakte notificatiecodes worden niet meer als mailtekst verzonden.
+- De SMTP-relay leest ook eerder opgebouwde wachtrijregels en toont kritieke storingen met een herkenbare kop en link naar de statuspagina. Plan- en enkele toegangsberichten krijgen begrijpelijke zinnen; de pop-up rechtsboven toont geen interne codes meer.
+- Migratie 1290 voegt een openstaande Corporate Admin-controle toe; mail in twee echte postvakken blijft nog te testen.
+- De SQL-test voor 1290 bewijst nu met teruggedraaide Nederlandse en Engelse testaccounts dat onderwerp, tekst, ernst en meldingstype werkelijk worden gelokaliseerd en geen interne scheidingstekens lekken.
+- Een vaste release-preflight blokkeert ontbrekende migratietests, verouderde implementatieverwijzingen en bekende kapotte UTF-8-patronen vóór een commit.
+
+## 2026-09-21 — Betaling aan het juiste account koppelen (niet uitgerold)
+
+- De checkout ontvangt een door de ingelogde server ondertekende workspacekoppeling. De Paddle-worker accepteert de workspace-ID uit de webhook alleen als die handtekening bij plan en betaalwijze past.
+- Een losse of gewijzigde workspace-ID uit browserdata verleent geen toegang. Bestaande abonnementsgebeurtenissen kunnen via hun opgeslagen Paddle-klantkoppeling blijven doorlopen.
+- Migratie 1280 voegt een nieuwe openstaande Corporate Admin-controle toe. Beide nodes hebben vóór de uitrol hetzelfde nieuwe private geheim nodig.
+
+## 2026-09-21 — Betrouwbare GPX-routepunten en bevestigde klanttoegang (niet uitgerold)
+
+- GPX neemt geen ontbrekende of buitenbereik-coördinaten meer op als routepunt. Geldige nulcoördinaten blijven ondersteund.
+- De Agency-koppeling wordt ook bij opnieuw opslaan van een klantprofiel pas actief nadat het klantadres is bevestigd.
+- De praktijkmeldingen over de GPX-knop en Agency-koppeling blijven open tot een test op de getroffen accounts en apparaten slaagt.
+
+## 2026-09-21 — Activiteitstijden in live agenda (niet uitgerold)
+
+- De live ICS-feed op Node-02 behoudt nu begin- en eindtijden van boekingen en activiteiten. Zonder tijd blijft een boeking een hele-dagafspraak.
+- Ongeldige datums worden overgeslagen en tekst wordt veilig voor ICS ontsnapt en gevouwen. De bestaande agenda-download en linkrotatie blijven ongewijzigd.
+- Twee automatische regressietests controleren getimede en hele-dagafspraken; de praktische import in Apple, Google of Outlook blijft open.
+
+## 2026-09-21 — Agency-klanttoegang na registratie (niet uitgerold)
+
+- Een Agency kan een klantprofiel en reis vooraf koppelen. Zodra die klant een account registreert en het e-mailadres bevestigt, krijgt het account automatisch alleen de gekoppelde reis in het klantportaal.
+- Bij een wijziging naar een ander e-mailadres worden uitsluitend de door het Agency-klantprofiel verleende reisrechten ingetrokken. Een bestaande handmatige reisdeelname blijft intact.
+- Migratie 1270 herstelt bestaande bevestigde accounts en voegt een afzonderlijke, nog openstaande Corporate Admin-controle toe.
+
+## 2026-09-21 — Paddle-transactie koppelen aan account (niet uitgerold)
+
+- Corporate Admin kan met een exact Paddle-transactie-ID de lokale betaalstatus, klant, accounteigenaar, workspaceplan, abonnement of eenmalig recht en bijbehorende webhookstatus vergelijken.
+- Ruwe webhooks en betaalgegevens worden niet in de browserdiagnose getoond. Bij een afwijkende workspacekoppeling wordt herverwerking geblokkeerd; alleen reeds toegestane mislukte events of een gemist eenmalig recht gebruiken de bestaande gecontroleerde herstelroute.
+- Migratie 1260 voegt hiervoor een afzonderlijke, nog openstaande acceptatiecontrole toe.
+
+## 2026-09-21 — Postvakdiagnose voor Corporate Admin (niet uitgerold)
+
+- Postvakken tonen voortaan afzonderlijk de laatste succesvolle synchronisatie, laatste poging en een foutcode zonder mailinhoud of wachtwoord.
+- Een beheerder kan precies één extra synchronisatieverzoek per postvak klaarzetten; de IMAP-worker handelt dit in de volgende ronde af en registreert succes of fout per verbinding.
+- Bij een fout in één persoonlijk postvak blijft de synchronisatie van andere postvakken doorgaan. Migratie 1250 voegt de benodigde velden en een nog openstaande Corp Admin-controle toe.
+
+## 2026-09-21 — Privacy- en tekstcontrole (niet uitgerold)
+
+- De privacyverklaring benoemt in beide talen welke bedrijfsmailgegevens, concepten, bijlagen en vertaalteksten worden verwerkt, wie toegang heeft en hoe lang afgebroken uploads blijven staan.
+- De tekst over SMTP- en IMAP-geheimen is gecorrigeerd: centrale relayconfiguratie blijft op de server, gekoppelde postvakwachtwoorden staan versleuteld in de database.
+- De kaarttegels en mogelijke directe valutacalls zijn expliciet uitgezonderd van de serverproxyclaim, zodat de privacytekst geen onjuiste afscherming van het klant-IP belooft.
+- Een extra Corporate Admin-controle voor de privacyinformatie is toegevoegd als migratie 1240; een SQL-test verifieert dat deze nog niet ten onrechte is afgevinkt.
+- Zichtbare kapotte leestekens in Corporate Admin en Agency Admin zijn gecorrigeerd.
+- De scanner accepteert alleen nog een exact schoon ClamAV-antwoord. Bij tijdelijk scannerfalen slaat de IMAP-sync het bericht nog niet op en probeert de volgende ronde opnieuw; een herkende besmette bijlage wordt geblokkeerd en zichtbaar gemarkeerd.
+
+## 2026-09-21 — HTML-bedrijfsmail en gratis vertaalconcepten (niet uitgerold)
+
+- Bedrijfsmail heeft nu Inbox, Verzonden, Concepten, Wachtrij en Archief, met zoeken binnen het gekozen postvak.
+- Nieuwe berichten worden automatisch als persoonlijk concept opgeslagen, kunnen opnieuw worden geopend en verdwijnen na succesvol klaarzetten.
+- Onderwerp en berichttekst kunnen als controleerbaar NL/EN-concept worden vertaald en vóór verzending in een afgeschermd HTML-voorbeeld worden bekeken.
+- Antwoorden gebruiken geldige mailheaders en worden in het portaal als één chronologisch gesprek gegroepeerd.
+- Medewerkers kunnen maximaal vijf gecontroleerde bijlagen toevoegen; bestanden blijven in een privébucket, worden voor verzending op omvang en SHA-256 gecontroleerd en zijn alleen via een kortlevende downloadlink bereikbaar.
+- De IMAP-worker bewaart ondersteunde ontvangen bijlagen naast het bericht en toont ze in hetzelfde gesprek.
+- Uploads zijn vooraf aan gebruiker en postvak gereserveerd; niet-afgemaakte uploads verlopen na twee uur en worden door de worker uit Storage en de database verwijderd.
+- Een private ClamAV-service scant alle inkomende en uitgaande bijlagen; malware, scanneruitval en onduidelijke resultaten worden fail-closed geweigerd en zonder bestandsinhoud gelogd.
+- Bedrijfsmail heeft een WYSIWYG-editor voor vet, cursief, onderstrepen, lijsten en veilige links; de server verwijdert onveilige HTML en bewaart altijd een platte-tekstalternatief.
+- De persoonlijke of gedeelde handtekening wordt ook in de HTML-versie geplaatst en de worker bewaart de verzonden HTML in het postvak.
+- Een optionele LibreTranslate-container voor Nederlandse en Engelse vertaalconcepten is aan Node-02 toegevoegd. Publicatie blijft een bewuste handmatige actie.
+
+## 2026-09-20 — Release-audit (niet uitgerold)
+
+- De volledige Supabase-schematypen zijn vanuit productie gegenereerd; de TypeScript-controle is teruggebracht van 267 fouten naar nul en draait voortaan in de vaste CI-releasepoort.
+- Ontbrekende UUID-validatie in Corporate Admin en veilige bestandsnamen voor GPX- en reisgidsdownloads zijn hersteld.
+- Alle actuele release-, incident-, implementatie- en teststappen staan nu in één bestand: `IMPLEMENTATION_PENDING.md`; drie overlappende implementatiehandleidingen zijn verwijderd.
+- De publieke websitechangelog is teruggebracht tot zes gegroepeerde productupdates en bevat geen onbewezen herstelclaims meer.
+- De openbare roadmap vat afgeronde mogelijkheden voortaan samen in tien herkenbare productgroepen in plaats van een lange technische inventaris.
+- De lokale functie- en releasecontrole, open incidenten, uitrol en praktijktests zijn samengevoegd in `IMPLEMENTATION_PENDING.md`; onbewezen productieproeven zijn niet als geslaagd gemarkeerd.
+- De agenda-abonnementslink blijft zichtbaar en handmatig kopieerbaar als de browser de klembordactie weigert.
+- Bestaande agendafeeds blijven geldig wanneer het opslaan van een vervangende link mislukt.
+- Reis- en Agency-uitnodigingen tonen nu een waarschuwing als de mailwachtrij faalt en houden de persoonlijke link beschikbaar om zelf te delen.
+- De formatter accepteert Windows-regelafbrekingen, zodat echte lintproblemen niet langer verdwijnen tussen duizenden CRLF-meldingen.
+- Een nieuwe productiesmoketest controleert na uitrol de belangrijkste publieke pagina's, registratie, status en publieke merkbestanden; deze controle staat ook in Corporate Admin.
+- Turnstile-controle op Contact heeft nu een vaste timeout en accepteert uitsluitend tokens die voor de contactactie zijn uitgegeven.
+- Terugkeerlinks voor login, OAuth, magic links en herstelmail worden centraal genormaliseerd; externe en dubbelzinnige slash/backslash-URL's worden geweigerd.
+- `npm run verify` bundelt lint, momenteel 78 regressietests, TypeScript, de beveiligingsaudit en syntaxiscontrole van worker, mailrelay en IMAP-sync; CI bouwt daarna aanvullend de productie-image.
+- De releasepoort weigert nieuwe serverfuncties die `supabaseAdmin` zonder authenticatiemiddleware gebruiken, tenzij het publieke token- of CAPTCHA-pad expliciet is beoordeeld.
+- De openbare reizenlijst gebruikt uitsluitend de begrensde publieke RPC; de oude brede service-role-fallback naar workspaces en profielen is verwijderd.
+
+## 2026-09-20 — Betabetrouwbaarheid (uitrol en praktijktest open)
+
+- Paddle herhaalt na een geregistreerd webhookevent alsnog de idempotente stap voor eenmalige toegang en refunds. Node-02 moet dezelfde price-ID's krijgen als Node-01.
+- Rechtstreekse uitnodigingen veroorzaken geen tweede generieke uitnodigingsmail meer.
+- Inkomende HTML-bedrijfsmail krijgt een aparte opslagkolom en een afgeschermde weergave. Uitgaande bedrijfsmail blijft HTML en platte tekst als normaal MIME-alternatief sturen.
+- ICS-downloads gebruiken een gekoppeld DOM-element; activiteiten zonder eindtijd krijgen een uur en lange regels worden gevouwen. Serverfouten op live-agendafeeds worden gelogd en als 503 gemeld.
+- Corporate Admin controleert mailboxconflicten vooraf en toont concretere medewerkerfouten.
+- De publieke reispagina groepeert dagplanning en gedeelde boekingen per dag; keuzelijsten voor betalers passen ook met lange namen in smalle formulieren.
+- Directe uitnodigingen zonder bekende profieltaal gebruiken Engels als standaard. HTML-servicemail toont losse alinea's; een expliciete Nederlandse voorkeur blijft geldig.
+- GPX en Agency-klantkoppeling blijven open voor gerichte reproductie; de bijbehorende praktijkscenario's, inclusief Linux-build en typecontrole, staan in de Corporate Admin-releasechecklist.
+
 ## 2026-09-15 — Betaalkeuze, live agenda en gerichte reparaties
 
 - Pro en Agency bieden nu een maandelijks abonnement en een eenmalige maand zonder automatische verlenging; Paddle bepaalt welke betaalmethoden in de checkout beschikbaar zijn.

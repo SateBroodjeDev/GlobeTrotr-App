@@ -273,6 +273,8 @@ function TripDetail() {
 
   useEffect(() => {
     setSettings(settingsFromTrip(trip));
+    // Reset only when fields used by settingsFromTrip change, not on unrelated trip edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trip.id, trip.name, trip.description, trip.start, trip.end, trip.budget, trip.template]);
 
   async function saveTripSettings(event: FormEvent<HTMLFormElement>) {
@@ -1616,14 +1618,14 @@ function TripDetail() {
                 </select>
                 <select
                   aria-label={text("Betaald door", "Paid by")}
-                  className="rounded-lg border border-input bg-card px-3 text-sm"
+                  className="min-w-0 w-full max-w-full truncate rounded-lg border border-input bg-card px-3 text-sm"
                   value={draft.paidBy}
                   disabled={!moneyEditable}
                   onChange={(e) => setDraft({ ...draft, paidBy: e.target.value })}
                 >
                   {financialParticipants.map((payer) => (
                     <option key={payer.id} value={payer.id}>
-                      {text("Betaald door", "Paid by")}: {payer.name}
+                      {payer.name}
                     </option>
                   ))}
                 </select>

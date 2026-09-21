@@ -81,7 +81,7 @@ async function removeUserFiles(db: AdminClient, bucket: string, userId: string) 
 
 export const exportAccountData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<any> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as AdminClient;
     const { data: authData, error: authError } = await db.auth.admin.getUserById(context.userId);

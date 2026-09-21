@@ -1,14 +1,47 @@
 # GlobeTrotr roadmap
 
+**Releasecontrole 21 september 2026:** nog geen vrijgaveadvies. De 75 lokale tests, ESLint en volledige TypeScript-controle slagen; de lokale Windows-Nitrobouw stopt op `EPERM`, en migraties 1180 tot en met 1300 plus de praktische beta-testen staan open. Zie [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md).
+
+## Betatest — 21 september 2026
+
+- [ ] Migreer 1180 en rol Node-01 en Node-02 opnieuw uit; zet dezelfde Paddle-price-ID's op beide nodes.
+- [ ] Migreer 1190 voor bedrijfsmailconcepten, mappen en de twee bijbehorende Corporate Admin-controles.
+- [ ] Migreer 1200 en controleer met een echt heen-en-weerantwoord dat mailclients en het portaal dezelfde gespreksthread behouden.
+- [ ] Migreer 1210 en controleer een PDF- en afbeeldingsbijlage in beide richtingen, inclusief een gebruiker zonder postvaktoegang.
+- [ ] Migreer 1220 en controleer in de workerlog dat een verlopen, afgebroken upload veilig wordt opgeruimd.
+- [ ] Migreer 1230, start ClamAV op Node-02 en controleer een schoon bestand, EICAR-testbestand en scanneruitval; na herstel moet een inkomend bericht mét bijlage alsnog worden geïmporteerd.
+- [ ] Migreer 1240 en controleer de bijgewerkte privacyverklaring in beide talen aan de hand van de werkelijke mail-, bijlagen- en vertaalstromen.
+- [ ] Migreer 1250 en controleer per postvak de laatste synchronisatie, foutcode en eenmalige herhaalactie in Corporate Admin.
+- [ ] Migreer 1260 en controleer dat een Paddle-transactie aan het juiste account en workspaceplan is gekoppeld voordat een event opnieuw wordt verwerkt.
+- [ ] Migreer 1270 en controleer dat een vooraf gekoppelde Agency-klantreis na e-mailbevestiging voor het nieuwe klantaccount zichtbaar wordt, en na adreswijziging of archiveren verdwijnt.
+- [ ] Migreer 1280, configureer hetzelfde Paddle-checkoutgeheim op beide nodes en controleer dat een gewijzigde browser-workspace-ID geen betaalrecht aan een ander account verleent.
+- [ ] Migreer 1290 en ontvang een teststoring in een Nederlandse en Engelse mailbox; controleer onderwerp, inhoud, HTML, statuslink en pop-uptekst.
+- [ ] Migreer 1300, plaats de vijf voorwaardelijke Auth-templates en onderwerpen in Supabase en test iedere Auth-mail met een Nederlands en Engels profiel.
+- [x] Release-preflight toegevoegd voor migratie/testparen, actuele implementatieverwijzingen en kapotte UTF-8-patronen; de SQL-test voor 1290 bewijst de echte NL/EN-payload binnen een rollback.
+- [ ] Controleer dat een live agenda-abonnement activiteiten met begin- en eindtijd toont, ook nadat de reis is bijgewerkt.
+- [ ] Start de afgeschermde LibreTranslate-service op Node-02 en test een Nederlands-Engels concept met handmatige correctie.
+- [ ] Test de negen gemelde productiescenario's met echte testaccounts; de punten staan na migratie 1180 ook in Corporate Admin.
+- [ ] Controleer de herstelde Agency-klantregistratie met exacte klantrol, workspace en route; onderzoek resterende afwijkingen apart.
+- [ ] Reproduceer de GPX-knop met een reis met geldige coördinaten op het doelapparaat; controleer dat lege en ongeldige locaties niet als routepunt verschijnen.
+- [ ] Controleer Engelstalige standaardmail, de gecombineerde publieke dagplanning en lange betalersnamen op telefoon na uitrol.
+- [ ] Controleer bij een betaald account het Paddle-event en de workerlog voordat ontbrekende rechten handmatig worden hersteld.
+- [x] Herhaalbare productiesmoketest voor publieke routes, registratie, status en merkbestanden toegevoegd; uitvoering na uitrol blijft open.
+- [x] Contactformulier begrensd laten falen en Turnstile-tokens aan de specifieke contactactie binden.
+- [x] Terugkeer na inloggen beperken tot genormaliseerde interne paden en dubbelzinnige slash/backslash-URL's blokkeren.
+- [x] Eén lokale `npm run verify`-poort voor lint, tests, TypeScript en alle workerprocessen toegevoegd.
+- [x] Statische CI-audit toegevoegd die onbeoordeeld service-rolegebruik in publieke serverfuncties blokkeert.
+- [x] De CI-audit uitgebreid met browsergeheimen, niet-beoordeelde HTML-sinks, externe links, gevoelige logging en veilige zoekpaden voor nieuwe `SECURITY DEFINER`-functies; vijf regressietests bewaken de regels.
+- [x] Legacy service-role-fallback uit de openbare reizenlijst verwijderd; RPC-fouten lekken geen brede workspacedata.
+
 GlobeTrotr is een reisplanner voor vriendengroepen, koppels en families. **Agency** voegt een gedeelde werkomgeving toe voor reisorganisaties.
 
 > **Status:** `[x]` is gebouwd of door de gebruiker als werkend bevestigd. `[ ]` moet nog worden gebouwd, geïmplementeerd of gecontroleerd. Uitgevoerde wijzigingen en praktijktests staan in `CHANGELOG.md`; deze roadmap bevat alleen de actuele productstand en het resterende werk.
 
-## Actuele stand — 15 september 2026
+## Actuele stand — 21 september 2026
 
 De internationale beta ondersteunt accounts, reizen, routes, planning, boekingen, uitgaven, verrekening, samenwerking, openbare reispagina's, exports, privacyfuncties, feedback en platformmeldingen. Corporate Admin en het grootste deel van Agency Admin zijn gebouwd. Productie-Auth heeft eigen registratie- en tokenroutes, passkeys, TOTP, Google- en Discord-aanmelding en accountbrede communicatievoorkeuren; de praktische acceptatietests staan nog open.
 
-Alle databasemigraties en SQL-regressietests tot en met migratie 1130 zijn door de eigenaar uitgevoerd. Migraties 1140, 1150 en 1160 met hun gerichte acceptatietests horen bij de eerstvolgende implementatie; de praktische productacceptatie blijft open.
+Volgens de eigenaar zijn alle SQL-migraties en tests tot en met 1170 uitgevoerd. Migraties 1180 tot en met 1300 met hun SQL-tests en de praktische acceptatietests staan open. De beta is op de eigen infrastructuur in gebruik; technische beschikbaarheid betekent nog niet dat ieder gebruikersscenario is geslaagd.
 
 ## Eerstvolgende controle
 
@@ -34,12 +67,19 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 1130 zijn door 
 8. [x] **Onderhoud en privacy-inbox:** Corporate Admin kan een onderhoudsvenster beheren; gebruikers zien een countdown en kunnen vanuit hun account een privacyverzoek indienen en de actuele status volgen.
 9. [ ] **Agency-productiepoort:** alle rollen, klanten, documenten, taken, sjablonen en offertes praktisch testen.
 10. [x] **Hostingportabiliteit:** afzonderlijke Node/Nitro-web- en workerimages, Caddy/TLS, secrets, healthchecks en rollback zijn voorbereid; installatie en externe monitoring volgen tijdens de VPS-uitrol.
-11. [ ] **Communicatie en betaling:** SMTP, templates en accountvoorkeuren zijn gebouwd. Paddle Checkout, gesigneerde webhooks, providergestuurde rechten, facturen, betaalmails, refunds en Customer Portal zijn technisch aangesloten; Sandbox- en live-acceptatie staan nog open.
+11. [ ] **Communicatie en betaling:** SMTP, templates en Paddle zijn live gekoppeld. Betaling → juiste accountrechten, dubbele uitnodigingsmail en NL/EN-opmaak zijn nog open beta-acceptaties.
 12. [x] **OAuth:** Google en Discord zijn in Supabase geactiveerd en praktisch werkend bevestigd.
 13. [ ] **Finale deep securityscan:** vóór de publieke productieopening de volledige applicatie, infrastructuur en datastromen diepgaand controleren en alle kritieke of hoge bevindingen oplossen.
 14. [x] **Inlogmethoden en mailbezorging beheren:** gebruikers koppelen Google en Discord vanuit Account; Corporate Admin volgt bezorging en kan mislukte servicemail opnieuw aanbieden.
 15. [x] **Veilige bezorgschakelaar:** Corporate Admin kan servicemail met verplichte reden pauzeren en na een relaycontrole vastgehouden berichten gecontroleerd vrijgeven.
 16. [x] **Zelfherstellende workerclaims:** vastgelopen mail- en achtergrondtaken worden na een verlopen claim opnieuw aangeboden en stoppen begrensd na tien pogingen.
+17. [x] **Veilige HTML-bedrijfsmail:** medewerkers maken opgemaakte mail met een begrensde editor; veilige HTML, tekstalternatief en handtekening reizen samen door wachtrij en relay.
+18. [x] **Gratis vertaalconcepten voorbereid:** LibreTranslate draait optioneel op Node-02 en Corporate Admin kan NL/EN-concepten maken; activering en menselijke acceptatie blijven open.
+19. [x] **Bedrijfsmail als werkplek:** Inbox, Verzonden, Concepten, Wachtrij en Archief zijn doorzoekbaar; concepten bewaren automatisch en hebben vertaling en HTML-preview.
+20. [x] **Mailgesprekken:** IMAP-antwoorden en uitgaande replies delen threadheaders en verschijnen chronologisch in één gesprek.
+21. [x] **Veilige mailbijlagen:** uitgaande en ontvangen ondersteunde bestanden gebruiken een privébucket, begrensde omvang, integriteitscontrole en kortlevende downloads.
+22. [x] **Opruiming bijlage-uploads:** reserveringen verhinderen verwisseling tussen gebruikers en de worker verwijdert afgebroken uploads na twee uur.
+23. [x] **Malwarescan voor bijlagen:** ClamAV controleert inkomende en uitgaande bestanden en blokkeert ook bij scanneruitval of een onduidelijk antwoord.
 
 ## P0 — Volledige notificatiedekking
 
@@ -160,7 +200,7 @@ Alle databasemigraties en SQL-regressietests tot en met migratie 1130 zijn door 
 
 ## P0 — Agency praktisch controleren
 
-De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_update_release_checklist.sql zijn uitgevoerd. [AGENCY_IMPLEMENTATION.md](AGENCY_IMPLEMENTATION.md) blijft de naslag voor de latere productieconfiguratie.
+De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_update_release_checklist.sql zijn uitgevoerd. De resterende productieconfiguratie staat in [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md).
 
 - [x] Agency-, notificatie-, leveranciers-, domein-, mail-outbox-, quota-, worker-, bedrijfsbeheer- en releasechecklistmigraties uitgevoerd.
 - [x] Beschikbare rollback- en regressietests zonder fouten uitgevoerd.
@@ -171,6 +211,9 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 
 ## P0 — Finale deep securityscan vóór productie
 
+- [x] Geautomatiseerde broncontrole voor service-role-serverfuncties, browsergeheimen, ruwe HTML, externe links en gevoelige logging in de vaste releasepoort opgenomen.
+- [x] Nieuwe migraties na 1170 automatisch controleren op een vastgezet `search_path` bij iedere `SECURITY DEFINER`-functie en risicovolle uitvoerrechten.
+- [x] Productie-afhankelijkheden op 21 september 2026 met `npm audit --omit=dev --audit-level=high` gecontroleerd: geen bekende kwetsbaarheden gemeld.
 - [ ] Volledige aanvalsoppervlakte inventariseren: browser, serverfuncties, Supabase, Storage, SMTP, Paddle, OAuth, GitHub-koppeling, VPS en DNS.
 - [ ] RLS-beleid, databasefuncties, `SECURITY DEFINER`, grants, zoekpaden, triggers en RPC-autorisatie handmatig en geautomatiseerd controleren.
 - [ ] Publieke routes, deel- en uitnodigingslinks, tokens, PIN's, uploads, exports en importbestanden testen op toegang buiten de bedoelde workspace of reis.
@@ -200,7 +243,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Agency-instellingen bekijken en gecontroleerd corrigeren.
 - [x] Platformstatus, feedback, bekende problemen en GitHub Issues-synchronisatie.
 - [x] Paddle-klaar intern model en Corporate Admin-overzicht bouwen voor abonnementen, MRR, omzet, refunds, achterstanden, facturen en webhookverwerking.
-- [x] Ondertekende Paddle-webhookingest en idempotente transactieverwerking bouwen; productieproducten en secrets moeten nog worden ingesteld.
+- [x] Ondertekende Paddle-webhookingest en idempotente transactieverwerking bouwen; live producten zijn ingesteld, maar correcte rechten na betaling worden opnieuw gecontroleerd.
 - [x] Corporate Admin-basis voor bedrijfsstatistieken, verkoopfacturen, gedeelde en persoonlijke `@globetrotr.nl`-mailboxen, rechten, inboxhandelingen, antwoorden en persoonlijke handtekeningen bouwen.
 - [x] GlobeTrotr-personeelsbeheer bouwen met eigenaar-, admin- en supportrollen, rechten per bedrijfsdomein, functie, veilige deactivatie en persoonlijke mailboxprovisioning.
 - [x] Corporate navigatie beperken op toegewezen bedrijfsrechten en operationele serverfuncties dezelfde rechten laten afdwingen.
@@ -224,10 +267,10 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Runtime-afhankelijkheden van Lovable verwijderen; Vite, authopslag en foutregistratie draaien zelfstandig.
 - [x] Afzonderlijke Node/Nitro-productiebuild en expliciet workerstartscript bouwen.
 - [x] Containerbasis onder een niet-root gebruiker, healthcheck, automatische herstart en gestructureerde stdout-logs bouwen.
-- [ ] Nginx of Caddy voor TLS, proxyheaders, uploads en WebSockets.
+- [x] Caddy voor TLS, proxyheaders, uploads en WebSockets op Node-01 geactiveerd.
 - [ ] Stagingdomein, Supabase Site URL en exacte redirect-URL's configureren.
 - [ ] Monitoring, uptimecontrole, firewall, updates, configuratieback-up en herstel naar de vorige stabiele containerrelease.
-- [ ] DNS pas na een volledige stagingproef omschakelen.
+- [x] Productie-DNS naar Node-01 omgeschakeld en `globetrotr.nl` bereikbaar gemaakt; een afzonderlijke stagingproef blijft onderdeel van toekomstige grote infrastructuurwijzigingen.
 - [x] Datamodel en Agency-interface voor `naam.globetrotr.nl`, eigen domeinen, DNS-verificatie en veilige SMTP-secretreferenties voorbereiden.
 - [x] Centrale providerstops, atomaire API-dagquota per workspace en een idempotente PostgreSQL-workerwachtrij voorbereiden.
 - [x] Free-, Pro- en Agency-budgetten voor weer, vluchtinformatie en routes centraal en testbaar vastleggen; definitieve commerciële limieten volgen bij Paddle-configuratie.
@@ -235,9 +278,10 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Workerproces voor VPS 2 bouwen met claim, resultaatregistratie, retries, health-endpoint en afgeschermde provider-healthchecks.
 - [x] Corporate Admin uitbreiden met providergebruik, noodstops met verplichte reden en mislukte workerjobs.
 - [x] Productieproxy, gescheiden Compose-services, lokale worker-healthcheck en firewallregels als uitvoerbare configuratie en handleiding voorbereiden.
-- [ ] DNS, Caddy-certificaat, hostfirewall, private Hetzner-netwerk en externe uptimebewaking op de echte servers activeren en controleren.
-- [ ] Inkomende hostnames veilig aan uitsluitend geverifieerde actieve Agencies koppelen, met wildcard TLS voor subdomeinen en begrensde on-demand TLS voor eigen domeinen.
-- [ ] Voor eigen Agency-domeinen CNAME naar `dashboard.globetrotr.nl`, een afzonderlijk TXT-verificatierecord, veilige hostselectie en automatische intrekking bij blokkade of abonnementswijziging bouwen.
+- [x] DNS, Caddy-certificaat, hostfirewall en private Hetzner-netwerk op de echte servers geactiveerd.
+- [ ] Externe uptimebewaking instellen en een herstel naar de vorige stabiele containerrelease daadwerkelijk uitvoeren.
+- [x] Inkomende hostnames veilig aan uitsluitend geverifieerde actieve Agencies koppelen, met wildcard TLS voor subdomeinen en begrensde on-demand TLS voor eigen domeinen; praktijktest met een echt klantdomein blijft onderdeel van de acceptatieronde.
+- [x] Voor eigen Agency-domeinen CNAME naar `dashboard.globetrotr.nl`, een afzonderlijk TXT-verificatierecord, veilige hostselectie en automatische intrekking bij blokkade of abonnementswijziging bouwen.
 - [x] Opslagarchitectuur vastleggen: Supabase Storage blijft eerst actief en alle toekomstige serverkoppelingen gebruiken `provider + bucket + objectKey`.
 - [ ] Alleen bij aantoonbaar kosten- of capaciteitsvoordeel private objecten gecontroleerd naar Hetzner S3 migreren met checksum, terugvalpad en hersteltest.
 
@@ -249,19 +293,19 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Reis- en Agency-uitnodigingen voor bestaande en nieuwe accounts via de mail-outbox versturen en bij verlengen opnieuw klaarzetten.
 - [x] Eén herkenbare responsive e-mailopmaak toepassen op Auth-, uitnodigings- en servicemail, met eigen tokenroutes en platte-tekstterugval.
 - [x] Interne VPS-mailrelay met SMTP-TLS, time-outs, afzenderbegrenzing, ontvangerslimieten, veilige foutregistratie en afgeschermde secrets bouwen.
-- [ ] Relay met de echte SMTP-provider testen en daarna de databasebezorgmodus gecontroleerd op `live` zetten.
+- [x] Relay met de echte SMTP-provider getest en databasebezorging op de actieve omgeving gebruikt; ontvangst, taal en opmaak blijven onderdeel van de release-acceptatie.
 - [x] NL/EN-templates voor uitnodigingen, antwoorden, beveiliging, belangrijke updates en betaalgebeurtenissen met facturatie-CTA.
-- [ ] Bezorgstatus registreren zonder volledige berichtinhoud of secrets te loggen.
+- [x] Bezorgstatus registreren zonder volledige berichtinhoud of secrets te loggen.
 
 ### Paddle
 
 - [ ] Producten, prijzen en belastingweergave definitief instellen.
 - [x] Paddle Checkout met vaste price-ID's en workspacekoppeling bouwen.
 - [x] Ondertekende webhooks als enige bron voor betaalstatus bouwen.
-- [x] Abonnementstatus, betaalperiode, opzegging en transacties verwerken; Sandboxacceptatie staat nog open.
+- [x] Abonnementstatus, betaalperiode, opzegging en transacties verwerken; de live accountkoppeling na betaling staat opnieuw onder onderzoek.
 - [x] Abonnementsgegevens alleen server-side aan de workspace-eigenaar tonen en Customer Portal aansluiten.
 - [x] Verse officiële factuurlinks per transactie, Paddle-bewijzen, terugbetalingen, creditnotificaties en Corporate Admin-reconciliatie bouwen.
-- [ ] Juridische pagina's na activering van Paddle aanvullen met de definitieve checkout- en betaalgegevens; VPS, SMTP, OAuth, Turnstile en browseropslag zijn actueel beschreven.
+- [ ] Juridische pagina's en betaalinformatie tijdens de actieve betaalde beta op overeenstemming met de werkelijke checkout, voorwaarden en refundstroom controleren.
 
 ## P1 — Reizen onderweg en productkwaliteit
 
@@ -283,8 +327,8 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Demo anonimiseren, Contact-acties van iconen voorzien, ingelogde supportlinks logisch als laatste plaatsen en de reisomslag naast de algemene instellingen zetten.
 - [x] Volledige beginnerstutorial, klikbare migratievolgorde en CLI-procedure voor een schoon Supabase-productieproject vastleggen, inclusief beheerde Auth/Storage-schema's, sleutels, eerste beheeraccount en terugval.
 - [ ] Grote bundles splitsen waar dit de gemeten laadtijd werkelijk verbetert.
-- [ ] Automatische vertaling van feedback en bekende problemen pas na keuze van een veilige provider en bewaarbeleid.
-- [ ] Automatische vertaalconcepten voor statusberichten, bekende problemen en publieke communicatie bouwen, met verplichte menselijke controle vóór publicatie.
+- [x] Een zelf beheerde vertaalprovider en bewaarbeleid kiezen: LibreTranslate verwerkt tekst tijdelijk op Node-02.
+- [x] Automatische vertaalconcepten voor statusberichten, bekende problemen en bedrijfsmail bouwen, met verplichte menselijke controle vóór publicatie of verzending; activering en praktijktest blijven open.
 
 ## P2 — Latere groei
 
@@ -303,7 +347,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [ ] Periodieke vluchtcontrole en gerichte vluchtalerts via de worker.
 - [ ] GPX-import met validatie, preview, limieten en dubbele-puntdetectie.
 - [ ] Veilige klantformulieren voor reiswensen en ontbrekende gegevens.
-- [ ] Mailboxintegratie voor ontvangen Agency- en bedrijfsmail.
+- [x] Persoonlijke en gedeelde bedrijfsmail via IMAP/SMTP; verdere Agency-specifieke automatisering blijft later werk.
 - [ ] AI-reisplanning met bronvermelding, kostenlimieten, privacycontrole en menselijke goedkeuring.
 
 ## Gebouwd fundament
@@ -319,11 +363,11 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 
 ## Actuele beta-beperkingen
 
-- Automatische app-e-mails zijn nog niet actief; accountmeldingen en deelbare links werken wel.
-- Apple-, Google- en Microsoft-login zijn nog niet actief.
-- Paddle is technisch gebouwd maar schrijft pas af nadat Sandbox is geaccepteerd en liveproducten en secrets zijn uitgerold.
-- Automatische vertaling van feedback en bekende problemen is nog niet actief.
-- Eigen Agency-domeinen, echte mailboxsynchronisatie en providerverzending worden pas tijdens de VPS-productieconfiguratie geactiveerd.
+- Betalingen kunnen na een succesvolle Paddle-checkout het account nog op het oude plan laten; price-ID's op Node-02, webhook en accountkoppeling worden gecontroleerd.
+- Uitnodigingen en andere automatische mails kunnen dubbel of onjuist opgemaakt aankomen; migratie 1180 en de uitrol moeten dit praktisch aantonen.
+- GPX-download, live-agendalink, activiteiten in ICS, Agency-klantkoppeling en bedrijfsbeheerder opslaan zijn als concrete meldingen geregistreerd.
+- Inkomende HTML-bedrijfsmail krijgt in 1180 aparte opslag en een afgeschermde weergave; uitgaande HTML en handtekening moeten in een echte mailclient worden beoordeeld.
+- Automatische vertaling van feedback en bekende problemen is nog niet actief. Apple- en Microsoft-login zijn niet beschikbaar; Google en Discord werken volgens de eigenaar.
 
 ## Productkansen uit concurrentieonderzoek — na stabilisatie
 
@@ -341,7 +385,8 @@ De officiële productinformatie van Wanderlog, TripIt, Roadtrippers, TravelSpend
 ### Voor Pro en onderweg
 
 - [ ] Live vluchtmeldingen uitbreiden met gate, terminal, bagageband, check-inherinnering en vertrektijdadvies wanneer providerdata betrouwbaar is.
-- [ ] GPX- en Google Maps-export naast ICS en de bestaande reisgids.
+- [x] GPX-export naast ICS en de bestaande reisgids bouwen; werking op het doelapparaat blijft een release-acceptatie.
+- [ ] Google Maps-export toevoegen nadat de huidige exports in productie zijn geaccepteerd.
 - [ ] Persoonlijk reizigersprofiel met optionele loyaliteitsprogramma's en documentvervalherinneringen, strikt privé en versleuteld.
 - [ ] Veilige bestemmingsinformatie over reisdocumenten, lokale noodnummers en actuele verstoringen via aantoonbaar betrouwbare bronnen.
 - [ ] Uitgaven aan plaatsen koppelen en daggemiddelde, budgettempo en voorspelde overschrijding tonen.

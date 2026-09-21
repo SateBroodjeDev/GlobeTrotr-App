@@ -353,7 +353,7 @@ function UserDetailPage() {
               )}
             </p>
           ) : (
-            detail.recentTrips.map((trip) => (
+            detail.recentTrips.map((trip: any) => (
               <div
                 key={trip.id}
                 className="flex flex-wrap items-center gap-2 rounded-lg border p-3 text-sm"

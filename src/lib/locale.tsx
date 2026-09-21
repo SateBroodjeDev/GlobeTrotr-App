@@ -52,7 +52,14 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   async function setLocale(next: AppLocale) {
     setLocaleState(next);
-    if (user) await supabase.from("profiles").upsert({ id: user.id, locale: next });
+    if (user) {
+      const language = next === "nl-NL" ? "nl" : "en";
+      const [{ error: profileError }, { error: metadataError }] = await Promise.all([
+        supabase.from("profiles").upsert({ id: user.id, locale: next }),
+        supabase.auth.updateUser({ data: { language } }),
+      ]);
+      if (profileError || metadataError) throw profileError ?? metadataError;
+    }
   }
 
   return (

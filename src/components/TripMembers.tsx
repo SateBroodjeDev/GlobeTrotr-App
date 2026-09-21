@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Link2, Plus, RefreshCw, Trash2, UserRoundPlus, Users, X } from "lucide-react";
 import { toast } from "sonner";
@@ -130,7 +130,10 @@ export function TripMembers({
       const invitation = await createTripInvitation({ data: { tripId, email: email.trim().toLowerCase(), role } });
       setInviteLink(`${window.location.origin}/invite/${invitation.token}`);
       await queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations", tripId] });
-      toast.success(text("Uitnodiging aangemaakt. Kopieer de link om hem zelf te delen.", "Invitation created. Copy the link to share it yourself."));
+      if (invitation.mailDelivery === "failed")
+        toast.warning(text("Uitnodiging aangemaakt, maar de e-mail kon niet worden klaargezet. Deel de getoonde link zelf.", "Invitation created, but the email could not be queued. Share the displayed link yourself."));
+      else
+        toast.success(text("Uitnodiging aangemaakt. Kopieer de link om hem zelf te delen.", "Invitation created. Copy the link to share it yourself."));
     } catch {
       toast.error(text("De reisgenoot is bewaard, maar de beveiligde uitnodigingslink kon niet worden gemaakt.", "The traveller was saved, but the secure invitation link could not be created."));
     }
@@ -148,7 +151,10 @@ export function TripMembers({
       const result = await manageTripInvitation({ data: { tripId, invitationId, action } });
       if (action === "renew" && result.token) {
         setInviteLink(`${window.location.origin}/invite/${result.token}`);
-        toast.success(text("Nieuwe uitnodigingslink gemaakt. Deel alleen deze nieuwe link.", "A new invitation link was created. Share only this new link."));
+        if (result.mailDelivery === "failed")
+          toast.warning(text("Nieuwe link gemaakt, maar de e-mail kon niet worden klaargezet. Deel de link zelf.", "New link created, but the email could not be queued. Share the link yourself."));
+        else
+          toast.success(text("Nieuwe uitnodigingslink gemaakt. Deel alleen deze nieuwe link.", "A new invitation link was created. Share only this new link."));
       } else {
         await onChange(members.filter((member) => member.email.trim().toLowerCase() !== invitationEmail.toLowerCase()));
         toast.success(text("Uitnodiging ingetrokken.", "Invitation revoked."));
@@ -279,11 +285,7 @@ export function TripMembers({
               roles={roles}
               editable={editable && !saving}
               onChangeRole={(nextRole) => updateMember(member.id, { role: nextRole })}
-              onRemove={
-                editable
-                  ? () => void removeMember(member)
-                  : undefined
-              }
+              {...(editable ? { onRemove: () => void removeMember(member) } : {})}
             />
           ))}
         </div>

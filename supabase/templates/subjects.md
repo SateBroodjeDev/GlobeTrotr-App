@@ -1,5 +1,5 @@
-﻿- Confirm signup: `Confirm your GlobeTrotr account / Bevestig je GlobeTrotr-account`
-- Reset password: `Reset your GlobeTrotr password / Stel je GlobeTrotr-wachtwoord opnieuw in`
-- Change email address: `Confirm your new GlobeTrotr email address / Bevestig je nieuwe GlobeTrotr-e-mailadres`
-- Magic link: `Your secure GlobeTrotr sign-in link / Je veilige GlobeTrotr-inloglink`
-- Invite user: `You are invited to GlobeTrotr / Je bent uitgenodigd voor GlobeTrotr`
+- Confirm signup: `{{ if eq .Data.language "nl" }}Bevestig je GlobeTrotr-account{{ else }}Confirm your GlobeTrotr account{{ end }}`
+- Reset password: `{{ if eq .Data.language "nl" }}Stel je GlobeTrotr-wachtwoord opnieuw in{{ else }}Reset your GlobeTrotr password{{ end }}`
+- Change email address: `{{ if eq .Data.language "nl" }}Bevestig je nieuwe GlobeTrotr-e-mailadres{{ else }}Confirm your new GlobeTrotr email address{{ end }}`
+- Magic link: `{{ if eq .Data.language "nl" }}Je veilige GlobeTrotr-inloglink{{ else }}Your secure GlobeTrotr sign-in link{{ end }}`
+- Invite user: `{{ if eq .Data.language "nl" }}Je bent uitgenodigd voor GlobeTrotr{{ else }}You are invited to GlobeTrotr{{ end }}`

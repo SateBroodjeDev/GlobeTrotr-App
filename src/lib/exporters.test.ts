@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildTripCalendar, buildTripGpx, csvCell } from "./exporters.ts";
+import { buildTripCalendar, buildTripGpx, csvCell, gpxRouteStops } from "./exporters.ts";
 import type { Trip } from "./types.ts";
 
 test("CSV neutraliseert bekende spreadsheetformules", () => {
@@ -19,7 +19,7 @@ test("agenda-export bevat boekingen, dagplanning en veilig escaped tekst", () =>
     id: "trip-1", name: "Zweden, 2026", start: "2026-06-01", end: "2026-06-10",
     itinerary: [{ id: "day-1", day: "2026-06-02", title: "Museum; centrum", notes: "Neem pas mee\nVertrek vroeg" }],
     travelItems: [{ id: "train-1", type: "transport", title: "Trein naar Oslo", date: "2026-06-03", endDate: "2026-06-03", details: { startTime: "09:15", endTime: "11:45" }, departure: { name: "Göteborg C", country: "SE", lat: 0, lon: 0 } }],
-  } as Trip;
+  } as unknown as Trip;
   const calendar = buildTripCalendar(trip);
   assert.match(calendar, /X-WR-CALNAME:Zweden\\, 2026/);
   assert.match(calendar, /DTSTART;VALUE=DATE:20260602\r\nDTEND;VALUE=DATE:20260603/);
@@ -38,4 +38,30 @@ test("GPX-export bewaart de routevolgorde en escaped XML", () => {
   assert.match(gpx, /<name>Route &amp; reis<\/name>/);
   assert.ok(gpx.indexOf("A &lt; B") < gpx.indexOf("Gent"));
   assert.match(gpx, /rtept lat="52.1" lon="5.1"/);
+});
+
+test("GPX neemt alleen echte coördinaten binnen het wereldbereik mee", () => {
+  const trip = {
+    id: "route", name: "Test", stops: [
+      { id: "null", name: "Zonder locatie", country: "", lat: null, lon: null },
+      { id: "blank", name: "Leeg", country: "", lat: "", lon: "" },
+      { id: "range", name: "Ongeldig", country: "", lat: 95, lon: 5 },
+      { id: "zero", name: "Evenaar", country: "", lat: 0, lon: 0 },
+    ],
+  } as unknown as Trip;
+  assert.deepEqual(gpxRouteStops(trip).map((stop) => stop.id), ["zero"]);
+  const gpx = buildTripGpx(trip);
+  assert.match(gpx, /rtept lat="0" lon="0"/);
+  assert.doesNotMatch(gpx, /Zonder locatie|Ongeldig|Leeg/);
+});
+
+test("agenda-export geeft activiteiten zonder eindtijd een geldig uur en vouwt lange regels", () => {
+  const trip = {
+    id: "activity-trip", name: "Activiteiten", start: "2026-06-01", end: "2026-06-02",
+    itinerary: [], expenses: [], stops: [],
+    travelItems: [{ id: "activity-1", type: "activity", title: "Museum", date: "2026-06-01", details: { startTime: "13:30" }, notes: "Lange notitie ".repeat(15) }],
+  } as unknown as Trip;
+  const calendar = buildTripCalendar(trip);
+  assert.match(calendar, /DTSTART:20260601T133000\r\nDTEND:20260601T143000/);
+  assert.ok(calendar.split("\r\n").every((line) => new TextEncoder().encode(line).length <= 75));
 });

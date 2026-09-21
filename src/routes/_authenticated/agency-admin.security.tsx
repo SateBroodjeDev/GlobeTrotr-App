@@ -21,7 +21,7 @@ function AgencySecurityPage() {
   const active = team.data.members.filter((member) => member.status === "active").length;
   const suspended = team.data.members.filter((member) => member.status !== "active").length;
   const expired = team.data.invitations.filter((invitation) => invitation.status === "expired").length;
-  const recent = audit.data.slice(0, 5);
+  const recent: any[] = audit.data.slice(0, 5);
   return <div className="space-y-6">
     <header><h1 className="flex items-center gap-2 font-display text-3xl font-semibold"><ShieldCheck className="size-7 text-primary"/>{text("Beveiliging en toegang", "Security and access")}</h1><p className="mt-2 text-sm text-muted-foreground">{text("Controleer teamtoegang, openstaande uitnodigingen en recente beheeracties.", "Review team access, outstanding invitations and recent administrative actions.")}</p></header>
     <div className="grid gap-4 sm:grid-cols-3">

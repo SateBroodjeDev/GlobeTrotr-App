@@ -55,6 +55,10 @@ function slug(s: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function safeFileName(value: string) {
+  return slug(value) || "globetrotr-trip";
+}
+
 function icsText(value: string) {
   return value
     .replace(/\\/g, "\\\\")
@@ -71,6 +75,24 @@ function nextIcsDate(value: string) {
   const date = new Date(`${value}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + 1);
   return date.toISOString().slice(0, 10).replaceAll("-", "");
+}
+
+function foldIcsLine(line: string) {
+  const parts: string[] = [];
+  let part = "";
+  let bytes = 0;
+  for (const character of line) {
+    const size = new TextEncoder().encode(character).length;
+    if (bytes + size > 74) {
+      parts.push(part);
+      part = " ";
+      bytes = 1;
+    }
+    part += character;
+    bytes += size;
+  }
+  parts.push(part);
+  return parts.join("\r\n");
 }
 
 /** Provider-onafhankelijke agenda-export voor Apple Calendar, Google Calendar en Outlook. */
@@ -115,6 +137,11 @@ export function buildTripCalendar(trip: Trip) {
       lines.push(`DTSTART:${icsDate(event.date)}T${event.startTime.replace(":", "")}00`);
       if (/^\d{2}:\d{2}$/.test(event.endTime))
         lines.push(`DTEND:${icsDate(event.endDate)}T${event.endTime.replace(":", "")}00`);
+      else {
+        const end = new Date(`${event.date}T${event.startTime}:00`);
+        end.setHours(end.getHours() + 1);
+        lines.push(`DTEND:${end.getFullYear()}${String(end.getMonth() + 1).padStart(2, "0")}${String(end.getDate()).padStart(2, "0")}T${String(end.getHours()).padStart(2, "0")}${String(end.getMinutes()).padStart(2, "0")}00`);
+      }
     } else {
       lines.push(
         `DTSTART;VALUE=DATE:${icsDate(event.date)}`,
@@ -127,7 +154,7 @@ export function buildTripCalendar(trip: Trip) {
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");
-  return `${lines.join("\r\n")}\r\n`;
+  return `${lines.map(foldIcsLine).join("\r\n")}\r\n`;
 }
 
 export function downloadTripCalendar(trip: Trip) {
@@ -136,12 +163,14 @@ export function downloadTripCalendar(trip: Trip) {
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = `${slug(trip.name)}-agenda.ics`;
+  document.body.appendChild(anchor);
   anchor.click();
+  anchor.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 
 function escapeXml(value: string) {
-  return value
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -149,9 +178,18 @@ function escapeXml(value: string) {
     .replaceAll("'", "&apos;");
 }
 
+export function gpxRouteStops(trip: Trip) {
+  return trip.stops.filter((stop) => {
+    const present = (value: unknown) => value !== null && value !== undefined && String(value).trim() !== "";
+    if (!present(stop.lat) || !present(stop.lon)) return false;
+    const lat = Number(stop.lat);
+    const lon = Number(stop.lon);
+    return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
+  });
+}
+
 export function buildTripGpx(trip: Trip) {
-  const points = trip.stops
-    .filter((stop) => Number.isFinite(Number(stop.lat)) && Number.isFinite(Number(stop.lon)))
+  const points = gpxRouteStops(trip)
     .map(
       (stop) =>
         `    <rtept lat="${Number(stop.lat)}" lon="${Number(stop.lon)}"><name>${escapeXml(stop.name)}</name><desc>${escapeXml(stop.country)}</desc></rtept>`,
@@ -161,12 +199,7 @@ export function buildTripGpx(trip: Trip) {
 }
 
 export function downloadTripGpx(trip: Trip) {
-  if (
-    !trip.stops.some(
-      (stop) => Number.isFinite(Number(stop.lat)) && Number.isFinite(Number(stop.lon)),
-    )
-  )
-    return false;
+  if (!gpxRouteStops(trip).length) return false;
   const blob = new Blob([buildTripGpx(trip)], { type: "application/gpx+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");

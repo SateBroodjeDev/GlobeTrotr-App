@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useLocale } from "@/lib/locale";
 import { respondToTripInvitation } from "@/lib/invitation.functions";
 import { respondToAgencyInvitation } from "@/lib/agency.functions";
+import { notificationPreview } from "@/lib/notification-preview";
 
 const styles = {
   account: {
@@ -137,12 +138,11 @@ export function NotificationPanel({ userId }: { userId: string }) {
           filter: `user_id=eq.${userId}`,
         },
         (event) => {
-          const item = event.new as { title?: string; body?: string };
-          const titles = item.title?.split(" / ") ?? [];
-          const title = locale === "en-GB" ? titles[1] || titles[0] : titles[0];
-          void queryClient.invalidateQueries({ queryKey });
-          toast(title || text("Nieuwe melding", "New notification"), {
-            description: item.body?.split("|")[0],
+          const item = event.new as { kind?: string; title?: string; body?: string };
+          const preview = notificationPreview(item, locale === "en-GB" ? "en" : "nl");
+          void queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+          toast(preview.title, {
+            description: preview.description,
             action: { label: text("Bekijken", "View"), onClick: () => setOpen(true) },
           });
         },
@@ -300,7 +300,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
             </p>
           )}
           {notifications.data?.items.map((notification) => {
-            const style = styles[notification.kind];
+            const style = styles[notification.kind as keyof typeof styles] ?? styles.account;
             const responseMatch = notification.event_key.match(
               /^invitation-response:(accepted|declined):/,
             );
