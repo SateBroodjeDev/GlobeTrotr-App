@@ -1,5 +1,15 @@
 # GlobeTrotr changelog
 
+## 2026-09-21 — Paddle-facturen en vooruitbetaalde maanden (voorbereid)
+
+- Bij een abonnementswijziging kan Paddle een onmiddellijke verrekening van €0 afronden zonder downloadbare factuur-PDF. GlobeTrotr hield daar toch een interne factuur voor bij. Migratie 1340 bewaart de transactie, maar maakt alleen een factuurspiegel bij een positief bedrag met officieel Paddle-factuurnummer. Eerdere lokale schijnfacturen worden verwijderd; webhook- en transactiegeschiedenis blijven bewaard.
+- Zes losse maandbetalingen stapelen al zes maanden toegang op. Een nieuwe SQL-test bewijst dit en controleert dat herhaalde verwerking geen extra maand toekent. De facturatiepagina toont nu de einddatum en het aantal nog geldige losse maandbetalingen, en legt bij een €0-transactie uit waarom er geen PDF beschikbaar is.
+
+## 2026-09-21 — Correctie voor volledig afgeprijsde Paddle-betalingen (voorbereid)
+
+- Bij de eerste echte herstelpoging bleek dat Paddle het subtotaal vóór korting levert. Onze betaal- en factuurtabellen vereisen een nettosubtotaal; een betaling met 100% korting werd daardoor door de database geweigerd (`billing_transactions_check1`). Migratie 1330 normaliseert alleen Paddle-rijen en laat de oorspronkelijke bedragen in het webhookevent intact.
+- De nieuwe SQL-test verwerkt een volledige €0-transactie en Agency-recht binnen een rollback. Migratie 1340 voorkomt daarna een lokale factuur zonder beschikbare Paddle-PDF. De bestaande betaling en automatische webhookbezorging blijven open totdat ze na de migraties in productie zijn bevestigd.
+
 ## 2026-09-21 — Registratie, agenda en bedrijfsmail (nog niet uitgerold)
 
 - Migratie 1320 herstelt de concrete fout waarbij een volledig afgeprijsde Paddle-transactie (`0 credit >= 0 totaal`) als terugbetaald werd beschouwd. Alleen aantoonbaar verwerkte bestaande eenmalige aankopen worden veilig hersteld; ontbrekende webhooks vergen nog bezorgcontrole.

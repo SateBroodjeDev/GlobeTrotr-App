@@ -70,7 +70,7 @@ Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`T
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1320** uitgevoerd. De bijbehorende codewijzigingen moeten nog op beide nodes worden uitgerold. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md).
+Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1320** uitgevoerd. De nieuwe betaaldianose van commit `09bbc1f` is op de website zichtbaar; de Node-02-commit is nog niet bevestigd. Migraties **1330–1340** en hun tests voor afgeprijsde betalingen, echte Paddle-facturen en gestapelde vooruitbetaalde maanden staan nog open. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md).
 
 De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
 

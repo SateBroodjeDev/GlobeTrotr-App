@@ -279,6 +279,18 @@ function Billing() {
                   {text("Abonnement en facturen beheren", "Manage subscription and invoices")}
                 </Button>
               </>
+            ) : billing.data?.oneTimeAccess ? (
+              <div className="space-y-1">
+                <p className="font-medium">
+                  {text("Vooruitbetaalde toegang", "Prepaid access")}: {planOf(billing.data.oneTimeAccess.plan).name}
+                </p>
+                <p className="text-muted-foreground">
+                  {text("Toegang tot", "Access until")}: {new Date(billing.data.oneTimeAccess.endsAt).toLocaleDateString(locale)}
+                </p>
+                <p className="text-muted-foreground">
+                  {billing.data.oneTimeAccess.monthsPurchased} {text("nog geldige maandbetalingen", "active monthly purchases")}
+                </p>
+              </div>
             ) : (
               <p className="text-muted-foreground">
                 {text(
@@ -349,21 +361,26 @@ function Billing() {
                       {new Date(transaction.occurred_at).toLocaleString(locale)}
                     </p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={
-                      busy !== null ||
-                      transaction.total_minor <= 0 ||
-                      !["paid", "completed", "refunded", "partially_refunded"].includes(
-                        transaction.status,
-                      )
-                    }
-                    onClick={() => invoice(transaction.provider_transaction_id)}
-                  >
-                    <Download className="size-4" />
-                    {text("Factuur downloaden", "Download invoice")}
-                  </Button>
+                  {transaction.total_minor <= 0 ? (
+                    <span className="text-xs text-muted-foreground">
+                      {text("Geen Paddle-PDF bij een betaling van €0", "Paddle does not provide a PDF for a €0 transaction")}
+                    </span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={
+                        busy !== null ||
+                        !["paid", "completed", "refunded", "partially_refunded"].includes(
+                          transaction.status,
+                        )
+                      }
+                      onClick={() => invoice(transaction.provider_transaction_id)}
+                    >
+                      <Download className="size-4" />
+                      {text("Factuur downloaden", "Download invoice")}
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>

@@ -2,6 +2,12 @@
 
 ## Herstelronde na migraties 1310–1320
 
+- [ ] Na migratie 1330 de SQL-test `paddle_discounted_totals.sql` uitvoeren: een volledige 100%-korting moet als voltooide €0-transactie en Agency-recht worden verwerkt; alle testdata wordt teruggedraaid. Migratie 1340 zorgt daarna dat hiervoor geen schijnfactuur verschijnt.
+- [ ] De bestaande Paddle-transactie opnieuw herstellen, het Agency-recht en de einddatum controleren en bij een volgende webhookbezorging HTTP 200 in Paddle bevestigen.
+- [ ] Na migratie 1340 een abonnementswijziging testen: GlobeTrotr mag pas een lokale factuur tonen als Paddle een voltooide, positief geprijsde transactie met eigen factuurnummer heeft; een €0-verrekening blijft alleen als transactie zichtbaar.
+- [ ] Zes losse eenmalige maandbetalingen voor hetzelfde plan testen: zes afzonderlijke transacties en zes achtereenvolgende maanden toegang; dubbele webhookverwerking geeft geen zevende maand.
+- [ ] Op `/billing` het aantal nog geldige losse maandbetalingen en de einddatum controleren; een actief vooruitbetaald plan mag niet als 'geen betaald abonnement' worden gepresenteerd.
+
 - [ ] Nieuwe Google- en Discord-accounts krijgen eenmalig het profielscherm; naam, telefoon en foto worden opgeslagen, provider koppelen aan bestaand account blijft werken.
 - [ ] Registratie toont Turnstile meteen of een zichtbare herstelactie; een trage aanvraag blijft niet eindeloos op “Bezig”. Controleer na een timeout eerst inbox en Auth Users.
 - [ ] Bestaand Google-e-mailadres in registratie geeft veilige uitleg zonder accountbestaan te onthullen.

@@ -51,6 +51,17 @@ export const getBillingOverview = createServerFn({ method: "GET" })
       .maybeSingle();
     let subscription = null;
     let transactions: Array<Record<string, unknown>> = [];
+    const entitlementResult = await db
+      .from("billing_entitlements")
+      .select("plan,ends_at")
+      .eq("workspace_uuid", workspace.workspace_uuid)
+      .gt("ends_at", new Date().toISOString())
+      .order("ends_at", { ascending: false })
+      .limit(100);
+    if (entitlementResult.error) throw new Error("BILLING_ENTITLEMENTS_FAILED");
+    const activeEntitlements = (entitlementResult.data ?? []).filter(
+      (item: { plan: string }) => item.plan === workspace.plan,
+    );
     if (customer) {
       const result = await db
         .from("billing_subscriptions")
@@ -76,6 +87,9 @@ export const getBillingOverview = createServerFn({ method: "GET" })
       plan: workspace.plan as "free" | Plan,
       customerId: customer?.provider_customer_id ?? null,
       subscription,
+      oneTimeAccess: activeEntitlements.length
+        ? { plan: workspace.plan, endsAt: activeEntitlements[0].ends_at, monthsPurchased: activeEntitlements.length }
+        : null,
       transactions,
       checkout: {
         environment:

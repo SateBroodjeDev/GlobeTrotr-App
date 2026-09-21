@@ -1,5 +1,7 @@
 # GlobeTrotr roadmap
 
+**Actuele betaalblokkade:** na uitrol van commit `09bbc1f` wees de eerste Paddle-herstelpoging op de nettosubtotaalconstraint bij een 100%-korting. Migraties 1330–1340 en hun SQL-tests zijn voorbereid; voer ze uit en controleer daarna de bestaande transactie, een nieuwe webhookbezorging, Agency-toegang en een abonnementswijziging zonder schijnfactuur. Zes losse maandbetalingen stapelen zes maanden toegang. De live ICS-feed pas na herstel van betaaltoegang opnieuw testen.
+
 **Releasecontrole 21 september 2026:** nog geen vrijgaveadvies. De 75 lokale tests, ESLint en volledige TypeScript-controle slagen; de lokale Windows-Nitrobouw stopt op `EPERM`, en migraties 1180 tot en met 1300 plus de praktische beta-testen staan open. Zie [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md).
 
 ## Betatest — 21 september 2026

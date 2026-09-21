@@ -2,9 +2,9 @@
 
 **Stand:** 21 september 2026
 
-**Huidige stand:** de migraties en tests **tot en met 1320** zijn volgens de eigenaar uitgevoerd. De code van deze herstelronde is nog niet uitgerold. De Paddle-transactie en live ICS-feed blijven incidenten tot de praktijktest slaagt.
+**Huidige stand:** de migraties en tests **tot en met 1320** zijn volgens de eigenaar uitgevoerd. De nieuwe betaaldianose is op de website zichtbaar; de exacte draaiende commit van Node-02 is nog niet bevestigd. De ontbrekende Paddle-transactie faalt aantoonbaar op `billing_transactions_check1` bij 100% korting. Migraties 1330–1340 en hun tests zijn voorbereid, nog niet uitgevoerd. De live ICS-feed blijft een incident tot de praktijktest slaagt.
 
-**Doel:** migraties 1310–1320 en de huidige codewijzigingen gecontroleerd uitrollen, daarna de open incidenten gericht testen.
+**Doel:** migraties 1330–1340 testen en uitrollen, daarna de bestaande Paddle-transactie veilig opnieuw verwerken en de live ICS-feed controleren.
 
 Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige foutmelding zonder wachtwoorden, tokens, mailinhoud of persoonsgegevens.
 
@@ -19,7 +19,11 @@ Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige fo
 - [x] Fase 5 — vorige release op Node-01 uitrollen
 - [x] Herstelronde SQL — migraties 1310–1320 uitvoeren
 - [x] Herstelronde SQL-tests 1310–1320 — volgens de eigenaar uitgevoerd
-- [ ] Herstelronde code — huidige wijzigingen committen en op beide nodes uitrollen
+- [x] Herstelronde code — nieuwe betaaldianose op de website zichtbaar; bevestig de Node-02-commit nog bij de webhookcontrole
+
+- [ ] Kortingsherstel SQL — migratie 1330 en `paddle_discounted_totals.sql` uitvoeren
+
+- [ ] Factuur en vooruitbetaalde maanden SQL — migratie 1340 en `paddle_issued_invoices.sql` uitvoeren
 - [ ] Fase 6 — kritieke praktijktests uitvoeren
 - [ ] Fase 7 — vrijgavebesluit nemen en incidenten bijwerken
 
@@ -85,10 +89,14 @@ Open de SQL Editor van het productieproject. Voer steeds eerst de migratie en di
 |       13 | [1300 — taalkeuze voor Auth-mail](supabase/migrations/20260908130000_auth_email_locale.sql)                         | [auth_email_locale.sql](supabase/tests/auth_email_locale.sql)                                         |
 |       14 | [1310 — sociaal profiel afronden](supabase/migrations/20260908131000_social_profile_completion.sql)                 | [social_profile_completion.sql](supabase/tests/social_profile_completion.sql)                         |
 |       15 | [1320 — €0-Paddle-transacties herstellen](supabase/migrations/20260908132000_zero_discount_billing_repair.sql)         | [zero_discount_billing_repair.sql](supabase/tests/zero_discount_billing_repair.sql)                     |
+|       16 | [1330 — Paddle-korting en nettototalen](supabase/migrations/20260908133000_paddle_discounted_totals.sql)            | [paddle_discounted_totals.sql](supabase/tests/paddle_discounted_totals.sql)                             |
+|       17 | [1340 — echte Paddle-facturen en gestapelde maanden](supabase/migrations/20260908134000_paddle_issued_invoices.sql)  | [paddle_issued_invoices.sql](supabase/tests/paddle_issued_invoices.sql)                                   |
 
 De tests bewijzen schema, rechten en releasechecklist. Ze vervangen geen echte mail-, betaal- of accounttest. Voer oudere migraties niet opnieuw uit en draai een toegepaste productiemigratie niet handmatig terug.
 
-**SQL is nu klaar volgens de eigenaar:** voer 1310 en 1320 of hun tests niet opnieuw uit. Commit en push de huidige code; deploy Node-02 (`worker`) en Node-01 (`web` en `caddy`) met dezelfde nieuwe commit volgens fase 4 en 5. Migratie 1320 herstelt uitsluitend bestaande, aantoonbaar verwerkte €0-transacties; een nooit verwerkte webhook verleent geen rechten.
+**Nieuwe productiefix, nog uitvoeren:** voer migratie 1330 uit de tabel hierboven uit en direct daarna de bijbehorende rollback-test. Voer vervolgens migratie 1340 en haar rollback-test uit. De fout `23514: billing_transactions_check1` ontstaat doordat Paddle bij een 100%-korting het bruto subtotaal levert maar de GlobeTrotr-tabel een nettosubtotaal eist. Migratie 1330 normaliseert uitsluitend Paddle-rijen; de originele providerbedragen blijven in de webhookpayload. Migratie 1340 voorkomt dat GlobeTrotr een lokale Paddle-factuur toont voor een €0-transactie of zonder officieel Paddle-factuurnummer; de transactie blijft als betaling zichtbaar. De test verwerkt zes afzonderlijke vooruitbetaalde maanden en verifieert dat een herhaald event geen zevende maand toevoegt. Migraties 1310–1320 hoef je niet opnieuw te draaien. Voor de SQL-fix is geen containerherstart nodig; de melding over €0-facturen en de zichtbare einddatum van vooruitbetaalde toegang op de website vereisen wel een nieuwe Node-01-build.
+
+**Daarna:** open Corporate Admin → Financiën, diagnoseer `txn_01m3266ap61fdket5ft38ax5de` en kies **Bij Paddle controleren en herstellen** met een reden. Controleer daarna de lokale €0-transactie, het juiste Agency-plan en de einddatum. Paddle biedt voor €0 geen factuur-PDF; GlobeTrotr mag dan geen lokale Paddle-factuur tonen. Controleer óók in Paddle de HTTP-status van notificatie `ntf_01m3267edg27hm2e7jkn3q5fqb` en of een nieuwe bezorgpoging `200` krijgt; de handmatige herstelactie alleen verhelpt toekomstige webhookfouten niet. Pas daarna een nieuwe live ICS-feed maken en met GET/HEAD en een agenda-app testen.
 
 ### Gerichte productiecontrole na deze deploy
 
@@ -100,7 +108,7 @@ De tests bewijzen schema, rechten en releasechecklist. Ze vervangen geen echte m
 6. Maak met een betaald account een nieuwe live agenda-URL. Node-01 controleert voortaan zelf of de publieke URL daadwerkelijk `200`, `text/calendar` en `BEGIN:VCALENDAR` levert voordat hij de link toont. Test daarna met een agenda-app en, zonder de geheime link te delen, `curl -i 'https://globetrotr.nl/calendar/<token>.ics'` en `curl -I 'https://globetrotr.nl/calendar/<token>.ics'`. Beide moeten `200` en `Content-Type: text/calendar` geven. Een 404 op een bestaande link betekent dat de token is ingetrokken of dat de workspace volgens de database geen actief Pro/Agency-plan heeft. Controleer dan eerst Paddle-toegang en de workerlog (`calendar.feed_unavailable`), daarna de Caddy-route naar Node-02.
 7. Voor de ontbrekende Paddle-transactie `txn_01m3266ap61fdket5ft38ax5de`: volg de webhookcontrole hieronder. Migratie 1320 voorkomt dat `credit=0` en `total=0` als volledige terugbetaling gelden. Controleer op Node-02 of de worker een legacy service-role JWT of een `sb_secret_`-sleutel gebruikt; beide worden na deze uitrol correct als Supabase-credential verstuurd. Een voltooide €0-transactie bij Paddle is nog geen bewezen gekoppeld abonnement. Houd dit incident open tot de bezorging en workspacekoppeling zijn bevestigd.
 
-   Als na de uitrol nog geen lokale transactie bestaat, open **Corporate Admin → Financiën → Betaling en account controleren**, vul exact dat transactie-ID in en kies **Bij Paddle controleren en herstellen**. Deze actie vereist op Node-01 een Paddle API-sleutel met `transaction.read` én `adjustment.read`. Zij weigert transacties die niet voltooid zijn, een onbekend prijs-ID hebben, geen geldige ondertekende workspacekoppeling bevatten, al lokaal bestaan of een refund/credit/chargeback hebben. Deel de Paddle API-sleutel nooit in de browser of in een screenshot. Controleer daarna het juiste account, plan, factuur en de live ICS-feed. De actie vervangt niet de webhookdiagnose voor toekomstige betalingen.
+   Als na de uitrol nog geen lokale transactie bestaat, open **Corporate Admin → Financiën → Betaling en account controleren**, vul exact dat transactie-ID in en kies **Bij Paddle controleren en herstellen**. Deze actie vereist op Node-01 een Paddle API-sleutel met `transaction.read` én `adjustment.read`. Zij weigert transacties die niet voltooid zijn, een onbekend prijs-ID hebben, geen geldige ondertekende workspacekoppeling bevatten, al lokaal bestaan of een refund/credit/chargeback hebben. Deel de Paddle API-sleutel nooit in de browser of in een screenshot. Controleer daarna het juiste account, plan, €0-betaalregel zonder PDF en de live ICS-feed. De actie vervangt niet de webhookdiagnose voor toekomstige betalingen.
 
 **Bij een nieuwe registratie-504:** noteer het exacte tijdstip en controleer in Supabase **Logs → Auth** de aanvraag rond dat tijdstip. Controleer of er een gebruiker is aangemaakt in **Authentication → Users** en of de bevestigingsmail in de SMTP-log is aangeboden of geweigerd. Een browser-timeout maakt de serveraanvraag niet ongedaan; probeer niet blind hetzelfde adres opnieuw. De huidige UI begrenst alleen de wachttijd, de Auth/SMTP-storing zelf vergt de serverlog om gericht te verhelpen.
 
