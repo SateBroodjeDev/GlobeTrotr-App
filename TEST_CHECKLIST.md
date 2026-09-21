@@ -2,6 +2,20 @@
 
 ## Herstelronde na migraties 1310–1320
 
+- [ ] Na migratie 1370 vanuit een persoonlijk en gedeeld postvak mailen naar minstens Gmail en Outlook/webmail. Controleer logo, naam, functie, adres, tagline, website, contactlink en CTA op desktop en telefoon; bekijk ook de platte-tekstversie.
+- [ ] Zet `<script>`, een HTML-tag en een afwijkende URL in de vrije handtekeningstekst. De ontvanger moet uitsluitend veilige zichtbare tekst zien en de vaste links moeten naar `globetrotr.nl` wijzen.
+- [ ] Na migratie 1380 een tijdelijk mislukte bedrijfsmail openen en **Opnieuw proberen** kiezen. Controleer dat precies één bericht wordt bezorgd met hetzelfde onderwerp, HTML, handtekening en alle bijlagen; een gebruiker met alleen leesrecht mag de actie niet uitvoeren.
+
+- [ ] Na migratie 1360 in Corporate Admin NL→EN én EN→NL testen voor feedback en antwoord, platformmelding, bekend probleem, onderhoudstekst en recensie. Controleer elk concept handmatig; vertalen mag niets opslaan, verzenden of publiceren.
+- [ ] Open met lees-, antwoord- en beheerrecht een ontvangen bedrijfsmail en maak een Nederlandse en Engelse leesweergave. De originele tekst/HTML moet intact blijven; mail boven 5000 tekens mag niet ongemerkt worden afgekapt.
+
+- [ ] Na migratie 1350 de rollback-test uitvoeren; controleer daarna een Nederlandse en Engelse Paddle-melding, zonder dubbele taal in pop-up, meldingenscherm of mail.
+- [ ] Controleer dat MRR alleen doorlopende abonnementen bevat, een losse maand bij netto-omzet staat en Corporate Admin actieve vooruitbetaalde rechten apart telt.
+- [ ] Verwerk de teruggezette Paddle-webhook opnieuw en controleer dat de webhookwachtrij daalt zonder eventpayloads of auditgeschiedenis te verwijderen.
+- [ ] Open Agenda bij een bestaande live feed: controleer aanmaakdatum en uitleg over de verborgen geheime URL. Maak een nieuwe link, test **Open in agenda-app**, GET/HEAD 200 en automatische verversing na een reiswijziging.
+- [ ] Klik bij een actief eenmalig plan op **Voeg één maand toe**: vóór Paddle moet een bevestiging met de huidige einddatum verschijnen; annuleren maakt geen checkout aan.
+- [ ] Kies bij een terugkerend abonnement opnieuw hetzelfde plan: GlobeTrotr meldt dat niets is gewijzigd en Paddle maakt geen transactie of factuur aan. Een echte Pro/Agency-wissel maakt maximaal één evenredige transactie.
+
 - [ ] Na migratie 1330 de SQL-test `paddle_discounted_totals.sql` uitvoeren: een volledige 100%-korting moet als voltooide €0-transactie en Agency-recht worden verwerkt; alle testdata wordt teruggedraaid. Migratie 1340 zorgt daarna dat hiervoor geen schijnfactuur verschijnt.
 - [ ] De bestaande Paddle-transactie opnieuw herstellen, het Agency-recht en de einddatum controleren en bij een volgende webhookbezorging HTTP 200 in Paddle bevestigen.
 - [ ] Na migratie 1340 een abonnementswijziging testen: GlobeTrotr mag pas een lokale factuur tonen als Paddle een voltooide, positief geprijsde transactie met eigen factuurnummer heeft; een €0-verrekening blijft alleen als transactie zichtbaar.

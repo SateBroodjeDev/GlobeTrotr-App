@@ -221,6 +221,24 @@ export const changePaddlePlan = createServerFn({ method: "POST" })
       process.env.VITE_PADDLE_ENVIRONMENT === "production"
         ? "https://api.paddle.com"
         : "https://sandbox-api.paddle.com";
+    const currentResponse = await fetch(
+      `${base}/subscriptions/${encodeURIComponent(subscription.provider_subscription_id)}`,
+      {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        signal: AbortSignal.timeout(15_000),
+      },
+    );
+    if (!currentResponse.ok) throw new Error(`PADDLE_SUBSCRIPTION_${currentResponse.status}`);
+    const currentSubscription = (await currentResponse.json()) as {
+      data?: { items?: Array<{ price?: { id?: string }; quantity?: number }> };
+    };
+    const currentItems = currentSubscription.data?.items ?? [];
+    if (
+      currentItems.length === 1 &&
+      currentItems[0]?.price?.id === priceId &&
+      Number(currentItems[0]?.quantity ?? 1) === 1
+    )
+      return { ok: true, changed: false };
     const response = await fetch(
       `${base}/subscriptions/${encodeURIComponent(subscription.provider_subscription_id)}`,
       {
@@ -229,11 +247,12 @@ export const changePaddlePlan = createServerFn({ method: "POST" })
         body: JSON.stringify({
           items: [{ price_id: priceId, quantity: 1 }],
           proration_billing_mode: "prorated_immediately",
+          on_payment_failure: "prevent_change",
           custom_data: { workspace_uuid: workspace.workspace_uuid, plan: data.plan },
         }),
         signal: AbortSignal.timeout(30_000),
       },
     );
     if (!response.ok) throw new Error(`PADDLE_PLAN_CHANGE_${response.status}`);
-    return { ok: true };
+    return { ok: true, changed: true };
   });

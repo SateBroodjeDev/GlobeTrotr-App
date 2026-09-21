@@ -1,5 +1,37 @@
 # GlobeTrotr changelog
 
+## 2026-09-21 — Bedrijfsmail opnieuw bezorgen (voorbereid)
+
+- Medewerkers met antwoord- of beheerrecht kunnen een tijdelijk mislukte uitgaande bedrijfsmail opnieuw in de beveiligde wachtrij plaatsen.
+- De bestaande wachtrijregel wordt hergebruikt, waardoor onderwerp, veilige HTML, platte-tekstalternatief, handtekening en bijlagen behouden blijven en geen tweede concept ontstaat.
+- Permanente SMTP-afwijzingen blijven geannuleerd; de actie verschijnt uitsluitend bij tijdelijk mislukte bezorging en wordt in het auditlog vastgelegd.
+- Migratie 1380 voegt de praktische Corporate Admin-releasecontrole toe en controleert dat de workerwachtrij niet rechtstreeks aan ingelogde gebruikers is blootgesteld.
+
+## 2026-09-21 — Professionele HTML-handtekening (voorbereid)
+
+- Persoonlijke en gedeelde bedrijfspostvakken krijgen bij verzending een vaste, mobielvriendelijke HTML-handtekening met GlobeTrotr-logo, afzendernaam, vrije functieregels, postvakadres, tagline, website, contactlink en CTA.
+- De opgeslagen handtekening blijft gewone bewerkbare tekst. Oude GlobeTrotr-boilerplate wordt bij rendering ontdubbeld en alle persoonlijke waarden worden als tekst ontsnapt.
+- Mailclients zonder HTML ontvangen een volledige tekstfallback. Corporate Admin en de eigenaar van een persoonlijk postvak zien vóór opslaan een veilig voorbeeld.
+- Migratie 1370 actualiseert de praktische releasecontrole voor een persoonlijk en gedeeld postvak in gangbare mailclients.
+
+## 2026-09-21 — Vertaalconcepten op meer beheerplekken (voorbereid)
+
+- Platformmeldingen en bekende problemen kunnen nu zowel van Nederlands naar Engels als van Engels naar Nederlands worden vertaald.
+- Corporate Admin kan dezelfde gecontroleerde vertaalactie gebruiken voor onderhoudsteksten en recensies, inclusief de auteurscontext.
+- Ontvangen feedback kan als aparte Nederlandse of Engelse leesweergave worden vertaald. Ook een conceptantwoord kan beide kanten op worden vertaald zonder de oorspronkelijke inzending te wijzigen of automatisch te verzenden.
+- Ontvangen bedrijfsmail heeft nu eveneens een losse Nederlandse of Engelse leesweergave. De opgeslagen tekst en veilige HTML-weergave blijven intact.
+- Vertalen vervangt alleen het doelveld door een concept. Opslaan en publiceren blijven aparte handmatige acties; de interface vraagt expliciet om namen, bedragen en betekenis te controleren.
+- Migratie 1360 werkt de bestaande Corporate Admin-releasecheck bij voor alle ondersteunde vertaalplekken.
+
+## 2026-09-21 — Betaalmeldingen, MRR en bewuste herhaalaankopen (voorbereid)
+
+- De actief-plan-knop voor losse maanden heet voortaan **Voeg één maand toe** en toont vóór de Paddle-checkout de huidige einddatum en een expliciete bevestiging. Zo blijven meerdere maanden vooruitbetalen mogelijk zonder dat de misleidende knoptekst iedere klik als gewone plankeuze presenteert.
+- Een terugkerende planwijziging vergelijkt de actuele Paddle-prijs vóór de wijziging. Staat het abonnement al op die prijs, dan wordt geen factureerbare PATCH verstuurd; een echte Pro/Agency-wissel blijft direct evenredig afgerekend.
+- Paddle-meldingen worden in de profieltaal opgeslagen; bestaande open tweetalige betaalmeldingen worden bijgewerkt. De meldingweergave lokaliseert oudere tweetalige accountmeldingen bovendien defensief.
+- Corporate Admin legt uit dat MRR alleen doorlopende abonnementen telt. Losse maanden staan bij omzet en krijgen een eigen teller voor actieve vooruitbetaalde rechten.
+- Alleen webhookevents die door de inmiddels opgeloste kortingsconstraint vastliepen worden opnieuw klaargezet. Payloads en auditgeschiedenis blijven behouden.
+- Live agenda toont de aanmaakdatum van de actieve geheime link, legt uit waarom een bestaande URL niet opnieuw zichtbaar wordt en biedt bij een nieuwe link direct **Open in agenda-app** via `webcal://`.
+
 ## 2026-09-21 — Paddle-facturen en vooruitbetaalde maanden (voorbereid)
 
 - Bij een abonnementswijziging kan Paddle een onmiddellijke verrekening van €0 afronden zonder downloadbare factuur-PDF. GlobeTrotr hield daar toch een interne factuur voor bij. Migratie 1340 bewaart de transactie, maar maakt alleen een factuurspiegel bij een positief bedrag met officieel Paddle-factuurnummer. Eerdere lokale schijnfacturen worden verwijderd; webhook- en transactiegeschiedenis blijven bewaard.

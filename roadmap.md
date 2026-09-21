@@ -1,6 +1,6 @@
 # GlobeTrotr roadmap
 
-**Actuele betaalblokkade:** na uitrol van commit `09bbc1f` wees de eerste Paddle-herstelpoging op de nettosubtotaalconstraint bij een 100%-korting. Migraties 1330–1340 en hun SQL-tests zijn voorbereid; voer ze uit en controleer daarna de bestaande transactie, een nieuwe webhookbezorging, Agency-toegang en een abonnementswijziging zonder schijnfactuur. Zes losse maandbetalingen stapelen zes maanden toegang. De live ICS-feed pas na herstel van betaaltoegang opnieuw testen.
+**Actuele betaalstand:** migraties 1330–1340 zijn uitgevoerd en een echte betaling met 93% korting activeert Pro met downloadbare Paddle-factuur. Migraties 1350–1380 en de code-uitrol voor eentalige betaalmeldingen, gerichte webhookherverwerking, MRR-uitleg, bewuste herhaalaankopen, uitgebreidere vertaalconcepten, de HTML-handtekening en gecontroleerd opnieuw bezorgen staan nog open. Zes losse maandbetalingen stapelen zes maanden toegang. Test de live ICS-feed na afronding opnieuw.
 
 **Releasecontrole 21 september 2026:** nog geen vrijgaveadvies. De 75 lokale tests, ESLint en volledige TypeScript-controle slagen; de lokale Windows-Nitrobouw stopt op `EPERM`, en migraties 1180 tot en met 1300 plus de praktische beta-testen staan open. Zie [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md).
 
@@ -149,7 +149,7 @@ Volgens de eigenaar zijn alle SQL-migraties en tests tot en met 1170 uitgevoerd.
 - [x] Reactie of aanvullende vraag op feedback ondersteunen zonder privégegevens openbaar te maken.
 - [x] Publicatie, wijziging, oplossing en archivering van een bekend probleem consistent verwerken en bij urgente status de beheermelding bijwerken.
 - [x] Corporate Admin toont per gebeurtenistype hoeveel recente in-appmeldingen open of afgesloten zijn.
-- [ ] E-mailbezorging later uitbreiden met kanaal, laatste fout en gecontroleerd opnieuw proberen zodra SMTP actief is.
+- [x] E-mailbezorging toont kanaal/status en laatste fout; mislukte service- en bedrijfsmail kan met passende rechten gecontroleerd opnieuw worden aangeboden.
 - [x] Inzage en publicatie binnen het huidige meldingenbeheer in de append-only auditlog vastleggen.
 
 ## P0 — Agency-offertes afronden
@@ -372,7 +372,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - Nieuwe sociale accounts krijgen na de volgende uitrol een eenmalige profielstap voor naam, optionele telefoon en foto. Migratie 1310 en een echte OAuth-test zijn nog vereist.
 - Lange bedrijfsmail hoort na de volgende uitrol binnen het scherm te blijven; test dit met echte HTML-mails op mobiel en desktop.
 - Inkomende HTML-bedrijfsmail krijgt in 1180 aparte opslag en een afgeschermde weergave; uitgaande HTML en handtekening moeten in een echte mailclient worden beoordeeld.
-- Automatische vertaling van feedback en bekende problemen is nog niet actief. Apple- en Microsoft-login zijn niet beschikbaar; Google en Discord werken volgens de eigenaar.
+- Zelf gehoste vertaalconcepten zijn gebouwd voor feedback, antwoorden, bekende problemen, platformmeldingen, onderhoud, recensies en bedrijfsmail. Praktische controle na migratie 1360 blijft open. Apple- en Microsoft-login zijn niet beschikbaar; Google en Discord werken volgens de eigenaar.
 
 ## Productkansen uit concurrentieonderzoek — na stabilisatie
 

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MailSignaturePreview } from "@/components/mail/MailSignaturePreview";
 import {
   getCorporateBusinessData,
   getEmailDeliveryMode,
@@ -272,6 +273,7 @@ function Page() {
                   onChange={(e) => setF({ ...f, signatureText: e.target.value })}
                 />
               </label>
+              <MailSignaturePreview signatureText={f.signatureText} displayName={f.displayName} address={f.address} />
               <div className="rounded-xl border p-4">
                 <p className="mb-3 text-sm font-medium">
                   {text("Postvak uitlezen", "Read mailbox")}

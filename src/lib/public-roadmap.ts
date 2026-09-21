@@ -109,8 +109,16 @@ export const PUBLIC_ROADMAP = [
     ],
     items: [
       [
-        "Zelf gehoste EU-vertaling activeren en de concepten met menselijke controle testen",
-        "Activate self-hosted EU translation and test drafts with human review",
+        "Zelf gehoste EU-vertaling voor feedback, meldingen, onderhoud, recensies en mail met menselijke controle testen",
+        "Test self-hosted EU translation for feedback, notices, maintenance, testimonials and mail with human review",
+      ],
+      [
+        "HTML-handtekeningen met logo en tekstfallback in gangbare mailapps controleren",
+        "Verify HTML signatures with logo and text fallback in common email apps",
+      ],
+      [
+        "Tijdelijk mislukte bedrijfsmail met behoud van opmaak en bijlagen opnieuw bezorgen",
+        "Retry temporarily failed company email while preserving formatting and attachments",
       ],
     ],
   },

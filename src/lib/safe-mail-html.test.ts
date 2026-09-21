@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { plainTextToMailHtml, sanitizeMailHtml } from "./safe-mail-html.ts";
+import { corporateSignatureHtml, corporateSignatureText, plainTextToMailHtml, sanitizeMailHtml } from "./safe-mail-html.ts";
 
 test("keeps supported company-mail formatting", () => {
   assert.equal(
@@ -24,5 +24,24 @@ test("formats signatures without allowing HTML injection", () => {
   assert.equal(
     plainTextToMailHtml("Domenico <admin>\nGlobeTrotr\n\nhttps://globetrotr.nl"),
     "<p>Domenico &lt;admin&gt;<br>GlobeTrotr</p><p>https://globetrotr.nl</p>",
+  );
+});
+
+test("builds a branded signature without duplicating legacy boilerplate", () => {
+  const input = {
+    displayName: "Domenico <Founder>",
+    address: "info@globetrotr.nl",
+    signatureText: "Domenico <Founder>\nFounder\nGlobeTrotr\nPlan every trip. Track every euro.\nhttps://globetrotr.nl",
+  };
+  const html = corporateSignatureHtml(input);
+  assert.match(html, /assets\/email\/logo\.png/);
+  assert.match(html, /Domenico &lt;Founder&gt;/);
+  assert.match(html, /mailto:info@globetrotr\.nl/);
+  assert.match(html, /Open GlobeTrotr/);
+  assert.equal((html.match(/Plan every trip/g) || []).length, 1);
+  assert.doesNotMatch(html, /<Founder>/);
+  assert.equal(
+    corporateSignatureText(input),
+    "Domenico <Founder>\nFounder\nGlobeTrotr\nPlan every trip. Track every euro.\ninfo@globetrotr.nl\nhttps://globetrotr.nl\nContact: https://globetrotr.nl/contact",
   );
 });

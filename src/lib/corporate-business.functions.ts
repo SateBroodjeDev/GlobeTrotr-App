@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { plainTextToMailHtml, sanitizeMailHtml } from "@/lib/safe-mail-html";
+import { corporateSignatureHtml, corporateSignatureText, sanitizeMailHtml } from "@/lib/safe-mail-html";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { MAIL_ATTACHMENT_TYPES, validMailAttachments } from "@/lib/mail-attachments";
 import { classifyPaddleDiagnosis } from "@/lib/paddle-diagnosis";
@@ -412,8 +412,7 @@ export const prepareCorporateMailAttachments = createServerFn({ method: "POST" }
   )
   .handler(async ({ data, context }) => {
     const db = await staffDb(context.userId);
-    const access = await mailboxPermission(db, context.userId, data.mailboxId);
-    if (!["reply", "manage"].includes(access.permission)) throw new Error("FORBIDDEN");
+    await mailboxPermission(db, context.userId, data.mailboxId);
     const total = data.files.reduce((sum, file) => sum + Number(file.sizeBytes || 0), 0);
     if (
       !data.files.length ||
@@ -522,7 +521,12 @@ export const queueCorporateMail = createServerFn({ method: "POST" })
     const messageText = data.body.trim();
     const messageHtml = sanitizeMailHtml(data.bodyHtml);
     if (!messageHtml) throw new Error("INVALID_MESSAGE");
-    const body = `${messageText}${access.mailbox.signature_text ? `\n\n${access.mailbox.signature_text}` : ""}`;
+    const signatureInput = {
+      signatureText: access.mailbox.signature_text || "",
+      displayName: access.mailbox.display_name,
+      address: access.mailbox.address,
+    };
+    const body = `${messageText}\n\n${corporateSignatureText(signatureInput)}`;
     const attachments = data.attachments ?? [];
     const expectedPrefix = `${data.mailboxId}/${context.userId}/`;
     if (
@@ -584,7 +588,7 @@ export const queueCorporateMail = createServerFn({ method: "POST" })
         cc_addresses: cc,
         subject: data.subject.trim(),
         body_text: body,
-        body_html: `${messageHtml}${access.mailbox.signature_text ? `<div style="margin-top:24px;border-top:1px solid #e4ebe8;padding-top:18px">${plainTextToMailHtml(access.mailbox.signature_text)}</div>` : ""}`,
+        body_html: `${messageHtml}${corporateSignatureHtml(signatureInput)}`,
         status: "held",
       })
       .select("id")
@@ -752,6 +756,34 @@ export const translateCorporateMailDraft = createServerFn({ method: "POST" })
     }
   });
 
+export const retryCorporateMailDelivery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { mailboxId: string; messageId: string }) => input)
+  .handler(async ({ data, context }) => {
+    if (!uuid.test(data.mailboxId) || !uuid.test(data.messageId)) throw new Error("INVALID_MAIL_MESSAGE");
+    const db = await staffDb(context.userId);
+    const access = await mailboxPermission(db, context.userId, data.mailboxId);
+    if (!["reply", "manage"].includes(access.permission)) throw new Error("FORBIDDEN");
+    const { data: config } = await db.from("email_delivery_config").select("mode").eq("id", true).maybeSingle();
+    const { data: retried, error } = await db
+      .from("corporate_mail_send_queue")
+      .update({
+        status: config?.mode === "live" ? "pending" : "held",
+        attempts: 0,
+        last_error_code: null,
+        available_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.messageId)
+      .eq("mailbox_id", data.mailboxId)
+      .eq("status", "failed")
+      .select("id")
+      .maybeSingle();
+    if (error || !retried) throw new Error("MAIL_RETRY_NOT_ALLOWED");
+    await log(db, context.userId, "platform.corporate_mail.delivery.retry", data.messageId, { mailboxId: data.mailboxId });
+    return { ok: true, status: config?.mode === "live" ? "pending" : "held" };
+  });
+
 export const updateMyCorporateSignature = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: { mailboxId: string; signatureText: string }) => input)
@@ -809,7 +841,7 @@ export const getCorporateFinanceData = createServerFn({ method: "GET" })
     const db = await dbFor(context.userId, "finance");
     const days = Math.min(366, Math.max(7, Math.floor(data.days ?? 30)));
     const since = new Date(Date.now() - days * 86400000).toISOString();
-    const [invoices, subscriptions, transactions, webhooks] = await Promise.all([
+    const [invoices, subscriptions, transactions, webhooks, entitlements] = await Promise.all([
       db.from("corporate_invoices").select("*").order("issued_at", { ascending: false }).limit(500),
       db
         .from("billing_subscriptions")
@@ -827,8 +859,12 @@ export const getCorporateFinanceData = createServerFn({ method: "GET" })
           "id,provider_event_id,event_type,status,attempts,last_error_code,received_at,processed_at",
         )
         .in("status", ["received", "processing", "failed"]),
+      db.from("billing_entitlements").select("id").gt("ends_at", new Date().toISOString()),
     ]);
-    if (invoices.error || subscriptions.error || transactions.error || webhooks.error)
+    if (
+      invoices.error || subscriptions.error || transactions.error || webhooks.error ||
+      entitlements.error
+    )
       throw new Error("FINANCE_DATA_UNAVAILABLE");
     const subs = subscriptions.data ?? [],
       tx = transactions.data ?? [];
@@ -871,6 +907,7 @@ export const getCorporateFinanceData = createServerFn({ method: "GET" })
         activeSubscriptions: subs.filter((x: any) => x.status === "active").length,
         pastDue: subs.filter((x: any) => x.status === "past_due").length,
         pendingWebhooks: (webhooks.data ?? []).length,
+        activePrepaidAccesses: (entitlements.data ?? []).length,
       },
       dailyRevenue: Array.from(daily, ([date, totalMinor]) => ({ date, totalMinor })),
     };

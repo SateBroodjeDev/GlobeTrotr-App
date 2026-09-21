@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CircleDollarSign, Download, FileText, RefreshCcw, TrendingUp } from "lucide-react";
+import { Check, CircleDollarSign, Download, FileText, RefreshCcw, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ function exportCsv(name: string, rows: unknown[][]) {
 function Page() {
   const { text, locale } = useLocale();
   const [days, setDays] = useState(30);
+  const [retryingWebhook, setRetryingWebhook] = useState<string | null>(null);
   const { data, refetch } = useQuery({
     queryKey: ["corporate-finance", days],
     queryFn: () => getCorporateFinanceData({ data: { days } }),
@@ -107,12 +108,12 @@ function Page() {
           </select>
         </div>
       </header>
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <Metric
           icon={TrendingUp}
           label="MRR"
           value={money(data?.metrics.mrrMinor ?? 0)}
-          detail={`${data?.metrics.activeSubscriptions ?? 0} ${text("actieve abonnementen", "active subscriptions")}`}
+          detail={`${data?.metrics.activeSubscriptions ?? 0} ${text("doorlopende abonnementen; losse maanden tellen als omzet", "recurring subscriptions; standalone months count as revenue")}`}
         />
         <Metric
           icon={CircleDollarSign}
@@ -130,6 +131,12 @@ function Page() {
           icon={FileText}
           label={text("Webhookwachtrij", "Webhook queue")}
           value={data?.metrics.pendingWebhooks}
+        />
+        <Metric
+          icon={Check}
+          label={text("Vooruitbetaalde toegang", "Prepaid access")}
+          value={data?.metrics.activePrepaidAccesses ?? 0}
+          detail={text("actieve losse maandrechten", "active standalone monthly entitlements")}
         />
       </section>
       <Card>
@@ -292,24 +299,47 @@ function Page() {
                 key={x.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
               >
-                <div>
-                  <strong>{x.event_type}</strong>
-                  <p className="text-xs text-muted-foreground">
-                    {x.provider_event_id} · {x.last_error_code || x.status}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <strong>{x.event_type}</strong>
+                    <Badge variant={x.status === "failed" ? "destructive" : "outline"}>
+                      {x.status === "failed"
+                        ? text("Mislukt", "Failed")
+                        : x.status === "processing"
+                          ? text("Wordt verwerkt", "Processing")
+                          : text("Ontvangen", "Received")}
+                    </Badge>
+                  </div>
+                  <p className="break-all text-xs text-muted-foreground">
+                    {x.provider_event_id}
                   </p>
+                  <p className="text-xs text-muted-foreground">
+                    {text("Ontvangen", "Received")}: {new Date(x.received_at).toLocaleString(locale)} · {text("pogingen", "attempts")}: {x.attempts}
+                  </p>
+                  {x.last_error_code && (
+                    <p className="mt-1 break-words text-xs text-destructive">
+                      {text("Foutcode", "Error code")}: {x.last_error_code}
+                    </p>
+                  )}
                 </div>
                 {x.status === "failed" && (
                   <Button
                     size="sm"
                     variant="outline"
+                    disabled={retryingWebhook !== null}
                     onClick={async () => {
                       const reason = window.prompt(
                         text(
-                          "Waarom verwerk je dit event opnieuw?",
-                          "Why are you retrying this event?",
+                          "Waarom verwerk je dit event opnieuw? Vul minimaal 10 tekens in; deze reden komt in het auditlog.",
+                          "Why are you retrying this event? Enter at least 10 characters; this reason is written to the audit log.",
                         ),
                       );
                       if (!reason) return;
+                      if (reason.trim().length < 10) {
+                        toast.error(text("De reden is te kort.", "The reason is too short."));
+                        return;
+                      }
+                      setRetryingWebhook(x.provider_event_id);
                       try {
                         await retryPaddleWebhook({
                           data: { eventId: x.provider_event_id, reason },
@@ -318,18 +348,24 @@ function Page() {
                           text("Webhook opnieuw verwerkt.", "Webhook processed again."),
                         );
                         await refetch();
-                      } catch {
+                      } catch (error) {
                         toast.error(
-                          text(
-                            "Webhook kon niet opnieuw worden verwerkt.",
-                            "Webhook could not be processed again.",
-                          ),
+                          error instanceof Error
+                            ? error.message
+                            : text(
+                                "Webhook kon niet opnieuw worden verwerkt.",
+                                "Webhook could not be processed again.",
+                              ),
                         );
+                      } finally {
+                        setRetryingWebhook(null);
                       }
                     }}
                   >
-                    <RefreshCcw className="size-4" />
-                    {text("Opnieuw verwerken", "Retry")}
+                    <RefreshCcw className={`size-4 ${retryingWebhook === x.provider_event_id ? "animate-spin" : ""}`} />
+                    {retryingWebhook === x.provider_event_id
+                      ? text("Verwerken…", "Processing…")
+                      : text("Opnieuw verwerken", "Retry")}
                   </Button>
                 )}
               </div>

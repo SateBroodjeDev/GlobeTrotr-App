@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Archive, Languages, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TranslationDraftButtons, type TranslationDirection } from "@/components/TranslationDraftButtons";
 import { Field, severityLabel, statusLabel } from "@/lib/corporate-admin-ui";
 import { issueCategoryLabel, ISSUE_CATEGORIES } from "@/lib/issue-categories";
 import {
@@ -44,16 +45,20 @@ function IssuesPage() {
   const [syncing, setSyncing] = useState(false);
   const [search, setSearch] = useState("");
   const [archived, setArchived] = useState(false);
-  async function translateToEnglish() {
-    if (!form.titleNl.trim() || !form.descriptionNl.trim()) return;
+  async function translate(direction: TranslationDirection) {
+    const source = direction === "nl-en" ? "nl" : "en";
+    const target = direction === "nl-en" ? "en" : "nl";
+    const titleValue = direction === "nl-en" ? form.titleNl : form.titleEn;
+    const descriptionValue = direction === "nl-en" ? form.descriptionNl : form.descriptionEn;
+    if (!titleValue.trim() || !descriptionValue.trim()) return;
     setSaving(true);
     try {
       const [title,description]=await Promise.all([
-        createTranslationDraft({data:{text:form.titleNl,source:"nl",target:"en"}}),
-        createTranslationDraft({data:{text:form.descriptionNl,source:"nl",target:"en"}}),
+        createTranslationDraft({data:{text:titleValue,source,target}}),
+        createTranslationDraft({data:{text:descriptionValue,source,target}}),
       ]);
-      setForm(current=>({...current,titleEn:title.translated,descriptionEn:description.translated}));
-      toast.success(text("Engels concept gemaakt. Controleer het voor opslaan.","English draft created. Review it before saving."));
+      setForm(current=>direction === "nl-en" ? {...current,titleEn:title.translated,descriptionEn:description.translated} : {...current,titleNl:title.translated,descriptionNl:description.translated});
+      toast.success(text("Vertaalconcept gemaakt. Controleer het voor opslaan.","Translation draft created. Review it before saving."));
     } catch(error) {
       toast.error(String(error).includes("TRANSLATION_NOT_CONFIGURED")?text("De vertaalprovider is nog niet ingesteld.","The translation provider is not configured yet."):text("Vertaalconcept kon niet worden gemaakt.","Translation draft could not be created."));
     } finally { setSaving(false); }
@@ -211,10 +216,8 @@ function IssuesPage() {
             />
             {text("Openbaar", "Public")}
           </label>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" disabled={saving||!form.titleNl.trim()||!form.descriptionNl.trim()} onClick={()=>void translateToEnglish()}>
-              <Languages className="size-4"/>{text("Maak Engels concept","Create English draft")}
-            </Button>
+          <div className="space-y-3">
+            <TranslationDraftButtons translating={saving} canTranslateNl={Boolean(form.titleNl.trim()&&form.descriptionNl.trim())} canTranslateEn={Boolean(form.titleEn.trim()&&form.descriptionEn.trim())} onTranslate={(direction)=>void translate(direction)}/>
             <Button
               disabled={
                 saving ||

@@ -39,6 +39,23 @@ function Billing() {
 
   async function checkout(plan: "pro" | "agency") {
     if (!billing.data) return;
+    if (billingMode === "oneTime") {
+      const currentEnd = billing.data.oneTimeAccess?.endsAt
+        ? new Date(billing.data.oneTimeAccess.endsAt).toLocaleDateString(locale)
+        : null;
+      const confirmed = window.confirm(
+        currentEnd
+          ? text(
+              `Je toegang loopt nu tot ${currentEnd}. Na een geslaagde betaling wordt precies één maand toegevoegd. Wil je doorgaan?`,
+              `Your access currently runs until ${currentEnd}. Exactly one month is added after successful payment. Continue?`,
+            )
+          : text(
+              "Je koopt precies één maand toegang zonder automatische verlenging. Wil je doorgaan?",
+              "You are buying exactly one month of access without automatic renewal. Continue?",
+            ),
+      );
+      if (!confirmed) return;
+    }
     const priceId = billing.data.checkout.prices[billingMode][plan];
     if (!billing.data.checkout.clientToken || !priceId) {
       toast.error(
@@ -107,12 +124,17 @@ function Billing() {
       return;
     setBusy(plan);
     try {
-      await changePaddlePlan({ data: { plan } });
+      const result = await changePaddlePlan({ data: { plan } });
       toast.success(
-        text(
-          "De bevestiging volgt na verwerking door Paddle.",
-          "Confirmation follows after Paddle processes the change.",
-        ),
+        result.changed
+          ? text(
+              "De bevestiging volgt na verwerking door Paddle.",
+              "Confirmation follows after Paddle processes the change.",
+            )
+          : text(
+              "Dit abonnement staat bij Paddle al op het gekozen plan; er is niets gefactureerd.",
+              "This subscription already uses the selected plan in Paddle; nothing was billed.",
+            ),
       );
       await billing.refetch();
     } catch {
@@ -229,7 +251,9 @@ function Billing() {
                   >
                     {busy === plan.id
                       ? text("Laden…", "Loading…")
-                      : active
+                      : billingMode === "oneTime" && active
+                        ? text("Voeg één maand toe", "Add one month")
+                        : active
                         ? text("Huidig plan", "Current plan")
                         : mayBill
                           ? text(`Kies ${plan.name}`, `Choose ${plan.name}`)

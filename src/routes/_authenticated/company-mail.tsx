@@ -6,16 +6,19 @@ import {
   FileText,
   Inbox,
   Languages,
+  Loader2,
   Mail,
   Download,
   Paperclip,
   Reply,
+  RotateCcw,
   Search,
   Send,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { RichMailEditor } from "@/components/mail/RichMailEditor";
+import { MailSignaturePreview } from "@/components/mail/MailSignaturePreview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +35,7 @@ import {
   updateMyCorporateSignature,
   prepareCorporateMailAttachments,
   getCorporateMailAttachmentUrl,
+  retryCorporateMailDelivery,
 } from "@/lib/corporate-business.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { plainTextToMailHtml } from "@/lib/safe-mail-html";
@@ -216,6 +220,15 @@ function CompanyMail() {
         text("Vertaalconcept kon niet worden gemaakt.", "Translation draft could not be created."),
       ),
   });
+  const retryOutbox = useMutation({
+    mutationFn: (messageId: string) => retryCorporateMailDelivery({ data: { mailboxId: activeId, messageId } }),
+    onSuccess: async () => {
+      toast.success(text("Bericht opnieuw in de beveiligde wachtrij geplaatst.", "Message returned to the secure delivery queue."));
+      setSelected(undefined);
+      await refresh();
+    },
+    onError: () => toast.error(text("Alleen een mislukt bericht kan opnieuw worden geprobeerd.", "Only a failed message can be retried.")),
+  });
   const items = useMemo(() => {
     const data = query.data;
     if (!data) return [];
@@ -351,6 +364,11 @@ function CompanyMail() {
                 "Automatically added as HTML and text below every message.",
               )}
             </p>
+            <MailSignaturePreview
+              signatureText={signature || query.data?.selected?.signature_text || ""}
+              displayName={query.data?.selected?.display_name || "GlobeTrotr"}
+              address={query.data?.selected?.address || ""}
+            />
             <Button
               variant="outline"
               onClick={async () => {
@@ -447,10 +465,13 @@ function CompanyMail() {
               <MessageDetail
                 item={selected}
                 thread={messagesInThread(query.data?.messages || [], selected)}
+                mailboxId={activeId}
                 folder={folder}
                 text={text}
                 canReply={query.data?.selected?.permission !== "read"}
+                retrying={retryOutbox.isPending}
                 onReply={() => reply(selected)}
+                onRetry={() => retryOutbox.mutate(selected.id)}
           onArchive={() =>
                   void messageAction(selected.id, folder === "archive" ? "restore" : "archive")
                 }
@@ -648,23 +669,51 @@ function Composer({
 function MessageDetail({
   item,
   thread,
+  mailboxId,
   folder,
   text,
   canReply,
+  retrying,
   onReply,
+  onRetry,
   onArchive,
   onDownload,
 }: {
   item: any;
   thread: any[];
+  mailboxId: string;
   folder: Folder;
   text: (nl: string, en: string) => string;
   canReply: boolean;
+  retrying: boolean;
   onReply: () => void;
+  onRetry: () => void;
   onArchive: () => void;
   onDownload: (attachment: any) => Promise<void>;
 }) {
   const messages = thread.length ? thread : [item];
+  const [translations, setTranslations] = useState<Record<string, { language: "nl" | "en"; body: string }>>({});
+  const [translating, setTranslating] = useState("");
+  async function translateMessage(message: any, target: "nl" | "en") {
+    const value = String(message.body_text || message.preview_text || "").trim();
+    if (value.length < 2 || value.length > 5000) return;
+    setTranslating(`${message.id}:${target}`);
+    try {
+      const result = await translateCorporateMailDraft({ data: {
+        mailboxId,
+        text: value,
+        source: target === "nl" ? "en" : "nl",
+        target,
+      } });
+      setTranslations((current) => ({ ...current, [message.id]: { language: target, body: result.translated } }));
+    } catch (error) {
+      toast.error(String(error).includes("TRANSLATION_NOT_CONFIGURED")
+        ? text("De vertaalprovider is nog niet ingesteld.", "The translation provider is not configured yet.")
+        : text("Bericht kon niet worden vertaald. Controleer de gekozen brontaal.", "Message could not be translated. Check the selected source language."));
+    } finally {
+      setTranslating("");
+    }
+  }
   return (
     <article className="min-w-0 max-w-full space-y-4 overflow-hidden">
       <div className="flex flex-wrap items-center gap-2">
@@ -678,6 +727,11 @@ function MessageDetail({
           </Badge>
         )}
       </div>
+      {folder === "outbox" && item.status === "failed" && <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-sm">
+        <strong>{text("Bezorging mislukt", "Delivery failed")}</strong>
+        <p className="mt-1 break-all text-xs text-muted-foreground">{text("Pogingen", "Attempts")}: {item.attempts ?? 0}{item.last_error_code ? ` · ${item.last_error_code}` : ""}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{text("Controleer adres en mailconfiguratie voordat je opnieuw probeert.", "Check the address and mail configuration before retrying.")}</p>
+      </div>}
       {messages.map((message, index) => (
         <section key={message.id} className="min-w-0 max-w-full overflow-hidden rounded-xl border p-4">
           <div className="flex flex-wrap justify-between gap-2 text-sm">
@@ -696,6 +750,20 @@ function MessageDetail({
           <p className="mt-1 break-all text-xs text-muted-foreground">
             {(message.recipient_addresses || []).join(", ")}
           </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 5000} onClick={() => void translateMessage(message, "nl")}>
+              {translating === `${message.id}:nl` ? <Loader2 className="size-4 animate-spin" /> : <Languages className="size-4" />}
+              {text("Lees in Nederlands", "Read in Dutch")}
+            </Button>
+            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 5000} onClick={() => void translateMessage(message, "en")}>
+              {translating === `${message.id}:en` ? <Loader2 className="size-4 animate-spin" /> : <Languages className="size-4" />}
+              {text("Lees in Engels", "Read in English")}
+            </Button>
+          </div>
+          {translations[message.id] && <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+            <div className="flex items-center gap-2"><Badge variant="secondary">{translations[message.id].language.toUpperCase()} {text("concept", "draft")}</Badge><Button size="sm" variant="ghost" onClick={() => setTranslations((current) => { const next = { ...current }; delete next[message.id]; return next; })}>{text("Sluiten", "Close")}</Button></div>
+            <p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{translations[message.id].body}</p>
+          </div>}
           {message.body_html ? (
             <iframe
               title={`${text("HTML-bericht", "HTML message")} ${index + 1}`}
@@ -729,6 +797,12 @@ function MessageDetail({
           <Button disabled={!canReply} onClick={onReply}>
             <Reply className="size-4" />
             {text("Beantwoorden", "Reply")}
+          </Button>
+        )}
+        {folder === "outbox" && item.status === "failed" && (
+          <Button disabled={retrying || !canReply} onClick={onRetry}>
+            <RotateCcw className={`size-4 ${retrying ? "animate-spin" : ""}`} />
+            {text("Opnieuw proberen", "Retry delivery")}
           </Button>
         )}
         {["inbox", "sent", "archive"].includes(folder) && (

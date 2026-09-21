@@ -301,6 +301,10 @@ export function NotificationPanel({ userId }: { userId: string }) {
           )}
           {notifications.data?.items.map((notification) => {
             const style = styles[notification.kind as keyof typeof styles] ?? styles.account;
+            const localizedPreview = notificationPreview(
+              notification,
+              locale === "en-GB" ? "en" : "nl",
+            );
             const responseMatch = notification.event_key.match(
               /^invitation-response:(accepted|declined):/,
             );
@@ -522,7 +526,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
                                                         "Uitnodiging geweigerd",
                                                         "Invitation declined",
                                                       )
-                                                  : notification.title;
+                                                  : localizedPreview.title;
             const tripRole =
               (
                 {
@@ -724,7 +728,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
                                                         `${responseParts[0]} heeft de uitnodiging voor ${responseParts.slice(1).join("|")} geweigerd.`,
                                                         `${responseParts[0]} declined the invitation for ${responseParts.slice(1).join("|")}.`,
                                                       )
-                                                  : notification.body;
+                                                  : localizedPreview.description;
             const invitationId =
               notification.kind === "invitation" && notification.event_key.startsWith("invitation:")
                 ? notification.event_key.slice("invitation:".length)
