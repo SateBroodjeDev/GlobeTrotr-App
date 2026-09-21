@@ -1,5 +1,24 @@
 # GlobeTrotr changelog
 
+## 2026-09-21 — Registratie, agenda en bedrijfsmail (nog niet uitgerold)
+
+- Migratie 1320 herstelt de concrete fout waarbij een volledig afgeprijsde Paddle-transactie (`0 credit >= 0 totaal`) als terugbetaald werd beschouwd. Alleen aantoonbaar verwerkte bestaande eenmalige aankopen worden veilig hersteld; ontbrekende webhooks vergen nog bezorgcontrole.
+- De Node-02-worker verstuurt nieuwe Supabase `sb_secret_`-sleutels niet meer als Bearer-JWT. Paddle- en ICS-RPC's werken daardoor met zowel de nieuwe sleutel als een legacy service-role JWT. Een eenmalige checkout zonder verifieerbare workspacekoppeling krijgt nu een zichtbare fout en retry in plaats van een stilzwijgende 200.
+- Corporate Admin kan een ontbrekende eenmalige Paddle-transactie gericht herstellen via Paddle's API. Alleen een voltooide transactie met exact toegestaan prijs-ID, ondertekende workspacekoppeling en zonder refund/credit/chargeback kan worden verwerkt; de actie wordt geaudit.
+- Een nieuwe live ICS-link wordt via de publieke URL als echte agenda opgehaald vóór uitgifte. Bij een defecte worker- of Caddy-route blijft een bestaande link actief en wordt geen nieuwe kapotte link getoond.
+- De registratie toont een herstelactie als de spamcontrole niet laadt en houdt de knop bij een trage Supabase-aanvraag maximaal 25 seconden in wachtstand. De UI meldt dan dat de aanvraag mogelijk alsnog is verwerkt; de oorzaak van HTTP 504 moet in Auth/SMTP-logs worden vastgesteld.
+- Een al gebruikt sociaal e-mailadres leidt tot uitleg over inloggen via Google of Discord. De registratie geeft geen accountbestaan aan derden prijs.
+- Nieuwe sociale accounts krijgen een eenmalige profielstap met naam, optionele telefoon en foto; hiervoor is migratie 1310 nodig.
+- De bedrijfsmail-layout begrenst lange adressen, onderwerpregels, HTML-weergave en tekst op kleine schermen.
+- De publieke changelog is direct in de footer zichtbaar. De live ICS-worker ondersteunt ook HEAD; bij het maken van een feed wordt de database-uitvoer eerst gecontroleerd. Bestaande 404-links en de Paddle-koppeling zijn pas opgelost wanneer de productiecontrole slaagt.
+
+
+## 2026-09-21 — Diagnose voor ontbrekende Paddle-transactie (niet uitgerold)
+
+- Corporate Admin toont geen verzonnen terugkerende betaalwijze meer als er geen webhook of lokale transactie bestaat.
+- Het release-draaiboek bevat nu een aparte, leesbare controle voor een voltooide Agency-transactie van €0 na 100%-korting. Paddle kan zo'n transactie als voltooid registreren; lokale toegang volgt pas na geverifieerde webhook en juiste workspacekoppeling.
+- Dit productie-incident blijft open totdat de webhookbezorging en het Agency-recht voor de concrete transactie zijn bevestigd.
+
 ## 2026-09-21 — Auth-mail per gekozen taal (niet uitgerold)
 
 - Registratie en nieuwe magic-linkaccounts bewaren Nederlands of Engels in Auth-metadata; een profieltaalwijziging houdt deze voorkeur voortaan gelijk.

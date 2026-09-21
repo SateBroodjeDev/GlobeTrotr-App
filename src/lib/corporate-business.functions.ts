@@ -946,7 +946,7 @@ export const getPaddleTransactionDiagnosis = createServerFn({ method: "POST" })
       ? await db.auth.admin.getUserById(workspace.user_id)
       : { data: null };
     const billingMode =
-      eventData.globetrotr_billing_mode || (entitlementResult.data ? "one_time" : "recurring");
+      eventData.globetrotr_billing_mode || (entitlementResult.data ? "one_time" : null);
     const expectedPlan =
       eventData.globetrotr_plan || entitlementResult.data?.plan || subscription?.plan || null;
     const state = classifyPaddleDiagnosis({
@@ -989,6 +989,90 @@ export const getPaddleTransactionDiagnosis = createServerFn({ method: "POST" })
         processedAt: item.processed_at,
       })),
     };
+  });
+
+/** Recovers a missing one-time webhook only from Paddle's authenticated API and
+ * the original server-signed checkout binding. Customer email is never used to
+ * decide which workspace receives access. */
+export const recoverPaddleOneTimeTransaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { transactionId: string; reason: string }) => input)
+  .handler(async ({ data, context }) => {
+    if (!/^txn_[a-z0-9]{10,}$/i.test(data.transactionId) ||
+        data.reason.trim().length < 10 || data.reason.trim().length > 500)
+      throw new Error("INVALID_RECOVERY_REQUEST");
+    const db = await dbFor(context.userId, "finance");
+    const apiKey = process.env.PADDLE_API_KEY?.trim();
+    const bindingSecret = process.env.PADDLE_CHECKOUT_BINDING_SECRET?.trim();
+    if (!apiKey || !bindingSecret) throw new Error("PADDLE_NOT_CONFIGURED");
+    const { matchOneTimePaddlePrice, verifiedCheckoutWorkspace } = await import("./paddle-recovery");
+    const base = process.env.VITE_PADDLE_ENVIRONMENT === "production"
+      ? "https://api.paddle.com" : "https://sandbox-api.paddle.com";
+    const response = await fetch(`${base}/transactions/${encodeURIComponent(data.transactionId)}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error(`PADDLE_TRANSACTION_${response.status}`);
+    const transaction = (await response.json())?.data;
+    if (transaction?.id !== data.transactionId || transaction.status !== "completed" ||
+        transaction.origin !== "web") throw new Error("PADDLE_TRANSACTION_NOT_ELIGIBLE");
+    const plan = matchOneTimePaddlePrice(transaction.items, {
+      pro: process.env.VITE_PADDLE_PRO_ONETIME_PRICE_ID,
+      agency: process.env.VITE_PADDLE_AGENCY_ONETIME_PRICE_ID,
+    });
+    if (!plan) throw new Error("PADDLE_PRICE_NOT_ALLOWED");
+    const workspaceId = verifiedCheckoutWorkspace(
+      transaction.custom_data?.checkout_binding, bindingSecret, plan, "one_time",
+    );
+    if (!workspaceId) throw new Error("PADDLE_BINDING_INVALID");
+    const { data: workspace, error: workspaceError } = await db.from("workspaces")
+      .select("workspace_uuid")
+      .eq("workspace_uuid", workspaceId).maybeSingle();
+    if (workspaceError || !workspace) throw new Error("PADDLE_WORKSPACE_NOT_FOUND");
+    const { data: existing, error: existingError } = await db.from("billing_transactions")
+      .select("id").eq("provider_transaction_id", data.transactionId).maybeSingle();
+    if (existingError || existing) throw new Error("PADDLE_TRANSACTION_ALREADY_RECORDED");
+    if (transaction.customer_id) {
+      const { data: linkedCustomer, error: customerError } = await db.from("billing_customers")
+        .select("workspace_uuid").eq("provider_customer_id", transaction.customer_id).maybeSingle();
+      if (customerError || (linkedCustomer && linkedCustomer.workspace_uuid !== workspaceId))
+        throw new Error("PADDLE_CUSTOMER_WORKSPACE_CONFLICT");
+    }
+    const totals = transaction.details?.totals;
+    if (!totals || !/^\d+$/.test(String(totals.total)) ||
+        !/^\d+$/.test(String(totals.credit ?? "0")) ||
+        BigInt(totals.credit ?? "0") > 0n)
+      throw new Error("PADDLE_TRANSACTION_CREDITED");
+    const adjustmentsResponse = await fetch(
+      `${base}/adjustments?transaction_id=${encodeURIComponent(data.transactionId)}&per_page=50`,
+      { headers: { Authorization: `Bearer ${apiKey}` }, signal: AbortSignal.timeout(15000) },
+    );
+    if (!adjustmentsResponse.ok) throw new Error(`PADDLE_ADJUSTMENTS_${adjustmentsResponse.status}`);
+    const adjustments = await adjustmentsResponse.json();
+    if (adjustments.meta?.pagination?.has_more || !Array.isArray(adjustments.data) ||
+        adjustments.data.some((item: any) =>
+          ["refund", "credit", "chargeback"].includes(item.action) &&
+          !["rejected", "reversed"].includes(item.status)))
+      throw new Error("PADDLE_TRANSACTION_ADJUSTED");
+    const event = {
+      event_id: `reconciled:${data.transactionId}`,
+      event_type: "transaction.completed",
+      occurred_at: transaction.billed_at || transaction.created_at || new Date().toISOString(),
+      data: {
+        ...transaction,
+        globetrotr_plan: plan,
+        globetrotr_billing_mode: "one_time",
+        custom_data: { ...transaction.custom_data, workspace_uuid: workspaceId },
+      },
+    };
+    const { data: result, error } = await db.rpc("process_paddle_billing_event", { p_event: event });
+    if (error || !["processed", "duplicate"].includes(result)) throw new Error("PADDLE_RECOVERY_FAILED");
+    const { error: entitlementError } = await db.rpc("apply_paddle_one_time_purchase", { p_event: event });
+    if (entitlementError) throw new Error("PADDLE_ENTITLEMENT_RECOVERY_FAILED");
+    await log(db, context.userId, "billing.transaction.recover", data.transactionId, {
+      reason: data.reason.trim(), workspaceId, plan, result,
+    });
+    return { ok: true, workspaceId, plan };
   });
 
 export const refundPaddleTransaction = createServerFn({ method: "POST" })
@@ -1046,7 +1130,7 @@ export const retryPaddleWebhook = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: { eventId: string; reason: string }) => input)
   .handler(async ({ data, context }) => {
-    if (!/^evt_[a-z0-9]{10,}$/i.test(data.eventId) || data.reason.trim().length < 10)
+    if (!/^(?:evt_[a-z0-9]{10,}|reconciled:txn_[a-z0-9]{10,})$/i.test(data.eventId) || data.reason.trim().length < 10)
       throw new Error("INVALID_WEBHOOK_RETRY");
     const db = await dbFor(context.userId, "finance");
     const { data: event } = await db
@@ -1077,7 +1161,8 @@ export const retryPaddleWebhook = createServerFn({ method: "POST" })
     const { data: result, error } = await db.rpc("process_paddle_billing_event", {
       p_event: event.payload,
     });
-    if (error || result === "failed") throw new Error("WEBHOOK_RETRY_FAILED");
+    if (error || !["processed", "duplicate"].includes(result))
+      throw new Error("WEBHOOK_RETRY_FAILED");
     if (event.payload?.data?.globetrotr_billing_mode === "one_time") {
       const { error: entitlementError } = await db.rpc("apply_paddle_one_time_purchase", {
         p_event: event.payload,

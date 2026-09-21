@@ -67,8 +67,8 @@ function PrivacyPage() {
             <ul className="list-disc space-y-2 pl-5">
               <li>
                 {text(
-                  "Account-, profiel- en authenticatiegegevens: om je account te leveren en beveiligen; uitvoering van de overeenkomst.",
-                  "Account, profile and authentication data: to provide and secure your account; performance of the agreement.",
+                  "Account-, profiel- en authenticatiegegevens, waaronder je naam en optioneel telefoonnummer en profielfoto na sociale registratie: om je account te leveren, reisgenoten je te laten herkennen en je account te beveiligen; uitvoering van de overeenkomst.",
+                  "Account, profile and authentication data, including your name and optional phone number and profile photo after social sign-up: to provide your account, help travel companions recognise you and secure your account; performance of the agreement.",
                 )}
               </li>
               <li>

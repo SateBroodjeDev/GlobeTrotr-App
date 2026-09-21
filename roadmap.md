@@ -363,9 +363,12 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 
 ## Actuele beta-beperkingen
 
-- Betalingen kunnen na een succesvolle Paddle-checkout het account nog op het oude plan laten; price-ID's op Node-02, webhook en accountkoppeling worden gecontroleerd.
+- Een voltooide Agency-transactie met 100%-korting is bij Paddle zichtbaar, maar ontbreekt nog lokaal. De €0-terugbetalingsfout is in migratie 1320 gerepareerd. Corporate Admin kan na de code-uitrol ontbrekende eenmalige transacties via Paddle's API en ondertekende accountkoppeling veilig herstellen. Controleer daarna ook de toekomstige `transaction.completed`-bezorging; geef geen rechten zonder providerverificatie.
 - Uitnodigingen en andere automatische mails kunnen dubbel of onjuist opgemaakt aankomen; migratie 1180 en de uitrol moeten dit praktisch aantonen.
-- GPX-download, live-agendalink, activiteiten in ICS, Agency-klantkoppeling en bedrijfsbeheerder opslaan zijn als concrete meldingen geregistreerd.
+- GPX-download, losse ICS-export, publieke deelpagina, uitgavenknop en bedrijfsbeheerder opslaan zijn in productie door de eigenaar als opgelost bevestigd. De live-agendalink geeft nog 404; een nieuwe feed wordt nu vóór uitgifte tegen de database gecontroleerd en de worker ondersteunt HEAD voor agenda-validators. Praktijktest na uitrol blijft nodig.
+- Registratie kan op Supabase/SMTP blijven wachten en uiteindelijk 504 geven; de UI heeft nu een begrensde wachttijd en een veilige vervolgstap. Een bestaande Google-identiteit wordt bij registratie bewust niet via een openbaar formulier bekendgemaakt. De onderliggende 504-oorzaak moet met Auth/SMTP-logs worden vastgesteld.
+- Nieuwe sociale accounts krijgen na de volgende uitrol een eenmalige profielstap voor naam, optionele telefoon en foto. Migratie 1310 en een echte OAuth-test zijn nog vereist.
+- Lange bedrijfsmail hoort na de volgende uitrol binnen het scherm te blijven; test dit met echte HTML-mails op mobiel en desktop.
 - Inkomende HTML-bedrijfsmail krijgt in 1180 aparte opslag en een afgeschermde weergave; uitgaande HTML en handtekening moeten in een echte mailclient worden beoordeeld.
 - Automatische vertaling van feedback en bekende problemen is nog niet actief. Apple- en Microsoft-login zijn niet beschikbaar; Google en Discord werken volgens de eigenaar.
 

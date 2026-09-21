@@ -18,6 +18,7 @@ import { Route as BekendeProblemenRouteImport } from './routes/bekende-problemen
 import { Route as BetaRouteImport } from './routes/beta'
 import { Route as BetaVoorwaardenRouteImport } from './routes/beta-voorwaarden'
 import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as CompleteProfileRouteImport } from './routes/complete-profile'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as FeaturesRouteImport } from './routes/features'
@@ -133,6 +134,11 @@ const BetaVoorwaardenRoute = BetaVoorwaardenRouteImport.update({
 const ChangelogRoute = ChangelogRouteImport.update({
   id: '/changelog',
   path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompleteProfileRoute = CompleteProfileRouteImport.update({
+  id: '/complete-profile',
+  path: '/complete-profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -543,6 +549,7 @@ export interface FileRoutesByFullPath {
   '/beta': typeof BetaRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/complete-profile': typeof CompleteProfileRoute
   '/contact': typeof ContactRoute
   '/demo': typeof DemoRoute
   '/features': typeof FeaturesRoute
@@ -625,6 +632,7 @@ export interface FileRoutesByTo {
   '/beta': typeof BetaRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/complete-profile': typeof CompleteProfileRoute
   '/contact': typeof ContactRoute
   '/demo': typeof DemoRoute
   '/features': typeof FeaturesRoute
@@ -707,6 +715,7 @@ export interface FileRoutesById {
   '/beta': typeof BetaRoute
   '/beta-voorwaarden': typeof BetaVoorwaardenRoute
   '/changelog': typeof ChangelogRoute
+  '/complete-profile': typeof CompleteProfileRoute
   '/contact': typeof ContactRoute
   '/demo': typeof DemoRoute
   '/features': typeof FeaturesRoute
@@ -791,6 +800,7 @@ export interface FileRouteTypes {
     | '/beta'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/complete-profile'
     | '/contact'
     | '/demo'
     | '/features'
@@ -873,6 +883,7 @@ export interface FileRouteTypes {
     | '/beta'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/complete-profile'
     | '/contact'
     | '/demo'
     | '/features'
@@ -954,6 +965,7 @@ export interface FileRouteTypes {
     | '/beta'
     | '/beta-voorwaarden'
     | '/changelog'
+    | '/complete-profile'
     | '/contact'
     | '/demo'
     | '/features'
@@ -1038,6 +1050,7 @@ export interface RootRouteChildren {
   BetaRoute: typeof BetaRoute
   BetaVoorwaardenRoute: typeof BetaVoorwaardenRoute
   ChangelogRoute: typeof ChangelogRoute
+  CompleteProfileRoute: typeof CompleteProfileRoute
   ContactRoute: typeof ContactRoute
   DemoRoute: typeof DemoRoute
   FeaturesRoute: typeof FeaturesRoute
@@ -1131,6 +1144,13 @@ declare module '@tanstack/react-router' {
       path: '/changelog'
       fullPath: '/changelog'
       preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/complete-profile': {
+      id: '/complete-profile'
+      path: '/complete-profile'
+      fullPath: '/complete-profile'
+      preLoaderRoute: typeof CompleteProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -1811,6 +1831,7 @@ const rootRouteChildren: RootRouteChildren = {
   BetaRoute: BetaRoute,
   BetaVoorwaardenRoute: BetaVoorwaardenRoute,
   ChangelogRoute: ChangelogRoute,
+  CompleteProfileRoute: CompleteProfileRoute,
   ContactRoute: ContactRoute,
   DemoRoute: DemoRoute,
   FeaturesRoute: FeaturesRoute,

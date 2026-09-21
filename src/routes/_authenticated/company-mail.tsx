@@ -286,7 +286,7 @@ function CompanyMail() {
     { id: "archive", label: text("Archief", "Archive"), icon: Archive },
   ];
   return (
-    <div className="space-y-5">
+    <div className="min-w-0 max-w-full space-y-5 overflow-x-hidden">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 font-display text-3xl font-semibold">
@@ -384,8 +384,8 @@ function CompanyMail() {
           onDeleted={refresh}
         />
       )}
-      <div className="grid min-h-[32rem] gap-4 lg:grid-cols-[23rem_1fr]">
-        <Card>
+      <div className="grid min-h-[32rem] min-w-0 gap-4 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)]">
+        <Card className="min-w-0">
           <CardHeader className="space-y-3">
             <div className="flex flex-wrap gap-1">
               {folders.map((item) => {
@@ -441,8 +441,8 @@ function CompanyMail() {
             )}
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
+        <Card className="min-w-0 overflow-hidden">
+          <CardContent className="min-w-0 p-4 sm:p-6">
             {selected ? (
               <MessageDetail
                 item={selected}
@@ -666,9 +666,9 @@ function MessageDetail({
 }) {
   const messages = thread.length ? thread : [item];
   return (
-    <article className="space-y-4">
+    <article className="min-w-0 max-w-full space-y-4 overflow-hidden">
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="font-display text-2xl font-semibold">
+        <h2 className="min-w-0 break-words font-display text-2xl font-semibold">
           {item.subject || text("Zonder onderwerp", "No subject")}
         </h2>
         <Badge variant="outline">{item.status || item.direction}</Badge>
@@ -679,9 +679,9 @@ function MessageDetail({
         )}
       </div>
       {messages.map((message, index) => (
-        <section key={message.id} className="rounded-xl border p-4">
+        <section key={message.id} className="min-w-0 max-w-full overflow-hidden rounded-xl border p-4">
           <div className="flex flex-wrap justify-between gap-2 text-sm">
-            <span className="font-medium">
+            <span className="min-w-0 break-all font-medium">
               {message.sender_address || text("Uitgaand bericht", "Outgoing message")}
             </span>
             {message.received_at && (
@@ -693,7 +693,7 @@ function MessageDetail({
               </time>
             )}
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-1 break-all text-xs text-muted-foreground">
             {(message.recipient_addresses || []).join(", ")}
           </p>
           {message.body_html ? (
@@ -701,11 +701,12 @@ function MessageDetail({
               title={`${text("HTML-bericht", "HTML message")} ${index + 1}`}
               sandbox=""
               referrerPolicy="no-referrer"
-              className="mt-4 h-80 w-full rounded-lg border bg-white"
+              className="mt-4 block h-80 max-w-full rounded-lg border bg-white"
+              style={{ width: "100%" }}
               srcDoc={`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">${message.body_html}`}
             />
           ) : (
-            <p className="mt-4 whitespace-pre-wrap">
+            <p className="mt-4 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
               {message.body_text ||
                 message.preview_text ||
                 text("Inhoud staat klaar voor verwerking.", "Content is queued for processing.")}

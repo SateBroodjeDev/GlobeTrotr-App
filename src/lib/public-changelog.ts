@@ -38,6 +38,20 @@ export const PUBLIC_BETA_STATUS = {
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
+    id: "2026-09-21-trip-polish",
+    version: "Beta 0.18",
+    publishedAt: "2026-09-21T12:00:00+02:00",
+    title: "Reizen delen en exporteren",
+    titleEn: "Share and export trips",
+    summary: "Verbeteringen die in de actieve beta zijn bevestigd.",
+    summaryEn: "Improvements confirmed in the active beta.",
+    changes: [
+      { kind: "improved", title: "Overzichtelijke openbare reispagina", titleEn: "Clearer public trip page", description: "De gedeelde reis toont de planning leesbaarder.", descriptionEn: "Shared trips present the itinerary more clearly." },
+      { kind: "fixed", title: "GPX en losse agenda-export", titleEn: "GPX and one-time calendar export", description: "GPX-download en losse ICS-export werken nu in de beta. De live abonnementlink wordt nog onderzocht.", descriptionEn: "GPX download and one-time ICS export now work in beta. The live subscription link is still under investigation." },
+      { kind: "fixed", title: "Uitgaven en bedrijfsbeheer", titleEn: "Expenses and corporate management", description: "De tekst bij 'betaald door' past weer in de knop en bedrijfsbeheerderaccounts kunnen worden opgeslagen.", descriptionEn: "The paid-by label fits its button and corporate administrator accounts can be saved." },
+    ],
+  },
+  {
     id: "2026-09-15-payments-calendar",
     version: "Beta 0.17",
     publishedAt: "2026-09-15T16:00:00+02:00",

@@ -19,16 +19,16 @@ export const PUBLIC_TODAY = {
       "Securely share trips with travellers, clients and public visitors",
     ],
     [
-      "Agenda-, GPX-, PDF-, JSON- en CSV-export voor gebruik buiten GlobeTrotr",
-      "Calendar, GPX, PDF, JSON and CSV exports for use outside GlobeTrotr",
+      "Losse agenda-, GPX-, PDF-, JSON- en CSV-export voor gebruik buiten GlobeTrotr",
+      "One-time calendar, GPX, PDF, JSON and CSV exports for use outside GlobeTrotr",
     ],
     [
       "Agency-beheer voor klanten, offertes, leveranciers, taken en huisstijl",
       "Agency management for clients, quotes, suppliers, tasks and branding",
     ],
     [
-      "Pro en Agency afrekenen via Paddle, maandelijks of voor één losse maand",
-      "Pay for Pro and Agency through Paddle, monthly or for one standalone month",
+      "Paddle-checkout voor Pro en Agency, maandelijks of voor één losse maand",
+      "Paddle checkout for Pro and Agency, monthly or for one standalone month",
     ],
     [
       "Persoonlijke en gedeelde bedrijfspostvakken voor teamcommunicatie",
@@ -59,8 +59,8 @@ export const PUBLIC_ROADMAP = [
     ],
     items: [
       [
-        "Betalingen, uitnodigingen, GPX, agenda en Agency-klanttoegang in de actieve beta verifiëren",
-        "Verify payments, invitations, GPX, calendars and Agency client access in the active beta",
+        "Betalingskoppeling, live agendalinks, uitnodigingen en Agency-klanttoegang in de actieve beta verifiëren",
+        "Verify payment linking, live calendar feeds, invitations and Agency client access in the active beta",
       ],
       [
         "Paddle-betalingen tegen het juiste account, workspaceplan en toegangsrecht controleren",

@@ -50,6 +50,26 @@ export const createCalendarFeed = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error("CALENDAR_FEED_CREATE_FAILED");
+    const { data: preview, error: previewError } = await db.rpc("get_trip_calendar_feed", { p_token: token });
+    if (previewError || !preview) {
+      await db.from("trip_calendar_feeds").delete().eq("id", created.id);
+      throw new Error("CALENDAR_FEED_NOT_AVAILABLE");
+    }
+    const url = `https://globetrotr.nl/calendar/${token}.ics`;
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: "text/calendar" },
+        signal: AbortSignal.timeout(8000),
+        cache: "no-store",
+      });
+      const body = response.ok ? await response.text() : "";
+      if (!response.ok || !response.headers.get("content-type")?.startsWith("text/calendar") ||
+          !body.startsWith("BEGIN:VCALENDAR") || !body.includes("END:VCALENDAR"))
+        throw new Error("CALENDAR_FEED_ENDPOINT_UNAVAILABLE");
+    } catch {
+      await db.from("trip_calendar_feeds").delete().eq("id", created.id);
+      throw new Error("CALENDAR_FEED_ENDPOINT_UNAVAILABLE");
+    }
     const { error: revokeError } = await db
       .from("trip_calendar_feeds")
       .update({ active: false, revoked_at: new Date().toISOString() })
@@ -60,7 +80,7 @@ export const createCalendarFeed = createServerFn({ method: "POST" })
       await db.from("trip_calendar_feeds").delete().eq("id", created.id);
       throw new Error("CALENDAR_FEED_ROTATE_FAILED");
     }
-    return { url: `https://globetrotr.nl/calendar/${token}.ics` };
+    return { url };
   });
 
 export const revokeCalendarFeed = createServerFn({ method: "POST" })

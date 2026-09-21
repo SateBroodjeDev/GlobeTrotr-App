@@ -1,8 +1,24 @@
 # GlobeTrotr beta-testlijst
 
-> Releasecontrole 21 september 2026: alle migraties en SQL-tests tot en met 1170 zijn volgens de eigenaar uitgevoerd. Migraties 1180 tot en met 1300, de Linux-productiebouw en de praktische beta-controles zijn nog open. Zie [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md). Deze lijst vult de Corporate Admin-releasecheck aan; markeer de nieuwe controles daar pas na uitrol en een echte proef.
+## Herstelronde na migraties 1310–1320
+
+- [ ] Nieuwe Google- en Discord-accounts krijgen eenmalig het profielscherm; naam, telefoon en foto worden opgeslagen, provider koppelen aan bestaand account blijft werken.
+- [ ] Registratie toont Turnstile meteen of een zichtbare herstelactie; een trage aanvraag blijft niet eindeloos op “Bezig”. Controleer na een timeout eerst inbox en Auth Users.
+- [ ] Bestaand Google-e-mailadres in registratie geeft veilige uitleg zonder accountbestaan te onthullen.
+- [ ] Bedrijfsmail met lange HTML, onderwerp en adressen blijft op telefoon en desktop binnen de pagina.
+- [ ] `/updates` en de footerlink tonen de publieke changelog in NL en EN.
+- [ ] Nieuwe live ICS-feed geeft GET én HEAD status 200 met `text/calendar`, en GET bevat `BEGIN:VCALENDAR`. Oude 404-link opnieuw maken nadat Paddle-toegang is hersteld.
+- [ ] Paddle-transactie met 100%-korting wordt via een geverifieerde webhook aan het juiste account gekoppeld; tot die tijd incident openhouden.
+- [ ] Ontbrekende eenmalige transactie in Corporate Admin met Paddle API herstellen; verkeerde prijs, ongeldige accountkoppeling en refund/credit worden geweigerd, en de auditregel verschijnt.
+- [ ] Test ook een onbereikbare live ICS-route: de app mag geen nieuwe link uitgeven of een bestaande link intrekken.
+- [ ] Controleer dat een verwerkte €0-transactie `completed` blijft, eenmalige toegang niet direct verloopt en een expliciet goedgekeurde refund die toegang wel beëindigt.
+
+
+> Releasecontrole 21 september 2026: migraties en SQL-tests 1180–1300 en de vorige release zijn volgens de eigenaar uitgerold. Migraties 1310–1320 en de nieuwe herstelronde staan nog open. Zie [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md). Deze lijst vult de Corporate Admin-releasecheck aan; markeer controles daar pas na een echte proef.
 
 ## Releases 1180–1300 — actieve beta, bedrijfsmail, betalingen en privacy
+
+- [ ] Betaal Agency voor één maand met een 100%-korting: Paddle mag €0 tonen, maar `transaction.completed` moet door de webhook worden verwerkt en het juiste Agency-recht met vervaldatum opleveren. Controleer in Corporate Admin met het exacte transactie-ID; een ontbrekende transactie blijft een open incident.
 
 - [ ] Ontvang een uitnodiging zonder profieltaal in het Engels en met expliciet Nederlandse profieltaal in het Nederlands.
 - [ ] Bekijk een publieke gedeelde reis met meerdaags programma en boekingen: één leesbaar schema, geen privéboekingsgegevens.

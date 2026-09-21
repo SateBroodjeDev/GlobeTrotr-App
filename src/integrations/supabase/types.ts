@@ -2203,6 +2203,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_path: string | null;
+          onboarding_completed_at: string | null;
           created_at: string;
           display_name: string | null;
           email: string | null;
@@ -2216,6 +2217,7 @@ export type Database = {
         };
         Insert: {
           avatar_path?: string | null;
+          onboarding_completed_at?: string | null;
           created_at?: string;
           display_name?: string | null;
           email?: string | null;
@@ -2229,6 +2231,7 @@ export type Database = {
         };
         Update: {
           avatar_path?: string | null;
+          onboarding_completed_at?: string | null;
           created_at?: string;
           display_name?: string | null;
           email?: string | null;

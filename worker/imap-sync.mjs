@@ -7,6 +7,10 @@ import { safeImapErrorCode } from "./imap-diagnostics.mjs";
 const env = process.env,
   supabaseUrl = required("SUPABASE_URL").replace(/\/$/, ""),
   serviceKey = required("SUPABASE_SERVICE_ROLE_KEY");
+const serviceAuthHeaders = {
+  apikey: serviceKey,
+  ...(serviceKey.startsWith("sb_secret_") ? {} : { Authorization: `Bearer ${serviceKey}` }),
+};
 const interval = bounded(env.IMAP_SYNC_INTERVAL_MS, 60_000, 15_000, 900_000),
   lookback = bounded(env.IMAP_INITIAL_LOOKBACK_DAYS, 14, 1, 90);
 let stopping = false;
@@ -32,8 +36,7 @@ function log(level, event, details = {}) {
 }
 function headers(extra = {}) {
   return {
-    apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
+    ...serviceAuthHeaders,
     "Content-Type": "application/json",
     ...extra,
   };
@@ -207,8 +210,7 @@ async function sync() {
                       {
                         method: "POST",
                         headers: {
-                          apikey: serviceKey,
-                          Authorization: `Bearer ${serviceKey}`,
+                          ...serviceAuthHeaders,
                           "Content-Type": contentType,
                           "x-upsert": "false",
                         },

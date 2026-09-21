@@ -56,10 +56,10 @@ export function TripCalendarExport({ trip, paid }: { trip: Trip; paid: boolean }
           ),
         );
       }
-    } catch {
-      toast.error(
-        text("De agendalink kon niet worden gemaakt.", "The calendar link could not be created."),
-      );
+    } catch (error) {
+      toast.error(error instanceof Error && error.message.includes("CALENDAR_FEED_ENDPOINT_UNAVAILABLE")
+        ? text("De live agenda is momenteel niet bereikbaar. Je bestaande link blijft actief; probeer het later opnieuw.", "The live calendar is currently unavailable. Your existing link remains active; try again later.")
+        : text("De agendalink kon niet worden gemaakt.", "The calendar link could not be created."));
     } finally {
       setBusy(false);
     }

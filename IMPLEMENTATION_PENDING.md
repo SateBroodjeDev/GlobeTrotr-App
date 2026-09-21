@@ -2,29 +2,32 @@
 
 **Stand:** 21 september 2026
 
-**Huidige stand:** migraties en SQL-tests 1180–1300 zijn uitgevoerd en de vijf Auth-mailtemplates plus onderwerpen staan in Supabase. De nieuwe commit staat nog niet op Node-01 en Node-02.
+**Huidige stand:** de migraties en tests **tot en met 1320** zijn volgens de eigenaar uitgevoerd. De code van deze herstelronde is nog niet uitgerold. De Paddle-transactie en live ICS-feed blijven incidenten tot de praktijktest slaagt.
 
-**Doel:** wijzigingen 1180–1300 gecontroleerd migreren, beide nodes uitrollen en de kritieke productstromen testen.
+**Doel:** migraties 1310–1320 en de huidige codewijzigingen gecontroleerd uitrollen, daarna de open incidenten gericht testen.
 
 Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige foutmelding zonder wachtwoorden, tokens, mailinhoud of persoonsgegevens.
 
 ## Voortgang
 
 - [x] Fase 1 — code controleren en releasecommit maken (`47c7db0`)
-- [ ] Fase 1b — commit naar de gekoppelde branch pushen
+- [x] Fase 1b — vorige releasecommit naar de gekoppelde branch pushen
 - [x] Fase 2 — dertien migraties en SQL-tests uitvoeren
 - [x] Fase 2b — vijf Auth-mailtemplates en onderwerpen in Supabase plaatsen
 - [ ] Fase 3 — bestaande productieconfiguratie inventariseren; nog geen containers starten
-- [ ] Fase 4 — Node-02 uitrollen en gezond verklaren
-- [ ] Fase 5 — Node-01 uitrollen en smoketest uitvoeren
+- [x] Fase 4 — vorige release op Node-02 uitrollen
+- [x] Fase 5 — vorige release op Node-01 uitrollen
+- [x] Herstelronde SQL — migraties 1310–1320 uitvoeren
+- [x] Herstelronde SQL-tests 1310–1320 — volgens de eigenaar uitgevoerd
+- [ ] Herstelronde code — huidige wijzigingen committen en op beide nodes uitrollen
 - [ ] Fase 6 — kritieke praktijktests uitvoeren
 - [ ] Fase 7 — vrijgavebesluit nemen en incidenten bijwerken
 
-Lokaal zijn 78 tests, TypeScript, lint zonder fouten, de securityaudit en de release-preflight groen. De nieuwe productiefunctionaliteit is pas bewezen nadat alle fasen zijn afgerond.
+Lokaal zijn 79 tests, TypeScript, lint zonder fouten, de securityaudit en de release-preflight groen. De nieuwe productiefunctionaliteit is pas bewezen nadat alle fasen zijn afgerond.
 
 ## Fase 1 — Windows: controleren, committen en pushen
 
-De releasecommit is lokaal gemaakt als `47c7db0`; deze bijgewerkte handleiding kan daar als kleine vervolgcommit bovenop staan. Controleer en push alle lokale commits, voor zover dit nog niet is gebeurd:
+De vorige release is volgens de eigenaar al uitgerold. Gebruik voor de huidige herstelronde een nieuwe commit; haal die daarna op beide nodes op. Controleer vooraf:
 
 ```powershell
 git status --short
@@ -33,7 +36,7 @@ git push
 git rev-parse --short HEAD
 ```
 
-Bewaar de uitvoer van `git rev-parse --short HEAD` als `VERWACHTE_COMMIT`. Verwacht een lege `git status`. Ga niet naar de nodes voordat de push is geslaagd.
+Bewaar de uitvoer van `git rev-parse --short HEAD` als `VERWACHTE_COMMIT`. Verwacht na de nieuwe commit een lege `git status`. Ga niet naar de nodes voordat de push is geslaagd.
 
 De onderstaande uitgebreide controles zijn al uitgevoerd en blijven hier als herhaalbare referentie staan.
 
@@ -52,7 +55,7 @@ git push
 
 Verwacht:
 
-- `npm run verify`: 78 tests, TypeScript, securityaudit en release-preflight slagen;
+- `npm run verify`: 79 tests, TypeScript, securityaudit en release-preflight slagen;
 - `npm audit`: geen hoge of kritieke productiekwetsbaarheden;
 - `git diff --check`: geen uitvoer;
 - geen `.env`, wachtwoord, API-sleutel of mailboxcredential in de staged bestanden.
@@ -80,8 +83,26 @@ Open de SQL Editor van het productieproject. Voer steeds eerst de migratie en di
 |       11 | [1280 — ondertekende Paddle-checkout](supabase/migrations/20260908128000_paddle_checkout_binding_acceptance.sql)    | [paddle_checkout_binding_acceptance.sql](supabase/tests/paddle_checkout_binding_acceptance.sql)       |
 |       12 | [1290 — gelokaliseerde platformmail](supabase/migrations/20260908129000_localized_platform_service_mail.sql)        | [localized_platform_service_mail.sql](supabase/tests/localized_platform_service_mail.sql)             |
 |       13 | [1300 — taalkeuze voor Auth-mail](supabase/migrations/20260908130000_auth_email_locale.sql)                         | [auth_email_locale.sql](supabase/tests/auth_email_locale.sql)                                         |
+|       14 | [1310 — sociaal profiel afronden](supabase/migrations/20260908131000_social_profile_completion.sql)                 | [social_profile_completion.sql](supabase/tests/social_profile_completion.sql)                         |
+|       15 | [1320 — €0-Paddle-transacties herstellen](supabase/migrations/20260908132000_zero_discount_billing_repair.sql)         | [zero_discount_billing_repair.sql](supabase/tests/zero_discount_billing_repair.sql)                     |
 
 De tests bewijzen schema, rechten en releasechecklist. Ze vervangen geen echte mail-, betaal- of accounttest. Voer oudere migraties niet opnieuw uit en draai een toegepaste productiemigratie niet handmatig terug.
+
+**SQL is nu klaar volgens de eigenaar:** voer 1310 en 1320 of hun tests niet opnieuw uit. Commit en push de huidige code; deploy Node-02 (`worker`) en Node-01 (`web` en `caddy`) met dezelfde nieuwe commit volgens fase 4 en 5. Migratie 1320 herstelt uitsluitend bestaande, aantoonbaar verwerkte €0-transacties; een nooit verwerkte webhook verleent geen rechten.
+
+### Gerichte productiecontrole na deze deploy
+
+1. Open `https://globetrotr.nl/updates` direct en klik in de footer op **Publieke changelog**. Test NL en EN.
+2. Open op telefoon en desktop een bedrijfsmail met lange onderwerpregel, adressen en HTML. De pagina mag horizontaal niet uit het scherm lopen.
+3. Open `/register` in een privévenster. De spamcontrole moet verschijnen of na ongeveer 15 seconden een zichtbare fout plus **Opnieuw laden** tonen. Test een nieuwe registratie en wacht maximaal 25 seconden op een duidelijke uitkomst. Bij een timeout eerst de inbox en Supabase Auth Users controleren vóór opnieuw proberen; de backend kan de aanvraag nog afronden.
+4. Gebruik op de registratiepagina een adres dat al via Google bestaat. De UI verwijst naar aanmelden via Google/Discord zonder prijs te geven of een adres al geregistreerd is. Supabase kan bij bevestigde adressen opzettelijk een schijnbaar geslaagd antwoord teruggeven; dit is geen bewijs van een tweede account.
+5. Maak een nieuw Google- of Discord-account. Na OAuth moet eenmalig `/complete-profile` verschijnen; sla naam, optionele telefoon en foto op. Een volgende login mag dit scherm niet opnieuw tonen. Controleer ook dat het koppelen van een provider aan een bestaand account via `/account` rechtstreeks naar `/account` teruggaat.
+6. Maak met een betaald account een nieuwe live agenda-URL. Node-01 controleert voortaan zelf of de publieke URL daadwerkelijk `200`, `text/calendar` en `BEGIN:VCALENDAR` levert voordat hij de link toont. Test daarna met een agenda-app en, zonder de geheime link te delen, `curl -i 'https://globetrotr.nl/calendar/<token>.ics'` en `curl -I 'https://globetrotr.nl/calendar/<token>.ics'`. Beide moeten `200` en `Content-Type: text/calendar` geven. Een 404 op een bestaande link betekent dat de token is ingetrokken of dat de workspace volgens de database geen actief Pro/Agency-plan heeft. Controleer dan eerst Paddle-toegang en de workerlog (`calendar.feed_unavailable`), daarna de Caddy-route naar Node-02.
+7. Voor de ontbrekende Paddle-transactie `txn_01m3266ap61fdket5ft38ax5de`: volg de webhookcontrole hieronder. Migratie 1320 voorkomt dat `credit=0` en `total=0` als volledige terugbetaling gelden. Controleer op Node-02 of de worker een legacy service-role JWT of een `sb_secret_`-sleutel gebruikt; beide worden na deze uitrol correct als Supabase-credential verstuurd. Een voltooide €0-transactie bij Paddle is nog geen bewezen gekoppeld abonnement. Houd dit incident open tot de bezorging en workspacekoppeling zijn bevestigd.
+
+   Als na de uitrol nog geen lokale transactie bestaat, open **Corporate Admin → Financiën → Betaling en account controleren**, vul exact dat transactie-ID in en kies **Bij Paddle controleren en herstellen**. Deze actie vereist op Node-01 een Paddle API-sleutel met `transaction.read` én `adjustment.read`. Zij weigert transacties die niet voltooid zijn, een onbekend prijs-ID hebben, geen geldige ondertekende workspacekoppeling bevatten, al lokaal bestaan of een refund/credit/chargeback hebben. Deel de Paddle API-sleutel nooit in de browser of in een screenshot. Controleer daarna het juiste account, plan, factuur en de live ICS-feed. De actie vervangt niet de webhookdiagnose voor toekomstige betalingen.
+
+**Bij een nieuwe registratie-504:** noteer het exacte tijdstip en controleer in Supabase **Logs → Auth** de aanvraag rond dat tijdstip. Controleer of er een gebruiker is aangemaakt in **Authentication → Users** en of de bevestigingsmail in de SMTP-log is aangeboden of geweigerd. Een browser-timeout maakt de serveraanvraag niet ongedaan; probeer niet blind hetzelfde adres opnieuw. De huidige UI begrenst alleen de wachttijd, de Auth/SMTP-storing zelf vergt de serverlog om gericht te verhelpen.
 
 ## Fase 3 — configuratie vóór de containers starten
 
@@ -244,6 +265,51 @@ npm run smoke
 `web` en `caddy` moeten gezond zijn. De smoketest controleert homepage, registratie, login, status, contact, roadmap, updates en publieke logo’s. Open daarna `https://globetrotr.nl` in een privévenster.
 
 ## Fase 6 — kritieke praktijktests
+
+### Als Paddle een voltooide transactie toont maar Corporate Admin niets vindt
+
+Een 100%-kortingscode kan een voltooide Paddle-transactie van €0 opleveren. Dat is geen bewijs dat GlobeTrotr de webhook heeft verwerkt. Controleer eerst de bezorging; geef het account niet handmatig een betaald plan voordat de bron en workspacekoppeling zijn vastgesteld.
+
+Open in **Paddle → Developer tools → Notifications** de bestemming voor `https://globetrotr.nl/api/paddle/webhook`. Controleer of `transaction.completed` is geselecteerd en zoek de bezorgpoging voor het exacte transactie-ID. Noteer tijdstip, HTTP-status en eventuele foutcode; deel geen volledige webhookpayload of ondertekeningssecret.
+
+Controleer op **Node-02** zonder geheimen af te drukken of de vier prijs-ID's en het checkoutgeheim daadwerkelijk aanwezig zijn in de draaiende worker:
+
+```bash
+cd /opt/globetrotr
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec worker node -e 'for (const k of ["VITE_PADDLE_PRO_MONTHLY_PRICE_ID","VITE_PADDLE_AGENCY_MONTHLY_PRICE_ID","VITE_PADDLE_PRO_ONETIME_PRICE_ID","VITE_PADDLE_AGENCY_ONETIME_PRICE_ID","PADDLE_CHECKOUT_BINDING_SECRET","PADDLE_WEBHOOK_SECRET"]) console.log(k, Boolean(process.env[k]?.trim()))'
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --since=2h worker | grep -E 'paddle.webhook|paddle.webhook_failed'
+```
+
+Alle zes regels moeten `true` tonen. Het **Agency one-time** price-ID in de worker moet exact het price-ID van de Paddle-transactie zijn; controleer dat desnoods met een booleaanse vergelijking zonder de waarde te tonen:
+
+```bash
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec worker node -e 'console.log("Agency one-time ID configured:", /^pri_[a-z0-9]+$/i.test(process.env.VITE_PADDLE_AGENCY_ONETIME_PRICE_ID ?? ""))'
+```
+
+Deze laatste syntaxiscontrole bewijst nog geen gelijkheid met Paddle. Vergelijk het ID in Paddle met het ID in de private `.env.production` op Node-02, zonder het hier of in logs te plakken. Controleer ook dat `PADDLE_CHECKOUT_BINDING_SECRET` op Node-01 en Node-02 gelijk is; print of kopieer het geheim niet naar een chat.
+
+Voer in de **Supabase SQL Editor** alleen deze leesquery uit en vervang het voorbeeld-ID door het transactie-ID:
+
+```sql
+SELECT provider_event_id, event_type, status, last_error_code, received_at, processed_at,
+       payload->'data'->>'globetrotr_plan' AS recognized_plan,
+       payload->'data'->>'globetrotr_billing_mode' AS recognized_mode,
+       NULLIF(payload->'data'->'custom_data'->>'workspace_uuid','') IS NOT NULL AS workspace_bound
+FROM public.billing_webhook_events
+WHERE payload->'data'->>'id' = 'txn_REPLACE_ME'
+ORDER BY received_at DESC;
+
+SELECT provider_transaction_id, status, total_minor
+FROM public.billing_transactions
+WHERE provider_transaction_id = 'txn_REPLACE_ME';
+```
+
+- Geen webhookrij: Paddle heeft het event niet aan de juiste bestemming afgeleverd, of Node-01/Caddy heeft het niet doorgestuurd. Controleer bestemming, eventselectie, HTTP-status, Caddy en workerlogs.
+- `ignored` met `WORKSPACE_NOT_FOUND`: controleer de juiste one-time price-ID op Node-02 en hetzelfde checkoutgeheim op beide nodes. Een verkeerde prijs of handtekening maakt de workspacekoppeling ongeldig.
+- `failed`: noteer `last_error_code` en gebruik de gecontroleerde herverwerking in Corporate Admin pas nadat de oorzaak is opgelost.
+- `processed` maar geen transactie: onderzoek de opgeslagen eventgegevens en databasefunctie; voer geen handmatige planupdate uit.
+
+Een afwezig webhookrecord wordt in de diagnose als **onbekende betaalwijze** getoond. De eerdere weergave “recurring” was slechts een onjuiste fallback. Houd het incident open tot dezelfde transactie, het juiste Agency-recht en de vervaldatum lokaal zichtbaar zijn.
 
 Gebruik een Corporate Admin, Agency-beheerder, Agency-klant en twee normale accounts. Test minstens één Nederlands en één Engels profiel.
 

@@ -7,6 +7,12 @@ import { trustedPaddleCustomData } from "./paddle-binding.mjs";
 const env = process.env;
 const supabaseUrl = required("SUPABASE_URL").replace(/\/$/, "");
 const serviceKey = required("SUPABASE_SERVICE_ROLE_KEY");
+// Opaque Supabase secret keys belong only in apikey; legacy service_role JWTs
+// still need the bearer header. Sending sb_secret_ as Bearer returns Invalid JWT.
+const serviceAuthHeaders = {
+  apikey: serviceKey,
+  ...(serviceKey.startsWith("sb_secret_") ? {} : { Authorization: `Bearer ${serviceKey}` }),
+};
 const pollMs = boundedNumber(env.WORKER_POLL_MS, 5_000, 1_000, 60_000);
 const batchSize = boundedNumber(env.WORKER_BATCH_SIZE, 20, 1, 100);
 const healthPort = boundedNumber(env.WORKER_HEALTH_PORT, 9091, 1, 65_535);
@@ -114,8 +120,7 @@ async function rpc(name, body = {}) {
   const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${name}`, {
     method: "POST",
     headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
+      ...serviceAuthHeaders,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -269,7 +274,7 @@ async function pollCorporateMail() {
           .map(encodeURIComponent)
           .join("/");
         const file = await fetch(`${supabaseUrl}/storage/v1/object/authenticated/corporate-mail/${path}`, {
-          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+          headers: { ...serviceAuthHeaders },
           signal: AbortSignal.timeout(20_000),
         });
         if (!file.ok)
@@ -334,8 +339,7 @@ async function pollCorporateMail() {
 async function restSingle(path) {
   const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
     headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
+      ...serviceAuthHeaders,
       Accept: "application/vnd.pgrst.object+json",
     },
     signal: AbortSignal.timeout(15_000),
@@ -347,7 +351,7 @@ async function restSingle(path) {
 
 async function restRead(path) {
   const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+    headers: { ...serviceAuthHeaders },
     signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok)
@@ -363,8 +367,7 @@ async function cleanupExpiredCorporateMailUploads() {
   const storage = await fetch(`${supabaseUrl}/storage/v1/object/corporate-mail`, {
     method: "DELETE",
     headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
+      ...serviceAuthHeaders,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ prefixes: expired.map((row) => row.storage_key) }),
@@ -377,8 +380,7 @@ async function cleanupExpiredCorporateMailUploads() {
     {
       method: "DELETE",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
+        ...serviceAuthHeaders,
         Prefer: "return=minimal",
       },
       signal: AbortSignal.timeout(15_000),
@@ -396,8 +398,7 @@ async function updateCorporateOutbox(message, senderAddress, status, errorCode, 
     {
       method: "PATCH",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
+        ...serviceAuthHeaders,
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
@@ -420,8 +421,7 @@ async function updateCorporateOutbox(message, senderAddress, status, errorCode, 
   const recorded = await fetch(`${supabaseUrl}/rest/v1/corporate_mail_messages`, {
     method: "POST",
     headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
+      ...serviceAuthHeaders,
       "Content-Type": "application/json",
       Prefer: "return=representation",
     },
@@ -454,8 +454,7 @@ async function updateCorporateOutbox(message, senderAddress, status, errorCode, 
         {
           method: "PATCH",
           headers: {
-            apikey: serviceKey,
-            Authorization: `Bearer ${serviceKey}`,
+            ...serviceAuthHeaders,
             "Content-Type": "application/json",
             Prefer: "return=minimal",
           },
@@ -475,8 +474,7 @@ async function updateOutbox(id, status, errorCode) {
     {
       method: "PATCH",
       headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
+        ...serviceAuthHeaders,
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
@@ -538,6 +536,30 @@ createServer(async (request, response) => {
         return;
       }
       const event = await enrichPaddleEvent(JSON.parse(rawBody));
+      if (event.event_type === "transaction.completed" &&
+          event.data?.custom_data?.checkout_binding &&
+          !event.data?.globetrotr_plan) {
+        log("error", "paddle.price_unrecognized", {
+          eventId: event.event_id,
+          transactionId: event.data?.id,
+        });
+        response.writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+          .end('{"error":"PADDLE_PRICE_NOT_ALLOWED"}');
+        return;
+      }
+      if (event.event_type === "transaction.completed" &&
+          event.data?.globetrotr_billing_mode === "one_time" &&
+          !event.data?.custom_data?.workspace_uuid) {
+        log("error", "paddle.checkout_binding_unverified", {
+          eventId: event.event_id,
+          transactionId: event.data?.id,
+          priceMatched: Boolean(event.data?.globetrotr_plan),
+          bindingPresent: Boolean(event.data?.custom_data?.checkout_binding),
+        });
+        response.writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+          .end('{"error":"CHECKOUT_BINDING_UNVERIFIED"}');
+        return;
+      }
       const result = await rpc("process_paddle_billing_event", { p_event: event });
       // A previous delivery may have committed the event before entitlement creation failed.
       // Re-run the idempotent entitlement step on verified Paddle retries.
@@ -575,13 +597,14 @@ createServer(async (request, response) => {
     return;
   }
   if (
-    request.method === "GET" &&
+    (request.method === "GET" || request.method === "HEAD") &&
     /^\/calendar\/[A-Za-z0-9_-]{32,200}\.ics$/.test(requestUrl.pathname)
   ) {
     const token = requestUrl.pathname.slice("/calendar/".length, -4);
     try {
       const calendar = await rpc("get_trip_calendar_feed", { p_token: token });
       if (!calendar) {
+        log("warn", "calendar.feed_unavailable", { reason: "token_revoked_or_plan_inactive" });
         response.writeHead(404).end();
         return;
       }
@@ -592,7 +615,7 @@ createServer(async (request, response) => {
           "Cache-Control": "no-store",
           "Content-Disposition": `inline; filename="${String(calendar.name).replace(/[^a-z0-9_-]/gi, "-")}.ics"`,
         })
-        .end(body);
+        .end(request.method === "HEAD" ? undefined : body);
     } catch (error) {
       log("error", "calendar.feed_failed", {
         errorCode: String(error?.code || "CALENDAR_FEED_FAILED").slice(0, 80),
@@ -614,7 +637,7 @@ createServer(async (request, response) => {
     const check = await fetch(
       `${supabaseUrl}/rest/v1/agency_domains?custom_domain=eq.${encodeURIComponent(domain)}&verification_status=eq.verified&select=custom_domain&limit=1`,
       {
-        headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        headers: { ...serviceAuthHeaders },
         signal: AbortSignal.timeout(3000),
       },
     );

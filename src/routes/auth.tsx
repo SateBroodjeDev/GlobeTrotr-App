@@ -46,6 +46,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const [formError, setFormError] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaReset, setCaptchaReset] = useState(0);
+  const [captchaProblem, setCaptchaProblem] = useState(false);
   const [sent, setSent] = useState(false);
   const [sentKind, setSentKind] = useState<"confirmation" | "recovery" | "magic">("confirmation");
   const [passkeyBusy, setPasskeyBusy] = useState(false);
@@ -123,7 +124,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
+        const signup = supabase.auth.signUp({
           email,
           password,
           options: {
@@ -132,6 +133,10 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
             captchaToken,
           },
         });
+        const { data, error } = await Promise.race([
+          signup,
+          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("SIGNUP_TIMEOUT")), 25000)),
+        ]);
         if (error) throw error;
         if (!data.session) {
           setSentKind("confirmation");
@@ -150,12 +155,14 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
-      setFormError(message || text("Registreren is mislukt.", "Registration failed."));
+      setFormError(message === "SIGNUP_TIMEOUT"
+        ? text("De registratie duurt te lang. Controleer eerst je e-mail; mogelijk is je account al aangemaakt. Probeer daarna in te loggen of een inloglink aan te vragen.", "Registration is taking too long. Check your email first; your account may already exist. Then try signing in or request a sign-in link.")
+        : message || text("Registreren is mislukt.", "Registration failed."));
       if (mode === "signup") {
         setCaptchaToken("");
         setCaptchaReset((value) => value + 1);
       }
-      toast.error(
+      if (message !== "SIGNUP_TIMEOUT") toast.error(
         /user is banned/i.test(message)
           ? text(
               "Dit account is tijdelijk geblokkeerd. Neem contact op via info@globetrotr.nl als je denkt dat dit niet klopt.",
@@ -187,8 +194,8 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   async function signInWithProvider(provider: "google" | "discord") {
     setOauthBusy(provider);
     try {
-      const callback = new URL("/auth", window.location.origin);
-      if (redirect) callback.searchParams.set("redirect", redirect);
+      const callback = new URL("/oauth-callback", window.location.origin);
+      if (redirect) callback.searchParams.set("next", redirect);
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo: callback.toString() },
@@ -392,7 +399,10 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                   />
                 </div>
                 {mode === "signup" && (
-                  <AuthCaptcha onToken={setCaptchaToken} reset={captchaReset} />
+                  <AuthCaptcha onToken={setCaptchaToken} reset={captchaReset} onProblem={setCaptchaProblem} />
+                )}
+                {mode === "signup" && captchaProblem && (
+                  <p role="alert" className="text-sm text-destructive">{text("De spamcontrole laadt niet. Controleer je verbinding of advertentieblokkering en probeer opnieuw.", "The spam check did not load. Check your connection or ad blocker and retry.")} <button type="button" className="underline" onClick={() => { if (!window.turnstile) document.querySelector("script[data-turnstile]")?.remove(); setCaptchaReset((value) => value + 1); }}>{text("Opnieuw laden", "Retry")}</button></p>
                 )}
                 {formError && (
                   <p
@@ -402,6 +412,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                     {formError}
                   </p>
                 )}
+                {mode === "signup" && <p className="text-xs text-muted-foreground">{text("Gebruik je dit e-mailadres al via Google of Discord? Log dan in met die aanbieder. Om te voorkomen dat anderen accounts kunnen opzoeken, bevestigen we hier niet of een adres al bestaat.", "Already using this email through Google or Discord? Sign in with that provider. To prevent account enumeration, we do not confirm here whether an address already exists.")}</p>}
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy
                     ? text("Bezig…", "Working…")
@@ -497,38 +508,48 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   );
 }
 
-function AuthCaptcha({ onToken, reset }: { onToken: (token: string) => void; reset: number }) {
+function AuthCaptcha({ onToken, reset, onProblem }: { onToken: (token: string) => void; reset: number; onProblem: (problem: boolean) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const receive = useCallback((value: string) => onToken(value), [onToken]);
   useEffect(() => {
     let widget = "";
+    let cancelled = false;
+    let attempts = 0;
+    onProblem(false);
     const render = () => {
-      if (ref.current && window.turnstile && !ref.current.childElementCount)
+      if (cancelled) return;
+      if (ref.current && window.turnstile && !ref.current.childElementCount) {
         widget = window.turnstile.render(ref.current, {
           sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAAEzAUfhMofYpNxJC",
           theme: "auto",
           callback: receive,
           "expired-callback": () => receive(""),
-          "error-callback": () => receive(""),
+          "error-callback": () => { receive(""); onProblem(true); },
         });
+        onProblem(false);
+      }
     };
     const old = document.querySelector<HTMLScriptElement>("script[data-turnstile]");
     if (old) {
-      if (window.turnstile) render();
-      else old.addEventListener("load", render, { once: true });
+      render();
     } else {
       const script = document.createElement("script");
       script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
       script.async = true;
       script.defer = true;
       script.dataset.turnstile = "true";
-      script.addEventListener("load", render, { once: true });
       document.head.appendChild(script);
     }
+    const retry = window.setInterval(() => {
+      if (window.turnstile) { render(); window.clearInterval(retry); }
+      else if (++attempts >= 15) { onProblem(true); window.clearInterval(retry); }
+    }, 1000);
     return () => {
+      cancelled = true;
+      window.clearInterval(retry);
       if (widget) window.turnstile?.remove(widget);
     };
-  }, [receive, reset]);
+  }, [receive, reset, onProblem]);
   return <div ref={ref} className="min-h-[65px]" aria-label="Spamcontrole" />;
 }
 
