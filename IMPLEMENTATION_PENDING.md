@@ -2,7 +2,7 @@
 
 **Stand:** 21 september 2026
 
-**Startpunt:** productie heeft migraties en SQL-tests tot en met 1170
+**Huidige stand:** migraties en SQL-tests 1180–1300 zijn uitgevoerd en de vijf Auth-mailtemplates plus onderwerpen staan in Supabase. De nieuwe commit staat nog niet op Node-01 en Node-02.
 
 **Doel:** wijzigingen 1180–1300 gecontroleerd migreren, beide nodes uitrollen en de kritieke productstromen testen.
 
@@ -10,9 +10,11 @@ Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige fo
 
 ## Voortgang
 
-- [ ] Fase 1 — code controleren, committen en pushen
-- [ ] Fase 2 — dertien migraties en SQL-tests uitvoeren
-- [ ] Fase 3 — productiegeheimen en optionele vertaling configureren
+- [x] Fase 1 — code controleren en releasecommit maken (`47c7db0`)
+- [ ] Fase 1b — commit naar de gekoppelde branch pushen
+- [x] Fase 2 — dertien migraties en SQL-tests uitvoeren
+- [x] Fase 2b — vijf Auth-mailtemplates en onderwerpen in Supabase plaatsen
+- [ ] Fase 3 — bestaande productieconfiguratie inventariseren; nog geen containers starten
 - [ ] Fase 4 — Node-02 uitrollen en gezond verklaren
 - [ ] Fase 5 — Node-01 uitrollen en smoketest uitvoeren
 - [ ] Fase 6 — kritieke praktijktests uitvoeren
@@ -21,6 +23,19 @@ Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige fo
 Lokaal zijn 78 tests, TypeScript, lint zonder fouten, de securityaudit en de release-preflight groen. De nieuwe productiefunctionaliteit is pas bewezen nadat alle fasen zijn afgerond.
 
 ## Fase 1 — Windows: controleren, committen en pushen
+
+De releasecommit is lokaal gemaakt als `47c7db0`; deze bijgewerkte handleiding kan daar als kleine vervolgcommit bovenop staan. Controleer en push alle lokale commits, voor zover dit nog niet is gebeurd:
+
+```powershell
+git status --short
+git log -2 --oneline
+git push
+git rev-parse --short HEAD
+```
+
+Bewaar de uitvoer van `git rev-parse --short HEAD` als `VERWACHTE_COMMIT`. Verwacht een lege `git status`. Ga niet naar de nodes voordat de push is geslaagd.
+
+De onderstaande uitgebreide controles zijn al uitgevoerd en blijven hier als herhaalbare referentie staan.
 
 Voer dit uit in de projectmap:
 
@@ -45,6 +60,8 @@ Verwacht:
 De Windows-Nitrobouw kan aan het einde stranden op `EPERM: readlink C:\Users\info`. De Linux-build op Node-01 en in CI is daarom beslissend. Herschrijf geen gepubliceerde Gitgeschiedenis.
 
 ## Fase 2 — Supabase SQL Editor
+
+**Uitgevoerd:** migraties 1180–1300 en hun dertien SQL-tests zijn volgens de eigenaar zonder fout uitgevoerd. Voer deze reeks niet opnieuw uit.
 
 Open de SQL Editor van het productieproject. Voer steeds eerst de migratie en direct daarna de test uit. Iedere test moet zonder fout eindigen voordat je doorgaat.
 
@@ -99,30 +116,69 @@ Open poort 3310 niet in UFW of de providerfirewall.
 
 ### Supabase Auth-templates
 
+**Uitgevoerd:** Confirm signup, Reset password, Change email address, Magic link en Invite user plus de conditionele onderwerpen zijn volgens de eigenaar geplaatst.
+
 Na migratie 1300 open je in het Supabase Dashboard **Authentication → Email Templates**. Vervang daar de inhoud van Confirm signup, Reset password, Change email address, Magic link en Invite user door de gelijknamige bestanden uit `supabase/templates`. Neem per type ook het conditionele onderwerp uit `supabase/templates/subjects.md` over. De templates gebruiken `user_metadata.language`; Nederlands wordt alleen gekozen bij `nl`, anders blijft Engels de veilige standaard.
 
 Controleer dat de Site URL `https://globetrotr.nl` is en dat de toegestane redirects de eigen `/auth`- en `/token/...`-routes niet blokkeren. Deze Dashboard-stap wordt niet door een Git-push uitgevoerd.
 
 ### Optioneel: gratis NL/EN-vertaalconcepten
 
-Zet op Node-02 `TRANSLATION_BIND_ADDRESS=10.0.0.3`. Zet op Node-01:
-
-```dotenv
-TRANSLATION_API_URL=http://10.0.0.3:5000/translate
-TRANSLATION_API_KEY=
-```
-
-Sta TCP 5000 uitsluitend toe van Node-01 naar het private IP van Node-02. Vertalingen blijven handmatig te controleren concepten; gebruik ze niet voor juridische tekst.
+Configureer of start dit hier nog niet. De translation-service staat pas in `deploy/worker.compose.yml` nadat Node-02 in fase 4 de nieuwe commit heeft opgehaald. De exacte installatie staat daarom bij fase 4. Vertalingen blijven handmatig te controleren concepten; gebruik ze niet voor juridische tekst.
 
 ## Fase 4 — Node-02 eerst uitrollen
+
+### 4.1 Nieuwe code ophalen
 
 ```bash
 cd /opt/globetrotr
 git pull --ff-only
+git log -1 --oneline
+```
+
+De laatste regel moet dezelfde `VERWACHTE_COMMIT` tonen als op je pc. Controleer nu pas of het nieuwe translation-profiel bestaat:
+
+```bash
+grep -n "translation:" deploy/worker.compose.yml
+```
+
+### 4.2 Node-02 configureren
+
+Open na de pull het bestaande secretbestand:
+
+```bash
+nano /opt/globetrotr/.env.production
+```
+
+Controleer de bestaande waarden uit fase 3 en voeg voor vertaling toe:
+
+```dotenv
+TRANSLATION_BIND_ADDRESS=10.0.0.3
+```
+
+Open poort 5000 niet voor internet. Zoek eerst het private IP van Node-01 en de private interface van Node-02:
+
+```bash
+ip -4 address
+```
+
+Vervang hieronder `10.0.0.X` door het private IP van Node-01 en `PRIVATE_INTERFACE` door de interface waarop Node-02 `10.0.0.3` heeft:
+
+```bash
+sudo ufw allow in on PRIVATE_INTERFACE from 10.0.0.X to 10.0.0.3 port 5000 proto tcp comment 'LibreTranslate vanaf Node-01'
+sudo ufw status numbered
+```
+
+Voeg in de providerfirewall van Node-02 eveneens alleen TCP 5000 vanaf het private IP van Node-01 toe. Gebruik niet `Any IPv4` of `Any IPv6`.
+
+### 4.3 Node-02 bouwen en starten
+
+```bash
+cd /opt/globetrotr
 docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation config --quiet
 docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation up -d --build
 docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation ps
-docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=150 worker imap-sync mail-relay clamav
+docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation logs --tail=150 worker imap-sync mail-relay clamav translation
 curl --fail http://127.0.0.1:9091/health
 ```
 
@@ -139,10 +195,45 @@ curl --fail --request POST http://10.0.0.3:5000/translate \
 
 ## Fase 5 — Node-01 uitrollen
 
+### 5.1 Nieuwe code ophalen
+
 ```bash
 cd /opt/globetrotr
 git pull --ff-only
+git log -1 --oneline
+```
+
+De laatste regel moet dezelfde `VERWACHTE_COMMIT` tonen als op je pc.
+
+### 5.2 Node-01 met Node-02 verbinden
+
+Open het bestaande secretbestand:
+
+```bash
+nano /opt/globetrotr/.env.production
+```
+
+Voeg toe:
+
+```dotenv
+TRANSLATION_API_URL=http://10.0.0.3:5000/translate
+TRANSLATION_API_KEY=
+```
+
+Een lege API-key is correct omdat de dienst uitsluitend via het private netwerk bereikbaar is. Test de verbinding vóór de webbuild:
+
+```bash
 curl --fail http://10.0.0.3:9091/health
+curl --fail http://10.0.0.3:5000/languages
+curl --fail --request POST http://10.0.0.3:5000/translate \
+  --header 'Content-Type: application/json' \
+  --data '{"q":"Uw reis is bijgewerkt.","source":"nl","target":"en","format":"text"}'
+```
+
+### 5.3 Node-01 bouwen en starten
+
+```bash
+cd /opt/globetrotr
 docker compose --env-file .env.production -f deploy/web.compose.yml config --quiet
 docker compose --env-file .env.production -f deploy/web.compose.yml up -d --build
 docker compose --env-file .env.production -f deploy/web.compose.yml ps
