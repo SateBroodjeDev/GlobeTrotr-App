@@ -38,12 +38,18 @@ const migrations = (await readdir(join(root, "supabase", "migrations")))
   .filter((name) => /^\d+_.+\.sql$/.test(name))
   .sort();
 const latest = migrations.at(-1);
-const pendingMigrations = migrations.filter(
-  (name) => name > "20260908117000_payment_modes_and_live_calendars.sql",
+const confirmedMatch = implementation.match(
+  /<!--\s*release-preflight:\s*confirmed-through=(\d+_[a-z0-9_]+\.sql)\s*-->/,
 );
+const confirmedThrough = confirmedMatch?.[1];
+if (!confirmedThrough || !migrations.includes(confirmedThrough))
+  findings.push("IMPLEMENTATION_PENDING bevat geen geldige bevestigde migratiebaseline");
+const pendingMigrations = confirmedThrough
+  ? migrations.filter((name) => name > confirmedThrough)
+  : migrations;
 if (pendingMigrations.join("\n") !== documentedMigrations.join("\n"))
   findings.push(
-    "IMPLEMENTATION_PENDING bevat niet exact alle migraties na de bevestigde 1170-baseline",
+    "IMPLEMENTATION_PENDING bevat niet exact alle migraties na de bevestigde baseline",
   );
 if (latest && !implementation.includes(latest))
   findings.push(`Laatste migratie staat niet in IMPLEMENTATION_PENDING: ${latest}`);

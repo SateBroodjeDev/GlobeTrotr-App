@@ -1,6 +1,6 @@
 # Domeinscheiding: website, portal en Agency
 
-**Voorbereid, nog niet uitgerold (22 september 2026).** Dit document hoort bij de volgende gezamenlijke release. De bestaande applicatie blijft één webbuild; Caddy en de app kiezen op basis van de host de juiste ingang. De database en accounts verhuizen niet.
+**Basis actief sinds 22 september 2026.** Release `5df0590`, DNS, HTTPS en de centrale portal zijn uitgerold. Alleen de aanvullende navigatiecorrectie en checklistmigratie 1480 staan nog klaar voor de eerstvolgende kleine uitrol. De applicatie blijft één webbuild; Caddy en de app kiezen op basis van de host de juiste ingang. De database en accounts verhuizen niet.
 
 | Host | Doel | Status na deze code-uitrol |
 | --- | --- | --- |
@@ -12,19 +12,18 @@
 
 Een Agency-host is nu een **eigen ingang**, geen aparte app-origin. Bij bezoek aan de hoofdroute controleert de worker de host tegen `agency_domains` en het actieve Agency-plan. Daarna volgt een redirect naar het centrale Agency-dashboard met de verwachte workspace. Het dashboard vergelijkt die met de geauthenticeerde Agency-rol; een account van een andere Agency ziet een toegangsblokkade. Andere paden op de Agency-host leveren 404, zodat privédata en sessies uitsluitend op `portal` bestaan. De Agency-naam blijft na de redirect dus niet in de adresbalk. Een permanent gebrand dashboard op de Agency-host vraagt later aparte sessie- en passkeyarchitectuur.
 
-## Wat al in de code is voorbereid
+## Actieve architectuur
 
 - Caddy heeft aparte blokken voor hoofddomein en `portal`. Oude privépaden op het hoofddomein krijgen tijdelijk een **302**-redirect; na volledige acceptatie kan die permanent worden. Publieke `/calendar/*.ics` en `/api/paddle/webhook` blijven op het hoofddomein. `portal` heeft `noindex`.
+- Vanaf het portal openen logo, Website/Home en publieke menu- en footerlinks rechtstreeks de website. Publieke routes die iemand toch direct onder `portal` bezoekt, worden door Caddy naar het hoofddomein gestuurd; `contact` en `status` blijven ook vanuit een ingelogd account bereikbaar.
 - De belangrijkste publieke login-, registratie- en prijsknoppen openen `portal` rechtstreeks. Private links in nieuwe uitnodigingen, meldingen en mails verwijzen daar ook naartoe. Oude links blijven via de redirect bruikbaar.
 - De app corrigeert interne navigatie tussen beide hosts. Contact en status zijn op beide hosts bereikbaar; publieke reislinks blijven op het hoofddomein.
 - Nieuwe Agency-instructies tonen `portal.globetrotr.nl` als CNAME-doel. Bestaande CNAMEs naar `dashboard.globetrotr.nl` of `globetrotr.nl` blijven door de verificatie geaccepteerd.
-- SQL-migraties 1460 en 1470 voegen handmatige checks toe aan Corporate Admin en reserveren platformhostnamen zoals `portal` voor GlobeTrotr. Geslaagde SQL-tests bewijzen **niet** dat DNS, OAuth, passkeys of tenantisolatie in productie werken.
+- SQL-migraties 1460 en 1470 zijn uitgevoerd. Ze voegen handmatige checks toe aan Corporate Admin en reserveren platformhostnamen zoals `portal` voor GlobeTrotr. Geslaagde SQL-tests bewijzen **niet** dat DNS, OAuth, passkeys of tenantisolatie in productie werken.
 
-## Voorbereiding vóór de omschakeling
+## Reeds uitgevoerde omschakeling
 
-1. Laat gebruikers openstaande reiswijzigingen opslaan/synchroniseren. De browser bewaart sessie en lokale cache per host: een bestaande login op `globetrotr.nl` verschijnt **niet** automatisch op `portal.globetrotr.nl`. Gebruikers loggen daar eenmaal opnieuw in; kopieer nooit access tokens via URL of gedeelde cookies. Controleer bij offline/onopgeslagen wijzigingen eerst export/synchronisatie.
-2. Controleer welke SQL-migraties 1390–1450 al werkelijk in productie staan. Voer uitsluitend ontbrekende migraties in oplopende volgorde uit. Voer daarna migratie en test **1460** uit, vervolgens migratie en test **1470**; de bestandslinks staan in `IMPLEMENTATION_PENDING.md`. Migratie 1470 faalt bewust als een gereserveerde subdomeinnaam al aan een Agency is toegewezen: los dat eerst gericht op. Maak ook een rollbacknotitie van de huidige Supabase Auth URL-instellingen.
-3. Controleer de huidige passkey **Relying Party ID** in Supabase. Als die `globetrotr.nl` is, **niet wijzigen**; voeg `https://portal.globetrotr.nl` toe aan de toegestane origins en houd `https://globetrotr.nl` tijdens de overgang. Een wijziging van de RP ID kan bestaande passkeys ongeldig maken. Supabase beperkt het aantal origins; individuele Agency-hosts en eigen domeinen zijn daarom geen schaalbare passkey-loginhosts.
+DNS, HTTPS, de portalbuild en migraties/tests tot en met 1470 zijn uitgevoerd. Herhaal die migraties niet. De browser bewaart sessie en lokale cache per host: een login op `globetrotr.nl` verschijnt niet automatisch op `portal.globetrotr.nl`. Kopieer daarom nooit access tokens via URL of gedeelde cookies. De passkey-RP-ID blijft `globetrotr.nl`; de portalhost hoort als toegestane origin ingesteld te zijn. Controleer een bestaande en een nieuwe passkey tijdens de acceptatietest.
 
 ## DNS bij de DNS-provider
 
@@ -54,19 +53,9 @@ Doe dit pas wanneer `portal.globetrotr.nl` via HTTPS bereikbaar is, en noteer ee
 6. **Paddle:** controleer eventuele domein-/redirect-allowlists en test checkout vanaf `/billing` op `portal`. De checkout-success-URL gebruikt de actuele origin; webhook blijft op `https://globetrotr.nl/api/paddle/webhook`. Verander de webhookbestemming niet zonder een afzonderlijke bezorgtest.
 7. **Search Console:** het hoofddomein en zijn openbare sitemap blijven leidend. Het portal krijgt `noindex`; controleer met een HTTP-header. Als je een domeinproperty gebruikt, kan die subdomeinen volgen zonder aparte publieke sitemap.
 
-## Code uitrollen
+## Volgende correctie uitrollen
 
-Commit en push eerst de hele voorbereide release volgens `IMPLEMENTATION_PENDING.md`. Gebruik op beide nodes **dezelfde commit**. Voer daarna uit op **Node-02**:
-
-```bash
-cd /opt/globetrotr
-git pull --ff-only
-git rev-parse --short HEAD
-docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation up -d --build --force-recreate worker mail-relay
-docker compose --env-file .env.production -f deploy/worker.compose.yml ps
-```
-
-De Node-02-build is nodig voor nieuwe links in meldingen/mail en de Agency-TLS-check uit deze release. Voer daarna uit op **Node-01**:
+Voor de nog open navigatiecorrectie voer je alleen migratie/test 1480 uit en bouw je Node-01 opnieuw. Node-02 wijzigt niet. De volledige volgorde staat in `IMPLEMENTATION_PENDING.md`. Na commit en push voer je op Node-01 uit:
 
 ```bash
 cd /opt/globetrotr
@@ -78,7 +67,7 @@ docker compose --env-file .env.production -f deploy/web.compose.yml ps
 docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=100 caddy web
 ```
 
-Het Caddy-validatecommando moet zonder fout eindigen voordat je Caddy herstart. Zet de Supabase Site URL pas om nadat de portalhost en de nieuwe webbuild antwoorden. Bestaande mail-links op het hoofddomein worden daarna doorgestuurd.
+Het Caddy-validatecommando moet zonder fout eindigen voordat je Caddy herstart. De Supabase Site URL staat al op de portalhost en hoeft voor deze correctie niet te veranderen.
 
 ## Praktijktest vóór brede vrijgave
 

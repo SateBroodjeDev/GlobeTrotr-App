@@ -2,10 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Trip, TripMemberRole, WorkspaceState } from "@/lib/types";
 import { protectTripUpdate } from "@/lib/trip-access";
-import { effectiveAgencyPermissions, protectAgencyTripUpdate, resolveEffectiveTripAccess, type AgencyPermissionMap } from "@/lib/agency-permissions";
+import {
+  effectiveAgencyPermissions,
+  protectAgencyTripUpdate,
+  resolveEffectiveTripAccess,
+  type AgencyPermissionMap,
+} from "@/lib/agency-permissions";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 import { resolveBranding } from "@/lib/branding";
 import { recordTripManagementAudit } from "@/lib/trip-management-access.server";
+import { normalizeTravelOption } from "@/lib/trip-options";
 
 type UntypedSupabase = {
   from: (relation: string) => any;
@@ -40,7 +46,28 @@ function normalizeTripForPersistence(trip: Trip): Trip {
     throw new Error("Het budget moet een bedrag van nul of hoger zijn.");
   }
   const { accessRole: _accessRole, ownerId: _ownerId, ...persistentTrip } = trip;
-  return { ...persistentTrip, name, description };
+  if ((trip.travelOptions?.length ?? 0) > 100)
+    throw new Error("Een reis kan maximaal 100 opties bevatten.");
+  const travelOptions = (trip.travelOptions ?? []).map((option) => {
+    if (!option.id || !option.title.trim()) throw new Error("Een reisoptie heeft een naam nodig.");
+    if (!["flight", "lodging", "transport", "car_rental", "activity"].includes(option.type)) {
+      throw new Error("Een reisoptie bevat een ongeldig type.");
+    }
+    if (!["candidate", "selected", "rejected"].includes(option.status)) {
+      throw new Error("Een reisoptie bevat een ongeldige status.");
+    }
+    if (!isIsoDate(option.startDate) || (option.endDate && !isIsoDate(option.endDate))) {
+      throw new Error("Een reisoptie bevat een ongeldige datum.");
+    }
+    if (option.endDate && option.endDate < option.startDate) {
+      throw new Error("De einddatum van een reisoptie kan niet vóór de startdatum liggen.");
+    }
+    const createdAt = new Date(option.createdAt);
+    if (Number.isNaN(createdAt.getTime()))
+      throw new Error("Een reisoptie bevat een ongeldige aanmaakdatum.");
+    return normalizeTravelOption({ ...option, createdAt: createdAt.toISOString() });
+  });
+  return { ...persistentTrip, name, description, travelOptions };
 }
 
 async function withinTimeout<T>(operation: Promise<T>, milliseconds: number): Promise<T> {
@@ -202,6 +229,30 @@ async function replaceTripChildren(
     })),
   );
   await replace(
+    "trip_travel_options",
+    (trip.travelOptions ?? []).map((option) => ({
+      ...scope,
+      id: option.id,
+      option_type: option.type,
+      title: option.title,
+      start_date: option.startDate,
+      end_date: option.endDate ?? null,
+      provider: option.provider ?? null,
+      amount: option.amount ?? null,
+      currency: option.currency ?? null,
+      charges_included: option.chargesIncluded ?? false,
+      cancellation: option.cancellation ?? null,
+      duration_minutes: option.durationMinutes ?? null,
+      distance_km: option.distanceKm ?? null,
+      source_url: option.sourceUrl ?? null,
+      notes: option.notes ?? null,
+      status: option.status,
+      checked_at: option.checkedAt ?? null,
+      converted_travel_item_id: option.convertedTravelItemId ?? null,
+      created_at: option.createdAt,
+    })),
+  );
+  await replace(
     "trip_packing_items",
     (trip.packing ?? []).map((item, position) => ({ ...scope, ...item, position })),
   );
@@ -356,15 +407,35 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
     .neq("role", "owner");
   let agencyParents: Record<string, any>[] = [];
   if (!agencyMembershipError && agencyMemberships?.length) {
-    const candidateWorkspaceIds = agencyMemberships.map((membership: any) => membership.workspace_uuid);
-    const { data: permissionRows } = await agencyClient.from("agency_role_permissions").select("workspace_uuid, role, permissions").in("workspace_uuid", candidateWorkspaceIds);
-    const defaultsByRole = new Map((permissionRows ?? []).map((row: any) => [`${row.workspace_uuid}:${row.role}`, row.permissions]));
-    const visibleMemberships = agencyMemberships.filter((membership: any) => effectiveAgencyPermissions(membership.role, defaultsByRole.get(`${membership.workspace_uuid}:${membership.role}`) as Partial<AgencyPermissionMap> | undefined, membership.permission_overrides as Partial<AgencyPermissionMap> | null).trips_view);
+    const candidateWorkspaceIds = agencyMemberships.map(
+      (membership: any) => membership.workspace_uuid,
+    );
+    const { data: permissionRows } = await agencyClient
+      .from("agency_role_permissions")
+      .select("workspace_uuid, role, permissions")
+      .in("workspace_uuid", candidateWorkspaceIds);
+    const defaultsByRole = new Map(
+      (permissionRows ?? []).map((row: any) => [
+        `${row.workspace_uuid}:${row.role}`,
+        row.permissions,
+      ]),
+    );
+    const visibleMemberships = agencyMemberships.filter(
+      (membership: any) =>
+        effectiveAgencyPermissions(
+          membership.role,
+          defaultsByRole.get(`${membership.workspace_uuid}:${membership.role}`) as
+            Partial<AgencyPermissionMap> | undefined,
+          membership.permission_overrides as Partial<AgencyPermissionMap> | null,
+        ).trips_view,
+    );
     const workspaceIds = visibleMemberships.map((membership: any) => membership.workspace_uuid);
-    const roleByWorkspace = new Map<string, TripMemberRole>(visibleMemberships.map((membership: any) => [
-      String(membership.workspace_uuid),
-      membership.role === "finance" ? "finance" : "advisor",
-    ]));
+    const roleByWorkspace = new Map<string, TripMemberRole>(
+      visibleMemberships.map((membership: any) => [
+        String(membership.workspace_uuid),
+        membership.role === "finance" ? "finance" : "advisor",
+      ]),
+    );
     const { data: rows, error: agencyError } = await client
       .from("trips")
       .select(`${parentColumns}, workspace_uuid`)
@@ -381,23 +452,34 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
     ...((ownedParents ?? []) as Record<string, any>[]),
     ...((sharedParents ?? []) as Record<string, any>[]),
     ...agencyParents,
-  ].filter((row, index, all) => all.findIndex((candidate) => candidate.trip_uuid === row.trip_uuid) === index);
+  ].filter(
+    (row, index, all) =>
+      all.findIndex((candidate) => candidate.trip_uuid === row.trip_uuid) === index,
+  );
   const ids = rows.map((row) => String(row.trip_uuid));
   if (!ids.length) return [];
   // RLS bepaalt eerst welke reizen dit account mag zien. Pas daarna vult de
   // server leden aan; alleen de eigenaar ontvangt hieronder e-mailadressen.
   const memberClient = supabaseAdmin as unknown as UntypedSupabase;
-  const [stops, itinerary, expenses, travelItems, packing, members] = await Promise.all([
-    client.from("trip_stops").select("*").in("trip_uuid", ids).order("position"),
-    client.from("trip_itinerary_items").select("*").in("trip_uuid", ids).order("position"),
-    client.from("trip_expenses").select("*").in("trip_uuid", ids),
-    client.from("trip_travel_items").select("*").in("trip_uuid", ids),
-    client.from("trip_packing_items").select("*").in("trip_uuid", ids).order("position"),
-    memberClient.from("trip_members").select("*").in("trip_uuid", ids),
-  ]);
-  const childError = [stops, itinerary, expenses, travelItems, packing, members].find(
-    (result) => result.error,
-  )?.error;
+  const [stops, itinerary, expenses, travelItems, travelOptions, packing, members] =
+    await Promise.all([
+      client.from("trip_stops").select("*").in("trip_uuid", ids).order("position"),
+      client.from("trip_itinerary_items").select("*").in("trip_uuid", ids).order("position"),
+      client.from("trip_expenses").select("*").in("trip_uuid", ids),
+      client.from("trip_travel_items").select("*").in("trip_uuid", ids),
+      client.from("trip_travel_options").select("*").in("trip_uuid", ids).order("created_at"),
+      client.from("trip_packing_items").select("*").in("trip_uuid", ids).order("position"),
+      memberClient.from("trip_members").select("*").in("trip_uuid", ids),
+    ]);
+  const childError = [
+    stops,
+    itinerary,
+    expenses,
+    travelItems,
+    travelOptions,
+    packing,
+    members,
+  ].find((result) => result.error)?.error;
   if (childError) throw childError;
   const grouped = (result: { data?: unknown }, key = "trip_uuid") => {
     const map = new Map<string, Record<string, any>[]>();
@@ -411,18 +493,26 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
   const itineraryByTrip = grouped(itinerary);
   const expensesByTrip = grouped(expenses);
   const travelByTrip = grouped(travelItems);
+  const optionsByTrip = grouped(travelOptions);
   const packingByTrip = grouped(packing);
   const membersByTrip = grouped(members);
-  const { data: brandingRows } = await memberClient.from("trip_branding_overrides")
-    .select("trip_uuid, enabled, brand_name, domain, tagline, accent").in("trip_uuid", ids);
-  const brandingByTrip = new Map(((brandingRows ?? []) as Record<string,any>[])
-    .filter((branding) => branding.enabled)
-    .map((branding) => [String(branding.trip_uuid), {
-      ...(branding.brand_name ? { brandName: String(branding.brand_name) } : {}),
-      ...(branding.domain ? { domain: String(branding.domain) } : {}),
-      ...(branding.tagline ? { tagline: String(branding.tagline) } : {}),
-      ...(branding.accent == null ? {} : { accent: Number(branding.accent) }),
-    }]));
+  const { data: brandingRows } = await memberClient
+    .from("trip_branding_overrides")
+    .select("trip_uuid, enabled, brand_name, domain, tagline, accent")
+    .in("trip_uuid", ids);
+  const brandingByTrip = new Map(
+    ((brandingRows ?? []) as Record<string, any>[])
+      .filter((branding) => branding.enabled)
+      .map((branding) => [
+        String(branding.trip_uuid),
+        {
+          ...(branding.brand_name ? { brandName: String(branding.brand_name) } : {}),
+          ...(branding.domain ? { domain: String(branding.domain) } : {}),
+          ...(branding.tagline ? { tagline: String(branding.tagline) } : {}),
+          ...(branding.accent == null ? {} : { accent: Number(branding.accent) }),
+        },
+      ]),
+  );
   return rows.map((row) => {
     const id = String(row.trip_uuid);
     const accessRole = accessByTrip.get(id) ?? "owner";
@@ -493,6 +583,27 @@ async function loadRelationalTrips(client: UntypedSupabase, userId: string): Pro
         notes: item.notes ?? undefined,
         details: item.details ?? undefined,
       })),
+      travelOptions: (optionsByTrip.get(id) ?? []).map((option) => ({
+        id: String(option.id),
+        type: option.option_type,
+        title: String(option.title),
+        startDate: String(option.start_date),
+        endDate: option.end_date ?? undefined,
+        provider: option.provider ?? undefined,
+        amount: option.amount === null ? undefined : Number(option.amount),
+        currency: option.currency ?? undefined,
+        chargesIncluded: Boolean(option.charges_included),
+        cancellation: option.cancellation ?? undefined,
+        durationMinutes:
+          option.duration_minutes == null ? undefined : Number(option.duration_minutes),
+        distanceKm: option.distance_km == null ? undefined : Number(option.distance_km),
+        sourceUrl: option.source_url ?? undefined,
+        notes: option.notes ?? undefined,
+        status: option.status,
+        checkedAt: option.checked_at ?? undefined,
+        convertedTravelItemId: option.converted_travel_item_id ?? undefined,
+        createdAt: String(option.created_at),
+      })),
       packing: (packingByTrip.get(id) ?? []).map((item) => ({
         id: String(item.id),
         label: String(item.label),
@@ -540,7 +651,9 @@ export const loadWorkspace = createServerFn({ method: "GET" })
       if (agencyMembership) {
         const { data: agencyWorkspace } = await admin
           .from("workspaces")
-          .select("data, public_token, share_enabled, share_financials, plan, base_currency, branding")
+          .select(
+            "data, public_token, share_enabled, share_financials, plan, base_currency, branding",
+          )
           .eq("workspace_uuid", agencyMembership.workspace_uuid)
           .eq("plan", "agency")
           .maybeSingle();
@@ -551,11 +664,25 @@ export const loadWorkspace = createServerFn({ method: "GET" })
       }
       const relationalTrips = await loadRelationalTrips(db, userId);
       const jsonWorkspace = data.data as WorkspaceState;
-      let agencyBranding: Record<string,any>|null=null;
-      if(data.plan==="agency"){
-        let workspaceId=agencyMembership?.workspace_uuid;
-        if(!workspaceId){const {data:ownedWorkspace}=await admin.from("workspaces").select("workspace_uuid").eq("user_id",userId).maybeSingle();workspaceId=ownedWorkspace?.workspace_uuid;}
-        if(workspaceId){const {data:settings}=await admin.from("agency_settings").select("system_name,domain,accent,tagline,logo_path").eq("workspace_uuid",workspaceId).maybeSingle();agencyBranding=settings;}
+      let agencyBranding: Record<string, any> | null = null;
+      if (data.plan === "agency") {
+        let workspaceId = agencyMembership?.workspace_uuid;
+        if (!workspaceId) {
+          const { data: ownedWorkspace } = await admin
+            .from("workspaces")
+            .select("workspace_uuid")
+            .eq("user_id", userId)
+            .maybeSingle();
+          workspaceId = ownedWorkspace?.workspace_uuid;
+        }
+        if (workspaceId) {
+          const { data: settings } = await admin
+            .from("agency_settings")
+            .select("system_name,domain,accent,tagline,logo_path")
+            .eq("workspace_uuid", workspaceId)
+            .maybeSingle();
+          agencyBranding = settings;
+        }
       }
       // De relationele tabellen zijn vanaf de UUID-migratie de enige bron voor
       // reizen. Een lege tabel moet dus ook een oude JSON-cache leegmaken.
@@ -565,7 +692,11 @@ export const loadWorkspace = createServerFn({ method: "GET" })
           ...jsonWorkspace,
           plan: data.plan ?? jsonWorkspace.plan,
           baseCurrency: data.base_currency ?? jsonWorkspace.baseCurrency,
-          branding: resolveBranding(data.plan ?? jsonWorkspace.plan, agencyBranding, data.branding ?? jsonWorkspace.branding),
+          branding: resolveBranding(
+            data.plan ?? jsonWorkspace.plan,
+            agencyBranding,
+            data.branding ?? jsonWorkspace.branding,
+          ),
           ...(workspaceRole ? { role: workspaceRole } : {}),
           trips: relationalTrips,
         },
@@ -598,21 +729,46 @@ export const createTrip = createServerFn({ method: "POST" })
     let workspaceOwnerId = context.userId;
     let workspaceId: string | undefined;
     let isAgencyWorkspace = false;
-    const { data: agencyMembership } = await db.from("workspace_members").select("workspace_uuid, role, permission_overrides").eq("user_id", context.userId).eq("status", "active").neq("role", "owner").limit(1).maybeSingle();
+    const { data: agencyMembership } = await db
+      .from("workspace_members")
+      .select("workspace_uuid, role, permission_overrides")
+      .eq("user_id", context.userId)
+      .eq("status", "active")
+      .neq("role", "owner")
+      .limit(1)
+      .maybeSingle();
     if (agencyMembership) {
       const [{ data: roleSettings }, { data: agencyWorkspace }] = await Promise.all([
-        db.from("agency_role_permissions").select("permissions").eq("workspace_uuid", agencyMembership.workspace_uuid).eq("role", agencyMembership.role).maybeSingle(),
-        db.from("workspaces").select("user_id, plan").eq("workspace_uuid", agencyMembership.workspace_uuid).maybeSingle(),
+        db
+          .from("agency_role_permissions")
+          .select("permissions")
+          .eq("workspace_uuid", agencyMembership.workspace_uuid)
+          .eq("role", agencyMembership.role)
+          .maybeSingle(),
+        db
+          .from("workspaces")
+          .select("user_id, plan")
+          .eq("workspace_uuid", agencyMembership.workspace_uuid)
+          .maybeSingle(),
       ]);
-      const permissions = effectiveAgencyPermissions(agencyMembership.role, roleSettings?.permissions, agencyMembership.permission_overrides);
-      if (agencyWorkspace?.plan !== "agency" || !permissions.trips_create) throw new Error("Je mag geen reizen aanmaken in deze Agency-workspace.");
+      const permissions = effectiveAgencyPermissions(
+        agencyMembership.role,
+        roleSettings?.permissions,
+        agencyMembership.permission_overrides,
+      );
+      if (agencyWorkspace?.plan !== "agency" || !permissions.trips_create)
+        throw new Error("Je mag geen reizen aanmaken in deze Agency-workspace.");
       workspaceOwnerId = agencyWorkspace.user_id;
       workspaceId = String(agencyMembership.workspace_uuid);
       isAgencyWorkspace = true;
     } else {
-      const { data: ownedWorkspace, error: workspaceError } = await db.from("workspaces")
-        .select("workspace_uuid, plan").eq("user_id", context.userId).maybeSingle();
-      if (workspaceError || !ownedWorkspace?.workspace_uuid) throw new Error("Workspace niet gevonden.");
+      const { data: ownedWorkspace, error: workspaceError } = await db
+        .from("workspaces")
+        .select("workspace_uuid, plan")
+        .eq("user_id", context.userId)
+        .maybeSingle();
+      if (workspaceError || !ownedWorkspace?.workspace_uuid)
+        throw new Error("Workspace niet gevonden.");
       workspaceId = String(ownedWorkspace.workspace_uuid);
       isAgencyWorkspace = ownedWorkspace.plan === "agency";
     }
@@ -636,7 +792,14 @@ export const createTrip = createServerFn({ method: "POST" })
     if (error) throw error;
     const tripUuid = (trip as { trip_uuid?: unknown } | null)?.trip_uuid;
     if (typeof tripUuid !== "string") throw new Error("Reis-ID kon niet worden aangemaakt.");
-    await recordTripManagementAudit(db, { ownerId: workspaceOwnerId, workspaceId, isAgency: isAgencyWorkspace }, context.userId, "trip.create", "trip", tripUuid);
+    await recordTripManagementAudit(
+      db,
+      { ownerId: workspaceOwnerId, workspaceId, isAgency: isAgencyWorkspace },
+      context.userId,
+      "trip.create",
+      "trip",
+      tripUuid,
+    );
     return { tripId: tripUuid, revision: String(trip.revision) };
   });
 
@@ -663,25 +826,58 @@ export const saveTrip = createServerFn({ method: "POST" })
     let accessRole: TripMemberRole = "owner";
     let agencyPermissions: AgencyPermissionMap | undefined;
     if (ownerId !== context.userId) {
-      const [{ data: membership, error: membershipError }, { data: workspace, error: workspaceError }] = await Promise.all([
-        db.from("trip_members").select("role").eq("trip_uuid", trip.id).eq("user_id", context.userId).eq("status", "active").maybeSingle(),
-        db.from("workspaces").select("plan").eq("workspace_uuid", storedTrip.workspace_uuid).maybeSingle(),
+      const [
+        { data: membership, error: membershipError },
+        { data: workspace, error: workspaceError },
+      ] = await Promise.all([
+        db
+          .from("trip_members")
+          .select("role")
+          .eq("trip_uuid", trip.id)
+          .eq("user_id", context.userId)
+          .eq("status", "active")
+          .maybeSingle(),
+        db
+          .from("workspaces")
+          .select("plan")
+          .eq("workspace_uuid", storedTrip.workspace_uuid)
+          .maybeSingle(),
       ]);
       if (membershipError || workspaceError) throw new Error("Je hebt geen toegang tot deze reis.");
       let agencyRole: "advisor" | "finance" | null = null;
       if (workspace?.plan === "agency") {
-        const { data: agencyMembership, error: agencyMembershipError } = await db.from("workspace_members")
-          .select("role, permission_overrides").eq("workspace_uuid", storedTrip.workspace_uuid)
-          .eq("user_id", context.userId).eq("status", "active").in("role", ["advisor", "finance"]).maybeSingle();
-        if (agencyMembershipError) throw new Error("Agency-rechten konden niet worden gecontroleerd.");
+        const { data: agencyMembership, error: agencyMembershipError } = await db
+          .from("workspace_members")
+          .select("role, permission_overrides")
+          .eq("workspace_uuid", storedTrip.workspace_uuid)
+          .eq("user_id", context.userId)
+          .eq("status", "active")
+          .in("role", ["advisor", "finance"])
+          .maybeSingle();
+        if (agencyMembershipError)
+          throw new Error("Agency-rechten konden niet worden gecontroleerd.");
         if (agencyMembership) {
           agencyRole = agencyMembership.role as "advisor" | "finance";
-          const { data: roleSettings, error: roleSettingsError } = await db.from("agency_role_permissions").select("permissions").eq("workspace_uuid", storedTrip.workspace_uuid).eq("role", agencyRole).maybeSingle();
-          if (roleSettingsError) throw new Error("Agency-rechten konden niet worden gecontroleerd.");
-          agencyPermissions = effectiveAgencyPermissions(agencyRole, roleSettings?.permissions, agencyMembership.permission_overrides);
+          const { data: roleSettings, error: roleSettingsError } = await db
+            .from("agency_role_permissions")
+            .select("permissions")
+            .eq("workspace_uuid", storedTrip.workspace_uuid)
+            .eq("role", agencyRole)
+            .maybeSingle();
+          if (roleSettingsError)
+            throw new Error("Agency-rechten konden niet worden gecontroleerd.");
+          agencyPermissions = effectiveAgencyPermissions(
+            agencyRole,
+            roleSettings?.permissions,
+            agencyMembership.permission_overrides,
+          );
         }
       }
-      const effectiveAccess = resolveEffectiveTripAccess((membership?.role as TripMemberRole | undefined) ?? null, agencyRole, agencyPermissions);
+      const effectiveAccess = resolveEffectiveTripAccess(
+        (membership?.role as TripMemberRole | undefined) ?? null,
+        agencyRole,
+        agencyPermissions,
+      );
       if (!effectiveAccess) throw new Error("Je hebt geen toegang tot deze reis.");
       accessRole = effectiveAccess.role;
       agencyPermissions = effectiveAccess.agencyPermissions;
@@ -692,7 +888,9 @@ export const saveTrip = createServerFn({ method: "POST" })
     if (accessRole !== "owner") {
       const current = (await loadRelationalTrips(db, ownerId)).find((item) => item.id === trip.id);
       if (!current) throw new Error("Reis niet gevonden.");
-      trip = agencyPermissions ? protectAgencyTripUpdate(current, trip, agencyPermissions) : protectTripUpdate(current, trip, accessRole);
+      trip = agencyPermissions
+        ? protectAgencyTripUpdate(current, trip, agencyPermissions)
+        : protectTripUpdate(current, trip, accessRole);
       trip = normalizeTripForPersistence(trip);
     }
     const { data: saved, error } = await db.rpc("save_trip_snapshot_versioned_as", {
@@ -736,9 +934,11 @@ export const deleteTrip = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
-    const { data: trip, error: tripError } = await db.from("trips")
+    const { data: trip, error: tripError } = await db
+      .from("trips")
       .select("workspace_user_id, workspace_uuid")
-      .eq("trip_uuid", data.tripId).maybeSingle();
+      .eq("trip_uuid", data.tripId)
+      .maybeSingle();
     if (tripError || !trip || String(trip.workspace_user_id) !== context.userId) {
       throw new Error("Alleen de eigenaar kan deze reis definitief verwijderen.");
     }
@@ -752,13 +952,23 @@ export const deleteTrip = createServerFn({ method: "POST" })
         "Reis kon niet worden verwijderd. Mogelijk is deze intussen gewijzigd. Herlaad de pagina voordat je opnieuw probeert.",
       );
     }
-    const { data: workspace } = await db.from("workspaces").select("plan")
-      .eq("workspace_uuid", trip.workspace_uuid).maybeSingle();
-    await recordTripManagementAudit(db, {
-      ownerId: context.userId,
-      workspaceId: String(trip.workspace_uuid),
-      isAgency: workspace?.plan === "agency",
-    }, context.userId, "trip.delete", "trip", data.tripId);
+    const { data: workspace } = await db
+      .from("workspaces")
+      .select("plan")
+      .eq("workspace_uuid", trip.workspace_uuid)
+      .maybeSingle();
+    await recordTripManagementAudit(
+      db,
+      {
+        ownerId: context.userId,
+        workspaceId: String(trip.workspace_uuid),
+        isAgency: workspace?.plan === "agency",
+      },
+      context.userId,
+      "trip.delete",
+      "trip",
+      data.tripId,
+    );
     return { deleted: true };
   });
 
@@ -769,7 +979,11 @@ export const saveWorkspace = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as UntypedSupabase;
     const workspace = data.data as Partial<WorkspaceState>;
-    const { data: stored } = await db.from("workspaces").select("plan").eq("user_id", context.userId).maybeSingle();
+    const { data: stored } = await db
+      .from("workspaces")
+      .select("plan")
+      .eq("user_id", context.userId)
+      .maybeSingle();
     // Het betaalplan is providergestuurd. Nooit een browserwaarde vertrouwen.
     const plan = ["free", "pro", "agency"].includes(stored?.plan ?? "") ? stored.plan : "free";
     const safeWorkspace = { ...workspace, plan };

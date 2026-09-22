@@ -34,7 +34,7 @@ Na `db push` is het dus normaal dat `auth.users`, `public.profiles` en `public.w
 4. Kies **New project**.
 5. Gebruik bijvoorbeeld de projectnaam `globetrotr-production`.
 6. Laat Supabase een sterk databasewachtwoord genereren en bewaar dit in een wachtwoordmanager. Dit is niet hetzelfde als het wachtwoord van je Supabase-account.
-7. Kies een Europese regio. Kies Frankfurt wanneer die optie beschikbaar en passend is voor de Duitse hostinglocatie.
+7. Kies een **specifieke regio in een EU-lidstaat**. Kies bij voorkeur Frankfurt (`eu-central-1`) wanneer die optie beschikbaar en passend is voor de Duitse hostinglocatie. Vertrouw voor de EU-belofte niet uitsluitend op een algemeen label “Europe”: noteer na aanmaak de werkelijk toegewezen regiocode in je interne verwerkingsregister.
 8. Kies voorlopig het Free-plan wanneer de actuele limieten voldoende zijn.
 9. Wacht totdat het project volledig is ingericht.
 

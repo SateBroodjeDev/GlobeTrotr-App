@@ -28,9 +28,14 @@ export function buildTripDuplicate(source: Trip, target: Trip, makeId: () => str
     itinerary: source.itinerary.map((item) => ({
       ...item,
       id: makeId(),
-      sourceTravelItemId: item.sourceTravelItemId ? travelIds.get(item.sourceTravelItemId) : undefined,
+      sourceTravelItemId: item.sourceTravelItemId
+        ? travelIds.get(item.sourceTravelItemId)
+        : undefined,
     })),
     travelItems,
+    // Kandidaten en bronprijzen kunnen verouderd zijn en horen niet automatisch
+    // bij een nieuwe reisversie. Gekozen onderdelen staan al in travelItems.
+    travelOptions: [],
     expenses: [],
     members: [],
     travelers: [],

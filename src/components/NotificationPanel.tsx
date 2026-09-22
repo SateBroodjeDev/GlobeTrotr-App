@@ -241,7 +241,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
         <Button
           variant="ghost"
           size="icon"
-          className="relative"
+          className="relative size-11 sm:size-9"
           aria-label={`${text("Meldingen", "Notifications")}${count ? `: ${count} ${text("openstaand", "open")}` : ""}`}
         >
           <Bell className="size-5" />

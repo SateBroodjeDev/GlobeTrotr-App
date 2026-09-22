@@ -35,16 +35,16 @@ function Landing() {
     { icon: WalletCards, number: "03", title: text("Verdeel kosten zonder gedoe", "Split expenses without hassle"), body: text("Registreer wie betaalde en laat de slimme verrekening het kleinste aantal terugbetalingen voorstellen.", "Record who paid and let smart settlement propose the fewest repayments.") },
   ];
 
-  return <div className="space-y-20 pb-8">
+  return <div className="space-y-14 pb-8 sm:space-y-20">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "SoftwareApplication", name: "GlobeTrotr", applicationCategory: "TravelApplication", operatingSystem: "Web", url: "https://globetrotr.nl/", offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" } }) }} />
-    <section className="aurora relative overflow-hidden rounded-[2rem] px-6 py-12 sm:px-10 lg:px-14 lg:py-16">
+    <section className="aurora relative overflow-hidden rounded-3xl px-5 py-9 sm:rounded-[2rem] sm:px-10 sm:py-12 lg:px-14 lg:py-16">
       <div className="absolute -right-20 -top-24 size-80 rounded-full bg-primary/15 blur-3xl" />
       <div className="relative grid items-center gap-10 xl:grid-cols-[.9fr_1.1fr]">
         <div>
           <Badge variant="secondary" className="mb-5 gap-1.5"><Sparkles className="size-3.5" />{text("Gebouwd voor echte groepsreizen", "Built for real group trips")}</Badge>
-          <h1 className="max-w-2xl font-display text-4xl font-semibold leading-[1.05] sm:text-5xl lg:text-6xl">{text("Plan de reis. Deel de details. Verreken eerlijk.", "Plan the trip. Share the details. Settle fairly.")}</h1>
+          <h1 className="max-w-2xl font-display text-3xl font-semibold leading-[1.08] sm:text-5xl lg:text-6xl">{text("Plan de reis. Deel de details. Verreken eerlijk.", "Plan the trip. Share the details. Settle fairly.")}</h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed opacity-90 sm:text-lg">{text("GlobeTrotr brengt route, boekingen, dagplanning, paklijst en groepskosten samen. Iedereen weet waar de reis staat en wat er nog moet gebeuren.", "GlobeTrotr brings routes, bookings, itineraries, packing and group expenses together. Everyone knows where the trip stands and what remains to be done.")}</p>
-          <div className="mt-8 flex flex-wrap gap-3"><Button asChild size="lg"><a href={portalUrl(user ? "/dashboard" : "/register")}>{startLabel}<ArrowRight className="size-4" /></a></Button><Button asChild size="lg" variant="outline"><Link to="/demo">{text("Probeer de interactieve demo", "Try the interactive demo")}</Link></Button></div>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap"><Button asChild size="lg" className="min-h-11 w-full sm:w-auto"><a href={portalUrl(user ? "/dashboard" : "/register")}>{startLabel}<ArrowRight className="size-4" /></a></Button><Button asChild size="lg" variant="outline" className="min-h-11 w-full sm:w-auto"><Link to="/demo">{text("Probeer de interactieve demo", "Try the interactive demo")}</Link></Button></div>
           <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs opacity-80">{[text("Gratis starten", "Free to start"), text("Privé als standaard", "Private by default"), text("Nederlands en Engels", "Dutch and English")].map(item => <span key={item} className="flex items-center gap-1.5"><Check className="size-3.5" />{item}</span>)}</div>
         </div>
         <div className="relative rounded-[1.75rem] border border-primary/20 bg-background p-5 shadow-2xl shadow-primary/10">

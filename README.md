@@ -60,7 +60,7 @@ npm run build
 npm run check
 ```
 
-`npm run verify` voert ESLint, 78 regressietests, de volledige TypeScript-controle, de beveiligingsaudit, de release-preflight en syntaxiscontroles van de workers uit. De beveiligingsaudit blokkeert onbeveiligd service-rolegebruik, browserreferenties naar servergeheimen, nieuwe niet-beoordeelde HTML-sinks, onveilige externe links, gevoelige logging en nieuwe `SECURITY DEFINER`-functies zonder vastgezet zoekpad. De preflight controleert onder meer de migratie/testvolgorde, verwijderde handleidingen en kapotte UTF-8-tekst. `npm run check` voert daarna ook de productiebuild uit. De lockfile is `package-lock.json`. De Nitro-build kan lokaal op Windows tijdens de laatste bestandstrace door bestandstoegang (`EPERM`) stranden; de Linux-build in CI en op Node-01 is daarom de beslissende productiecontrole.
+`npm run verify` voert ESLint, 85 regressietests, de volledige TypeScript-controle, de beveiligingsaudit, de release-preflight en syntaxiscontroles van de workers uit. De beveiligingsaudit blokkeert onbeveiligd service-rolegebruik, browserreferenties naar servergeheimen, nieuwe niet-beoordeelde HTML-sinks, onveilige externe links, gevoelige logging en nieuwe `SECURITY DEFINER`-functies zonder vastgezet zoekpad. De preflight controleert onder meer de migratie/testvolgorde, verwijderde handleidingen en kapotte UTF-8-tekst. `npm run check` voert daarna ook de productiebuild uit. De lockfile is `package-lock.json`. De Nitro-build kan lokaal op Windows tijdens de laatste bestandstrace door bestandstoegang (`EPERM`) stranden; de Linux-build in CI en op Node-01 is daarom de beslissende productiecontrole.
 
 Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Sommige zijn alleen-lezen, andere draaien in een transactie met `ROLLBACK`; controleer de kop van ieder bestand.
 
@@ -70,9 +70,9 @@ Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`T
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1390** uitgevoerd en activeert een echte betaling met 93% korting Pro met een Paddle-factuur. De latere mail-, Governance-, account- en domeinverbeteringen tot en met **1470** zijn lokaal voorbereid; controleer per migratie wat al in Supabase staat voordat je ontbrekende stappen uitvoert. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md), de [portalomschakeling](PORTAL_DOMAIN_MIGRATION.md) en de [productcontrole](PRODUCT_REVIEW_2026-09-22.md).
+Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1470** uitgevoerd en activeert een echte betaling met 93% korting Pro met een Paddle-factuur. De correctie voor de navigatie tussen website en portal en checklistmigratie **1480** zijn lokaal voorbereid. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md), de [portalomschakeling](PORTAL_DOMAIN_MIGRATION.md), de [publieke vrijgavecontrole](PRE_RELEASE.md), de [productcontrole](PRODUCT_REVIEW_2026-09-22.md), de [functie-gapanalyse](FEATURE_GAP_AND_EXPANSION.md) en het concrete [bouwplan](BUILD_PLAN.md).
 
-De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
+De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag in Central EU (Frankfurt, `eu-central-1`). [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
 
 De productiecontainers gebruiken `Dockerfile`, `deploy/web.compose.yml` en `deploy/worker.compose.yml`. De worker en mailrelay draaien op Node-02. De actuele e-mailmodus staat in Supabase `email_delivery_config`; ga niet uit van testmodus. Zie [`worker/README.md`](worker/README.md).
 
@@ -87,7 +87,7 @@ De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke mig
 - `/agency-admin`: workspaceoverzicht en teambeheer.
 - `/agency-admin/settings`: organisatiegegevens, standaardtaal, valuta, tijdzone, domein, accentkleur en logo.
 - `/agency-admin/permissions`: standaardrechten per rol en persoonlijke uitzonderingen.
-- `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Migratie 1270 koppelt een vooraf aangemaakte klant na bevestigde registratie; deze toegang blijft een open praktijktest totdat de volgende release is uitgerold.
+- `/agency-admin/clients`: klantprofielen en gekoppelde reizen. Migratie 1270 koppelt een vooraf aangemaakte klant na bevestigde registratie; tenantisolatie en de volledige uitnodigingsstroom blijven onderdeel van de productieacceptatie.
 - `/agency-admin/suppliers`: herbruikbare accommodaties, vervoerders en activiteiten met contactgegevens, afspraken, commissie, archief en reiskoppelingen.
 - `/contact`: publiek contactformulier met Cloudflare Turnstile; bevoegde medewerkers behandelen berichten via `/corporate-admin/contact`.
 - `/agency-admin/operations`: portfolio, kosten en concrete aandachtspunten uit relationele reisdata.

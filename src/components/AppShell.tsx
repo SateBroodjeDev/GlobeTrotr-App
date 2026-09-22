@@ -51,7 +51,7 @@ import { localizeTagline } from "@/lib/localized-values";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
 import { getMyAgencyAccess } from "@/lib/agency.functions";
 import {getMaintenanceState} from "@/lib/maintenance.functions";
-import { portalUrl } from "@/lib/site-routing";
+import { portalUrl, publicSiteUrl } from "@/lib/site-routing";
 import {MaintenanceScreen} from "@/components/MaintenanceScreen";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
@@ -223,13 +223,14 @@ function AppShellContent({ children }: { children: ReactNode }) {
   if (corporateAdmin) {
     return <div className="min-h-screen bg-muted/20">
       <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1500px] items-center gap-3 px-4 py-3 lg:px-6">
-          <Link to="/corporate-admin" className="flex min-w-0 items-center gap-3">
-            <img src="/assets/brand/logo.png" alt="GlobeTrotr" className="size-9 rounded-xl object-contain" />
-            <span className="min-w-0"><strong className="block truncate font-display">GlobeTrotr</strong><span className="block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Corporate operations</span></span>
-          </Link>
-          <div className="ml-auto flex items-center gap-1">
-            <Button asChild variant="ghost" size="sm"><Link to="/dashboard"><LayoutDashboard className="size-4" /><span className="hidden sm:inline">{text("Reisplatform", "Travel platform")}</span></Link></Button>
+        <div className="mx-auto flex max-w-[1500px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
+          <a href={publicSiteUrl("/")} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3" aria-label={text("Naar de publieke website", "Go to public website")}>
+            <img src="/assets/brand/logo.png" alt="GlobeTrotr" className="size-9 shrink-0 rounded-xl object-contain" />
+            <span className="min-w-0"><strong className="block truncate font-display">GlobeTrotr</strong><span className="hidden truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:block">Corporate operations</span></span>
+          </a>
+          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
+            <Button asChild variant="ghost" size="sm" className="min-h-11 px-3 sm:min-h-9"><a href={publicSiteUrl("/")}><Map className="size-4"/><span className="hidden sm:inline">{text("Website", "Website")}</span></a></Button>
+            <Button asChild variant="ghost" size="sm" className="min-h-11 px-3 sm:min-h-9"><Link to="/dashboard"><LayoutDashboard className="size-4" /><span className="hidden sm:inline">{text("Reisplatform", "Travel platform")}</span></Link></Button>
             <Button type="button" variant="ghost" size="icon" aria-label={dark ? text("Lichte modus", "Light mode") : text("Donkere modus", "Dark mode")} onClick={() => void toggleTheme()}>{dark ? <Sun className="size-4" /> : <Moon className="size-4" />}</Button>
             <DropdownMenu><DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="rounded-full" aria-label={text("Beheerdersmenu", "Administrator menu")}><Avatar className="size-8"><AvatarImage src={avatarUrl} /><AvatarFallback>{initials}</AvatarFallback></Avatar></Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-56"><DropdownMenuLabel>{displayName}<span className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">{user?.email}</span></DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem asChild><Link to="/account"><UserRound className="size-4" />{text("Accountinstellingen", "Account settings")}</Link></DropdownMenuItem><DropdownMenuItem onSelect={() => void signOut()}><LogOut className="size-4" />{text("Uitloggen", "Sign out")}</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
           </div>
@@ -242,41 +243,42 @@ function AppShellContent({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:gap-x-6 sm:gap-y-3 sm:px-4 sm:py-3">
+          <a href={publicSiteUrl("/")} className="flex min-w-0 flex-1 items-center gap-2 md:flex-none" aria-label={text("Naar de publieke website", "Go to public website")}>
             <img
               src={agencyLogoUrl ?? "/assets/brand/logo.png"}
               alt={`${state.branding.brandName} logo`}
-              className="size-9 rounded-xl"
+              className="size-9 shrink-0 rounded-xl object-contain"
             />
-            <span className="leading-tight">
-              <span className="block font-display text-base font-semibold">
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate font-display text-base font-semibold">
                 {state.branding.brandName}
               </span>
-              <span className="block text-[11px] text-muted-foreground">
+              <span className="block truncate text-[11px] text-muted-foreground">
                 {state.branding.domain}
               </span>
             </span>
-          </Link>
+          </a>
           {!user && <div className="order-2 flex w-full gap-2 lg:hidden">
             <Button asChild variant="outline" size="sm" className="min-h-10 flex-1"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
             <Button asChild size="sm" className="min-h-10 flex-1"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
           </div>}
-          <nav className="order-3 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
+          <nav aria-label={text("Hoofdnavigatie", "Main navigation")} className="order-3 -mx-1 flex w-[calc(100%+0.5rem)] gap-1 overflow-x-auto px-1 pb-0.5 overscroll-x-contain [scrollbar-width:none] md:order-none md:mx-0 md:w-auto md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
+            {user && <a href={publicSiteUrl("/")} className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"><Map className="size-4"/>{text("Website", "Website")}</a>}
             {navItems.map((item) => (
-              <Link
+              user || (item.to !== "/" && item.to !== "/features" && item.to !== "/pricing") ? <Link
                 key={item.to}
                 to={item.to}
                 activeOptions={{ exact: item.to === "/" }}
-                className="flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"
                 activeProps={{ className: "bg-accent text-accent-foreground" }}
               >
                 <item.icon className="size-4" />
                 {item.to === "/dashboard" ? text("Reizen", "Trips") : item.to === "/client-portal" ? text("Klantportaal", "Client portal") : item.to === "/features" ? text("Mogelijkheden", "Features") : item.to === "/pricing" ? text("Prijzen", "Pricing") : item.label}
-              </Link>
+              </Link> : <a key={item.to} href={publicSiteUrl(item.to)} className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"><item.icon className="size-4"/>{item.to === "/features" ? text("Mogelijkheden", "Features") : item.to === "/pricing" ? text("Prijzen", "Pricing") : item.label}</a>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
             {user && <NotificationPanel key={user.id} userId={user.id} />}
             {!user && <div className="hidden items-center gap-2 lg:flex">
               <Button asChild variant="ghost" size="sm"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
@@ -376,7 +378,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
         </div>
       </header>
       {user && <PlatformStatusBanner userId={user.id} />}
-      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-8">{children}</main>
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-4 pb-10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>
           {state.branding.brandName} — {localizeTagline(state.branding.tagline, locale)}
@@ -385,28 +387,28 @@ function AppShellContent({ children }: { children: ReactNode }) {
           aria-label={text("Voetnavigatie", "Footer navigation")}
           className="flex flex-wrap items-center gap-x-4 gap-y-2"
         >
-          <Link to="/updates" className="inline-flex items-center gap-1.5 font-medium text-foreground underline-offset-4 hover:underline"><BookOpenText className="size-4" />{text("Publieke changelog", "Public changelog")}</Link>
+          <a href={publicSiteUrl("/updates")} className="inline-flex items-center gap-1.5 font-medium text-foreground underline-offset-4 hover:underline"><BookOpenText className="size-4" />{text("Publieke changelog", "Public changelog")}</a>
           <FooterMenu label={text("Ontdek", "Explore")}>
-            <DropdownMenuItem asChild><Link to="/features"><Map className="size-4"/>{text("Mogelijkheden", "Features")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/demo"><Sparkles className="size-4"/>Demo</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/pricing"><Tags className="size-4"/>{text("Prijzen", "Pricing")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/features")}><Map className="size-4"/>{text("Mogelijkheden", "Features")}</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/demo")}><Sparkles className="size-4"/>Demo</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/pricing")}><Tags className="size-4"/>{text("Prijzen", "Pricing")}</a></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Bedrijf", "Company")}>
-            <DropdownMenuItem asChild><Link to="/about"><HeartHandshake className="size-4"/>{text("Over GlobeTrotr", "About GlobeTrotr")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/contact"><Mail className="size-4"/>{text("Contact", "Contact")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/about")}><HeartHandshake className="size-4"/>{text("Over GlobeTrotr", "About GlobeTrotr")}</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/contact")}><Mail className="size-4"/>{text("Contact", "Contact")}</a></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Transparantie", "Transparency")}>
-            <DropdownMenuItem asChild><Link to="/roadmap"><Compass className="size-4"/>Roadmap</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/updates"><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/known-issues"><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/status"><Activity className="size-4"/>Status</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/roadmap")}><Compass className="size-4"/>Roadmap</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/updates")}><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/known-issues")}><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/status")}><Activity className="size-4"/>Status</a></DropdownMenuItem>
           </FooterMenu>
           <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
-            <DropdownMenuItem asChild><Link to="/privacy"><Shield className="size-4"/>{text("Privacyverklaring", "Privacy notice")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/terms"><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link to="/refund-policy"><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/privacy")}><Shield className="size-4"/>{text("Privacyverklaring", "Privacy notice")}</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/terms")}><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</a></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/refund-policy")}><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</a></DropdownMenuItem>
             {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}><Palette className="size-4"/>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
-            <DropdownMenuItem asChild><Link to="/beta"><Sparkles className="size-4"/>{text("Beta en voorwaarden", "Beta and terms")}</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><a href={publicSiteUrl("/beta")}><Sparkles className="size-4"/>{text("Beta en voorwaarden", "Beta and terms")}</a></DropdownMenuItem>
           </FooterMenu>
           <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo/MET Norway · Frankfurter/ECB</span>
         </nav>

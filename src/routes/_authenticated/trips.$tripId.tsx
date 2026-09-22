@@ -61,6 +61,7 @@ import { TripInsights } from "@/components/TripInsights";
 import { TripTasks } from "@/components/TripTasks";
 import { TripToday } from "@/components/TripToday";
 import { TripCover } from "@/components/TripCover";
+import { TripOptions } from "@/components/TripOptions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -141,7 +142,7 @@ function TripDetail() {
   if (!found) throw notFound();
   const trip = found;
   const tripIsCurrent = tripStatus(trip) === "current";
-  const [activeTab, setActiveTab] = useState(() => tripIsCurrent ? "today" : "route");
+  const [activeTab, setActiveTab] = useState(() => (tripIsCurrent ? "today" : "route"));
   useEffect(() => {
     setActiveTab(tripIsCurrent ? "today" : "route");
   }, [trip.id, tripIsCurrent]);
@@ -855,16 +856,31 @@ function TripDetail() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <label className="block space-y-1 text-sm sm:hidden">
           <span className="font-medium">{text("Reisonderdeel", "Trip section")}</span>
-          <select className="h-12 w-full rounded-lg border bg-background px-3" value={activeTab}
-            onChange={(event) => setActiveTab(event.target.value)}>
+          <select
+            className="h-12 w-full rounded-lg border bg-background px-3"
+            value={activeTab}
+            onChange={(event) => setActiveTab(event.target.value)}
+          >
             <optgroup label={text("Overzicht", "Overview")}>
               <option value="today">{text("Vandaag", "Today")}</option>
               <option value="route">{text("Routekaart", "Route map")}</option>
               <option value="plan">{text("Reisschema", "Itinerary")}</option>
             </optgroup>
-            {editable && <optgroup label={text("Plannen", "Planning")}>
-              <option value="plan-edit">{text("Reisschema aanpassen", "Edit itinerary")}</option>
-            </optgroup>}
+            {editable && (
+              <optgroup label={text("Plannen", "Planning")}>
+                <option value="plan-edit">{text("Reisschema aanpassen", "Edit itinerary")}</option>
+                <option value="options">
+                  {text("Reisopties vergelijken", "Compare travel options")}
+                </option>
+              </optgroup>
+            )}
+            {!editable && (
+              <optgroup label={text("Plannen", "Planning")}>
+                <option value="options">
+                  {text("Reisopties vergelijken", "Compare travel options")}
+                </option>
+              </optgroup>
+            )}
             <optgroup label={text("Geld en spullen", "Money and essentials")}>
               <option value="expenses">{text("Uitgaven", "Expenses")}</option>
               <option value="money">{text("Geld-tools", "Money tools")}</option>
@@ -885,6 +901,7 @@ function TripDetail() {
               {text("Reisschema aanpassen", "Edit itinerary")}
             </TabsTrigger>
           )}
+          <TabsTrigger value="options">{text("Opties", "Options")}</TabsTrigger>
           <TabsTrigger value="expenses">{text("Uitgaven", "Expenses")}</TabsTrigger>
           <TabsTrigger value="money">{text("Geld-tools", "Money tools")}</TabsTrigger>
           <TabsTrigger value="packing">{text("Paklijst", "Packing list")}</TabsTrigger>
@@ -897,6 +914,17 @@ function TripDetail() {
             trip={trip}
             editable={editable}
             weatherEnabled={hasFeature(state.plan, "weather")}
+            text={text}
+          />
+        </TabsContent>
+
+        <TabsContent value="options" className="space-y-4">
+          <TripOptions
+            trip={trip}
+            editable={editable}
+            base={base}
+            rates={rates}
+            save={(fn) => saveTripNow(trip.id, fn)}
             text={text}
           />
         </TabsContent>

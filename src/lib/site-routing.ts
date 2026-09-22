@@ -19,3 +19,8 @@ export function portalUrl(path: string) {
   if (!path.startsWith("/") || path.startsWith("//")) throw new Error("PORTAL_PATH_REQUIRED");
   return `${PORTAL_ORIGIN}${path}`;
 }
+
+export function publicSiteUrl(path: string) {
+  if (!path.startsWith("/") || path.startsWith("//")) throw new Error("PUBLIC_SITE_PATH_REQUIRED");
+  return `${PUBLIC_SITE_ORIGIN}${path}`;
+}

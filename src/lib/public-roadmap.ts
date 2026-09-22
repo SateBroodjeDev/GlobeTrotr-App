@@ -59,12 +59,20 @@ export const PUBLIC_ROADMAP = [
     ],
     items: [
       [
+        "Navigatie, aanraakvlakken en belangrijke pagina's tussen de publieke website en het accountportaal op telefoon en desktop bevestigen",
+        "Verify navigation, touch targets and key pages across the public website and account portal on mobile and desktop",
+      ],
+      [
         "Agency-subdomeinen en eigen domeinen met DNS, HTTPS en klanttoegang controleren",
         "Verify Agency subdomains and custom domains with DNS, HTTPS and client access",
       ],
       [
         "Registratie, uitnodigingen, betalingen en live agendalinks met echte accounts bevestigen",
         "Confirm sign-up, invitations, payments and live calendar feeds with real accounts",
+      ],
+      [
+        "Reisopties voor verblijf, vlucht, vervoer en activiteiten met echte rollen en valuta bevestigen",
+        "Verify travel options for accommodation, flights, transport and activities with real roles and currencies",
       ],
       [
         "Nederlandse en Engelse servicemails en meldingen zonder technische codes controleren",
@@ -97,6 +105,14 @@ export const PUBLIC_ROADMAP = [
         "Bring the Agency client portal closer to each organisation's brand and domain",
       ],
       [
+        "Boekingsmails omzetten naar controleerbare reisconcepten",
+        "Turn booking emails into reviewable trip drafts",
+      ],
+      [
+        "Veilige klantformulieren toevoegen en Agency-sjablonen uitbreiden met rijke herbruikbare inhoud",
+        "Add secure client forms and expand Agency templates with rich reusable content",
+      ],
+      [
         "Bedrijfsmailgesprekken en samenwerken aan antwoorden overzichtelijker maken",
         "Make company-mail conversations and shared replies easier to manage",
       ],
@@ -114,7 +130,6 @@ export const PUBLIC_ROADMAP = [
       "Remove more manual work while keeping you in control of your trip.",
     ],
     items: [
-      ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"],
       ["Offline reisoverzicht vooraf downloaden", "Download an offline trip overview in advance"],
       ["Optioneel reisdagboek met foto's en expliciete zichtbaarheid", "Optional trip journal with photos and explicit visibility"],
       [
@@ -122,6 +137,10 @@ export const PUBLIC_ROADMAP = [
         "Optimise route order with manual confirmation",
       ],
       ["Periodieke vluchtupdates", "Periodic flight updates"],
+      [
+        "Live aanbod voor verblijven, vervoer en activiteiten via goedgekeurde providers zoeken",
+        "Search live accommodation, transport and activity inventory through approved providers",
+      ],
       [
         "Uitgebreidere Agency-werkstromen met meerdere acties",
         "Expanded Agency workflows with multiple actions",

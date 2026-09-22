@@ -98,6 +98,32 @@ export type TravelItem = {
   };
 };
 
+export type TravelOptionStatus = "candidate" | "selected" | "rejected";
+
+/** Een nog niet geboekte keuze die reizigers gecontroleerd kunnen vergelijken. */
+export type TravelOption = {
+  id: string;
+  type: TravelItemType;
+  title: string;
+  startDate: string;
+  endDate?: string;
+  provider?: string;
+  amount?: number;
+  currency?: string;
+  /** Bekende belastingen en toeslagen die al in amount zijn opgenomen. */
+  chargesIncluded?: boolean;
+  cancellation?: string;
+  durationMinutes?: number;
+  distanceKm?: number;
+  sourceUrl?: string;
+  notes?: string;
+  status: TravelOptionStatus;
+  checkedAt?: string;
+  /** Bewijst dat omzetten naar een boeking idempotent is. */
+  convertedTravelItemId?: string;
+  createdAt: string;
+};
+
 export type Expense = {
   id: string;
   date: string;
@@ -231,6 +257,8 @@ export type Trip = {
   stops: Stop[];
   itinerary: ItineraryItem[];
   travelItems?: TravelItem[];
+  /** Kandidaten om te vergelijken voordat een onderdeel werkelijk wordt geboekt. */
+  travelOptions?: TravelOption[];
   /** Uitgenodigde reisgenoten en hun rechten voor deze reis. */
   members?: TripMember[];
   expenses: Expense[];

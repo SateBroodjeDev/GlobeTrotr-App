@@ -130,7 +130,7 @@ function TripsOverview() {
 
   return (
     <div className="space-y-8">
-      <section className="aurora relative overflow-hidden rounded-3xl px-6 py-10 md:px-10">
+      <section className="aurora relative overflow-hidden rounded-3xl px-5 py-8 sm:px-6 sm:py-10 md:px-10">
         <div className="max-w-2xl">
           <Badge variant="secondary" className="mb-3">
             {ratesLive
@@ -236,7 +236,7 @@ function TripsOverview() {
         <Button
           variant="outline"
           size="sm"
-          className="ml-auto"
+          className="w-full sm:ml-auto sm:w-auto"
           onClick={() => {
             downloadJson(state, state.branding.brandName);
             toast.success(text("Back-up gedownload", "Backup downloaded"));

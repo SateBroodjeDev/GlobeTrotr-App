@@ -78,7 +78,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     summaryEn: "Improvements confirmed in the active beta.",
     changes: [
       { kind: "improved", title: "Overzichtelijke openbare reispagina", titleEn: "Clearer public trip page", description: "De gedeelde reis toont de planning leesbaarder.", descriptionEn: "Shared trips present the itinerary more clearly." },
-      { kind: "fixed", title: "GPX en losse agenda-export", titleEn: "GPX and one-time calendar export", description: "GPX-download en losse ICS-export werken nu in de beta. De live abonnementlink wordt nog onderzocht.", descriptionEn: "GPX download and one-time ICS export now work in beta. The live subscription link is still under investigation." },
+      { kind: "fixed", title: "GPX en losse agenda-export", titleEn: "GPX and one-time calendar export", description: "GPX-download en losse ICS-export werkten vanaf deze beta; de live abonnementlink was in deze release nog in onderzoek.", descriptionEn: "GPX download and one-time ICS export worked from this beta; the live subscription link was still under investigation in this release." },
       { kind: "fixed", title: "Uitgaven en bedrijfsbeheer", titleEn: "Expenses and corporate management", description: "De tekst bij 'betaald door' past weer in de knop en bedrijfsbeheerderaccounts kunnen worden opgeslagen.", descriptionEn: "The paid-by label fits its button and corporate administrator accounts can be saved." },
     ],
   },
@@ -282,9 +282,9 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         title: "Europese infrastructuur en privacy",
         titleEn: "European infrastructure and privacy",
         description:
-          "De website legt opslag in de Europese Unie, Duitse applicatieservers en privacykeuzes uit.",
+          "De website legt primaire opslag in Frankfurt, Duitse applicatieservers en privacykeuzes uit.",
         descriptionEn:
-          "The website explains EU data storage, German application servers and privacy choices.",
+          "The website explains primary storage in Frankfurt, German application servers and privacy choices.",
       },
     ],
   },

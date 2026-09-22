@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
-  Link,
   createRootRouteWithContext,
   useRouter,
   useRouterState,
@@ -18,7 +17,7 @@ import { WorkspaceProvider } from "@/lib/workspace";
 import { LocaleProvider } from "@/lib/locale";
 import { PrivacyChoices } from "@/components/PrivacyChoices";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
-import { canonicalSiteLocation } from "@/lib/site-routing";
+import { canonicalSiteLocation, publicSiteUrl } from "@/lib/site-routing";
 import "leaflet/dist/leaflet.css";
 
 function NotFoundComponent() {
@@ -31,12 +30,12 @@ function NotFoundComponent() {
           The page you're looking for doesn't exist or has been moved.
         </p>
         <div className="mt-6">
-          <Link
-            to="/"
+          <a
+            href={publicSiteUrl("/")}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Go home
-          </Link>
+          </a>
         </div>
       </div>
     </div>
@@ -69,7 +68,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             Try again
           </button>
           <a
-            href="/"
+            href={publicSiteUrl("/")}
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
