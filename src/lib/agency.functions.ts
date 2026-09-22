@@ -50,6 +50,7 @@ export type MyAgencyAccess = {
   workspaceId: string;
   role: AgencyRole;
   permissions: AgencyPermissionMap;
+  brandName?: string;
 };
 export type TripBrandingSettings = {
   enabled: boolean;
@@ -319,9 +320,11 @@ export const getMyAgencyAccess = createServerFn({ method: "GET" })
       .eq("user_id", context.userId)
       .maybeSingle();
     if (owned?.plan === "agency" && owned.workspace_uuid) {
+      const { data: settings } = await db.from("agency_settings").select("system_name").eq("workspace_uuid", owned.workspace_uuid).maybeSingle();
       return {
         workspaceId: owned.workspace_uuid,
         role: "owner",
+        brandName: settings?.system_name ?? undefined,
         permissions: Object.fromEntries(AGENCY_PERMISSIONS.map((permission) => [permission, true])),
       } as MyAgencyAccess;
     }
@@ -348,9 +351,11 @@ export const getMyAgencyAccess = createServerFn({ method: "GET" })
       .maybeSingle();
     if (defaultsError) throw new Error("AGENCY_PERMISSIONS_UNAVAILABLE");
     const { effectiveAgencyPermissions } = await import("@/lib/agency-permissions");
+    const { data: settings } = await db.from("agency_settings").select("system_name").eq("workspace_uuid", membership.workspace_uuid).maybeSingle();
     return {
       workspaceId: membership.workspace_uuid,
       role: membership.role,
+      brandName: settings?.system_name ?? undefined,
       permissions: effectiveAgencyPermissions(
         membership.role,
         defaults?.permissions,
@@ -1554,7 +1559,7 @@ export const createAgencyInvitation = createServerFn({ method: "POST" })
       locale: mailLocale(recipient?.locale),
       title: `Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,
       body: `Je bent als ${data.role} uitgenodigd voor het team van ${agencyName}. Bekijk je rol en accepteer de persoonlijke uitnodiging binnen zeven dagen. / You have been invited to the ${agencyName} team as ${data.role}. Review your role and accept this personal invitation within seven days.`,
-      actionUrl: `https://globetrotr.nl/agency-invite/${rawToken}`,
+      actionUrl: `https://portal.globetrotr.nl/agency-invite/${rawToken}`,
       invitationType: "agency",
       invitationId: invitation.id,
       branding: { brandName: agencyName, accentHue: Number(settings?.accent ?? 174) },
@@ -1614,7 +1619,7 @@ export const manageAgencyInvitation = createServerFn({ method: "POST" })
           locale: mailLocale(recipient?.locale),
           title: `Uitnodiging voor ${agencyName} / Invitation to ${agencyName}`,
           body: `Je vernieuwde uitnodiging voor ${agencyName} staat klaar. / Your renewed invitation to ${agencyName} is ready.`,
-          actionUrl: `https://globetrotr.nl/agency-invite/${rawToken}`,
+          actionUrl: `https://portal.globetrotr.nl/agency-invite/${rawToken}`,
           invitationType: "agency",
           invitationId: data.invitationId,
           branding: { brandName: agencyName, accentHue: Number(settings?.accent ?? 174) },

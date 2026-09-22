@@ -95,7 +95,7 @@ function foldIcsLine(line: string) {
   return parts.join("\r\n");
 }
 
-/** Provider-onafhankelijke agenda-export voor Apple Calendar, Google Calendar en Outlook. */
+/** Provider-onafhankelijke agenda-export voor gangbare agenda-apps. */
 export function buildTripCalendar(trip: Trip) {
   const stamp = new Date()
     .toISOString()

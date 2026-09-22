@@ -58,6 +58,8 @@ function Page() {
     queryFn: () => getEmailDeliveryMode(),
   });
   const [f, setF] = useState(blank),
+    [saving, setSaving] = useState(false),
+    [hasStoredPassword, setHasStoredPassword] = useState(false),
     [retrying, setRetrying] = useState(""),
     [requestingSync, setRequestingSync] = useState(false),
     [modeReason, setModeReason] = useState(""),
@@ -70,6 +72,7 @@ function Page() {
     }
   }, [q.data]);
   function edit(m: any) {
+    setHasStoredPassword(Boolean(m.credentials_updated_at));
     setF({
       id: m.id,
       address: m.address,
@@ -88,8 +91,11 @@ function Page() {
     });
   }
   async function save() {
+    if (saving) return;
+    setSaving(true);
+    let result: { id: string };
     try {
-      const result = await saveCorporateMailbox({
+      result = await saveCorporateMailbox({
         data: {
           address: f.address,
           displayName: f.displayName,
@@ -107,11 +113,23 @@ function Page() {
           ...(f.ownerUserId ? { ownerUserId: f.ownerUserId } : {}),
         },
       });
-      setF((current) => ({ ...current, id: result.id }));
+    } catch (error) {
+      const code = String(error);
+      toast.error(code.includes("MAILBOX_CREDENTIALS_KEY_")
+        ? text("Mailbox niet opgeslagen: stel dezelfde geldige mailboxsleutel in op Node-01 en Node-02.", "Mailbox not saved: configure the same valid mailbox key on Node-01 and Node-02.")
+        : text("Mailbox kon niet worden opgeslagen. Controleer de serverlog voor de foutcode.", "Mailbox could not be saved. Check the server log for the error code."));
+      setSaving(false);
+      return;
+    }
+    setF((current) => ({ ...current, id: result.id, imapPassword: "" }));
+    if (f.imapPassword.trim()) setHasStoredPassword(true);
+    toast.success(text("Mailbox opgeslagen.", "Mailbox saved."));
+    try {
       await qc.invalidateQueries({ queryKey: ["corporate-business"] });
-      toast.success(text("Mailbox opgeslagen.", "Mailbox saved."));
     } catch {
-      toast.error(text("Mailbox kon niet worden opgeslagen.", "Mailbox could not be saved."));
+      toast.error(text("Mailbox opgeslagen, maar de lijst kon niet worden vernieuwd.", "Mailbox saved, but the list could not be refreshed."));
+    } finally {
+      setSaving(false);
     }
   }
   async function permission(userId: string, value: any) {
@@ -213,7 +231,7 @@ function Page() {
                 <small>{m.mailbox_type} · {mailboxSyncLabel(m.sync_status, text)}</small>
               </button>
             ))}
-            <Button variant="outline" className="w-full" onClick={() => setF({ ...blank })}>
+            <Button variant="outline" className="w-full" onClick={() => { setF({ ...blank }); setHasStoredPassword(false); }}>
               {text("Toevoegen", "Add")}
             </Button>
           </CardContent>
@@ -265,7 +283,7 @@ function Page() {
                 )}
               </div>
               <label className="block space-y-2">
-                <Label>{text("Handtekening", "Signature")}</Label>
+                <Label>{text("Handtekening voor dit postvak", "Signature for this mailbox")}</Label>
                 <Textarea
                   rows={6}
                   maxLength={2000}
@@ -273,6 +291,7 @@ function Page() {
                   onChange={(e) => setF({ ...f, signatureText: e.target.value })}
                 />
               </label>
+              <p className="text-xs text-muted-foreground">{text("Deze handtekening verschijnt automatisch onder uitgaande mail. Wijzig haar hier; de inbox bevat alleen berichten en concepten.", "This signature is added automatically to outgoing mail. Edit it here; the inbox only contains messages and drafts.")}</p>
               <MailSignaturePreview signatureText={f.signatureText} displayName={f.displayName} address={f.address} />
               <div className="rounded-xl border p-4">
                 <p className="mb-3 text-sm font-medium">
@@ -303,6 +322,7 @@ function Page() {
                     label={text("Wachtwoord", "Password")}
                     type="password"
                     value={f.imapPassword}
+                    placeholder={hasStoredPassword ? "••••••••" : undefined}
                     set={(v) => setF({ ...f, imapPassword: v })}
                   />
                 </div>
@@ -316,13 +336,17 @@ function Page() {
                 </label>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {text(
-                    "Laat het wachtwoord leeg om het opgeslagen wachtwoord te behouden. Het wachtwoord wordt versleuteld opgeslagen en nooit teruggestuurd naar de browser.",
-                    "Leave the password empty to keep the stored password. It is stored encrypted and never returned to the browser.",
+                    hasStoredPassword
+                      ? "•••••••• betekent dat een wachtwoord is opgeslagen. Laat dit veld leeg om het te behouden; typ een nieuw wachtwoord om het te vervangen."
+                      : "Vul het IMAP-wachtwoord in om dit postvak te koppelen. Het wachtwoord wordt versleuteld opgeslagen.",
+                    hasStoredPassword
+                      ? "•••••••• means a password is stored. Leave this field empty to keep it, or enter a new password to replace it."
+                      : "Enter the IMAP password to connect this mailbox. The password is stored encrypted.",
                   )}
                 </p>
               </div>
-              <Button disabled={!f.address || !f.displayName} onClick={() => void save()}>
-                {text("Opslaan", "Save")}
+              <Button disabled={saving || !f.address || !f.displayName} onClick={() => void save()}>
+                {saving ? text("Opslaan…", "Saving…") : text("Opslaan", "Save")}
               </Button>
             </CardContent>
           </Card>
@@ -536,16 +560,18 @@ function Field({
   value,
   set,
   type = "text",
+  placeholder,
 }: {
   label: string;
   value: string;
   set: (v: string) => void;
   type?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="space-y-2">
       <Label>{label}</Label>
-      <Input type={type} value={value} onChange={(e) => set(e.target.value)} />
+      <Input type={type} value={value} placeholder={placeholder} onChange={(e) => set(e.target.value)} />
     </label>
   );
 }

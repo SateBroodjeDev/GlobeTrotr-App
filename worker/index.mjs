@@ -3,6 +3,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { scanBuffer } from "./clamav.mjs";
 import { buildLiveCalendar } from "./live-calendar.mjs";
 import { trustedPaddleCustomData } from "./paddle-binding.mjs";
+import { agencyDomainFilter } from "./agency-domain.mjs";
 
 const env = process.env;
 const supabaseUrl = required("SUPABASE_URL").replace(/\/$/, "");
@@ -23,6 +24,24 @@ let lastErrorCode = null;
 let lastEntitlementExpiryAt = 0;
 let lastAttachmentCleanupAt = 0;
 const tlsChecks = new Map();
+
+async function activeAgencyWorkspaceForDomain(domain) {
+  const filter = agencyDomainFilter(domain);
+  if (!filter) return null;
+  const check = await fetch(
+    `${supabaseUrl}/rest/v1/agency_domains?${filter}&select=workspace_uuid&limit=1`,
+    { headers: { ...serviceAuthHeaders }, signal: AbortSignal.timeout(3000) },
+  );
+  if (!check.ok) throw new Error("AGENCY_DOMAIN_LOOKUP_FAILED");
+  const [record] = await check.json();
+  if (!record?.workspace_uuid) return null;
+  const workspace = await fetch(
+    `${supabaseUrl}/rest/v1/workspaces?workspace_uuid=eq.${encodeURIComponent(record.workspace_uuid)}&plan=eq.agency&select=workspace_uuid&limit=1`,
+    { headers: { ...serviceAuthHeaders }, signal: AbortSignal.timeout(3000) },
+  );
+  if (!workspace.ok) throw new Error("AGENCY_PLAN_LOOKUP_FAILED");
+  return (await workspace.json()).length === 1 ? record.workspace_uuid : null;
+}
 
 async function readRequestBody(request, maximum = 262_144) {
   const chunks = [];
@@ -634,15 +653,30 @@ createServer(async (request, response) => {
       response.writeHead(429).end();
       return;
     }
-    const check = await fetch(
-      `${supabaseUrl}/rest/v1/agency_domains?custom_domain=eq.${encodeURIComponent(domain)}&verification_status=eq.verified&select=custom_domain&limit=1`,
-      {
-        headers: { ...serviceAuthHeaders },
-        signal: AbortSignal.timeout(3000),
-      },
-    );
-    const allowed = check.ok && (await check.json()).length === 1;
-    response.writeHead(allowed ? 204 : 403, { "Cache-Control": "no-store" }).end();
+    try {
+        const workspaceId = await activeAgencyWorkspaceForDomain(domain);
+        response.writeHead(workspaceId ? 204 : 403, { "Cache-Control": "no-store" }).end();
+    } catch {
+      response.writeHead(503, { "Cache-Control": "no-store" }).end();
+    }
+    return;
+  }
+  if (requestUrl.pathname === "/agency/entry") {
+    const domain = String(requestUrl.searchParams.get("domain") || "").toLowerCase();
+    try {
+      const workspaceId = await activeAgencyWorkspaceForDomain(domain);
+      if (!workspaceId) {
+        response.writeHead(404, { "Cache-Control": "no-store" }).end();
+        return;
+      }
+      response.writeHead(302, {
+        Location: `https://portal.globetrotr.nl/agency-admin?workspace=${encodeURIComponent(workspaceId)}`,
+        "Cache-Control": "no-store",
+        "Referrer-Policy": "no-referrer",
+      }).end();
+    } catch {
+      response.writeHead(503, { "Cache-Control": "no-store" }).end();
+    }
     return;
   }
   if (request.url !== "/health") {

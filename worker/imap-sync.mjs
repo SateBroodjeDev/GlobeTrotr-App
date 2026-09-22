@@ -235,6 +235,7 @@ async function sync() {
                           content_type: contentType,
                           size_bytes: content.length,
                           sha256: createHash("sha256").update(content).digest("hex"),
+                          content_id: String(attachment.contentId || "").replace(/^<|>$/g, "").slice(0, 255) || null,
                         }),
                       });
                     } catch (error) {

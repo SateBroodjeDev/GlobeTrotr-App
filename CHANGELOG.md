@@ -1,5 +1,59 @@
 # GlobeTrotr changelog
 
+## Domeinscheiding (voorbereid, niet uitgerold)
+
+- De publieke site blijft op `globetrotr.nl`; aanmelden en privépagina's verhuizen naar `portal.globetrotr.nl`. Oude private links krijgen een tijdelijke redirect. DNS, Supabase Auth en passkey-origins moeten nog volgens [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md) worden omgezet.
+- Agency-CNAME-verificatie toont nu de portalhost. Een geregistreerde actieve Agency-host verwijst na servercontrole naar het centrale dashboard; een andere Agency-gebruiker wordt daar geweigerd. Een dashboard dat op het Agency-domein zelf blijft is nog geen onderdeel van deze versie.
+
+## 2026-09-22 — Publieke opening voorbereiden (voorbereid)
+
+- De homepage markeert de getoonde reis als voorbeeld; de demo gebruikt voorbeeldvluchtgegevens en stuurt nieuwe bezoekers direct naar registratie. De publieke roadmap noemt opnieuw de concrete vrijgavecontroles. Niet-uitgerolde wijzigingen blijven buiten de publieke changelog.
+- De productcommunicatie noemt alleen ondersteunde aanmeldmethoden. De privacytekst maakt het verschil tussen primaire EU-opslag en optionele externe gegevensverwerking duidelijker.
+- Agency-DNS toont het juiste CNAME-doel, controleert CNAME/TXT onafhankelijk en accepteert bij een hoofddomein ook dezelfde IPv4-bestemming met TXT. Het TLS-ask-endpoint staat alleen geregistreerde Agency-subdomeinen en geverifieerde eigen domeinen met Agency-plan toe.
+- [PRE_RELEASE.md](PRE_RELEASE.md) bundelt de publicatiechecks. Migratie 1450 voegt twee gerichte Corporate Admin-acceptatiepunten toe. Hostnaam-naar-workspacebinding blijft open tot de praktijktest en eventuele codeaanvulling.
+
+## 2026-09-22 — Rustiger reisoverzicht en mobiele planner (voorbereid)
+
+- Het dashboard zet de lopende of eerstvolgende reis vooraan. De overige reiskaarten volgen op status en datum; een reis aanmaken gebeurt in een apart venster.
+- De reisplanner biedt op telefoon één gegroepeerde keuzelijst voor overzicht, planning, geld, spullen en beheer. Alle bestaande onderdelen blijven bereikbaar; op grotere schermen blijven de tabs zichtbaar.
+- Een lopende reis opent standaard op Vandaag, een toekomstige of gearchiveerde reis op de routekaart. Migratie 1440 voegt de praktische releasecontroles toe.
+
+## 2026-09-22 — Rustiger account en centraal handtekeningbeheer (voorbereid)
+
+- Bedrijfsmail toont geen editor voor de handtekening meer; Corporate Admin beheert deze per persoonlijk of gedeeld postvak. De bestaande HTML-handtekening blijft automatisch onder uitgaande mail staan.
+- Passkeys, wachtwoord wijzigen en het indienen van een privacyverzoek openen in aparte vensters. De geschiedenis van privacyverzoeken blijft op de accountpagina.
+- De homepage spreekt niet langer over een gratis beta en het dashboard telt gearchiveerde reizen niet meer als actief. Een productcontrole met geprioriteerde vervolgstappen is vastgelegd.
+- Migratie 1430 voegt gerichte Corporate Admin-acceptatiecontroles toe.
+
+## 2026-09-22 — Incidentbeheer en privacyarchief (voorbereid)
+
+- Corporate Admin kan interne incidenten nu zichtbaar aanmaken en later ernst, status en samenvatting wijzigen of als opgelost markeren.
+- Afgeronde en afgewezen privacyverzoeken kunnen worden gearchiveerd en hersteld. Open verzoeken blijven in de actieve lijst; archiveren verwijdert geen gegevens.
+- Migratie 1420 herstelt het acceptatielabel voor inkomende HTML-mail zodat zowel de afbeeldingskeuze uit 1400 als de gescande inline afbeeldingen uit 1410 worden getest.
+
+## 2026-09-22 — Meegestuurde mailafbeeldingen (voorbereid)
+
+- Inline afbeeldingen met een `cid:`-verwijzing worden na de bestaande malwarescan aan hun private bijlage gekoppeld en in ontvangen HTML-mail weergegeven.
+- Alleen bevoegde postvakgebruikers krijgen hiervoor kort geldige afbeeldingslinks. Externe afbeeldingen blijven standaard geblokkeerd en vragen een aparte keuze.
+- Migratie 1410 bewaart het Content-ID en actualiseert de Corporate Admin-controle. Al eerder geïmporteerde berichten krijgen dit ID niet achteraf.
+
+## 2026-09-21 — Inkomende mail beter lezen (voorbereid)
+
+- Lange HTML-mails krijgen een hoger, uitbreidbaar leesvenster. Afbeeldingen blijven binnen de beschikbare breedte.
+- Externe HTTPS-afbeeldingen worden standaard geblokkeerd en alleen na een bewuste keuze geladen. De waarschuwing vermeldt dat de afbeeldingsserver het IP-adres kan zien.
+- Privacyverklaring en Corporate Admin-test zijn bijgewerkt voor dit gedrag; migratie 1400 actualiseert de testregel.
+
+## 2026-09-21 — Postvakwachtwoord opslaan (voorbereid)
+
+- Corporate Admin toont na een opgeslagen IMAP-wachtwoord een gemaskeerde aanduiding; het echte wachtwoord blijft buiten de browser.
+- Een fout bij het vernieuwen van de mailboxlijst wordt niet langer als mislukte opslag gemeld. Ontbreekt de gedeelde mailboxsleutel, dan verschijnt een gerichte configuratiemelding.
+- Migratie 1390 werkt de Corporate Admin-acceptatiecontrole bij.
+
+## 2026-09-21 — Rustigere bedrijfsmailopmaak (voorbereid)
+
+- In bedrijfsmail blijft de slogan bij de handtekening; de herhaling onder het headerlogo, de extra actieknop en de dubbele footer zijn verwijderd.
+- De afzender, veilige HTML-handtekening en contactgegevens blijven behouden.
+
 ## 2026-09-21 — Bedrijfsmail opnieuw bezorgen (voorbereid)
 
 - Medewerkers met antwoord- of beheerrecht kunnen een tijdelijk mislukte uitgaande bedrijfsmail opnieuw in de beveiligde wachtrij plaatsen.
@@ -9,7 +63,7 @@
 
 ## 2026-09-21 — Professionele HTML-handtekening (voorbereid)
 
-- Persoonlijke en gedeelde bedrijfspostvakken krijgen bij verzending een vaste, mobielvriendelijke HTML-handtekening met GlobeTrotr-logo, afzendernaam, vrije functieregels, postvakadres, tagline, website, contactlink en CTA.
+- Persoonlijke en gedeelde bedrijfspostvakken krijgen bij verzending een vaste, mobielvriendelijke HTML-handtekening met GlobeTrotr-logo, afzendernaam, vrije functieregels, postvakadres, tagline, website en contactlink.
 - De opgeslagen handtekening blijft gewone bewerkbare tekst. Oude GlobeTrotr-boilerplate wordt bij rendering ontdubbeld en alle persoonlijke waarden worden als tekst ontsnapt.
 - Mailclients zonder HTML ontvangen een volledige tekstfallback. Corporate Admin en de eigenaar van een persoonlijk postvak zien vóór opslaan een veilig voorbeeld.
 - Migratie 1370 actualiseert de praktische releasecontrole voor een persoonlijk en gedeeld postvak in gangbare mailclients.
@@ -101,7 +155,7 @@
 
 - De live ICS-feed op Node-02 behoudt nu begin- en eindtijden van boekingen en activiteiten. Zonder tijd blijft een boeking een hele-dagafspraak.
 - Ongeldige datums worden overgeslagen en tekst wordt veilig voor ICS ontsnapt en gevouwen. De bestaande agenda-download en linkrotatie blijven ongewijzigd.
-- Twee automatische regressietests controleren getimede en hele-dagafspraken; de praktische import in Apple, Google of Outlook blijft open.
+- Twee automatische regressietests controleren getimede en hele-dagafspraken; de praktische import in gangbare agenda-apps blijft open.
 
 ## 2026-09-21 — Agency-klanttoegang na registratie (niet uitgerold)
 

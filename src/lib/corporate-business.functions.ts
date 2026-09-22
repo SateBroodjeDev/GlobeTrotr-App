@@ -478,6 +478,33 @@ export const getCorporateMailAttachmentUrl = createServerFn({ method: "POST" })
     return { url: signed.signedUrl };
   });
 
+export const getCorporateMailInlineImages = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { mailboxId: string; messageId: string }) => input)
+  .handler(async ({ data, context }) => {
+    if (!uuid.test(data.mailboxId) || !uuid.test(data.messageId)) throw new Error("INVALID_MAIL_MESSAGE");
+    const db = await staffDb(context.userId);
+    await mailboxPermission(db, context.userId, data.mailboxId);
+    const { data: message } = await db.from("corporate_mail_messages")
+      .select("id").eq("id", data.messageId).eq("mailbox_id", data.mailboxId).maybeSingle();
+    if (!message) throw new Error("MAIL_MESSAGE_NOT_FOUND");
+    const { data: attachments, error } = await db.from("corporate_mail_attachments")
+      .select("content_id,storage_key,content_type")
+      .eq("message_id", data.messageId)
+      .not("content_id", "is", null)
+      .like("content_type", "image/%")
+      .limit(5);
+    if (error) throw new Error("MAIL_IMAGES_UNAVAILABLE");
+    const images = await Promise.all((attachments ?? []).map(async (attachment: any) => {
+      const { data: signed, error: signError } = await db.storage.from("corporate-mail")
+        .createSignedUrl(attachment.storage_key, 120);
+      return !signError && signed?.signedUrl
+        ? { contentId: attachment.content_id as string, url: signed.signedUrl as string }
+        : null;
+    }));
+    return { images: images.filter((image): image is { contentId: string; url: string } => Boolean(image)) };
+  });
+
 export const queueCorporateMail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(
@@ -782,27 +809,6 @@ export const retryCorporateMailDelivery = createServerFn({ method: "POST" })
     if (error || !retried) throw new Error("MAIL_RETRY_NOT_ALLOWED");
     await log(db, context.userId, "platform.corporate_mail.delivery.retry", data.messageId, { mailboxId: data.mailboxId });
     return { ok: true, status: config?.mode === "live" ? "pending" : "held" };
-  });
-
-export const updateMyCorporateSignature = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((input: { mailboxId: string; signatureText: string }) => input)
-  .handler(async ({ data, context }) => {
-    const db = await staffDb(context.userId);
-    const access = await mailboxPermission(db, context.userId, data.mailboxId);
-    if (access.mailbox.owner_user_id !== context.userId || data.signatureText.length > 2000)
-      throw new Error("FORBIDDEN");
-    const { error } = await db
-      .from("corporate_mailboxes")
-      .update({
-        signature_text: data.signatureText.trim() || defaultSignature(access.mailbox.display_name),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", data.mailboxId)
-      .eq("owner_user_id", context.userId);
-    if (error) throw new Error("SIGNATURE_UPDATE_FAILED");
-    await log(db, context.userId, "platform.mail.signature", data.mailboxId);
-    return { ok: true };
   });
 
 export const updateCorporateMailMessage = createServerFn({ method: "POST" })
@@ -1286,7 +1292,7 @@ export const inviteCorporateStaff = createServerFn({ method: "POST" })
       throw new Error("INVALID_STAFF_INVITE");
     const { data: invited, error } = await db.auth.admin.inviteUserByEmail(email, {
       data: { full_name: name, language: "en" },
-      redirectTo: "https://globetrotr.nl/auth",
+      redirectTo: "https://portal.globetrotr.nl/auth",
     });
     if (error || !invited.user) throw new Error("STAFF_INVITE_FAILED");
     await log(db, context.userId, "platform.staff.invite", invited.user.id, {

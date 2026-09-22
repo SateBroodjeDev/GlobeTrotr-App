@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth";
 import { useLocale } from "@/lib/locale";
 import { PLANS } from "@/lib/plans";
+import { portalUrl } from "@/lib/site-routing";
 export const Route = createFileRoute("/prijzen")({
   head: () => ({
     meta: [
@@ -161,14 +162,14 @@ export function PricingPage() {
                     className="mt-7 w-full"
                     variant={plan.id === "pro" ? "default" : "outline"}
                   >
-                    <Link to={user ? "/billing" : "/register"}>
+                    <a href={portalUrl(user ? "/billing" : "/register")}>
                       {user
                         ? text("Kies of wijzig dit plan", "Choose or change this plan")
                         : plan.id === "free"
                           ? text("Start gratis", "Start free")
                           : text("Maak een account", "Create an account")}
                       <ArrowRight className="size-4" />
-                    </Link>
+                    </a>
                   </Button>
                 </CardContent>
               </Card>

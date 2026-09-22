@@ -85,9 +85,9 @@ function notificationMessage(body) {
     )
     .join("");
   const actionUrl =
-    typeof copy.actionUrl === "string" && /^https:\/\/globetrotr\.nl\//.test(copy.actionUrl)
+    typeof copy.actionUrl === "string" && /^https:\/\/(?:portal\.)?globetrotr\.nl\//.test(copy.actionUrl)
       ? copy.actionUrl
-      : "https://globetrotr.nl";
+      : "https://portal.globetrotr.nl/dashboard";
   const actionLabel =
     body.templateKey === "invitation"
       ? body.locale === "en"
@@ -119,7 +119,6 @@ function notificationMessage(body) {
 function corporateMessage(body) {
   const subject = body.subject.trim().slice(0, 160);
   const text = body.text.trim().slice(0, 20_000);
-  const name = safeFrom(body.from).name;
   const messageHtml =
     typeof body.html === "string" && body.html.trim()
       ? body.html.trim().slice(0, 100_000)
@@ -127,7 +126,7 @@ function corporateMessage(body) {
   return {
     subject,
     text,
-    html: `<!doctype html><html lang="en"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:32px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td style="padding:28px 36px;border-bottom:1px solid #edf1ef"><img src="https://globetrotr.nl/assets/email/logo.png" width="48" height="48" alt="GlobeTrotr" style="display:block"><div style="margin-top:12px;font-size:13px;color:#748078">Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:32px 36px"><h1 style="margin:0 0 22px;font-size:24px">${escapeHtml(subject)}</h1><div style="font-size:16px;line-height:25px;color:#3d4d58">${messageHtml}</div><table role="presentation" cellspacing="0" cellpadding="0" style="margin-top:30px"><tr><td bgcolor="#168b78" style="border-radius:10px"><a href="https://globetrotr.nl" style="display:inline-block;padding:13px 22px;color:#fff;text-decoration:none;font-weight:600">Open GlobeTrotr</a></td></tr></table></td></tr><tr><td style="padding:22px 36px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:12px;line-height:19px;color:#77827c"><strong style="color:#102039">${escapeHtml(name)}</strong><br>GlobeTrotr · Plan every trip. Track every euro.<br><a href="https://globetrotr.nl" style="color:#168b78;text-decoration:none">globetrotr.nl</a> · <a href="https://globetrotr.nl/contact" style="color:#168b78;text-decoration:none">Contact</a></td></tr></table></td></tr></table></body></html>`,
+    html: `<!doctype html><html lang="en"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:32px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td style="padding:28px 36px;border-bottom:1px solid #edf1ef"><img src="https://globetrotr.nl/assets/email/logo.png" width="48" height="48" alt="GlobeTrotr" style="display:block"></td></tr><tr><td style="padding:32px 36px"><h1 style="margin:0 0 22px;font-size:24px">${escapeHtml(subject)}</h1><div style="font-size:16px;line-height:25px;color:#3d4d58">${messageHtml}</div></td></tr></table></td></tr></table></body></html>`,
   };
 }
 async function readJson(request) {

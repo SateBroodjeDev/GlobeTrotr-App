@@ -1,18 +1,35 @@
 # GlobeTrotr beta-testlijst
 
+## Publieke opening
+
+- [ ] Na migratie/test 1450 de Corporate Admin-items `public.launch-pages` en `agency.domain-dns-https` uitvoeren; sluit ze pas na echte productieproeven.
+- [ ] Controleer alle publieke pagina's, de interactieve demo en de registratieknop in NL/EN op telefoon en desktop volgens [PRE_RELEASE.md](PRE_RELEASE.md).
+- [ ] Controleer wildcard-DNS, Agency-subdomein, eigen CNAME/TXT, HTTPS-certificaat én de juiste Agency-workspace. Een certificaat zonder correcte tenantbinding is onvoldoende.
+
+- [ ] Na migratie 1410 en nieuwe Node-02/Node-01-build een nieuwe mail met ingebedde afbeelding ontvangen: afbeelding verschijnt zonder **Externe afbeeldingen laden**. Controleer dat het gescande bestand privé blijft, een onbevoegde gebruiker geen link ontvangt en een externe trackingafbeelding geblokkeerd blijft.
+
+- [ ] Na migratie 1400 een lange ontvangen HTML-mail openen op telefoon en desktop; **Groter leesvenster** moet scrollen eenvoudiger maken zonder horizontale overflow.
+- [ ] Ontvangen mail met externe HTTPS-afbeelding openen: aanvankelijk geen aanvraag naar de afbeeldingsserver; na **Externe afbeeldingen laden** verschijnt de afbeelding. Controleer de IP-waarschuwing en de privacytekst in NL/EN.
+
+**Bevestigd door de eigenaar:** uitgaande bedrijfsmail wordt met HTML-opmaak verzonden en correct weergegeven. De afzonderlijke controles voor inkomende HTML, tekstalternatief, handtekening en wachtwoordopslag blijven hieronder staan.
+
+- [ ] Na migratie 1390 een IMAP-wachtwoord opslaan en de pagina verversen: geen foutmelding na succes, `••••••••` zichtbaar als aanwijzing, leeg wachtwoordveld bij opnieuw opslaan behoudt het bestaande wachtwoord. Een nieuw wachtwoord vervangt het oude en de mail blijft synchroniseren.
+
+- [ ] Stuur na de volgende Node-02-uitrol een bedrijfsmail en controleer: alleen het logo in de header, geen extra knop onder de handtekening, geen herhaalde mailfooter; de afzender en contactlink blijven zichtbaar.
+
 ## Herstelronde na migraties 1310–1320
 
-- [ ] Na migratie 1370 vanuit een persoonlijk en gedeeld postvak mailen naar minstens Gmail en Outlook/webmail. Controleer logo, naam, functie, adres, tagline, website, contactlink en CTA op desktop en telefoon; bekijk ook de platte-tekstversie.
+- [x] Na migratie 1370 vanuit een persoonlijk en gedeeld postvak mailen met de nieuwe HTML-handtekening en tekstfallback; productiewerking bevestigd door de eigenaar.
 - [ ] Zet `<script>`, een HTML-tag en een afwijkende URL in de vrije handtekeningstekst. De ontvanger moet uitsluitend veilige zichtbare tekst zien en de vaste links moeten naar `globetrotr.nl` wijzen.
-- [ ] Na migratie 1380 een tijdelijk mislukte bedrijfsmail openen en **Opnieuw proberen** kiezen. Controleer dat precies één bericht wordt bezorgd met hetzelfde onderwerp, HTML, handtekening en alle bijlagen; een gebruiker met alleen leesrecht mag de actie niet uitvoeren.
+- [x] Na migratie 1380 een tijdelijk mislukte bedrijfsmail opnieuw bezorgen met behoud van HTML, handtekening en bijlagen; productiewerking bevestigd door de eigenaar.
 
-- [ ] Na migratie 1360 in Corporate Admin NL→EN én EN→NL testen voor feedback en antwoord, platformmelding, bekend probleem, onderhoudstekst en recensie. Controleer elk concept handmatig; vertalen mag niets opslaan, verzenden of publiceren.
+- [x] Na migratie 1360 de nieuwe NL/EN-vertaalconcepten in productie gecontroleerd; werking bevestigd door de eigenaar.
 - [ ] Open met lees-, antwoord- en beheerrecht een ontvangen bedrijfsmail en maak een Nederlandse en Engelse leesweergave. De originele tekst/HTML moet intact blijven; mail boven 5000 tekens mag niet ongemerkt worden afgekapt.
 
-- [ ] Na migratie 1350 de rollback-test uitvoeren; controleer daarna een Nederlandse en Engelse Paddle-melding, zonder dubbele taal in pop-up, meldingenscherm of mail.
+- [x] Migratie 1350 en de gelokaliseerde betaalstroom in productie gecontroleerd; werking bevestigd door de eigenaar.
 - [ ] Controleer dat MRR alleen doorlopende abonnementen bevat, een losse maand bij netto-omzet staat en Corporate Admin actieve vooruitbetaalde rechten apart telt.
 - [ ] Verwerk de teruggezette Paddle-webhook opnieuw en controleer dat de webhookwachtrij daalt zonder eventpayloads of auditgeschiedenis te verwijderen.
-- [ ] Open Agenda bij een bestaande live feed: controleer aanmaakdatum en uitleg over de verborgen geheime URL. Maak een nieuwe link, test **Open in agenda-app**, GET/HEAD 200 en automatische verversing na een reiswijziging.
+- [x] Live agenda, nieuwe link en agenda-appactie na de productie-uitrol gecontroleerd; werking bevestigd door de eigenaar.
 - [ ] Klik bij een actief eenmalig plan op **Voeg één maand toe**: vóór Paddle moet een bevestiging met de huidige einddatum verschijnen; annuleren maakt geen checkout aan.
 - [ ] Kies bij een terugkerend abonnement opnieuw hetzelfde plan: GlobeTrotr meldt dat niets is gewijzigd en Paddle maakt geen transactie of factuur aan. Een echte Pro/Agency-wissel maakt maximaal één evenredige transactie.
 
@@ -98,6 +115,11 @@
 - [ ] Open Status als gast en ingelogde gebruiker in NL en EN; alle componentnamen en statuslabels horen in dezelfde taal te staan.
 - [ ] Maak een reis- en Agency-uitnodiging; controleer werkende link, bezorgstatus en Agency-naam/accentkleur.
 - [ ] Dien vanuit Account een privacyverzoek in; open, wijzig en beantwoord het in Governance, open de gebruiker en controleer het antwoord in Account.
+- [ ] Open op telefoon en desktop vanuit Account de passkey-, wachtwoord- en privacyverzoekvensters. Test openen/sluiten, toetsenbordfocus, annuleren en een geslaagde actie; controleer dat wachtwoordvelden na sluiten leeg zijn.
+- [ ] Wijzig in Corporate Admin de handtekening van een persoonlijk en een gedeeld postvak. Controleer dat de inbox geen handtekeningeditor toont en dat de volgende uitgaande HTML-mail precies de opgeslagen handtekening bevat.
+- [ ] Controleer op de publieke homepage dat gratis starten correct wordt omschreven en geen beta-belofte staat; controleer dat het dashboard gearchiveerde reizen niet als actief telt.
+- [ ] Maak in Corporate Admin → Governance een intern incident aan, wijzig ernst, status en samenvatting en markeer het als opgelost. Controleer dat de wijziging na verversen zichtbaar blijft.
+- [ ] Controleer dat een open privacyverzoek niet te archiveren is. Rond het verzoek af, archiveer het, vind het terug in **Archief** en herstel het naar de actieve lijst. Controleer dat het antwoord voor de gebruiker beschikbaar blijft.
 - [ ] Beantwoord een contactbericht via Bedrijfsmail en controleer afzender, ontvanger, onderwerp, standaardhandtekening en bezorgstatus.
 - [ ] Maak een gedeelde en persoonlijke mailbox zonder handtekening; controleer de gegenereerde GlobeTrotr-handtekening en pas hem als beheerder aan.
 - [ ] Nodig vanuit Corporate Admin een nieuwe medewerker uit, wijs een persoonlijke mailbox toe en geef toegang tot een gedeelde mailbox.
@@ -162,7 +184,8 @@
 
 - [ ] Start Node-01 met `deploy/web.compose.yml`; controleer containerhealth, HTTPS, HTTP-redirect en het TLS-certificaat.
 - [ ] Controleer dat de Node-01-webcontainer na minimaal twee minuten nog draait en niet met exitcode 0 blijft herstarten.
-- [ ] Controleer dat `globetrotr.nl` website en app bedient en dat `www.globetrotr.nl` en `dashboard.globetrotr.nl` met behoud van het pad doorsturen.
+- [ ] Controleer de scheiding: `globetrotr.nl` toont de publieke site, `portal.globetrotr.nl` opent login en dashboard, en oude privépaden op `globetrotr.nl` en `dashboard.globetrotr.nl` verwijzen met behoud van het pad door. Test bestaande sessies, Supabase-mail, OAuth, MFA en passkeys opnieuw op portal.
+- [ ] Controleer een Agency-subdomein en eigen CNAME met een echte Agency-workspace: DNS/TLS, 302 vanaf de hoofdroute naar het centrale Agency-dashboard, 404 op andere paden en geen toegang met een account van een andere Agency of een verlopen Agency-plan.
 - [ ] Start Node-02 met `deploy/worker.compose.yml`; controleer een succesvolle pollcyclus en `http://127.0.0.1:9091/health` zonder poort 9091 publiek open te stellen.
 - [ ] Controleer op Node-02 dat de mailrelay SMTP kan verifiëren, poort 9092 niet publiek bereikbaar is, een verkeerd token wordt geweigerd en een testbericht exact eenmaal aankomt.
 - [ ] Controleer dat uitsluitend Node-01 poorten 80/443 aanbiedt, SSH op beide nodes met sleutels werkt en `.env.production` rechten `600` heeft.
@@ -221,6 +244,8 @@
 - [ ] Exporteer minimaal twee bestemmingen als GPX, open het bestand in een kaartapp en controleer namen, coördinaten en volgorde.
 - [ ] Keer een route met meerdere bestemmingen tweemaal om; controleer na iedere opslag de kaart en dat geen bestemming verdwijnt.
 - [ ] Vergelijk twee reizen op het dashboard en controleer periode, routevolgorde, boekingen, budget en omgerekende uitgaven op desktop en telefoon.
+- [ ] Open het dashboard met een lopende, toekomstige en gearchiveerde reis: lopend of eerstvolgend staat vooraan, de overige kaarten staan in status- en datumvolgorde. Maak een reis via het venster aan en controleer limiet/alleen-lezen.
+- [ ] Open een lopende en een toekomstige reis op een telefoon: standaard verschijnt respectievelijk Vandaag en Routekaart. Kies ieder onderdeel via de gegroepeerde lijst, bewerk een reisschema indien bevoegd en controleer dezelfde tabs op desktop.
 
 ## Uitgaven en verrekening
 

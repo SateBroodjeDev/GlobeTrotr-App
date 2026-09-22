@@ -1,10 +1,28 @@
 ﻿# GlobeTrotr â€” draaiboek voor de volgende release
 
-**Stand:** 21 september 2026
+**Stand:** 22 september 2026
 
-**Huidige stand:** de migraties en tests **tot en met 1340** zijn volgens de eigenaar uitgevoerd; een echte betaling met 93% korting activeert Pro en levert een Paddle-factuur. Migraties 1350–1380 en hun tests zijn voorbereid voor eentalige betaalmeldingen, gerichte webhookherverwerking, vertaalconcepten in beide richtingen, de veilige HTML-handtekening en gecontroleerd opnieuw bezorgen. De live ICS-feed blijft een incident tot de praktijktest slaagt.
+**Nieuwe domeinscheiding (nog niet uitgerold):** volg na de normale release [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md). Deze beschrijft de exacte volgorde voor DNS, Node-01/02, Supabase Site URL, Turnstile, OAuth en passkeys. Een geregistreerde Agency-host wordt gecontroleerd en stuurt naar het centrale Agency-dashboard; een blijvend dashboard op de Agency-host is bewust geen onderdeel van deze release. Zet de Auth Site URL niet voortijdig om.
 
-**Doel:** migraties 1350–1380 testen, de huidige code uitrollen, daarna de webhookwachtrij, vertaalconcepten, HTML-handtekening, mailretry en live ICS-feed controleren.
+**SQL-test 1430 `ACCOUNT_UI_SIGNATURE_ACCEPTANCE_MISSING`:** de oorspronkelijke migratie 1430 leverde per checklistregel geen `label_en` terwijl die kolom wel in de `INSERT` stond. De transactie is daardoor niet toegepast. De migratie is in deze werkboom hersteld; voer de **volledige actuele migratie 1430** opnieuw uit in Supabase SQL Editor en direct daarna de test 1430. De migratie gebruikt `ON CONFLICT DO UPDATE` en is herhaalbaar. Controleer vervolgens migratie/test 1440 en ga pas daarna verder met 1450–1470. Een mislukte test alleen repareert niets.
+
+**Publieke vrijgave:** begin met [PRE_RELEASE.md](PRE_RELEASE.md) voor de korte beslislijst van pagina's, privacy, betalingen en Agency-DNS. Dit document blijft het uitvoerdraaiboek. Nieuw in deze codebatch: migratie en test `20260908145000_public_launch_and_agency_dns_acceptance.sql`, een webbuild op Node-01 en een workerbuild op Node-02 voor de TLS-toelating. De werkelijke Supabase-status van 1390–1440 is nog niet volledig bevestigd; controleer die vóór 1450 en herhaal toegepaste migraties niet.
+
+**Governance en SQL-test herstellen (nog uitrollen):** de test van 1400 faalt wanneer 1410 het gedeelde checklistlabel daarna heeft overschreven. Voer eerst eventuele nog ontbrekende migratie 1410 uit, vervolgens migratie en test 1420 uit de tabel hieronder. Herhaal daarna de **tests** van 1400 en 1410; herhaal hun migraties niet als ze al zijn uitgevoerd. Migratie 1420 voegt ook het privacyarchief toe. Na commit/push moet Node-01 `web` opnieuw worden gebouwd voor incidentbewerking en archiveren. Deze wijziging raakt Node-02 niet.
+
+**Inline mailafbeeldingen (nog uitrollen):** voer na 1400 migratie 1410 en de bijbehorende test uit de tabel hieronder uit. Bouw daarna op Node-02 `imap-sync` opnieuw en op Node-01 `web` opnieuw. Alleen nieuwe inkomende mail bewaart het Content-ID van een gescande afbeeldingsbijlage; bestaande berichten worden niet automatisch heringelezen. Test met een nieuwe mail met ingebedde afbeelding en controleer dat een externe trackingafbeelding geblokkeerd blijft.
+
+**Nieuwe mailweergave (nog uitrollen):** na migratie 1390 ook migratie 1400 en de bijbehorende test uit de tabel hieronder uitvoeren. Daarna de webcontainer op Node-01 opnieuw bouwen. Test een lange ontvangen HTML-mail en laad externe HTTPS-afbeeldingen pas na de zichtbare IP-waarschuwing. Node-02 hoeft voor deze weergavewijziging niet opnieuw te worden gebouwd.
+
+**Nieuwe mailboxfix (nog uitrollen):** voer na de eerdere migraties migratie 1390 en direct daarna de bijbehorende test uit; beide staan in de tabel hieronder. Controleer op **beide** nodes dat `MAILBOX_CREDENTIALS_KEY` aanwezig is en exact dezelfde 32-byte-base64-sleutel bevat; toon of verstuur de waarde niet. De webserver op Node-01 versleutelt het nieuwe wachtwoord, de IMAP-worker op Node-02 ontsleutelt het. Na commit/push de webcontainer op Node-01 opnieuw bouwen. Sla het wachtwoord opnieuw op en controleer de gemaskeerde status na verversen. Als de oude sleutel op Node-02 afwijkt, herstel eerst dezelfde sleutel voordat je bestaande credentials vervangt.
+
+**Nieuwe opmaakwijziging (nog uitrollen):** bedrijfsmail toont de slogan alleen in de handtekening; de dubbele CTA en footer verdwijnen. Hiervoor is geen SQL nodig. Na de volgende commit en push op **Node-02** `git pull --ff-only origin lovable` uitvoeren, gevolgd door `docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation up -d --build --force-recreate mail-relay`; op **Node-01** dezelfde commit ophalen en `docker compose --env-file .env.production -f deploy/web.compose.yml up -d --build --force-recreate web` uitvoeren voor het bijgewerkte handtekeningvoorbeeld en verzendpad. Controleer daarna een ontvangen bedrijfsmail. De al uitgerolde migraties 1350–1380 niet herhalen.
+
+**Huidige stand:** migraties en tests **tot en met 1380** zijn uitgevoerd. Commit `b6b8d0f` draait op Node-01 en Node-02; de eigenaar heeft de nieuwe betaal-, agenda-, vertaal- en bedrijfsmailfunctionaliteit in productie werkend bevestigd.
+
+**Aanvullend bevestigd:** uitgaande bedrijfsmail met HTML-opmaak werkt. De wachtwoordfix en het verwijderen van herhaalde elementen uit de mailopmaak staan nog klaar voor de volgende uitrol.
+
+**Doel:** de resterende brede P0/P1-acceptatie afronden en alleen nieuwe, afzonderlijk gereproduceerde incidenten openhouden.
 
 Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige foutmelding zonder wachtwoorden, tokens, mailinhoud of persoonsgegevens.
 
@@ -14,9 +32,9 @@ Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige fo
 - [x] Fase 1b â€” vorige releasecommit naar de gekoppelde branch pushen
 - [x] Fase 2 â€” dertien migraties en SQL-tests uitvoeren
 - [x] Fase 2b â€” vijf Auth-mailtemplates en onderwerpen in Supabase plaatsen
-- [ ] Fase 3 â€” bestaande productieconfiguratie inventariseren; nog geen containers starten
-- [x] Fase 4 â€” vorige release op Node-02 uitrollen
-- [x] Fase 5 â€” vorige release op Node-01 uitrollen
+- [x] Fase 3 â€” bestaande productieconfiguratie geïnventariseerd
+- [x] Fase 4 â€” huidige release op Node-02 uitgerold
+- [x] Fase 5 â€” huidige release op Node-01 uitgerold
 - [x] Herstelronde SQL â€” migraties 1310â€“1320 uitvoeren
 - [x] Herstelronde SQL-tests 1310â€“1320 â€” volgens de eigenaar uitgevoerd
 - [x] Herstelronde code â€” nieuwe betaaldianose op de website zichtbaar; bevestig de Node-02-commit nog bij de webhookcontrole
@@ -25,14 +43,14 @@ Voer de fasen in volgorde uit. Ga bij een fout niet door. Bewaar de volledige fo
 
 - [x] Factuur en vooruitbetaalde maanden SQL â€” migratie 1340 en `paddle_issued_invoices.sql` uitgevoerd
 
-- [ ] Lokalisatie en webhookherstel SQL â€” migratie 1350 en `localized_billing_and_webhook_recovery.sql` uitvoeren
-- [ ] Vertaalacceptatie SQL â€” migratie 1360 en `translation_draft_acceptance.sql` uitvoeren
-- [ ] HTML-handtekening SQL — migratie 1370 en `branded_html_signature_acceptance.sql` uitvoeren
-- [ ] Bedrijfsmailretry SQL — migratie 1380 en `corporate_mail_retry_acceptance.sql` uitvoeren
+- [x] Lokalisatie en webhookherstel SQL â€” migratie 1350 en `localized_billing_and_webhook_recovery.sql` uitgevoerd
+- [x] Vertaalacceptatie SQL â€” migratie 1360 en `translation_draft_acceptance.sql` uitgevoerd
+- [x] HTML-handtekening SQL — migratie 1370 en `branded_html_signature_acceptance.sql` uitgevoerd
+- [x] Bedrijfsmailretry SQL — migratie 1380 en `corporate_mail_retry_acceptance.sql` uitgevoerd
 - [ ] Fase 6 â€” kritieke praktijktests uitvoeren
 - [ ] Fase 7 â€” vrijgavebesluit nemen en incidenten bijwerken
 
-Lokaal zijn 79 tests, TypeScript, lint zonder fouten, de securityaudit en de release-preflight groen. De nieuwe productiefunctionaliteit is pas bewezen nadat alle fasen zijn afgerond.
+Lokaal slagen 85 tests, TypeScript, lint zonder fouten, de securityaudit en de release-preflight met 30 migratie/testparen. De Windows-productiebuild voltooit de client maar strandt bij de serverbundel op de bekende `EPERM readlink C:\Users\info`; de Linux-productiebuild op Node-01 blijft beslissend. Nieuwe productiefunctionaliteit is pas bewezen nadat de praktijktests zijn afgerond.
 
 ## Fase 1 â€” Windows: controleren, committen en pushen
 
@@ -64,7 +82,7 @@ git push
 
 Verwacht:
 
-- `npm run verify`: 79 tests, TypeScript, securityaudit en release-preflight slagen;
+- `npm run verify`: 82 tests, TypeScript, securityaudit en release-preflight slagen;
 - `npm audit`: geen hoge of kritieke productiekwetsbaarheden;
 - `git diff --check`: geen uitvoer;
 - geen `.env`, wachtwoord, API-sleutel of mailboxcredential in de staged bestanden.
@@ -100,10 +118,19 @@ Open de SQL Editor van het productieproject. Voer steeds eerst de migratie en di
 |       19 | [1360 â€” vertaalconcepten in beide richtingen](supabase/migrations/20260908136000_translation_draft_acceptance.sql) | [translation_draft_acceptance.sql](supabase/tests/translation_draft_acceptance.sql) |
 |       20 | [1370 — veilige HTML-handtekening](supabase/migrations/20260908137000_branded_html_signature_acceptance.sql) | [branded_html_signature_acceptance.sql](supabase/tests/branded_html_signature_acceptance.sql) |
 |       21 | [1380 — bedrijfsmail opnieuw bezorgen](supabase/migrations/20260908138000_corporate_mail_retry_acceptance.sql) | [corporate_mail_retry_acceptance.sql](supabase/tests/corporate_mail_retry_acceptance.sql) |
+|       22 | [1390 — postvakwachtwoord opslaan](supabase/migrations/20260908139000_mailbox_password_save_acceptance.sql) | [mailbox_password_save_acceptance.sql](supabase/tests/mailbox_password_save_acceptance.sql) |
+|       23 | [1400 — afbeeldingen en leesvenster bedrijfsmail](supabase/migrations/20260908140000_company_mail_image_viewing_acceptance.sql) | [company_mail_image_viewing_acceptance.sql](supabase/tests/company_mail_image_viewing_acceptance.sql) |
+|       24 | [1410 — ingebedde mailafbeeldingen](supabase/migrations/20260908141000_company_mail_inline_images.sql) | [company_mail_inline_images.sql](supabase/tests/company_mail_inline_images.sql) |
+|       25 | [1420 — governancearchief en mailacceptatie herstellen](supabase/migrations/20260908142000_governance_archive_and_mail_acceptance.sql) | [governance_archive_and_mail_acceptance.sql](supabase/tests/governance_archive_and_mail_acceptance.sql) |
+|       26 | [1430 — accountvensters en handtekeningbeheer](supabase/migrations/20260908143000_account_ui_and_signature_acceptance.sql) | [account_ui_and_signature_acceptance.sql](supabase/tests/account_ui_and_signature_acceptance.sql) |
+|       27 | [1440 — dashboard en mobiele reisnavigatie](supabase/migrations/20260908144000_trip_navigation_acceptance.sql) | [trip_navigation_acceptance.sql](supabase/tests/trip_navigation_acceptance.sql) |
+|       28 | [1450 — publieke opening en Agency-DNS](supabase/migrations/20260908145000_public_launch_and_agency_dns_acceptance.sql) | [public_launch_and_agency_dns_acceptance.sql](supabase/tests/public_launch_and_agency_dns_acceptance.sql) |
+|       29 | [1460 — website en portal scheiden](supabase/migrations/20260908146000_portal_domain_acceptance.sql) | [portal_domain_acceptance.sql](supabase/tests/portal_domain_acceptance.sql) |
+|       30 | [1470 — Agency-ingang en gereserveerde hosts](supabase/migrations/20260908147000_agency_portal_entry_acceptance.sql) | [agency_portal_entry_acceptance.sql](supabase/tests/agency_portal_entry_acceptance.sql) |
 
 De tests bewijzen schema, rechten en releasechecklist. Ze vervangen geen echte mail-, betaal- of accounttest. Voer oudere migraties niet opnieuw uit en draai een toegepaste productiemigratie niet handmatig terug.
 
-**Nieuwe productiefixes, nog uitvoeren:** voer uitsluitend migraties 1350, 1360, 1370 en 1380 uit de tabel hierboven uit en direct na iedere migratie de bijbehorende test. De migratie zet nieuwe Paddle-meldingen vÃ³Ã³r opslag om naar de profieltaal, werkt bestaande open tweetalige betaalmeldingen bij en zet alleen webhooks die op de inmiddels opgeloste `billing_transactions_check1` vastliepen terug op nul pogingen. De payload en auditgeschiedenis worden niet verwijderd. Bouw daarna Node-01 opnieuw voor de aankoopbevestiging, de eentalige meldingweergave, de uitleg dat MRR alleen doorlopende abonnementen telt, de zichtbare vooruitbetaalde toegang en de Paddle-controle die een wijziging naar hetzelfde terugkerende plan zonder nieuwe factuur overslaat. Migraties 1310â€“1340 hoef je niet opnieuw te draaien.
+**Nog te controleren:** migraties tot en met 1380 zijn volgens de eigenaar uitgevoerd; 1390 is volgens de eigenaar inmiddels ook uitgevoerd. Van 1400/1410/1420/1430/1440 is de migratiestatus niet bevestigd. Controleer welke daarvan al zijn toegepast en voer uitsluitend ontbrekende migraties in nummerorde uit, gevolgd door 1450. Draai na 1420 de tests van 1400, 1410 en 1420 opnieuw; draai daarna de tests van 1430, 1440 en 1450. De code voor postvakwachtwoorden, mailweergave, Governance, accountvensters, reisnavigatie en Agency-TLS vereist daarna een nieuwe commit en containerbuild op de betrokken nodes; herhaal toegepaste SQL niet.
 
 **Daarna:** open Corporate Admin â†’ FinanciÃ«n, diagnoseer `txn_01m3266ap61fdket5ft38ax5de` en kies **Bij Paddle controleren en herstellen** met een reden. Controleer daarna de lokale â‚¬0-transactie, het juiste Agency-plan en de einddatum. Paddle biedt voor â‚¬0 geen factuur-PDF; GlobeTrotr mag dan geen lokale Paddle-factuur tonen. Controleer Ã³Ã³k in Paddle de HTTP-status van notificatie `ntf_01m3267edg27hm2e7jkn3q5fqb` en of een nieuwe bezorgpoging `200` krijgt; de handmatige herstelactie alleen verhelpt toekomstige webhookfouten niet. Pas daarna een nieuwe live ICS-feed maken en met GET/HEAD en een agenda-app testen.
 
@@ -160,7 +187,7 @@ Open poort 3310 niet in UFW of de providerfirewall.
 
 Na migratie 1300 open je in het Supabase Dashboard **Authentication â†’ Email Templates**. Vervang daar de inhoud van Confirm signup, Reset password, Change email address, Magic link en Invite user door de gelijknamige bestanden uit `supabase/templates`. Neem per type ook het conditionele onderwerp uit `supabase/templates/subjects.md` over. De templates gebruiken `user_metadata.language`; Nederlands wordt alleen gekozen bij `nl`, anders blijft Engels de veilige standaard.
 
-Controleer dat de Site URL `https://globetrotr.nl` is en dat de toegestane redirects de eigen `/auth`- en `/token/...`-routes niet blokkeren. Deze Dashboard-stap wordt niet door een Git-push uitgevoerd.
+Controleer vóór de portaluitrol de huidige Site URL en redirects en noteer ze voor terugval. Na DNS, HTTPS en de nieuwe webbuild wordt de Site URL `https://portal.globetrotr.nl`; volg daarvoor de volgorde in [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md). Deze Dashboard-stap wordt niet door een Git-push uitgevoerd.
 
 ### Optioneel: gratis NL/EN-vertaalconcepten
 

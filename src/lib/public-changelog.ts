@@ -27,16 +27,47 @@ export const PUBLIC_BETA_STATUS = {
   descriptionEn:
     "GlobeTrotr is being tested with a limited group of travellers and travel organisations. Only practically confirmed and deployed improvements appear below; work under verification is listed on the roadmap.",
   unavailable: [
-    { nl: "Inloggen met Apple of Microsoft", en: "Sign in with Apple or Microsoft" },
     {
-      nl: "Volledig automatische DNS-inrichting bij iedere domeinprovider",
-      en: "Fully automated DNS configuration at every domain provider",
+      nl: "Eigen Agency-domeinen zonder CNAME- en TXT-instelling bij je domeinprovider",
+      en: "Custom Agency domains without CNAME and TXT setup at your domain provider",
     },
   ],
 } as const;
 
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-21-communication-reliability",
+    version: "Beta 0.19",
+    publishedAt: "2026-09-21T20:30:00+02:00",
+    title: "Betrouwbare communicatie en betalingen",
+    titleEn: "Reliable communication and payments",
+    summary: "De nieuwste verbeteringen voor mail, vertaling, betalingen en agenda zijn in productie bevestigd.",
+    summaryEn: "The latest improvements to mail, translation, payments and calendars are confirmed in production.",
+    changes: [
+      {
+        kind: "improved",
+        title: "Professionele bedrijfsmail",
+        titleEn: "Professional company email",
+        description: "Bedrijfsmail gebruikt veilige HTML, een herkenbare handtekening en behoudt opmaak en bijlagen bij opnieuw bezorgen.",
+        descriptionEn: "Company email uses safe HTML, a recognisable signature and preserves formatting and attachments when retried.",
+      },
+      {
+        kind: "new",
+        title: "Vertaalconcepten met controle",
+        titleEn: "Translation drafts with review",
+        description: "Feedback, meldingen, onderhoud, recensies en bedrijfsmail kunnen tussen Nederlands en Engels als controleerbaar concept worden vertaald.",
+        descriptionEn: "Feedback, notices, maintenance, testimonials and company email can be translated between Dutch and English as reviewable drafts.",
+      },
+      {
+        kind: "fixed",
+        title: "Betaling en live agenda hersteld",
+        titleEn: "Payments and live calendars restored",
+        description: "Betaalrechten, gelokaliseerde betaalmeldingen en live agenda-abonnementen zijn na de productie-uitrol gecontroleerd.",
+        descriptionEn: "Payment entitlements, localised payment notices and live calendar subscriptions were verified after the production rollout.",
+      },
+    ],
+  },
   {
     id: "2026-09-21-trip-polish",
     version: "Beta 0.18",

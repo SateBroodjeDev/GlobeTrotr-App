@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2, MapPin, Wallet, Lock, Download } from "lucide-react";
+import { Plus, Trash2, MapPin, Wallet, Download, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/lib/workspace";
 import { canEdit, ownsTrip, planOf } from "@/lib/plans";
@@ -25,6 +25,7 @@ import { localizeTagline } from "@/lib/localized-values";
 import { TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
 import { TripComparison } from "@/components/TripComparison";
 import { TripCover } from "@/components/TripCover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -56,8 +57,10 @@ function TripsOverview() {
   const [filter, setFilter] = useState<TripStatus | "all">("all");
   const [compareLeft, setCompareLeft] = useState("");
   const [compareRight, setCompareRight] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
 
   const ownedTripCount = state.trips.filter((trip) => ownsTrip(trip.accessRole)).length;
+  const activeTripCount = state.trips.filter((trip) => tripStatus(trip) !== "archived").length;
   const atLimit = ownedTripCount >= plan.tripLimit;
   const base = state.baseCurrency;
 
@@ -69,10 +72,22 @@ function TripsOverview() {
 
   const counts: Record<TripStatus, number> = { current: 0, upcoming: 0, archived: 0 };
   for (const t of state.trips) counts[tripStatus(t)] += 1;
-  const visible = state.trips.filter((t) => filter === "all" || tripStatus(t) === filter);
+  const visible = state.trips
+    .filter((trip) => filter === "all" || tripStatus(trip) === filter)
+    .sort((left, right) => {
+      const rank = { current: 0, upcoming: 1, archived: 2 };
+      const byStatus = rank[tripStatus(left)] - rank[tripStatus(right)];
+      return byStatus || (tripStatus(left) === "archived"
+        ? right.end.localeCompare(left.end)
+        : left.start.localeCompare(right.start));
+    });
   const nextTrip = state.trips
     .filter((t) => tripStatus(t) === "upcoming")
     .sort((a, b) => a.start.localeCompare(b.start))[0];
+  const currentTrip = state.trips
+    .filter((trip) => tripStatus(trip) === "current")
+    .sort((a, b) => (a.end || "9999-12-31").localeCompare(b.end || "9999-12-31"))[0];
+  const focusTrip = currentTrip ?? nextTrip;
 
   async function create() {
     if (!name.trim()) {
@@ -100,6 +115,7 @@ function TripsOverview() {
     try {
       const id = await addTrip(name.trim(), template);
       setName("");
+      setCreateOpen(false);
       toast.success(text("Reis aangemaakt", "Trip created"));
       navigate({ to: "/trips/$tripId", params: { tripId: id } });
     } catch {
@@ -125,7 +141,7 @@ function TripsOverview() {
             {localizeTagline(state.branding.tagline, locale)}
           </h1>
           <p className="mt-3 text-sm opacity-90">
-            {text(`${state.trips.length} actieve reizen`, `${state.trips.length} active trips`)} ·{" "}
+            {text(`${activeTripCount} actieve reizen`, `${activeTripCount} active trips`)} ·{" "}
             {formatMoney(grand, base)} {text("geboekte uitgaven", "recorded expenses")} ·{" "}
             {text(
               "wereldwijde geocoding, multi-valuta en live weer.",
@@ -135,13 +151,32 @@ function TripsOverview() {
         </div>
       </section>
 
-      <Card className="surface">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">
-            {text("Nieuwe reis vanuit sjabloon", "New trip from template")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {focusTrip && <Card className="surface border-primary/30 bg-primary/5">
+        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <Badge variant="secondary">{currentTrip ? text("Nu onderweg", "Travelling now") : text("Eerstvolgende reis", "Next trip")}</Badge>
+            <h2 className="break-anywhere font-display text-xl font-semibold">{focusTrip.name}</h2>
+            <p className="text-sm text-muted-foreground">{focusTrip.start} → {focusTrip.end} · {focusTrip.stops.length} {text("bestemmingen", "destinations")}</p>
+            {!currentTrip && <Countdown date={focusTrip.start} compact />}
+          </div>
+          <Button asChild className="w-full shrink-0 sm:w-auto">
+            <Link to="/trips/$tripId" params={{ tripId: focusTrip.id }}>
+              {currentTrip ? text("Bekijk vandaag", "View today") : text("Open reis", "Open trip")}
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>}
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full sm:w-auto" disabled={!editable || atLimit}>
+            <Plus className="size-4" />{text("Nieuwe reis", "New trip")}
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{text("Nieuwe reis vanuit sjabloon", "New trip from template")}</DialogTitle></DialogHeader>
+          <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {TEMPLATES.map((t) => (
               <button
@@ -173,38 +208,14 @@ function TripsOverview() {
               <Plus className="size-4" /> {text("Reis aanmaken", "Create trip")}
             </Button>
           </div>
-          {!editable && (
-            <p className="text-sm text-muted-foreground">
-              {text("Je huidige rol is alleen-lezen.", "Your current role is read-only.")}
-            </p>
-          )}
-          {atLimit && (
-            <p className="flex items-center gap-2 text-sm text-warning">
-              <Lock className="size-4" />{" "}
-              {text(
-                `Limiet van ${plan.tripLimit} reizen bereikt op ${plan.name}.`,
-                `${plan.name} limit of ${plan.tripLimit} trips reached.`,
-              )}{" "}
-              <Link to="/billing" className="underline">
-                Upgrade
-              </Link>
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {nextTrip && (
-        <Card className="surface">
-          <CardHeader className="pb-2">
-            <CardTitle className="break-anywhere text-base">
-              {text("Aftellen naar", "Countdown to")} {nextTrip.name} · {nextTrip.start}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Countdown date={nextTrip.start} />
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {!editable && <p className="text-sm text-muted-foreground">{text("Je huidige rol is alleen-lezen.", "Your current role is read-only.")}</p>}
+      {atLimit && <p className="text-sm text-muted-foreground">
+        {text(`Limiet van ${plan.tripLimit} reizen bereikt op ${plan.name}.`, `${plan.name} limit of ${plan.tripLimit} trips reached.`)}{" "}
+        <Link to="/billing" className="font-medium text-primary underline">{text("Bekijk abonnementen", "View plans")}</Link>
+      </p>}
 
       <div className="flex flex-wrap items-center gap-2">
         {(["all", "current", "upcoming", "archived"] as const).map((f) => (

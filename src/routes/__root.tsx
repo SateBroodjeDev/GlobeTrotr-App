@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -17,6 +18,7 @@ import { WorkspaceProvider } from "@/lib/workspace";
 import { LocaleProvider } from "@/lib/locale";
 import { PrivacyChoices } from "@/components/PrivacyChoices";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
+import { canonicalSiteLocation } from "@/lib/site-routing";
 import "leaflet/dist/leaflet.css";
 
 function NotFoundComponent() {
@@ -134,16 +136,32 @@ function RootComponent() {
       <AuthProvider>
         <LocaleProvider>
           <WorkspaceProvider>
-            <AppShell>
-              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-              <Outlet />
-            </AppShell>
-            <PrivacyChoices />
-            <BetaFeedbackButton />
+            <CanonicalOrigin>
+              <AppShell>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+              </AppShell>
+              <PrivacyChoices />
+              <BetaFeedbackButton />
+            </CanonicalOrigin>
           </WorkspaceProvider>
         </LocaleProvider>
         <Toaster richColors position="top-center" />
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+function CanonicalOrigin({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  useEffect(() => {
+    const target = canonicalSiteLocation(
+      window.location.hostname,
+      pathname,
+      window.location.search,
+      window.location.hash,
+    );
+    if (target) window.location.replace(target);
+  }, [pathname]);
+  return <>{children}</>;
 }

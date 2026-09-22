@@ -37,7 +37,8 @@ test("builds a branded signature without duplicating legacy boilerplate", () => 
   assert.match(html, /assets\/email\/logo\.png/);
   assert.match(html, /Domenico &lt;Founder&gt;/);
   assert.match(html, /mailto:info@globetrotr\.nl/);
-  assert.match(html, /Open GlobeTrotr/);
+  assert.doesNotMatch(html, /Open GlobeTrotr|EU-first travel planning/);
+  assert.match(html, /globetrotr\.nl\/contact/);
   assert.equal((html.match(/Plan every trip/g) || []).length, 1);
   assert.doesNotMatch(html, /<Founder>/);
   assert.equal(

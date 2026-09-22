@@ -51,6 +51,7 @@ import { localizeTagline } from "@/lib/localized-values";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
 import { getMyAgencyAccess } from "@/lib/agency.functions";
 import {getMaintenanceState} from "@/lib/maintenance.functions";
+import { portalUrl } from "@/lib/site-routing";
 import {MaintenanceScreen} from "@/components/MaintenanceScreen";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
@@ -257,6 +258,10 @@ function AppShellContent({ children }: { children: ReactNode }) {
               </span>
             </span>
           </Link>
+          {!user && <div className="order-2 flex w-full gap-2 lg:hidden">
+            <Button asChild variant="outline" size="sm" className="min-h-10 flex-1"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
+            <Button asChild size="sm" className="min-h-10 flex-1"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
+          </div>}
           <nav className="order-3 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
             {navItems.map((item) => (
               <Link
@@ -273,6 +278,10 @@ function AppShellContent({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto flex items-center gap-1">
             {user && <NotificationPanel key={user.id} userId={user.id} />}
+            {!user && <div className="hidden items-center gap-2 lg:flex">
+              <Button asChild variant="ghost" size="sm"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
+              <Button asChild size="sm"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
+            </div>}
             {user && cloud === "saving" && (
               <span className="mr-2 hidden text-xs text-muted-foreground sm:block">
                 {text("Opslaan…", "Saving…")}
@@ -351,14 +360,14 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to="/auth">
+                    <a href={portalUrl("/auth")}>
                       <LogIn className="size-4" /> {text("Inloggen", "Sign in")}
-                    </Link>
+                    </a>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/register">
+                    <a href={portalUrl("/register")}>
                       <UserRound className="size-4" /> {text("Registreren", "Create account")}
-                    </Link>
+                    </a>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

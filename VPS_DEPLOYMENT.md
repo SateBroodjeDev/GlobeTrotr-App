@@ -25,6 +25,7 @@ beheer-IP. Maak vervolgens deze DNS-records:
 globetrotr.nl A 2.28.36.231
 www.globetrotr.nl CNAME globetrotr.nl
 dashboard.globetrotr.nl CNAME globetrotr.nl
+portal.globetrotr.nl CNAME globetrotr.nl
 ```
 
 Voeg AAAA pas toe nadat IPv6 apart is getest.
@@ -299,37 +300,30 @@ UPDATE public.email_delivery_config SET mode='live',updated_at=now() WHERE id=tr
 
 ## 5. Agency-domeinen en bestanden
 
-De eerste livegang gebruikt uitsluitend `globetrotr.nl`. Het huidige
-Caddyfile en de applicatierouter activeren nog geen Agency op basis van de
-hostname. Velden voor `agency.globetrotr.nl`, een eigen domein en DNS-verificatie
-bestaan al, maar worden pas actief nadat deze onderdelen zijn gebouwd en getest:
+Het Caddyfile gebruikt on-demand TLS met een `ask`-endpoint op Node-02. Dat
+endpoint staat alleen geregistreerde GlobeTrotr-subdomeinen of geverifieerde
+eigen domeinen toe wanneer het workspaceplan Agency is. Voor
+`naam.globetrotr.nl` is een wildcard **A**-record naar Node-01 nodig; het
+certificaat wordt per toegestane host aangevraagd. Er is geen wildcardcertificaat
+of DNS-provider-API-koppeling.
 
-1. een wildcard DNS-record `*.globetrotr.nl` naar Node-01;
-2. veilige hostherkenning die alleen een geverifieerde, actieve Agency selecteert;
-3. wildcard TLS voor GlobeTrotr-subdomeinen;
-4. on-demand TLS met een streng `ask`-endpoint voor geverifieerde eigen domeinen;
-5. terugval naar de standaard GlobeTrotr-huisstijl wanneer de Agency of het
-   abonnement niet meer actief is.
-
-Voeg daarom nu nog geen wildcard of Agency-domeinen aan Caddy toe. Een onbeperkte
-on-demand TLS-configuratie kan door derden worden misbruikt om certificaten aan
-te vragen.
-
-Voor een eigen Agency-domein maakt de Agency bij zijn DNS-provider een CNAME,
-bijvoorbeeld `reizen.bedrijf.nl CNAME globetrotr.nl`. GlobeTrotr
-controleert daarnaast een afzonderlijk TXT-record met de bestaande
-verificatietoken. Pas na die controle mag Caddy een certificaat aanvragen en de
-hostname aan de betreffende workspace koppelen. Een apexdomein zonder subdomein
-kan niet bij iedere DNS-provider als gewone CNAME worden ingesteld; gebruik dan
-ALIAS/ANAME-flattening of verwijs een subdomein zoals `reizen`.
+Voor een eigen domein toont Agency-instellingen de vereiste CNAME naar
+`portal.globetrotr.nl` en een TXT-token. De applicatie controleert beide
+records, of dezelfde publieke IPv4-bestemming plus TXT voor een apex/ALIAS.
+De domeineigenaar publiceert die records zelf. Geef het domein pas vrij na
+controle van DNS, certificaat, inloggen, klanttoegang en de juiste workspace.
+De hostname-naar-workspacebinding op alle app-routes is nog een afzonderlijke
+acceptatievoorwaarde. Zie [PRE_RELEASE.md](PRE_RELEASE.md).
 
 ## 6. Auth-URL en acceptatie
+
+**Bestaande productie:** wijzig de Site URL niet voordat `portal.globetrotr.nl` via HTTPS bereikbaar is en de nieuwe webbuild draait. De volledige volgorde en de tijdelijke oude redirects staan in [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md). Onderstaande waarden gelden pas na de omschakeling.
 
 Stel in Supabase onder Authentication, URL Configuration in:
 
 ```text
-Site URL: https://globetrotr.nl
-Redirect URL: https://globetrotr.nl/**
+Site URL: https://portal.globetrotr.nl
+Redirect URL: https://portal.globetrotr.nl/oauth-callback
 ```
 
 Configureer **Authentication → SMTP Settings** met dezelfde werkende SMTP-host,
@@ -340,7 +334,7 @@ melding `Error sending confirmation email` wijst op deze SMTP-configuratie.
 Gebruik onder **Authentication → Email Templates → Confirm signup**:
 
 ```html
-<a href="https://globetrotr.nl/token/{{ .TokenHash }}?type=email">Bevestig mijn account</a>
+<a href="{{ .SiteURL }}/token/{{ .TokenHash }}?type=email">Bevestig mijn account</a>
 ```
 
 Gebruik voor e-mailadreswijziging `?type=email_change` en voor herstel
@@ -349,7 +343,7 @@ Gebruik voor e-mailadreswijziging `?type=email_change` en voor herstel
 ```text
 Relying Party Display Name: GlobeTrotr
 Relying Party ID: globetrotr.nl
-Relying Party Origins: https://globetrotr.nl
+Relying Party Origins: https://globetrotr.nl, https://portal.globetrotr.nl
 ```
 
 Controleer de eigen merkassets:

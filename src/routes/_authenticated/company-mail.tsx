@@ -18,13 +18,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { RichMailEditor } from "@/components/mail/RichMailEditor";
-import { MailSignaturePreview } from "@/components/mail/MailSignaturePreview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   deleteCorporateMailDraft,
   getMyCorporateMail,
@@ -32,15 +30,16 @@ import {
   saveCorporateMailDraft,
   translateCorporateMailDraft,
   updateCorporateMailMessage,
-  updateMyCorporateSignature,
   prepareCorporateMailAttachments,
   getCorporateMailAttachmentUrl,
+  getCorporateMailInlineImages,
   retryCorporateMailDelivery,
 } from "@/lib/corporate-business.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { plainTextToMailHtml } from "@/lib/safe-mail-html";
 import { groupMailThreads, messagesInThread } from "@/lib/mail-threads";
 import { inferMailAttachmentType } from "@/lib/mail-attachments";
+import { resolveInlineMailImages } from "@/lib/mail-inline-images";
 import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/_authenticated/company-mail")({
@@ -82,7 +81,6 @@ function CompanyMail() {
   const [folder, setFolder] = useState<Folder>("inbox");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<any>();
-  const [signature, setSignature] = useState("");
   const [compose, setCompose] = useState<Compose>({
     ...blank(Boolean(searchParams.to)),
     to: searchParams.to,
@@ -347,46 +345,6 @@ function CompanyMail() {
           />
         </label>
       </div>
-      {query.data?.selected?.permission === "manage" && (
-        <details className="rounded-xl border p-4">
-          <summary className="cursor-pointer font-medium">
-            {text("Mijn handtekening", "My signature")}
-          </summary>
-          <div className="mt-3 space-y-3">
-            <Textarea
-              maxLength={2000}
-              value={signature || query.data?.selected?.signature_text || ""}
-              onChange={(e) => setSignature(e.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              {text(
-                "Wordt automatisch als HTML én tekst onder ieder bericht geplaatst.",
-                "Automatically added as HTML and text below every message.",
-              )}
-            </p>
-            <MailSignaturePreview
-              signatureText={signature || query.data?.selected?.signature_text || ""}
-              displayName={query.data?.selected?.display_name || "GlobeTrotr"}
-              address={query.data?.selected?.address || ""}
-            />
-            <Button
-              variant="outline"
-              onClick={async () => {
-                await updateMyCorporateSignature({
-                  data: {
-                    mailboxId: activeId,
-                    signatureText: signature || query.data?.selected?.signature_text || "",
-                  },
-                });
-                await refresh();
-                toast.success(text("Handtekening opgeslagen.", "Signature saved."));
-              }}
-            >
-              {text("Handtekening opslaan", "Save signature")}
-            </Button>
-          </div>
-        </details>
-      )}
       {compose.open && query.data?.selected?.permission !== "read" && (
         <Composer
           mailboxId={activeId}
@@ -693,6 +651,8 @@ function MessageDetail({
 }) {
   const messages = thread.length ? thread : [item];
   const [translations, setTranslations] = useState<Record<string, { language: "nl" | "en"; body: string }>>({});
+  const [remoteImages, setRemoteImages] = useState<Record<string, boolean>>({});
+  const [expandedMessages, setExpandedMessages] = useState<Record<string, boolean>>({});
   const [translating, setTranslating] = useState("");
   async function translateMessage(message: any, target: "nl" | "en") {
     const value = String(message.body_text || message.preview_text || "").trim();
@@ -765,13 +725,15 @@ function MessageDetail({
             <p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{translations[message.id].body}</p>
           </div>}
           {message.body_html ? (
-            <iframe
-              title={`${text("HTML-bericht", "HTML message")} ${index + 1}`}
-              sandbox=""
-              referrerPolicy="no-referrer"
-              className="mt-4 block h-80 max-w-full rounded-lg border bg-white"
-              style={{ width: "100%" }}
-              srcDoc={`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">${message.body_html}`}
+            <HtmlMailFrame
+              message={message}
+              mailboxId={mailboxId}
+              index={index}
+              text={text}
+              remoteImages={Boolean(remoteImages[message.id])}
+              expanded={Boolean(expandedMessages[message.id])}
+              onLoadRemote={() => setRemoteImages((current) => ({ ...current, [message.id]: true }))}
+              onToggleSize={() => setExpandedMessages((current) => ({ ...current, [message.id]: !current[message.id] }))}
             />
           ) : (
             <p className="mt-4 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
@@ -814,6 +776,50 @@ function MessageDetail({
       </div>
     </article>
   );
+}
+function HtmlMailFrame({ message, mailboxId, index, text, remoteImages, expanded, onLoadRemote, onToggleSize }: {
+  message: any;
+  mailboxId: string;
+  index: number;
+  text: (nl: string, en: string) => string;
+  remoteImages: boolean;
+  expanded: boolean;
+  onLoadRemote: () => void;
+  onToggleSize: () => void;
+}) {
+  const hasCid = /<img\b[^>]*\bsrc\s*=\s*["']cid:/i.test(message.body_html);
+  const inline = useQuery({
+    queryKey: ["corporate-mail-inline-images", mailboxId, message.id],
+    queryFn: () => getCorporateMailInlineImages({ data: { mailboxId, messageId: message.id } }),
+    enabled: hasCid && message.direction === "inbound",
+    staleTime: 30_000,
+    gcTime: 60_000,
+  });
+  const images = inline.data?.images ?? [];
+  const html = resolveInlineMailImages(message.body_html, images);
+  const imageOrigins = [...new Set(images.map((image) => {
+    try { const url = new URL(image.url); return url.protocol === "https:" ? url.origin : ""; } catch { return ""; }
+  }).filter(Boolean))].join(" ");
+  const hasExternal = /<img\b[^>]*\bsrc\s*=\s*["']https?:/i.test(message.body_html);
+  return <div className="mt-4 space-y-2">
+    <div className="flex flex-wrap items-center gap-2">
+      {hasExternal && !remoteImages && <Button type="button" size="sm" variant="outline" onClick={onLoadRemote}>
+        {text("Externe afbeeldingen laden", "Load external images")}
+      </Button>}
+      <Button type="button" size="sm" variant="outline" onClick={onToggleSize}>
+        {expanded ? text("Normaal formaat", "Normal size") : text("Groter leesvenster", "Larger reading area")}
+      </Button>
+    </div>
+    {hasExternal && !remoteImages && <p className="text-xs text-muted-foreground">{text("Externe afbeeldingen zijn geblokkeerd. Laden kan je IP-adres aan de afzender tonen; meegestuurde afbeeldingen worden automatisch getoond.", "External images are blocked. Loading them may reveal your IP address to the sender; attached inline images appear automatically.")}</p>}
+    {hasCid && inline.isError && <p className="text-xs text-destructive">{text("Meegestuurde afbeeldingen konden niet worden geladen.", "Attached inline images could not be loaded.")}</p>}
+    <iframe
+      title={`${text("HTML-bericht", "HTML message")} ${index + 1}`}
+      sandbox=""
+      referrerPolicy="no-referrer"
+      className={`block w-full max-w-full rounded-lg border bg-white ${expanded ? "h-[75vh] min-h-[32rem]" : "h-[55vh] min-h-[24rem]"}`}
+      srcDoc={`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data: ${imageOrigins}${remoteImages ? " https:" : ""}; base-uri 'none'; form-action 'none'"><style>html,body{max-width:100%;overflow-wrap:anywhere}img{max-width:100%;height:auto}table{max-width:100%}</style>${html}`}
+    />
+  </div>;
 }
 function Field({
   label,

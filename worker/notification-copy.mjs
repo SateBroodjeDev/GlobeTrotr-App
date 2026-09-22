@@ -42,28 +42,28 @@ export function notificationCopy(job) {
       body = english
         ? `Your current plan is ${parts[1]}.`
         : `Je huidige abonnement is ${parts[1]}.`;
-      actionUrl = "https://globetrotr.nl/billing";
+      actionUrl = "https://portal.globetrotr.nl/billing";
     } else if (parts[0] === "profile") {
       body = english ? "Your profile details have changed." : "Je profielgegevens zijn gewijzigd.";
-      actionUrl = "https://globetrotr.nl/account";
+      actionUrl = "https://portal.globetrotr.nl/account";
     } else if (["Agency-toegang geblokkeerd", "Agency access suspended"].includes(subject)) {
       subject = english ? "Agency access suspended" : "Agency-toegang geblokkeerd";
       body = english
         ? `Your access to ${payload.body || "the Agency workspace"} has been suspended.`
         : `Je toegang tot ${payload.body || "de Agency-workspace"} is geblokkeerd.`;
-      actionUrl = "https://globetrotr.nl/account";
+      actionUrl = "https://portal.globetrotr.nl/account";
     } else if (["Agency-toegang hersteld", "Agency access restored"].includes(subject)) {
       subject = english ? "Agency access restored" : "Agency-toegang hersteld";
       body = english
         ? `Your access to ${payload.body || "the Agency workspace"} has been restored.`
         : `Je toegang tot ${payload.body || "de Agency-workspace"} is hersteld.`;
-      actionUrl = "https://globetrotr.nl/agency-admin";
+      actionUrl = "https://portal.globetrotr.nl/agency-admin";
     } else if (["Uit Agency-team verwijderd", "Removed from Agency team"].includes(subject)) {
       subject = english ? "Removed from Agency team" : "Uit Agency-team verwijderd";
       body = english
         ? `You no longer have access to ${payload.body || "the Agency workspace"}.`
         : `Je hebt geen toegang meer tot ${payload.body || "de Agency-workspace"}.`;
-      actionUrl = "https://globetrotr.nl/dashboard";
+      actionUrl = "https://portal.globetrotr.nl/dashboard";
     }
   } else if (job.templateKey === "trip_access") {
     const parts = String(payload.body ?? "").split("|");
@@ -76,7 +76,7 @@ export function notificationCopy(job) {
         ? `Your role for ${parts[1]} has changed.`
         : `Je rol voor ${parts[1]} is gewijzigd.`;
     }
-    actionUrl = "https://globetrotr.nl/dashboard";
+    actionUrl = "https://portal.globetrotr.nl/dashboard";
   } else if (job.templateKey === "agency_access") {
     const parts = String(payload.body ?? "").split("|");
     const brand = parts[1] || (english ? "your Agency workspace" : "je Agency-workspace");
@@ -100,7 +100,7 @@ export function notificationCopy(job) {
       body = english
         ? `The branding for ${parts[2] || "a trip"} in ${brand} has changed.`
         : `De huisstijl van ${parts[2] || "een reis"} in ${brand} is gewijzigd.`;
-    actionUrl = "https://globetrotr.nl/agency-admin";
+    actionUrl = "https://portal.globetrotr.nl/agency-admin";
   } else if (job.templateKey === "trip_settlement") {
     const parts = String(payload.body ?? "").split("|");
     if (parts[0] === "completed")
@@ -114,8 +114,8 @@ export function notificationCopy(job) {
         : `${parts[2] || "Een reisgenoot"} stuurde je een betaalverzoek${amount ? ` van ${amount}` : ""} voor ${parts[1] || "je reis"}.`;
     }
     actionUrl = payload.tripId
-      ? `https://globetrotr.nl/trips/${payload.tripId}`
-      : "https://globetrotr.nl/dashboard";
+      ? `https://portal.globetrotr.nl/trips/${payload.tripId}`
+      : "https://portal.globetrotr.nl/dashboard";
   }
 
   return { subject: subject.slice(0, 160), body: body.slice(0, 5000), actionUrl, severity };

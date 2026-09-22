@@ -95,25 +95,26 @@ export const verifyAgencyDomain = createServerFn({ method: "POST" })
       .eq("workspace_uuid", id)
       .single();
     if (!domain?.custom_domain) throw new Error("CUSTOM_DOMAIN_REQUIRED");
-    const { resolveCname, resolveTxt } = await import("node:dns/promises");
+    const { resolve4, resolveCname, resolveTxt } = await import("node:dns/promises");
     let cname: string[] = [],
       txt: string[][] = [];
-    try {
-      [cname, txt] = await Promise.all([
-        resolveCname(domain.custom_domain),
-        resolveTxt(`_globetrotr.${domain.custom_domain}`),
-      ]);
-    } catch {
-      // DNS lookup failures are represented by cnameOk/txtOk=false below.
-    }
+    const [cnameResult, txtResult, domainIpResult, platformIpResult] = await Promise.allSettled([
+      resolveCname(domain.custom_domain),
+      resolveTxt(`_globetrotr.${domain.custom_domain}`),
+      resolve4(domain.custom_domain),
+      resolve4("portal.globetrotr.nl"),
+    ]);
+    if (cnameResult.status === "fulfilled") cname = cnameResult.value;
+    if (txtResult.status === "fulfilled") txt = txtResult.value;
     const cnameOk = cname.some((value) =>
-      ["globetrotr.nl", "dashboard.globetrotr.nl"].includes(value.replace(/\.$/, "").toLowerCase()),
-    );
+      ["globetrotr.nl", "dashboard.globetrotr.nl", "portal.globetrotr.nl"].includes(value.replace(/\.$/, "").toLowerCase()),
+    ) || (domainIpResult.status === "fulfilled" && platformIpResult.status === "fulfilled" &&
+      domainIpResult.value.some((ip) => platformIpResult.value.includes(ip)));
     const txtOk = txt.some(
       (parts) => parts.join("") === `globetrotr-verification=${domain.verification_token}`,
     );
     const verified = cnameOk && txtOk;
-    await client
+    const { error: updateError } = await client
       .from("agency_domains")
       .update({
         verification_status: verified ? "verified" : "failed",
@@ -121,5 +122,6 @@ export const verifyAgencyDomain = createServerFn({ method: "POST" })
         updated_at: new Date().toISOString(),
       })
       .eq("workspace_uuid", id);
+    if (updateError) throw new Error("DOMAIN_VERIFICATION_SAVE_FAILED");
     return { verified, cnameOk, txtOk };
   });

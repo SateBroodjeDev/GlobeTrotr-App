@@ -29,7 +29,7 @@ test("plan- en toegangsberichten worden als begrijpelijke zinnen verstuurd", () 
     payload: { title: "Toegang", body: "revoked|Noordreis|" },
   });
   assert.equal(plan.body, "Your current plan is pro.");
-  assert.equal(plan.actionUrl, "https://globetrotr.nl/billing");
+  assert.equal(plan.actionUrl, "https://portal.globetrotr.nl/billing");
   assert.equal(access.body, "De uitnodiging voor Noordreis is ingetrokken.");
 });
 
@@ -53,12 +53,12 @@ test("Agency- en betaalverzoeken lekken geen interne berichtcodes", () => {
   });
   assert.equal(agency.subject, "Agency role changed");
   assert.equal(agency.body, "Your role in Nordic Travel is now advisor.");
-  assert.equal(agency.actionUrl, "https://globetrotr.nl/agency-admin");
+  assert.equal(agency.actionUrl, "https://portal.globetrotr.nl/agency-admin");
   assert.equal(
     settlement.body,
     "Sanne stuurde je een betaalverzoek van 42.50 EUR voor Scandinavië.",
   );
-  assert.equal(settlement.actionUrl, "https://globetrotr.nl/trips/trip-1");
+  assert.equal(settlement.actionUrl, "https://portal.globetrotr.nl/trips/trip-1");
   assert.doesNotMatch(`${agency.body}${settlement.body}`, /role\||request\|/);
 });
 

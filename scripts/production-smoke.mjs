@@ -3,18 +3,26 @@ const timeoutMs = Number(process.env.SMOKE_TIMEOUT_MS || 12_000);
 
 const checks = [
   ["Homepage", "/", "text/html"],
-  ["Registreren", "/register", "text/html"],
-  ["Inloggen", "/auth", "text/html"],
+  ["Demo", "/demo", "text/html"],
+  ["Prijzen", "/prijzen", "text/html"],
+  ["About", "/about", "text/html"],
   ["Status", "/status", "text/html"],
   ["Contact", "/contact", "text/html"],
+  ["Privacy", "/privacy", "text/html"],
+  ["Voorwaarden", "/algemene-voorwaarden", "text/html"],
+  ["Terugbetaling", "/terugbetalingsbeleid", "text/html"],
   ["Roadmap", "/roadmap", "text/html"],
   ["Updates", "/updates", "text/html"],
   ["Headerlogo", "/assets/brand/logo.png", "image/"],
   ["E-maillogo", "/assets/email/logo.png", "image/"],
 ];
 
-async function inspect(label, path, expectedContentType) {
-  const url = new URL(path, baseUrl);
+if (!process.env.SMOKE_PORTAL_URL) {
+  checks.splice(4, 0, ["Registreren", "/register", "text/html"], ["Inloggen", "/auth", "text/html"]);
+}
+
+async function inspect(label, path, expectedContentType, origin = baseUrl) {
+  const url = new URL(path, origin);
   const response = await fetch(url, {
     redirect: "follow",
     signal: AbortSignal.timeout(timeoutMs),
@@ -23,7 +31,7 @@ async function inspect(label, path, expectedContentType) {
   const contentType = response.headers.get("content-type") || "";
   const finalUrl = new URL(response.url);
   if (!response.ok) throw new Error(`${label}: HTTP ${response.status} (${url})`);
-  if (finalUrl.origin !== baseUrl.origin || normalisePath(finalUrl.pathname) !== normalisePath(path))
+  if (finalUrl.origin !== origin.origin || normalisePath(finalUrl.pathname) !== normalisePath(path))
     throw new Error(`${label}: onverwachte redirect naar ${finalUrl}`);
   if (!contentType.toLowerCase().includes(expectedContentType))
     throw new Error(`${label}: onverwacht content-type ${contentType || "ontbreekt"}`);
@@ -49,6 +57,18 @@ for (const check of checks) {
   } catch (error) {
     failures.push(error instanceof Error ? error.message : String(error));
     console.error(`✗ ${failures.at(-1)}`);
+  }
+}
+
+if (process.env.SMOKE_PORTAL_URL) {
+  const portalOrigin = new URL(process.env.SMOKE_PORTAL_URL);
+  for (const [label, path] of [["Portaal inloggen", "/auth"], ["Portaal registreren", "/register"], ["Portaal dashboard", "/dashboard"]]) {
+    try {
+      console.log(`âœ“ ${await inspect(label, path, "text/html", portalOrigin)}`);
+    } catch (error) {
+      failures.push(error instanceof Error ? error.message : String(error));
+      console.error(`âœ— ${failures.at(-1)}`);
+    }
   }
 }
 

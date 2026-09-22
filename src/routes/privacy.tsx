@@ -39,8 +39,8 @@ function PrivacyPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed opacity-90">
           {text(
-            "Privacy- en browseropslagverklaring voor de live internationale beta en betaalde accounts. Versie 21 september 2026.",
-            "Privacy and browser-storage notice for the live international beta and paid accounts. Version 21 September 2026.",
+            "Privacy- en browseropslagverklaring voor de live internationale beta en betaalde accounts. Versie 22 september 2026.",
+            "Privacy and browser-storage notice for the live international beta and paid accounts. Version 22 September 2026.",
           )}
         </p>
       </header>
@@ -97,6 +97,12 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
+                  "Externe afbeeldingen in ontvangen bedrijfsmail worden standaard niet geladen. Als je ze zelf inschakelt, maakt je browser rechtstreeks verbinding met de afbeeldingsserver; die kan je IP-adres en het ophaaltijdstip zien. Zo'n server kan buiten de EU staan. Open ze alleen bij een vertrouwde afzender.",
+                  "External images in received company email are blocked by default. If you choose to load them, your browser connects directly to the image server, which may see your IP address and the time of the request. That server may be outside the EU. Load them only for a sender you trust.",
+                )}
+              </li>
+              <li>
+                {text(
                   "Vertaalconcepten: alleen wanneer een bevoegde gebruiker vertalen kiest, wordt de ingevoerde tekst tijdelijk naar de eigen vertaalservice op de Duitse server gestuurd. Het resultaat wordt pas gebruikt nadat de gebruiker het heeft gecontroleerd; uitvoering van de overeenkomst.",
                   "Translation drafts: only when an authorised user chooses to translate is the entered text temporarily sent to the self-hosted translation service on the German server. The result is used only after the user reviews it; performance of the agreement.",
                 )}
@@ -143,8 +149,8 @@ function PrivacyPage() {
                 </li>
                 <li>
                   {text(
-                    "Supabase verzorgt database, authenticatie en bestandsopslag vanuit de gekozen Europese projectregio. Primaire account-, reis- en documentgegevens blijven daardoor binnen de Europese Unie zolang GlobeTrotr deze configuratie gebruikt.",
-                    "Supabase provides database, authentication and file storage from the selected European project region. Primary account, trip and document data therefore remains within the European Union while GlobeTrotr uses this configuration.",
+                  "Supabase verzorgt database, authenticatie en bestandsopslag vanuit de gekozen Europese projectregio. Primaire account-, reis- en documentgegevens staan daardoor binnen de Europese Unie zolang GlobeTrotr deze configuratie gebruikt. Andere leveranciers en optionele koppelingen kunnen gegevens buiten de EU verwerken; zie hieronder.",
+                  "Supabase provides database, authentication and file storage from the selected European project region. Primary account, trip and document data is therefore stored within the European Union while GlobeTrotr uses this configuration. Other providers and optional integrations may process data outside the EU; see below.",
                   )}
                 </li>
                 <li>
@@ -193,8 +199,8 @@ function PrivacyPage() {
             )}
           >
             {text(
-              "De primaire GlobeTrotr-opslag staat in de Europese Unie. Als je vrijwillig inlogt via Google of Discord, verwerkt die aanbieder de aanmelding en deelt deze minimaal je account-ID, naam, e-mailadres en profielfoto met Supabase Auth. De aanbieder kan gegevens buiten de EER verwerken volgens zijn eigen privacyvoorwaarden. GlobeTrotr ontvangt nooit je wachtwoord van die aanbieder. Ook gekozen functies zoals vluchtinformatie, locatiezoekopdrachten en betaling kunnen minimale gegevens aan een leverancier buiten de EER doorgeven. Waar vereist gebruikt GlobeTrotr een adequaatheidsbesluit, standaardcontractbepalingen en aanvullende maatregelen.",
-              "GlobeTrotr's primary storage is located in the European Union. If you voluntarily sign in through Google or Discord, that provider processes the sign-in and shares at least your account ID, name, email address and profile image with Supabase Auth. The provider may process data outside the EEA under its own privacy terms. GlobeTrotr never receives your provider password. Selected features such as flight information, location searches and payments may also transfer minimal data to a supplier outside the EEA. Where required, GlobeTrotr uses an adequacy decision, standard contractual clauses and supplementary measures.",
+              "De primaire GlobeTrotr-opslag staat in de Europese Unie. Als je vrijwillig inlogt via Google of Discord, verwerkt die aanbieder de aanmelding en deelt deze je account-ID en, afhankelijk van de verleende rechten, je naam, e-mailadres of profielfoto met Supabase Auth. De aanbieder kan gegevens buiten de EER verwerken volgens zijn eigen privacyvoorwaarden. GlobeTrotr ontvangt nooit je wachtwoord van die aanbieder. Ook gekozen functies zoals vluchtinformatie, locatiezoekopdrachten en betaling kunnen noodzakelijke gegevens aan een leverancier buiten de EER doorgeven. Voor doorgiften die GlobeTrotr zelf beheert, beoordelen we de toepasselijke doorgiftegrondslag en aanvullende maatregelen.",
+              "GlobeTrotr's primary storage is located in the European Union. If you voluntarily sign in through Google or Discord, that provider processes the sign-in and shares your account ID and, depending on the permissions granted, your name, email address or profile image with Supabase Auth. The provider may process data outside the EEA under its own privacy terms. GlobeTrotr never receives your provider password. Selected features such as flight information, location searches and payments may also transfer necessary data to a supplier outside the EEA. For transfers managed by GlobeTrotr, we assess the applicable transfer mechanism and supplementary measures.",
             )}
           </Policy>
           <Policy title={text("5. Bewaren", "5. Retention")}>
@@ -344,8 +350,8 @@ function PrivacyPage() {
             </div>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
               {text(
-                "De inventaris omvat localStorage, functionele cookies en vergelijkbare browseropslag. GlobeTrotr gebruikt geen advertentie-, marketing- of gedragsprofileringcookies. Noodzakelijke opslag houdt de sessie en beveiliging werkend. De taalvoorkeur wordt alleen na jouw privacykeuze bewaard; thema en zijbalkstand worden bewaard wanneer je die functies zelf instelt. Turnstile kan noodzakelijke beveiligingsgegevens gebruiken. Kies je voor Google of Discord, dan kan die aanbieder op zijn eigen domein cookies of opslag gebruiken volgens zijn eigen beleid.",
-                "The inventory covers localStorage, functional cookies and similar browser storage. GlobeTrotr uses no advertising, marketing or behavioural-profiling cookies. Necessary storage keeps sessions and security working. The language preference is stored only after your privacy choice; theme and sidebar state are stored when you choose those functions. Turnstile may use necessary security data. If you choose Google or Discord, that provider may use cookies or storage on its own domain under its own policy.",
+                "De inventaris omvat localStorage, functionele cookies en vergelijkbare browseropslag. De website op globetrotr.nl en het accountportaal op portal.globetrotr.nl hebben gescheiden browseropslag. Je inlogsessie en lokale reiscache staan op de portalhost; na de verhuizing kan eenmalig opnieuw inloggen nodig zijn. GlobeTrotr gebruikt geen advertentie-, marketing- of gedragsprofileringcookies. De taalvoorkeur wordt alleen na jouw privacykeuze bewaard; thema en zijbalkstand worden bewaard wanneer je die functies zelf instelt. Turnstile kan noodzakelijke beveiligingsgegevens gebruiken. Kies je voor Google of Discord, dan kan die aanbieder op zijn eigen domein cookies of opslag gebruiken volgens zijn eigen beleid.",
+                "The inventory covers localStorage, functional cookies and similar browser storage. The website at globetrotr.nl and account portal at portal.globetrotr.nl have separate browser storage. Your sign-in session and local trip cache live on the portal host; a one-time sign-in may be needed after the move. GlobeTrotr uses no advertising, marketing or behavioural-profiling cookies. The language preference is stored only after your privacy choice; theme and sidebar state are stored when you choose those functions. Turnstile may use necessary security data. If you choose Google or Discord, that provider may use cookies or storage on its own domain under its own policy.",
               )}
             </p>
           </section>

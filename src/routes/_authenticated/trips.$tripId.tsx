@@ -140,6 +140,11 @@ function TripDetail() {
   const found = state.trips.find((t) => t.id === tripId);
   if (!found) throw notFound();
   const trip = found;
+  const tripIsCurrent = tripStatus(trip) === "current";
+  const [activeTab, setActiveTab] = useState(() => tripIsCurrent ? "today" : "route");
+  useEffect(() => {
+    setActiveTab(tripIsCurrent ? "today" : "route");
+  }, [trip.id, tripIsCurrent]);
 
   const base = state.baseCurrency;
   const { user } = useAuth();
@@ -847,8 +852,31 @@ function TripDetail() {
       </div>
       <Progress value={trip.budget ? Math.min(100, (spent / trip.budget) * 100) : 0} />
 
-      <Tabs defaultValue="route">
-        <TabsList className="h-auto max-w-full flex-wrap justify-start">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <label className="block space-y-1 text-sm sm:hidden">
+          <span className="font-medium">{text("Reisonderdeel", "Trip section")}</span>
+          <select className="h-12 w-full rounded-lg border bg-background px-3" value={activeTab}
+            onChange={(event) => setActiveTab(event.target.value)}>
+            <optgroup label={text("Overzicht", "Overview")}>
+              <option value="today">{text("Vandaag", "Today")}</option>
+              <option value="route">{text("Routekaart", "Route map")}</option>
+              <option value="plan">{text("Reisschema", "Itinerary")}</option>
+            </optgroup>
+            {editable && <optgroup label={text("Plannen", "Planning")}>
+              <option value="plan-edit">{text("Reisschema aanpassen", "Edit itinerary")}</option>
+            </optgroup>}
+            <optgroup label={text("Geld en spullen", "Money and essentials")}>
+              <option value="expenses">{text("Uitgaven", "Expenses")}</option>
+              <option value="money">{text("Geld-tools", "Money tools")}</option>
+              <option value="packing">{text("Paklijst", "Packing list")}</option>
+              <option value="documents">{text("Documenten", "Documents")}</option>
+            </optgroup>
+            <optgroup label={text("Beheer", "Manage")}>
+              <option value="settings">{text("Instellingen", "Settings")}</option>
+            </optgroup>
+          </select>
+        </label>
+        <TabsList className="hidden h-auto max-w-full flex-wrap justify-start sm:inline-flex">
           <TabsTrigger value="today">{text("Vandaag", "Today")}</TabsTrigger>
           <TabsTrigger value="route">{text("Routekaart", "Route map")}</TabsTrigger>
           <TabsTrigger value="plan">{text("Reisschema", "Itinerary")}</TabsTrigger>

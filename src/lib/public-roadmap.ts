@@ -1,9 +1,9 @@
 export const PUBLIC_TODAY = {
-  date: ["21 september 2026", "21 September 2026"],
-  title: ["Beta in gebruik, betrouwbaarheid verbeteren", "Beta in use, improving reliability"],
+  date: ["22 september 2026", "22 September 2026"],
+  title: ["Beta in gebruik, publieke opening voorbereiden", "Beta in use, preparing public launch"],
   description: [
-    "Een eerste groep gebruikt GlobeTrotr. We onderzoeken meldingen over uitnodigingen, betalingen, agenda-export, bedrijfsmail en Agency-toegang.",
-    "An initial group is using GlobeTrotr. We are investigating reports about invitations, payments, calendar exports, company mail and Agency access.",
+    "Een eerste groep gebruikt GlobeTrotr. Voor de publieke opening controleren we de complete reis, betaling, mail en Agency-domeinen opnieuw in productie.",
+    "An initial group is using GlobeTrotr. Before the public launch, we are rechecking the complete trip, payment, mail and Agency domain flows in production.",
   ],
   completed: [
     [
@@ -52,73 +52,57 @@ export const PUBLIC_TODAY = {
 export const PUBLIC_ROADMAP = [
   {
     status: "now",
-    title: ["Internationale beta verbeteren", "Improve the international beta"],
+    title: ["Publieke opening voorbereiden", "Prepare the public launch"],
     description: [
-      "Feedback verwerken, bekende problemen oplossen en de ervaring op telefoon verder aanscherpen.",
-      "Process feedback, resolve known issues and further refine the mobile experience.",
+      "De belangrijkste klantstromen met echte accounts en apparaten bevestigen en gevonden fouten oplossen.",
+      "Confirm the main customer journeys with real accounts and devices, then resolve any findings.",
     ],
     items: [
       [
-        "Betalingskoppeling, live agendalinks, uitnodigingen en Agency-klanttoegang in de actieve beta verifiëren",
-        "Verify payment linking, live calendar feeds, invitations and Agency client access in the active beta",
+        "Agency-subdomeinen en eigen domeinen met DNS, HTTPS en klanttoegang controleren",
+        "Verify Agency subdomains and custom domains with DNS, HTTPS and client access",
       ],
       [
-        "Paddle-betalingen tegen het juiste account, workspaceplan en toegangsrecht controleren",
-        "Verify Paddle payments against the correct account, workspace plan and access rights",
+        "Registratie, uitnodigingen, betalingen en live agendalinks met echte accounts bevestigen",
+        "Confirm sign-up, invitations, payments and live calendar feeds with real accounts",
       ],
       [
         "Nederlandse en Engelse servicemails en meldingen zonder technische codes controleren",
         "Verify Dutch and English service emails and notifications without technical codes",
       ],
       [
-        "Publieke reisschema's, mailtaal en mobiele uitgavenformulieren met testers nalopen",
-        "Review public itineraries, email language and mobile expense forms with testers",
+        "Homepage, demo, reispagina's, privacy en mobiel gebruik in beide talen nalopen",
+        "Review home, demo, trip pages, privacy and mobile use in both languages",
       ],
       [
         "Bedrijfsmailgesprekken, bijlagen, opmaak en beveiligde verwerking in de beta controleren",
         "Verify company-mail conversations, attachments, formatting and secure processing in the beta",
       ],
-      [
-        "Postvakstatus en herstel na een mislukte synchronisatie met testers controleren",
-        "Verify mailbox status and recovery after a failed synchronisation with testers",
-      ],
-      [
-        "Agency-downgrade en terugkeer naar GlobeTrotr praktisch controleren",
-        "Practically verify Agency downgrade and return to GlobeTrotr",
-      ],
-      [
-        "De vernieuwde homepage en productrondleiding op telefoon en desktop controleren",
-        "Review the renewed homepage and product tour on mobile and desktop",
-      ],
-      [
-        "Actuele beta-beperkingen transparant opvolgen",
-        "Transparently track current beta limitations",
-      ],
-      [
-        "Betrouwbaarheid en privacy blijven controleren",
-        "Continue checking reliability and privacy",
-      ],
     ],
   },
   {
     status: "next",
-    title: ["Samenwerking en communicatie", "Collaboration and communication"],
+    title: ["Samenwerking verfijnen", "Refine collaboration"],
     description: [
-      "Uitnodigingen en updates eenvoudiger bij alle reizigers krijgen.",
-      "Make invitations and updates easier to reach every traveller.",
+      "Dagelijkse samenwerking voor reizigers en reisorganisaties eenvoudiger maken.",
+      "Make everyday collaboration easier for travellers and travel organisations.",
     ],
     items: [
       [
-        "Zelf gehoste EU-vertaling voor feedback, meldingen, onderhoud, recensies en mail met menselijke controle testen",
-        "Test self-hosted EU translation for feedback, notices, maintenance, testimonials and mail with human review",
+        "Uitnodigingen en rolwissels voor grotere groepen vereenvoudigen",
+        "Simplify invitations and role changes for larger groups",
       ],
       [
-        "HTML-handtekeningen met logo en tekstfallback in gangbare mailapps controleren",
-        "Verify HTML signatures with logo and text fallback in common email apps",
+        "Agency-klantportaal verder laten aansluiten op eigen huisstijl en domein",
+        "Bring the Agency client portal closer to each organisation's brand and domain",
       ],
       [
-        "Tijdelijk mislukte bedrijfsmail met behoud van opmaak en bijlagen opnieuw bezorgen",
-        "Retry temporarily failed company email while preserving formatting and attachments",
+        "Bedrijfsmailgesprekken en samenwerken aan antwoorden overzichtelijker maken",
+        "Make company-mail conversations and shared replies easier to manage",
+      ],
+      [
+        "Vertaalconcepten sneller beoordelen voordat ze zichtbaar worden",
+        "Make translation drafts faster to review before they are published",
       ],
     ],
   },
@@ -132,6 +116,7 @@ export const PUBLIC_ROADMAP = [
     items: [
       ["Boekingsbevestigingen omzetten naar concepten", "Turn booking confirmations into drafts"],
       ["Offline reisoverzicht vooraf downloaden", "Download an offline trip overview in advance"],
+      ["Optioneel reisdagboek met foto's en expliciete zichtbaarheid", "Optional trip journal with photos and explicit visibility"],
       [
         "Routevolgorde met handmatige bevestiging optimaliseren",
         "Optimise route order with manual confirmation",

@@ -91,7 +91,7 @@ export const createTripInvitation = createServerFn({ method: "POST" })
       locale: mailLocale(recipient?.locale),
       title: `Uitnodiging voor ${trip?.name ?? "een reis"} / Invitation to ${trip?.name ?? "a trip"}`,
       body: `Je bent als ${data.role} uitgenodigd voor ${trip?.name ?? "een reis"}. Bekijk eerst de reisgegevens en kies daarna zelf of je deelneemt. Deze persoonlijke link is zeven dagen geldig. / You have been invited to ${trip?.name ?? "a trip"} as ${data.role}. Review the trip details and then choose whether to join. This personal link is valid for seven days.`,
-      actionUrl: `https://globetrotr.nl/invite/${token}`,
+      actionUrl: `https://portal.globetrotr.nl/invite/${token}`,
       invitationType: "trip",
       invitationId: invitation.id,
     });
@@ -216,7 +216,7 @@ export const manageTripInvitation = createServerFn({ method: "POST" })
           locale: mailLocale(recipient?.locale),
           title: `Uitnodiging voor ${trip?.name ?? "een reis"} / Invitation to ${trip?.name ?? "a trip"}`,
           body: `Je vernieuwde uitnodiging voor ${trip?.name ?? "een reis"} staat klaar. / Your renewed invitation to ${trip?.name ?? "a trip"} is ready.`,
-          actionUrl: `https://globetrotr.nl/invite/${token}`,
+          actionUrl: `https://portal.globetrotr.nl/invite/${token}`,
           invitationType: "trip",
           invitationId: data.invitationId,
         });

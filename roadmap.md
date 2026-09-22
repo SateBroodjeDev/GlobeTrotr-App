@@ -1,6 +1,18 @@
 # GlobeTrotr roadmap
 
-**Actuele betaalstand:** migraties 1330–1340 zijn uitgevoerd en een echte betaling met 93% korting activeert Pro met downloadbare Paddle-factuur. Migraties 1350–1380 en de code-uitrol voor eentalige betaalmeldingen, gerichte webhookherverwerking, MRR-uitleg, bewuste herhaalaankopen, uitgebreidere vertaalconcepten, de HTML-handtekening en gecontroleerd opnieuw bezorgen staan nog open. Zes losse maandbetalingen stapelen zes maanden toegang. Test de live ICS-feed na afronding opnieuw.
+**Portalverhuizing voorbereid:** [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md) beschrijft DNS, Auth, Caddy en de uitrol. De website blijft op `globetrotr.nl`; Free/Pro en Agency-beheer gaan naar `portal.globetrotr.nl`. Agency-hosts krijgen een gecontroleerde redirect naar het centrale dashboard; een blijvend dashboard op de Agency-host blijft later werk.
+
+**Publieke vrijgave, 22 september 2026:** de pagina-, betaal-, privacy- en DNS-beslislijst staat in [PRE_RELEASE.md](PRE_RELEASE.md). Migraties 1450–1470 voegen Corporate Admin-controles toe. Agency-DNS/TLS en de gecontroleerde doorverwijzing moeten met echte domeinen en twee gescheiden accounts worden bewezen voordat eigen Agency-domeinen als werkend worden aangekondigd.
+
+**Volgende mailuitrol:** ingebedde `cid:`-afbeeldingen uit nieuw ontvangen mail tonen via gescande private bijlagen; migratie 1410 en nieuwe IMAP- en webbuild vereist. Eerder geïmporteerde berichten worden niet automatisch aangevuld.
+
+**Volgende mailverbetering:** lange ontvangen HTML-mail kan groter worden gelezen; externe afbeeldingen zijn alleen na bewuste keuze zichtbaar. Privacytekst en acceptatiecontrole staan in migratie 1400.
+
+**Volgende kleine uitrol:** Corporate Admin toont voortaan een gemaskeerde opgeslagen-wachtwoordstatus en scheidt opslagfouten van verversfouten. Migratie 1390 werkt de testchecklist bij; controleer dezelfde mailboxsleutel op Node-01 en Node-02.
+
+**Volgende kleine uitrol:** de rustigere bedrijfsmailopmaak zonder herhaalde headertekst, extra knop en footer staat in code klaar. Node-02-relay en Node-01-web opnieuw bouwen; geen SQL nodig.
+
+**Actuele productiestand:** migraties 1330–1380 en commit `b6b8d0f` zijn uitgerold. De eigenaar heeft betaling en rechten, live agenda, vertaalconcepten, HTML-handtekeningen en gecontroleerd opnieuw bezorgen werkend bevestigd. Zes losse maandbetalingen stapelen zes maanden toegang.
 
 **Releasecontrole 21 september 2026:** nog geen vrijgaveadvies. De 75 lokale tests, ESLint en volledige TypeScript-controle slagen; de lokale Windows-Nitrobouw stopt op `EPERM`, en migraties 1180 tot en met 1300 plus de praktische beta-testen staan open. Zie [de actuele releasehandleiding](IMPLEMENTATION_PENDING.md).
 
@@ -259,6 +271,12 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] Featureflags met interne, beta- of publieke doelgroep, verplichte reden en auditlog.
 - [x] Privacyverzoeken en wettelijke afhandelingstermijnen registreren en volgen.
 - [x] Beperkte interne incidentenmodule met ernst, status en auditregistratie.
+- [x] Interne incidenten vanuit Governance aanmaken en bijwerken; afgeronde privacyverzoeken archiveren en herstellen.
+- [x] Handtekeningen uitsluitend per postvak vanuit Corporate Admin beheren en de inbox op berichten richten.
+- [x] Passkeys, wachtwoord wijzigen en privacyverzoek indienen als afzonderlijke accountvensters aanbieden.
+- [x] Dashboard op lopende/eerstvolgende reis richten en de mobiele reisplanner in gegroepeerde onderdeelnavigatie tonen; praktijktest met echte reizen staat nog open.
+- [ ] De grote initiële JavaScriptbundel gericht splitsen en mobiele laadtijd meten.
+- [ ] Een optioneel visueel reisdagboek met foto's, verhalen en expliciete zichtbaarheid uitwerken zonder privégegevens te publiceren.
 - [ ] Echte vierogenautorisatie voor definitieve, onomkeerbare acties.
 - [ ] Minimale aggregatie-RPC's gebruiken waar dashboards nu nog brede service-role-queries doen.
 
@@ -283,7 +301,9 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - [x] DNS, Caddy-certificaat, hostfirewall en private Hetzner-netwerk op de echte servers geactiveerd.
 - [ ] Externe uptimebewaking instellen en een herstel naar de vorige stabiele containerrelease daadwerkelijk uitvoeren.
 - [x] Inkomende hostnames veilig aan uitsluitend geverifieerde actieve Agencies koppelen, met wildcard TLS voor subdomeinen en begrensde on-demand TLS voor eigen domeinen; praktijktest met een echt klantdomein blijft onderdeel van de acceptatieronde.
-- [x] Voor eigen Agency-domeinen CNAME naar `dashboard.globetrotr.nl`, een afzonderlijk TXT-verificatierecord, veilige hostselectie en automatische intrekking bij blokkade of abonnementswijziging bouwen.
+- [x] Voor eigen Agency-domeinen CNAME/TXT-verificatie en begrensde TLS-toelating bouwen; nieuw CNAME-doel is `portal.globetrotr.nl`, bestaande doelen blijven verifieerbaar.
+- [x] Agency-host als gecontroleerde centrale portalingang bouwen, inclusief actieve-workspacecontrole en blokkade voor andere Agency-accounts.
+- [ ] Indien gewenst later een volledig dashboard op de Agency-host bouwen; daarvoor cross-origin sessies, passkeys en huisstijl op alle routes afzonderlijk ontwerpen en testen.
 - [x] Opslagarchitectuur vastleggen: Supabase Storage blijft eerst actief en alle toekomstige serverkoppelingen gebruiken `provider + bucket + objectKey`.
 - [ ] Alleen bij aantoonbaar kosten- of capaciteitsvoordeel private objecten gecontroleerd naar Hetzner S3 migreren met checksum, terugvalpad en hersteltest.
 
@@ -372,7 +392,7 @@ De databaselaag, migraties en SQL-regressietests tot en met 20260908072000_updat
 - Nieuwe sociale accounts krijgen na de volgende uitrol een eenmalige profielstap voor naam, optionele telefoon en foto. Migratie 1310 en een echte OAuth-test zijn nog vereist.
 - Lange bedrijfsmail hoort na de volgende uitrol binnen het scherm te blijven; test dit met echte HTML-mails op mobiel en desktop.
 - Inkomende HTML-bedrijfsmail krijgt in 1180 aparte opslag en een afgeschermde weergave; uitgaande HTML en handtekening moeten in een echte mailclient worden beoordeeld.
-- Zelf gehoste vertaalconcepten zijn gebouwd voor feedback, antwoorden, bekende problemen, platformmeldingen, onderhoud, recensies en bedrijfsmail. Praktische controle na migratie 1360 blijft open. Apple- en Microsoft-login zijn niet beschikbaar; Google en Discord werken volgens de eigenaar.
+- Zelf gehoste vertaalconcepten zijn gebouwd voor feedback, antwoorden, bekende problemen, platformmeldingen, onderhoud, recensies en bedrijfsmail. Praktische controle na migratie 1360 blijft open. Google en Discord werken volgens de eigenaar.
 
 ## Productkansen uit concurrentieonderzoek — na stabilisatie
 

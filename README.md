@@ -1,6 +1,6 @@
 # GlobeTrotr
 
-Voor de bestaande productie-beta gebruik je [de actuele uitrol](IMPLEMENTATION_PENDING.md). [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md) is alleen voor een volledig nieuw, leeg Supabase-project.
+Voor de bestaande productie-beta gebruik je [de actuele uitrol](IMPLEMENTATION_PENDING.md) en [de publieke vrijgavecontrole](PRE_RELEASE.md). [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md) is alleen voor een volledig nieuw, leeg Supabase-project.
 
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
@@ -15,7 +15,7 @@ De huidige versie draait als internationale beta op eigen GlobeTrotr-infrastruct
 - Beveiligde samenwerking per reis met rollen, uitnodigingslink, accountmelding, accepteren, weigeren, vernieuwen en intrekken.
 - Openbare reispagina's met kaart, planning, optioneel gedeelde boekingen, PIN-bescherming en weer.
 - JSON-back-up per reis, volledige workspaceback-up, veilige import en AVG-gegevensexport.
-- Agenda-export van dagplanning en boekingen naar Apple Calendar, Google Calendar, Outlook en andere agenda-apps.
+- Agenda-export van dagplanning en boekingen naar gangbare agenda-apps.
 - Reisstatistieken met reisduur, bestemmingen, overnachtingen, uitgavenverdeling, daggemiddelde en budgetprognose.
 - Veilige reisduplicatie voor een private routevariant zonder deelnemers, uitgaven, boekingsreferenties of deelinstellingen over te nemen.
 - GPX-export van de route en gecontroleerd omkeren van de bestemmingsvolgorde.
@@ -70,7 +70,7 @@ Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`T
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1340** uitgevoerd en activeert een echte betaling met 93% korting Pro met een Paddle-factuur. Migraties **1350–1380** en hun tests voor eentalige betaalmeldingen, gerichte webhookherverwerking, tweerichtings-vertaalconcepten, de veilige HTML-handtekening en gecontroleerd opnieuw bezorgen staan nog open. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md).
+Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1390** uitgevoerd en activeert een echte betaling met 93% korting Pro met een Paddle-factuur. De latere mail-, Governance-, account- en domeinverbeteringen tot en met **1470** zijn lokaal voorbereid; controleer per migratie wat al in Supabase staat voordat je ontbrekende stappen uitvoert. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md), de [portalomschakeling](PORTAL_DOMAIN_MIGRATION.md) en de [productcontrole](PRODUCT_REVIEW_2026-09-22.md).
 
 De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag. [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
 

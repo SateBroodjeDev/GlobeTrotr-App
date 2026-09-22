@@ -71,10 +71,12 @@ export function AgencyDeliverySettings() {
       else
         toast.error(
           text(
-            `DNS is nog niet compleet. CNAME: ${result.cnameOk ? "ok" : "mist"}, TXT: ${result.txtOk ? "ok" : "mist"}.`,
-            `DNS is incomplete. CNAME: ${result.cnameOk ? "ok" : "missing"}, TXT: ${result.txtOk ? "ok" : "missing"}.`,
+            `DNS is nog niet compleet. DNS-doel: ${result.cnameOk ? "ok" : "mist"}, TXT: ${result.txtOk ? "ok" : "mist"}.`,
+            `DNS is incomplete. DNS target: ${result.cnameOk ? "ok" : "missing"}, TXT: ${result.txtOk ? "ok" : "missing"}.`,
           ),
         );
+    } catch {
+      toast.error(text("DNS-controle kon niet worden afgerond. Probeer het later opnieuw.", "DNS verification could not be completed. Try again later."));
     } finally {
       setVerifying(false);
     }
@@ -102,16 +104,16 @@ export function AgencyDeliverySettings() {
           />
           <p className="text-xs text-muted-foreground">
             {text(
-              "Na self-hosting verifieert GlobeTrotr een TXT-record en activeert daarna automatisch TLS. Status:",
-              "After self-hosting, GlobeTrotr verifies a TXT record and then automatically enables TLS. Status:",
+              "DNS en HTTPS voor je GlobeTrotr-subdomein werken na registratie en verificatie. De koppeling met de juiste Agency-workspace wordt afzonderlijk gecontroleerd voordat het domein als portaal wordt vrijgegeven. Voor een eigen domein controleer je eerst CNAME en TXT. Status:",
+              "DNS and HTTPS for your GlobeTrotr subdomain work after registration and verification. We check the link to the correct Agency workspace separately before enabling the domain as a portal. For a custom domain, first verify CNAME and TXT. Status:",
             )}{" "}
             {form.domainStatus}
           </p>
-          {form.verificationToken && (
+          {form.customDomain && form.verificationToken && (
             <div className="space-y-2 rounded-lg bg-muted p-3 text-xs">
               <p>
                 CNAME <strong>{form.customDomain || text("jouw domein", "your domain")}</strong> →{" "}
-                <strong>globetrotr.nl</strong>
+                <strong>portal.globetrotr.nl</strong>
               </p>
               <p>
                 TXT <strong>_globetrotr.{form.customDomain}</strong>

@@ -51,6 +51,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({ meta: [{ title: "Accountinstellingen - GlobeTrotr" }] }),
@@ -140,6 +141,8 @@ function AccountPage() {
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [privacyDialogOpen, setPrivacyDialogOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const importInput = useRef<HTMLInputElement>(null);
   const [oauthAction, setOauthAction] = useState<string>();
@@ -467,6 +470,7 @@ function AccountPage() {
       await recordAccountSecurityEvent({ data: { event: "password_changed" } });
       setNewPassword("");
       setRepeatPassword("");
+      setPasswordDialogOpen(false);
       toast.success(text("Wachtwoord gewijzigd.", "Password changed."));
     } catch (error) {
       toast.error(
@@ -646,6 +650,7 @@ function AccountPage() {
     try {
       await submitPrivacyRequest({ data: { type: privacyType, notes: privacyNotes } });
       setPrivacyNotes("");
+      setPrivacyDialogOpen(false);
       await privacyRequests.refetch();
       toast.success(
         text(
@@ -935,7 +940,16 @@ function AccountPage() {
                 </Button>
               ))}
             </div>
-            <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button type="button" variant="outline" className="w-full justify-between">
+                  <span className="flex items-center gap-2"><KeyRound className="size-4" />Passkeys</span>
+                  <Badge variant="secondary">{passkeys.data?.length ?? 0}</Badge>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[85vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>Passkeys</DialogTitle></DialogHeader>
+            <div className="space-y-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-medium">Passkeys</p>
@@ -977,6 +991,8 @@ function AccountPage() {
                 </div>
               ))}
             </div>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
         <Card className="surface">
@@ -1123,11 +1139,18 @@ function AccountPage() {
                 </Link>
               </Button>
             </div>
-            <details className="rounded-xl border border-border bg-muted/30 p-4">
-              <summary className="cursor-pointer font-medium">
-                {text("Wachtwoord wijzigen", "Change password")}
-              </summary>
-              <div className="mt-3 space-y-3">
+            <Dialog open={passwordDialogOpen} onOpenChange={(open) => {
+              setPasswordDialogOpen(open);
+              if (!open) { setNewPassword(""); setRepeatPassword(""); }
+            }}>
+              <DialogTrigger asChild>
+                <Button type="button" variant="outline" className="w-full justify-start gap-2">
+                  <KeyRound className="size-4" />{text("Wachtwoord wijzigen", "Change password")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[85vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>{text("Wachtwoord wijzigen", "Change password")}</DialogTitle></DialogHeader>
+              <div className="space-y-3">
                 <div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {text(
@@ -1172,7 +1195,8 @@ function AccountPage() {
                     : text("Nieuw wachtwoord opslaan", "Save new password")}
                 </Button>
               </div>
-            </details>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       </div>
@@ -1242,6 +1266,13 @@ function AccountPage() {
                 )}
               </p>
             </div>
+            <Dialog open={privacyDialogOpen} onOpenChange={setPrivacyDialogOpen}>
+              <DialogTrigger asChild>
+                <Button type="button" variant="outline">{text("Privacyverzoek indienen", "Submit privacy request")}</Button>
+              </DialogTrigger>
+              <DialogContent className="max-h-[85vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>{text("Privacyverzoek indienen", "Submit privacy request")}</DialogTitle></DialogHeader>
+                <div className="space-y-3">
             <select
               className="h-10 w-full rounded-md border bg-background px-3"
               value={privacyType}
@@ -1273,6 +1304,9 @@ function AccountPage() {
                 ? text("Even geduld...", "Submitting...")
                 : text("Privacyverzoek indienen", "Submit privacy request")}
             </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             {(privacyRequests.data?.length ?? 0) > 0 && (
               <div className="space-y-2 border-t pt-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
