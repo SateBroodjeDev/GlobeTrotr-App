@@ -180,6 +180,8 @@ export type AgencyTemplate = {
   createdAt: string;
   updatedAt: string;
 };
+export type AgencyContentItem={id:string;title:string;type:"destination"|"accommodation"|"activity"|"day_block"|"text"|"media";status:"draft"|"published";visibility:"organization"|"personal";locale:"nl"|"en";tags:string[];summary:string;body:string;sourceUrl:string;licenseLabel:string;version:number;ownerUserId:string;updatedAt:string};
+export type AgencyContentTarget={id:string;name:string;kind:"trip"|"quote";startDate:string;endDate:string};
 export type AgencyQuoteVariant = { name: string; description: string; amount: number };
 export type AgencyQuote = {
   id: string;
@@ -217,6 +219,11 @@ export type AgencyQuoteConversion = {
   amount: number;
   currency: string;
 };
+export type AgencyFormField = { key:string; type:"text"|"textarea"|"email"|"phone"|"date"|"number"|"choice"|"checkbox"; labelNl:string; labelEn:string; purpose:string; required:boolean; visibility:"client"; options?:string[] };
+export type AgencyFormTemplate = { id:string; name:string; introduction:string; fields:AgencyFormField[]; retentionDays:number; updatedAt:string };
+export type AgencyFormAnswer = string|number|boolean|null;
+export type AgencyFormRequest = { id:string; title:string; clientId:string; clientName:string; tripId:string; tripName:string; locale:"nl"|"en"; expiresAt:string; createdAt:string; revokedAt:string; submittedAt:string; responseId:string; responseStatus:string; answers:Record<string,AgencyFormAnswer> };
+export type AgencyFormBoard = { templates:AgencyFormTemplate[]; requests:AgencyFormRequest[]; clients:{id:string;name:string;locale:"nl"|"en";email:string}[]; trips:{id:string;name:string}[] };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID = /^[0-9a-f-]{36}$/i;
@@ -538,6 +545,62 @@ export const setAgencyClientArchived = createServerFn({ method: "POST" })
     );
     return { ok: true };
   });
+
+const FORM_TYPES = new Set(["text","textarea","email","phone","date","number","choice","checkbox"]);
+function cleanFormFields(fields:AgencyFormField[]){
+  const seen=new Set<string>();
+  const result=fields.slice(0,40).map(field=>({
+    key:clean(field.key,40).toLowerCase().replace(/[^a-z0-9_]/g,"_"),
+    type:field.type,labelNl:clean(field.labelNl,120),labelEn:clean(field.labelEn,120),
+    purpose:clean(field.purpose,240),required:Boolean(field.required),visibility:"client" as const,
+    ...(field.type==="choice"?{options:[...new Set((field.options??[]).map(x=>clean(x,100)).filter(Boolean))].slice(0,20)}:{}),
+  }));
+  for(const field of result){if(!/^[a-z][a-z0-9_]{1,39}$/.test(field.key)||seen.has(field.key)||!FORM_TYPES.has(field.type)||!field.labelNl||!field.labelEn||!field.purpose||field.type==="choice"&&!field.options?.length)throw new Error("INVALID_FORM_FIELDS");seen.add(field.key)}
+  if(!result.length)throw new Error("INVALID_FORM_FIELDS");return result;
+}
+export const getAgencyFormBoard=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
+  const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");
+  const [templates,requests,clients,trips]=await Promise.all([
+    db.from("agency_form_templates").select("id,name,introduction,fields,retention_days,updated_at").eq("workspace_uuid",access.workspaceId).is("archived_at",null).order("name"),
+    db.from("agency_form_requests").select("id,title,client_id,trip_uuid,locale,expires_at,created_at,revoked_at,submitted_at,agency_clients(full_name),trips(name),agency_form_responses(id,status,answers)").eq("workspace_uuid",access.workspaceId).order("created_at",{ascending:false}).limit(100),
+    db.from("agency_clients").select("id,full_name,email,locale").eq("workspace_uuid",access.workspaceId).eq("status","active").order("full_name"),
+    db.from("trips").select("trip_uuid,name").eq("workspace_uuid",access.workspaceId).eq("archived",false).order("name"),
+  ]);if([templates,requests,clients,trips].some(x=>x.error))throw new Error("AGENCY_FORMS_UNAVAILABLE");
+  return {templates:(templates.data??[]).map((x:any)=>({id:x.id,name:x.name,introduction:x.introduction??"",fields:x.fields,retentionDays:x.retention_days,updatedAt:x.updated_at})),requests:(requests.data??[]).map((x:any)=>{const response=Array.isArray(x.agency_form_responses)?x.agency_form_responses[0]:x.agency_form_responses;const client=Array.isArray(x.agency_clients)?x.agency_clients[0]:x.agency_clients;const trip=Array.isArray(x.trips)?x.trips[0]:x.trips;return{id:x.id,title:x.title,clientId:x.client_id,clientName:client?.full_name??"",tripId:x.trip_uuid??"",tripName:trip?.name??"",locale:x.locale,expiresAt:x.expires_at,createdAt:x.created_at,revokedAt:x.revoked_at??"",submittedAt:x.submitted_at??"",responseId:response?.id??"",responseStatus:response?.status??"",answers:response?.answers??{}}}),clients:(clients.data??[]).map((x:any)=>({id:x.id,name:x.full_name,locale:x.locale,email:x.email??""})),trips:(trips.data??[]).map((x:any)=>({id:x.trip_uuid,name:x.name}))} as AgencyFormBoard;
+});
+export const saveAgencyFormTemplate=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((input:{id?:string;name:string;introduction:string;fields:AgencyFormField[];retentionDays:number})=>input).handler(async({data,context})=>{
+ const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");const name=clean(data.name,100),fields=cleanFormFields(data.fields),retentionDays=Math.round(data.retentionDays);if(!name||retentionDays<1||retentionDays>730||(data.id&&!UUID.test(data.id)))throw new Error("INVALID_FORM_TEMPLATE");
+ const values={workspace_uuid:access.workspaceId,name,introduction:clean(data.introduction,1000)||null,fields,retention_days:retentionDays,updated_by:context.userId};let id=data.id;
+ if(id){const r=await db.from("agency_form_templates").update(values).eq("id",id).eq("workspace_uuid",access.workspaceId).is("archived_at",null).select("id").maybeSingle();if(r.error||!r.data)throw new Error("FORM_TEMPLATE_SAVE_FAILED")}else{const r=await db.from("agency_form_templates").insert({...values,created_by:context.userId}).select("id").single();if(r.error)throw new Error("FORM_TEMPLATE_SAVE_FAILED");id=r.data.id}
+ await agencyAudit(db,access.workspaceId,context.userId,data.id?"client_form.template.update":"client_form.template.create","client_form_template",id,{fieldCount:fields.length,retentionDays});return{ok:true,id};
+});
+export const archiveAgencyFormTemplate=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((x:{id:string})=>x).handler(async({data,context})=>{if(!UUID.test(data.id))throw new Error("INVALID_FORM_TEMPLATE");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");const r=await db.from("agency_form_templates").update({archived_at:new Date().toISOString(),updated_by:context.userId}).eq("id",data.id).eq("workspace_uuid",access.workspaceId).select("id").maybeSingle();if(r.error||!r.data)throw new Error("FORM_TEMPLATE_ARCHIVE_FAILED");await agencyAudit(db,access.workspaceId,context.userId,"client_form.template.archive","client_form_template",data.id);return{ok:true}});
+export const createAgencyFormRequest=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((x:{templateId:string;clientId:string;tripId:string;title:string;expiresInDays:number})=>x).handler(async({data,context})=>{
+ if(!UUID.test(data.templateId)||!UUID.test(data.clientId)||(data.tripId&&!UUID.test(data.tripId)))throw new Error("INVALID_FORM_REQUEST");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");
+ const [template,client,settings]=await Promise.all([db.from("agency_form_templates").select("id,name,introduction,fields,retention_days").eq("id",data.templateId).eq("workspace_uuid",access.workspaceId).is("archived_at",null).single(),db.from("agency_clients").select("id,full_name,email,locale").eq("id",data.clientId).eq("workspace_uuid",access.workspaceId).eq("status","active").single(),db.from("agency_settings").select("system_name,accent").eq("workspace_uuid",access.workspaceId).maybeSingle()]);if(template.error||client.error||settings.error||!client.data.email)throw new Error("FORM_REQUEST_DATA_INVALID");
+ const plain=token(),hash=await sha256(plain),days=Math.min(30,Math.max(1,Math.round(data.expiresInDays))),expires=new Date(Date.now()+days*86400000),title=clean(data.title,140)||template.data.name;
+ const created=await db.from("agency_form_requests").insert({workspace_uuid:access.workspaceId,template_id:data.templateId,client_id:data.clientId,trip_uuid:data.tripId||null,token_hash:hash,title,introduction:template.data.introduction,fields:template.data.fields,locale:client.data.locale,expires_at:expires.toISOString(),retention_until:new Date(expires.getTime()+template.data.retention_days*86400000).toISOString(),created_by:context.userId}).select("id").single();if(created.error)throw new Error("FORM_REQUEST_CREATE_FAILED");
+ const url=`https://globetrotr.nl/client-form/${plain}`;const delivery=await queueInvitationEmail(db,{recipient:client.data.email,locale:mailLocale(client.data.locale),title:client.data.locale==="nl"?`Informatie gevraagd: ${title}`:`Information requested: ${title}`,body:client.data.locale==="nl"?`Hallo ${client.data.full_name}, vul het beveiligde formulier in vóór ${expires.toLocaleDateString("nl-NL")}.`:`Hello ${client.data.full_name}, please complete the secure form before ${expires.toLocaleDateString("en-GB")}.`,actionUrl:url,invitationType:"client_form",invitationId:created.data.id,branding:{brandName:settings.data?.system_name||"GlobeTrotr",accentHue:Number(settings.data?.accent??174)}});
+ await agencyAudit(db,access.workspaceId,context.userId,"client_form.request.create","client_form",created.data.id,{clientId:data.clientId,tripId:data.tripId||null,delivery});return{ok:true,id:created.data.id,url,delivery};
+});
+export const manageAgencyFormRequest=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((x:{id:string;action:"revoke"|"review"|"process"|"archive"})=>x).handler(async({data,context})=>{
+ if(!UUID.test(data.id))throw new Error("INVALID_FORM_REQUEST");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"members_manage");const request=await db.from("agency_form_requests").select("id,client_id,trip_uuid,revoked_at,agency_form_responses(id,status,answers)").eq("id",data.id).eq("workspace_uuid",access.workspaceId).single();if(request.error)throw new Error("FORM_REQUEST_NOT_FOUND");const response=Array.isArray(request.data.agency_form_responses)?request.data.agency_form_responses[0]:request.data.agency_form_responses;
+ if(data.action==="revoke"){
+   const update=await db.from("agency_form_requests").update({revoked_at:new Date().toISOString(),token_hash:await sha256(token())}).eq("id",data.id).eq("workspace_uuid",access.workspaceId).select("id").maybeSingle();if(update.error||!update.data)throw new Error("FORM_REQUEST_UPDATE_FAILED");
+ }else{
+   if(!response)throw new Error("FORM_RESPONSE_REQUIRED");const now=new Date().toISOString();
+   if(data.action==="review"){const update=await db.from("agency_form_responses").update({status:"reviewed",reviewed_at:now,reviewed_by:context.userId}).eq("id",response.id).select("id").maybeSingle();if(update.error||!update.data)throw new Error("FORM_RESPONSE_UPDATE_FAILED")}
+   if(data.action==="archive"){const update=await db.from("agency_form_responses").update({status:"archived",archived_at:now,reviewed_by:context.userId}).eq("id",response.id).select("id").maybeSingle();if(update.error||!update.data)throw new Error("FORM_RESPONSE_UPDATE_FAILED")}
+   if(data.action==="process"){
+     const client=await db.from("agency_clients").select("preferences").eq("id",request.data.client_id).eq("workspace_uuid",access.workspaceId).single();if(client.error)throw new Error("CLIENT_NOT_FOUND");
+     const clientUpdate=await db.from("agency_clients").update({preferences:{...(client.data.preferences??{}),intake:response.answers},updated_at:now,updated_by:context.userId}).eq("id",request.data.client_id).eq("workspace_uuid",access.workspaceId).select("id").maybeSingle();if(clientUpdate.error||!clientUpdate.data)throw new Error("CLIENT_UPDATE_FAILED");
+     const responseUpdate=await db.from("agency_form_responses").update({status:"processed",processed_at:now,reviewed_at:now,reviewed_by:context.userId}).eq("id",response.id).select("id").maybeSingle();if(responseUpdate.error||!responseUpdate.data)throw new Error("FORM_RESPONSE_UPDATE_FAILED");
+   }
+ }
+ await agencyAudit(db,access.workspaceId,context.userId,`client_form.request.${data.action}`,"client_form",data.id,{clientId:request.data.client_id,tripId:request.data.trip_uuid});return{ok:true};
+});
+export const getPublicAgencyForm=createServerFn({method:"GET"}).validator((x:{token:string})=>x).handler(async({data})=>{if(!/^[0-9a-f]{64}$/i.test(data.token))return{status:"unavailable"};const db=await adminClient();const result=await db.rpc("get_public_agency_form",{p_token_hash:await sha256(data.token)});if(result.error)throw new Error("FORM_UNAVAILABLE");const value=result.data as any;if(value?.status==="available"&&value.branding?.logoPath){const signed=await db.storage.from("agency-logos").createSignedUrl(value.branding.logoPath,900);value.branding.logoUrl=signed.data?.signedUrl??null;delete value.branding.logoPath}return value});
+export const submitPublicAgencyForm=createServerFn({method:"POST"}).validator((x:{token:string;answers:Record<string,AgencyFormAnswer>})=>x).handler(async({data})=>{if(!/^[0-9a-f]{64}$/i.test(data.token))return{status:"unavailable"};const db=await adminClient();const result=await db.rpc("submit_public_agency_form",{p_token_hash:await sha256(data.token),p_answers:data.answers});if(result.error)throw new Error("FORM_SUBMIT_FAILED");return{status:result.data as string}});
 
 export const getAgencyAudit = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -1300,6 +1363,20 @@ export const archiveAgencyTemplate = createServerFn({ method: "POST" })
     );
     return { ok: true };
   });
+
+export const getAgencyContentLibrary=createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).handler(async({context})=>{
+ const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_view");let canManage=true;try{await workspaceForPermission(db,context.userId,"trips_plan")}catch{canManage=false}
+ const [result,trips,quotes]=await Promise.all([db.from("agency_content_library").select("id,title,content_type,status,visibility,locale,tags,content,source_url,license_label,version,owner_user_id,updated_at").eq("workspace_uuid",access.workspaceId).is("archived_at",null).order("updated_at",{ascending:false}),db.from("trips").select("trip_uuid,name,start_date,end_date").eq("workspace_uuid",access.workspaceId).eq("archived",false).order("start_date",{ascending:false}),db.from("agency_quotes").select("id,title,status").eq("workspace_uuid",access.workspaceId).in("status",["draft","ready"]).order("updated_at",{ascending:false})]);if(result.error||trips.error||quotes.error)throw new Error("AGENCY_CONTENT_LIBRARY_UNAVAILABLE");
+ return{canManage,items:(result.data??[]).filter((x:any)=>x.visibility==="organization"||x.owner_user_id===context.userId).map((x:any)=>({id:x.id,title:x.title,type:x.content_type,status:x.status,visibility:x.visibility,locale:x.locale,tags:x.tags??[],summary:String(x.content?.summary??""),body:String(x.content?.body??""),sourceUrl:x.source_url??"",licenseLabel:x.license_label??"",version:x.version,ownerUserId:x.owner_user_id,updatedAt:x.updated_at})) as AgencyContentItem[],targets:[...(trips.data??[]).map((x:any)=>({id:x.trip_uuid,name:x.name,kind:"trip",startDate:x.start_date??"",endDate:x.end_date??""})),...(quotes.data??[]).map((x:any)=>({id:x.id,name:x.title,kind:"quote",startDate:"",endDate:""}))] as AgencyContentTarget[]};
+});
+export const saveAgencyContentItem=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((x:{id?:string;title:string;type:AgencyContentItem["type"];status:AgencyContentItem["status"];visibility:AgencyContentItem["visibility"];locale:AgencyContentItem["locale"];tags:string[];summary:string;body:string;sourceUrl:string;licenseLabel:string})=>x).handler(async({data,context})=>{
+ const title=clean(data.title,120),summary=clean(data.summary,500),body=clean(data.body,20000),tags=[...new Set(data.tags.map(x=>clean(x.toLowerCase(),40)).filter(Boolean))].slice(0,20),sourceUrl=data.sourceUrl.trim(),licenseLabel=clean(data.licenseLabel,200);if(!title||!body||!( ["destination","accommodation","activity","day_block","text","media"] as string[]).includes(data.type)||(data.id&&!UUID.test(data.id))||(sourceUrl&&!/^https:\/\//.test(sourceUrl)))throw new Error("INVALID_CONTENT_LIBRARY_ITEM");
+ const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");const values={title,content_type:data.type,status:data.status,visibility:data.visibility,locale:data.locale,tags,content:{summary,body},source_url:sourceUrl||null,license_label:licenseLabel||null,updated_by:context.userId,reviewed_at:data.status==="published"?new Date().toISOString():null};let id=data.id;
+ if(id){const existing=await db.from("agency_content_library").select("owner_user_id,visibility").eq("id",id).eq("workspace_uuid",access.workspaceId).is("archived_at",null).maybeSingle();if(!existing.data||(existing.data.visibility==="personal"&&existing.data.owner_user_id!==context.userId))throw new Error("CONTENT_LIBRARY_SAVE_FAILED");const result=await db.from("agency_content_library").update(values).eq("id",id).eq("workspace_uuid",access.workspaceId).is("archived_at",null).select("id").maybeSingle();if(result.error||!result.data)throw new Error("CONTENT_LIBRARY_SAVE_FAILED")}else{const result=await db.from("agency_content_library").insert({...values,workspace_uuid:access.workspaceId,owner_user_id:context.userId,created_by:context.userId}).select("id").single();if(result.error)throw new Error("CONTENT_LIBRARY_SAVE_FAILED");id=result.data.id}
+ await agencyAudit(db,access.workspaceId,context.userId,data.id?"content_library.update":"content_library.create","content_library",id,{type:data.type,status:data.status,visibility:data.visibility});return{ok:true,id};
+});
+export const archiveAgencyContentItem=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((x:{id:string})=>x).handler(async({data,context})=>{if(!UUID.test(data.id))throw new Error("INVALID_CONTENT_LIBRARY_ITEM");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");const existing=await db.from("agency_content_library").select("owner_user_id,visibility").eq("id",data.id).eq("workspace_uuid",access.workspaceId).is("archived_at",null).maybeSingle();if(!existing.data||(existing.data.visibility==="personal"&&existing.data.owner_user_id!==context.userId))throw new Error("CONTENT_LIBRARY_ARCHIVE_FAILED");const result=await db.from("agency_content_library").update({archived_at:new Date().toISOString(),updated_by:context.userId}).eq("id",data.id).eq("workspace_uuid",access.workspaceId).select("id").maybeSingle();if(result.error||!result.data)throw new Error("CONTENT_LIBRARY_ARCHIVE_FAILED");await agencyAudit(db,access.workspaceId,context.userId,"content_library.archive","content_library",data.id);return{ok:true}});
+export const applyAgencyContentItem=createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).validator((x:{itemId:string;targetType:"trip"|"quote";targetId:string;targetDate?:string})=>x).handler(async({data,context})=>{if(!UUID.test(data.itemId)||!UUID.test(data.targetId)||!(["trip","quote"] as string[]).includes(data.targetType)||(data.targetDate&&!/^\d{4}-\d{2}-\d{2}$/.test(data.targetDate)))throw new Error("INVALID_CONTENT_APPLICATION");const db=await adminClient();const access=await workspaceForPermission(db,context.userId,"trips_plan");const result=await db.rpc("apply_agency_content_item",{p_workspace_uuid:access.workspaceId,p_actor:context.userId,p_content_item_id:data.itemId,p_target_type:data.targetType,p_target_id:data.targetId,p_target_date:data.targetDate||null});if(result.error)throw new Error(result.error.message.includes("QUOTE_TOO_LONG")?"CONTENT_APPLICATION_QUOTE_TOO_LONG":result.error.message.includes("DATE_OUTSIDE")?"CONTENT_APPLICATION_DATE_OUTSIDE_TRIP":"CONTENT_APPLICATION_FAILED");await agencyAudit(db,access.workspaceId,context.userId,"content_library.apply",data.targetType,data.targetId,{contentItemId:data.itemId,result:result.data});return{ok:true,result:result.data as "applied"|"duplicate"}});
 
 export const getAgencySettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

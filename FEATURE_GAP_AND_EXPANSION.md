@@ -1,6 +1,6 @@
 # GlobeTrotr — functie-gapanalyse en uitbreidingskansen
 
-**Stand: 22 september 2026**
+**Stand: 23 september 2026**
 
 Dit document beantwoordt twee vragen:
 
@@ -11,7 +11,7 @@ Uitrolstappen staan in [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md). V
 
 ## Conclusie
 
-De kern voor de huidige productie-beta is gebouwd: accounts, reizen, route, planning, boekingen, uitgaven, verrekening, taken, documenten, Vandaag, statistieken, exports, live agenda, openbare reizen, Agency Admin, klantportaal, Corporate Admin, privacyverzoeken, Paddle en bedrijfsmail.
+De kern voor de huidige productie-beta is gebouwd: accounts, reizen, route, planning, boekingen, uitgaven, verrekening, taken, documenten, Vandaag, statistieken, exports, live agenda, openbare reizen, Agency Admin, klantportaal, Corporate Admin, privacyverzoeken, Paddle en bedrijfsmail. De bestaande productie-mail loopt nog via ZXCS; de eigen Stalwart-server en boekingsmailconcepten zijn lokaal gebouwd en wachten op gecontroleerde uitrol.
 
 Daarmee is GlobeTrotr functioneel publiceerbaar zodra de open productieacceptatie slaagt. **Niet alles op de roadmap is gebouwd.** De roadmap bevat bewust uitbreidingen voor na de eerste brede publicatie.
 
@@ -23,17 +23,17 @@ Daarmee is GlobeTrotr functioneel publiceerbaar zodra de open productieacceptati
 | Mobiele bediening en pagina-opfrissing | Gebouwd, acceptatie open | Echte apparaten en lange productiegegevens testen. |
 | Auth, Paddle, live agenda, mail en Agency-domeinen | Gebouwd, acceptatie open | Met echte accounts, betalingen, mailboxen en domeinen bevestigen. |
 | Agency-klantportaal en huisstijl | Gedeeltelijk | Meer klantacties, volledige huisstijlcontrole en eventueel een volledig dashboard op de Agency-host. |
-| Boekingsmail naar reisconcept | Niet gebouwd | Uniek doorstuuradres, parser, bijlageherkenning, duplicaatcontrole, preview en bevestigde import. |
-| Veilige klantformulieren | Niet gebouwd | Formulierbouwer, beveiligde link, doeleinden/bewaring, antwoorden, rechten en auditlog. |
-| Herbruikbare Agency-content | Gedeeltelijk | Reisschema-, paklijst- en berichtsjablonen bestaan. Accommodaties, activiteiten, media, bestemmingsblokken en versiebeheer ontbreken. |
+| Boekingsmail naar reisconcept | Gebouwd, uitrol open | Migratie/test 1580, Stalwart/IMAP-uitrol en echte bevestigingen accepteren. |
+| Veilige klantformulieren | Gebouwd, uitrol open | Migratie/test 1550, web/worker-uitrol en echte NL/EN-klantstromen accepteren. |
+| Herbruikbare Agency-content | Gebouwd, uitrol open | SQL is uitgevoerd; rollen, versies, bron/licentie, preview, gerichte toepassing en tenantisolatie praktisch accepteren. |
 | Groepsuitnodigingen en rollen | Basis gebouwd | Bulkuitnodigingen, bulkwijzigingen en impactpreview. |
 | Bedrijfsmail | Gebouwd, verfijning open | Interne notities, toewijzen, antwoordstatus en boekingsverwerking. |
 | Vertaalconcepten | Gebouwd, verfijning open | Terminologielijst, wijzigingsvergelijking en bulkcontrole. |
-| Meldingen | Gebouwd, verfijning open | Web-push, fijnere gebeurtenisregels en vollediger bezorggeschiedenis. |
-| Volwaardige offline modus | Niet gebouwd | Service worker, expliciete download, lokale encryptie, synchronisatie, versies en conflictafhandeling. |
+| Meldingen | Gebouwd, uitrol open | Webpush per apparaat en bezorging zijn gebouwd; VAPID en productieacceptatie staan open. |
+| Volwaardige offline modus | Veilige leesbasis gebouwd | Expliciete route-, planning- en boekingssamenvatting per reis is lokaal gebouwd. Offline uitgaven, documenten, synchronisatie en conflictafhandeling ontbreken nog. |
 | Automatische routeoptimalisatie | Niet gebouwd | Reistijdmatrix, voorkeuren, provider, kostenlimiet en bevestigingspreview. Route omkeren bestaat al. |
 | Plaatsaanbevelingen en openingstijden | Niet gebouwd | Provider, filters, openingstijden, bronvermelding, quota en privacykeuze. |
-| Periodieke vluchtcontrole | Niet gebouwd | Workerplanning, wijzigingsdetectie, quota en gerichte alerts. Handmatig ophalen bestaat al. |
+| Periodieke vluchtcontrole | Gebouwd, uitrol open | Begrensde Pro/Agency-worker, wijzigingsdetectie, cooldown en webpush zijn gebouwd; provider- en productieproef staan open. |
 | GPX-import | Niet gebouwd | Validatie, limieten, preview, dubbele punten en omzetting naar stops. GPX-export bestaat al. |
 | Reisdagboek | Niet gebouwd | Foto’s en verhalen per dag/stop, zichtbaarheid, moderatie en export. |
 | AI-reisplanning | Niet gebouwd | Provider, bronnen, kostenlimieten, privacygrenzen en verplichte menselijke controle. |
@@ -42,7 +42,7 @@ Daarmee is GlobeTrotr functioneel publiceerbaar zodra de open productieacceptati
 
 | Product | Relevante functie | GlobeTrotr-gap | Advies |
 | --- | --- | --- | --- |
-| [KAYAK Trips](https://www.kayak.com/c/help/account-trips/) | Boekingsmails doorsturen, Gmail-sync, live vluchtalerts, prijsalerts, zoekresultaten bewaren, reizen samenvoegen en onderdelen verplaatsen | Geen boekingsparser, prijsbewaking, trip-merge of item-verplaatsing | Boekingsmailimport en onderdelen verplaatsen hebben hoge waarde. Gmail-sync alleen na aparte privacybeoordeling. |
+| [KAYAK Trips](https://www.kayak.com/c/help/account-trips/) | Boekingsmails doorsturen, Gmail-sync, live vluchtalerts, prijsalerts, zoekresultaten bewaren, reizen samenvoegen en onderdelen verplaatsen | Boekingsmailconcept is lokaal gebouwd; prijsbewaking, trip-merge en item-verplaatsing ontbreken | Accepteer eerst de veilige boekingsmail. Gmail-sync alleen na aparte privacybeoordeling. |
 | [Wanderlog](https://wanderlog.com/) | Offline toegang, routeoptimalisatie, e-mailimport, aanbevelingen en live vluchtinformatie | Offline, optimalisatie en aanbevelingen ontbreken | Offline reisoverzicht en gecontroleerde optimalisatie na de publicatieacceptatie. |
 | [TripIt](https://www.tripit.com/web/free) | Automatisch reisschema uit doorgestuurde bevestigingen en proactieve reisinformatie | Automatische invoer en periodieke bewaking ontbreken | Gebruik een uniek doorstuuradres en reviewbare concepten. |
 | [Lambus](https://www.lambus.com/) | Groepschat, pushmeldingen, foto’s, browserextensie en partneraanbod voor activiteiten/vervoer | Geen reis-chat, browserextensie of geïntegreerd aanbod | Eerst eenvoudige reisdiscussie en ‘opslaan in GlobeTrotr’; een browserextensie pas later. |

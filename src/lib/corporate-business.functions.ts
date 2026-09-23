@@ -77,7 +77,7 @@ export const getCorporateBusinessData = createServerFn({ method: "GET" })
       db
         .from("corporate_mailboxes")
         .select(
-          "id,address,display_name,mailbox_type,owner_user_id,signature_text,sync_status,last_synced_at,last_sync_attempt_at,last_sync_error_code,sync_requested_at,active,imap_host,imap_port,imap_secure,imap_username,credentials_updated_at",
+          "id,address,display_name,mailbox_type,owner_user_id,signature_text,sync_status,last_synced_at,last_sync_attempt_at,last_sync_error_code,sync_requested_at,active,imap_host,imap_port,imap_secure,imap_username,credentials_updated_at,hosting_mode,provisioning_status,provisioning_requested_at,provisioned_at,provisioning_error_code,mail_server_account_id",
         )
         .order("address"),
       db.from("corporate_mailbox_members").select("mailbox_id,user_id,permission"),
@@ -110,7 +110,8 @@ export const saveCorporateMailbox = createServerFn({ method: "POST" })
       id?: string;
       address: string;
       displayName: string;
-      mailboxType: "personal" | "shared";
+      mailboxType: "personal" | "shared" | "automated";
+      hostingMode?: "external" | "self_hosted";
       ownerUserId?: string;
       signatureText: string;
       inboundSecretRef: string;
@@ -134,6 +135,12 @@ export const saveCorporateMailbox = createServerFn({ method: "POST" })
       throw new Error("INVALID_MAILBOX");
     if (data.mailboxType === "personal" && !data.ownerUserId)
       throw new Error("MAILBOX_OWNER_REQUIRED");
+    const hostingMode=data.hostingMode==="self_hosted"?"self_hosted":"external";
+    let suppliedPassword=data.imapPassword?.trim()||"";
+    if(hostingMode==="self_hosted"&&!suppliedPassword&&!data.id){
+      if(data.mailboxType!=="automated")throw new Error("MAILBOX_PASSWORD_REQUIRED");
+      const {randomBytes}=await import("node:crypto");suppliedPassword=randomBytes(32).toString("base64url");
+    }
     const row: Record<string, unknown> = {
       address,
       display_name: data.displayName.trim(),
@@ -143,17 +150,21 @@ export const saveCorporateMailbox = createServerFn({ method: "POST" })
       inbound_secret_ref: data.inboundSecretRef.trim() || null,
       outbound_secret_ref: data.outboundSecretRef.trim() || null,
       active: data.active,
+      hosting_mode: hostingMode,
       updated_at: new Date().toISOString(),
-      imap_host: data.imapHost?.trim() || null,
+      imap_host: hostingMode==="self_hosted"?"mail.globetrotr.nl":data.imapHost?.trim() || null,
       imap_port: Math.min(65535, Math.max(1, Number(data.imapPort) || 993)),
       imap_secure: data.imapSecure !== false,
-      imap_username: data.imapUsername?.trim() || null,
+      imap_username: hostingMode==="self_hosted"?address:data.imapUsername?.trim() || null,
     };
-    if (data.imapPassword?.trim()) {
+    if (suppliedPassword) {
       const { encryptSecret } = await import("@/lib/secret-crypto.server");
-      row.imap_password_ciphertext = encryptSecret(data.imapPassword);
+      row.imap_password_ciphertext = encryptSecret(suppliedPassword);
       row.credentials_updated_at = new Date().toISOString();
     }
+    if(hostingMode==="self_hosted"){
+      row.provisioning_status="pending";row.provisioning_requested_at=new Date().toISOString();row.provisioning_error_code=null;
+    }else{row.provisioning_status="external";row.provisioning_requested_at=null;row.provisioning_error_code=null}
     const q = data.id
       ? db.from("corporate_mailboxes").update(row).eq("id", data.id)
       : db.from("corporate_mailboxes").insert(row);
@@ -162,6 +173,7 @@ export const saveCorporateMailbox = createServerFn({ method: "POST" })
     await log(db, context.userId, "platform.mailbox.save", saved.id, {
       address,
       mailboxType: data.mailboxType,
+      hostingMode,
     });
     return { ok: true, id: saved.id };
   });
@@ -185,6 +197,14 @@ export const requestCorporateMailboxSync = createServerFn({ method: "POST" })
     await log(db, context.userId, "platform.mailbox.sync.request", data.mailboxId);
     return { ok: true };
   });
+
+export const retryCorporateMailboxProvisioning=createServerFn({method:"POST"})
+ .middleware([requireSupabaseAuth]).validator((input:{mailboxId:string})=>input)
+ .handler(async({data,context})=>{
+  if(!uuid.test(data.mailboxId))throw new Error("INVALID_MAILBOX");const db=await dbFor(context.userId,"mail");
+  const {data:mailbox,error}=await db.from("corporate_mailboxes").update({provisioning_status:"pending",provisioning_requested_at:new Date().toISOString(),provisioning_error_code:null,updated_at:new Date().toISOString()}).eq("id",data.mailboxId).eq("hosting_mode","self_hosted").eq("provisioning_status","error").not("imap_password_ciphertext","is",null).select("id").maybeSingle();
+  if(error||!mailbox)throw new Error("MAILBOX_PROVISIONING_RETRY_FAILED");await log(db,context.userId,"platform.mailbox.provisioning.retry",data.mailboxId);return{ok:true};
+ });
 
 export const setCorporateMailboxMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

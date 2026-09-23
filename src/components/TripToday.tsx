@@ -1,10 +1,11 @@
 import { CalendarCheck2, MapPin, Ticket } from "lucide-react";
-import type { Trip } from "@/lib/types";
+import type { Expense, Trip } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TripTasks } from "@/components/TripTasks";
 import { WeatherWidget } from "@/components/WeatherWidget";
+import { TripOfflinePack } from "@/components/TripOfflinePack";
 
-export function TripToday({ trip, editable, weatherEnabled, text }: { trip: Trip; editable: boolean; weatherEnabled: boolean; text: (nl: string, en: string) => string }) {
+export function TripToday({ trip, editable, moneyEditable, payers, syncOfflineExpenses, weatherEnabled, text }: { trip: Trip; editable: boolean; moneyEditable: boolean; payers: Array<{id:string;name:string}>; syncOfflineExpenses:(expenses:Expense[])=>Promise<void>; weatherEnabled: boolean; text: (nl: string, en: string) => string }) {
   const today = new Date().toLocaleDateString("en-CA");
   const planning = trip.itinerary.filter((item) => item.day === today);
   const bookings = (trip.travelItems ?? []).filter((item) => item.date === today || (item.endDate && item.date <= today && item.endDate >= today));
@@ -19,6 +20,6 @@ export function TripToday({ trip, editable, weatherEnabled, text }: { trip: Trip
       </CardContent></Card>
       <TripTasks tripId={trip.id} editable={editable} text={text}/>
     </div>
-    <div className="space-y-4"><WeatherWidget stop={stop} enabled={weatherEnabled}/><Card className="surface"><CardContent className="p-4 text-sm text-muted-foreground">{text("Tickets, bevestigingen en andere veilige bestanden vind je in Documenten.", "Find tickets, confirmations and other secure files under Documents.")}</CardContent></Card></div>
+    <div className="space-y-4"><WeatherWidget stop={stop} enabled={weatherEnabled}/><TripOfflinePack trip={trip} text={text} canManageExpenses={moneyEditable} payers={payers} syncExpenses={syncOfflineExpenses}/><Card className="surface"><CardContent className="p-4 text-sm text-muted-foreground">{text("Tickets, bevestigingen en andere veilige bestanden vind je in Documenten.", "Find tickets, confirmations and other secure files under Documents.")}</CardContent></Card></div>
   </div>;
 }

@@ -26,6 +26,7 @@ test("travel options keep valid comparison fields and reject unsafe links", () =
   assert.equal(normalized.provider, "Example");
   assert.equal(normalized.sourceUrl, undefined);
   assert.equal(normalized.durationMinutes, undefined);
+  assert.equal(normalizeTravelOption({ ...option, amount: undefined }).amount, undefined);
   assert.equal(safeOptionUrl("https://example.com/hotel"), "https://example.com/hotel");
 });
 
@@ -42,4 +43,23 @@ test("converting an option creates exactly one booking", () => {
   );
   assert.equal(second.changed, false);
   assert.equal(second.travelItems.length, 1);
+});
+
+test("category details survive normalisation and reach the booking", () => {
+  const flight = normalizeTravelOption({
+    ...option,
+    type: "flight",
+    details: {
+      flightNumber: " KL123 ",
+      departureName: "Amsterdam",
+      arrivalName: "Rome",
+      startTime: "09:30",
+      endTime: "11:30",
+    },
+  });
+  assert.equal(flight.details?.flightNumber, "KL123");
+  const result = convertOptionToBooking([flight], [], flight.id, () => "flight-booking");
+  assert.equal(result.travelItems[0].flightNumber, "KL123");
+  assert.equal(result.travelItems[0].details?.startTime, "09:30");
+  assert.match(result.travelItems[0].notes ?? "", /Amsterdam.*Rome/);
 });

@@ -1,54 +1,96 @@
-# GlobeTrotr — actuele uitrol
+# GlobeTrotr update 1.1 — exacte releasehandleiding
 
-**Stand: 22 september 2026**
+**Stand: 23 september 2026**
 
-<!-- release-preflight: confirmed-through=20260908147000_agency_portal_entry_acceptance.sql -->
+<!-- release-preflight: confirmed-through=20260908163000_offline_today_acceptance.sql -->
 
-## Huidige productie
+Deze handleiding begint bij de huidige productiecommit `5df0590` op branch `lovable`. SQL-migraties en tests tot en met **1630** zijn uitgevoerd. Voer geen SQL opnieuw uit. Rol eerst de applicatie uit. De eigen Stalwart-mailserver en MX-overgang zijn een afzonderlijke tweede fase.
 
-- Branch: `lovable`
-- Uitgerolde release: `5df0590`
-- SQL-migraties en tests: uitgevoerd tot en met **1470**
-- Website: `https://globetrotr.nl`
-- Portal: `https://portal.globetrotr.nl`
-- Node-02 worker, mailrelay en IMAP-sync: uitgerold
-- Node-01 web en Caddy: uitgerold
-- Portalcertificaat: uitgegeven door Caddy
-- Supabase-regio: Central EU (Frankfurt, `eu-central-1`), bevestigd
+## Vooraf gereedmaken
 
-Na deze productie-uitrol staan twee lokale releases klaar: de correctie voor navigatie van portal terug naar de publieke website en provider-onafhankelijke reisopties vergelijken. Daarvoor horen migratie/tests **1480** en **1490** bij.
-
-## Volgende kleine uitrol
-
-### 1. Lokaal controleren, committen en pushen
+Genereer op je eigen pc één VAPID-sleutelpaar en bewaar beide waarden in je wachtwoordmanager:
 
 ```powershell
+cd "C:\Users\info\Desktop\Travelplanner\GIT Clone\globetrotr-1d042353"
+npx web-push generate-vapid-keys
+```
+
+Gebruik op beide nodes exact dezelfde public key. Alleen Node-02 krijgt de private key. Commit nooit `.env`, `.env.production`, `.env.mail-relay`, wachtwoorden of tokens.
+
+## 1. De bestaande releasecommit controleren en pushen
+
+```powershell
+cd "C:\Users\info\Desktop\Travelplanner\GIT Clone\globetrotr-1d042353"
+git branch --show-current
 git status --short
+npm ci
 npm run verify
+npm run build
 git -c core.safecrlf=false diff --check
-git add -A
-git diff --cached --name-only
-git commit -m "Add portal navigation and trip option comparison"
+git log -1 --oneline
 git push origin lovable
 git rev-parse --short HEAD
 ```
 
-Bewaar de laatste uitvoer als `VERWACHTE_COMMIT`. Commit nooit `.env`, mailboxwachtwoorden, Supabase-servicekeys, Paddle-secrets of SMTP-gegevens.
+De branch moet `lovable` zijn en `git status --short` moet leeg blijven. Noteer de laatste uitvoer als `VERWACHTE_COMMIT`. Stop bij een test-, build- of diff-fout.
 
-### 2. Supabase SQL Editor
+## 2. Node-01 configureren
 
-Voer eerst uit:
+Log in op Node-01 en controleer eerst dat de checkout schoon is:
 
-1. [1480 — navigatie tussen website en portal](supabase/migrations/20260908148000_cross_domain_navigation_acceptance.sql)
-2. [test 1480](supabase/tests/cross_domain_navigation_acceptance.sql)
-3. [1490 — reisopties vergelijken](supabase/migrations/20260908149000_trip_options_comparison.sql)
-4. [test 1490](supabase/tests/trip_options_comparison.sql)
+```bash
+cd /opt/globetrotr
+git status --short
+nano .env.production
+```
 
-Alle vier moeten zonder fout eindigen. Migraties tot en met 1470 niet herhalen.
+Voeg toe of werk bij:
 
-### 3. Node-01 uitrollen
+```dotenv
+VAPID_SUBJECT=mailto:info@globetrotr.nl
+VAPID_PUBLIC_KEY=PLAK_HIER_DE_PUBLIC_KEY
+```
 
-Deze correctie raakt alleen web en Caddy; Node-02 hoeft niet opnieuw gebouwd te worden.
+Sla in nano op met `Ctrl+O`, Enter en sluit met `Ctrl+X`. Voeg `MAIL_SERVER_HEALTH_URL` pas toe wanneer fase 7, de eigen mailserver, is voltooid.
+
+## 3. Node-02 configureren
+
+```bash
+cd /opt/globetrotr
+git status --short
+nano .env.production
+```
+
+Voeg toe of werk bij:
+
+```dotenv
+VAPID_SUBJECT=mailto:info@globetrotr.nl
+VAPID_PUBLIC_KEY=DEZELFDE_PUBLIC_KEY_ALS_NODE_01
+VAPID_PRIVATE_KEY=PLAK_HIER_DE_PRIVATE_KEY
+```
+
+Controleer dat de al bestaande waarden voor Supabase, relay, IMAP, Paddle, mailboxencryptie en vluchtprovider intact blijven. Sluit met `Ctrl+O`, Enter en `Ctrl+X`.
+
+## 4. Node-02 worker uitrollen
+
+Deze fase start nog geen Stalwart-server en wijzigt geen MX-record.
+
+```bash
+cd /opt/globetrotr
+git status --short
+git pull --ff-only origin lovable
+git rev-parse --short HEAD
+docker compose --env-file .env.production -f deploy/worker.compose.yml config --quiet
+docker compose --env-file .env.production -f deploy/worker.compose.yml up -d --build --force-recreate clamav mail-relay worker imap-sync
+docker compose --env-file .env.production -f deploy/worker.compose.yml ps
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=150 clamav mail-relay worker imap-sync
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec worker node -e "fetch('http://127.0.0.1:9091/health').then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)}).catch(e=>{console.error(e);process.exit(1)})"
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec mail-relay node -e "fetch('http://127.0.0.1:9092/health').then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)}).catch(e=>{console.error(e);process.exit(1)})"
+```
+
+De commit moet gelijk zijn aan `VERWACHTE_COMMIT`. `worker`, `imap-sync`, `mail-relay` en `clamav` moeten actief zijn; worker en relay moeten HTTP 200 geven.
+
+## 5. Node-01 web uitrollen
 
 ```bash
 cd /opt/globetrotr
@@ -59,48 +101,55 @@ docker compose --env-file .env.production -f deploy/web.compose.yml config --qui
 docker compose --env-file .env.production -f deploy/web.compose.yml run --rm --no-deps --entrypoint caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 docker compose --env-file .env.production -f deploy/web.compose.yml up -d --build --force-recreate web caddy
 docker compose --env-file .env.production -f deploy/web.compose.yml ps
-docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=100 web caddy
+docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=150 web caddy
 ```
 
-Stop als `git status --short`, Compose-configuratie, Caddy-validatie of build faalt.
+Controleer ook hier dat `git rev-parse --short HEAD` gelijk is aan `VERWACHTE_COMMIT`.
 
-### 4. Technische controle
+## 6. Technische controle en acceptatie
 
-```bash
-curl -I https://globetrotr.nl/
-curl -I https://portal.globetrotr.nl/
-curl -I https://portal.globetrotr.nl/auth
-curl -I https://portal.globetrotr.nl/register
-curl -I https://portal.globetrotr.nl/features
-curl -I https://globetrotr.nl/account
+Vanaf je pc:
+
+```powershell
+curl.exe -I https://globetrotr.nl/
+curl.exe -I https://portal.globetrotr.nl/
+curl.exe -I https://portal.globetrotr.nl/auth
+curl.exe -I https://portal.globetrotr.nl/register
+curl.exe -I https://portal.globetrotr.nl/features
+curl.exe -I https://globetrotr.nl/account
+curl.exe -I https://portal.globetrotr.nl/offline.html
 ```
 
-Verwacht:
+Verwacht website `200`, portal-root een redirect naar `/dashboard`, auth/register `200`, portal-features een redirect naar de website, website-account een redirect naar het portal en `offline.html` `200`. Het portal moet `X-Robots-Tag: noindex, nofollow` houden.
 
-- website: 200;
-- portal-root: 302 naar `/dashboard`;
-- auth en register: 200;
-- `portal.globetrotr.nl/features`: 302 naar `https://globetrotr.nl/features`;
-- `globetrotr.nl/account`: 302 naar `https://portal.globetrotr.nl/account`;
-- portal bevat `X-Robots-Tag: noindex, nofollow`.
+Voer daarna in deze volgorde de praktijktest uit:
 
-### 5. Praktijktest
+1. Registreer een testaccount en controleer bevestiging, recovery, magic link, Google, Discord, passkey en TOTP.
+2. Controleer website ↔ portal, mobiele navigatie op 320/375/430 px en Agency-host/CNAME-toegang.
+3. Test de Reisvergelijker, reacties, peiling, deadline, stem wijzigen en precies één definitieve boeking.
+4. Test een NL- en EN-Agency-klantformulier, intrekken, eenmalig indienen, review, export, archiveren en tenantisolatie.
+5. Test de contentbibliotheek met rollen, versie, bron/licentie en precies één toepassing op reis en offerte.
+6. Activeer browserpush, ontvang een melding met gesloten tabblad, trek het apparaat in en controleer dat geen reisdetails in de push staan.
+7. Test vluchtcontrole op Pro/Agency: eerste basislijn zonder melding, geen melding bij ongewijzigd resultaat en precies één melding bij status-, tijd-, gate- of terminalwijziging.
+8. Bewaar een reis offline, open meerdere dagen in vliegtuigmodus, voeg een uitgave toe, herstel internet en synchroniseer precies eenmaal. Controleer dat uitloggen pakket en wachtrij wist.
+9. Test bedrijfsmail, HTML, handtekening, bijlagen, inline/externe afbeeldingen, retry en boekingsmailconcept met deduplicatie.
+10. Test Paddle terugkerend en losse maand inclusief webhook, factuur, recht, einddatum en meldingstaal.
 
-- Klik op portal het logo en **Website**: beide openen `globetrotr.nl`.
-- Controleer publieke menu- en footerlinks op telefoon en desktop.
-- Controleer dat **Reizen**, account, betaling, Agency Admin en Corporate Admin op portal blijven.
-- Test uitloggen en opnieuw inloggen; sessies worden niet tussen hosts gedeeld.
-- Rond Corporate Admin-item `public.cross-domain-navigation` af.
-- Voeg in een reis minimaal twee kandidaten toe en vergelijk ze op prijs, duur, afstand en annuleringsinformatie.
-- Controleer kandidaatfilters en sortering op telefoon en desktop; archiveer daarna één kandidaat.
-- Kies één kandidaat, controleer dat deze bij Boekingen staat en bevestig dat nogmaals kiezen geen tweede boeking maakt.
-- Controleer met een viewer dat toevoegen, archiveren, verwijderen en kiezen niet beschikbaar zijn.
-- Rond Corporate Admin-item `trip.options-comparison` pas na deze praktijktest af.
+Gebruik [TEST_CHECKLIST.md](TEST_CHECKLIST.md) voor de volledige lijst. Rond Corporate Admin-items pas af na de bijbehorende echte proef.
 
-## Overige open acceptatie
+## 7. Eigen mailserver afzonderlijk invoeren
 
-De code is pas publiek gereed nadat registratie, Auth-mail, OAuth, bestaande/nieuwe passkeys, TOTP, Paddle, live agenda, bedrijfsmail, privacyverzoeken en Agency-domeinen met echte accounts zijn gecontroleerd. Gebruik hiervoor [PRE_RELEASE.md](PRE_RELEASE.md), [TEST_CHECKLIST.md](TEST_CHECKLIST.md) en [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md).
+Begin hier pas nadat stappen 1–6 stabiel zijn. Volg [MAIL_SERVER_DEPLOYMENT.md](MAIL_SERVER_DEPLOYMENT.md) letterlijk voor Stalwart, PTR, poorten, beperkte API-key, mailboxmigratie, SPF, DKIM, DMARC, back-up/herstel en terugval.
+
+Wijzig het MX-record uitsluitend nadat inkomend en uitgaand mailverkeer via een testpostvak, boekingsmail, malwarecontrole, externe afleverproeven en een volledige hersteltest zijn geslaagd. Tot dat moment blijft ZXCS actief. De actuele grens staat in [MAIL_STATUS.md](MAIL_STATUS.md).
 
 ## Terugval
 
-Bij een fout: wijzig Supabase Auth niet opnieuw, herstel Node-01 naar de vorige bekende image of maak een normale herstelcommit. Herschrijf de Lovable-Gitgeschiedenis niet. De bestaande portal-DNS en certificaten kunnen blijven staan.
+Herschrijf de Lovable-Gitgeschiedenis nooit. Als de applicatie-uitrol moet worden teruggedraaid:
+
+```powershell
+git revert RELEASE_COMMIT_HASH
+git push origin lovable
+```
+
+Trek daarna de herstelcommit op Node-02 en Node-01 binnen en voer respectievelijk stap 4 en stap 5 opnieuw uit. Bij mailproblemen blijft of wordt ZXCS opnieuw actief volgens de terugvalstappen in [MAIL_SERVER_DEPLOYMENT.md](MAIL_SERVER_DEPLOYMENT.md). Verwijder geen mailvolumes of accounts.

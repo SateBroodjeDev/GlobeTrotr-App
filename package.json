@@ -9,11 +9,11 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "worker": "node worker/index.mjs",
-    "test": "node --test src/lib/trip-options.test.ts src/lib/site-routing.test.ts scripts/auth-email-templates.test.mjs scripts/security-audit-rules.test.mjs src/lib/mail-locale.test.ts src/lib/trip-save-queue.test.ts src/lib/public-changelog.test.ts src/lib/trip-access.test.ts src/lib/agency-permissions.test.ts src/lib/branding.test.ts src/lib/settle.test.ts src/lib/flight-schedule.test.ts src/lib/fuel-costs.test.ts src/lib/exporters.test.ts src/lib/mail-templates.test.ts src/lib/infrastructure-policy.test.ts src/lib/trip-statistics.test.ts src/lib/duplicate-trip.test.ts src/lib/mail-threads.test.ts src/lib/mail-attachments.test.ts src/lib/mail-inline-images.test.ts src/lib/paddle-diagnosis.test.ts src/lib/paddle-recovery.test.ts src/lib/notification-preview.test.ts src/lib/safe-redirect.test.ts src/lib/safe-mail-html.test.ts worker/agency-domain.test.mjs worker/clamav.test.mjs worker/imap-diagnostics.test.mjs worker/live-calendar.test.mjs worker/paddle-binding.test.mjs worker/notification-copy.test.mjs",
+    "test": "node --test worker/booking-mail-parser.test.mjs src/lib/offline-trip.test.ts src/lib/trip-options.test.ts src/lib/site-routing.test.ts scripts/auth-email-templates.test.mjs scripts/security-audit-rules.test.mjs src/lib/mail-locale.test.ts src/lib/trip-save-queue.test.ts src/lib/public-changelog.test.ts src/lib/trip-access.test.ts src/lib/agency-permissions.test.ts src/lib/branding.test.ts src/lib/settle.test.ts src/lib/flight-schedule.test.ts src/lib/fuel-costs.test.ts src/lib/exporters.test.ts src/lib/mail-templates.test.ts src/lib/infrastructure-policy.test.ts src/lib/trip-statistics.test.ts src/lib/duplicate-trip.test.ts src/lib/mail-threads.test.ts src/lib/mail-attachments.test.ts src/lib/mail-inline-images.test.ts src/lib/paddle-diagnosis.test.ts src/lib/paddle-recovery.test.ts src/lib/notification-preview.test.ts src/lib/safe-redirect.test.ts src/lib/safe-mail-html.test.ts worker/agency-domain.test.mjs worker/clamav.test.mjs worker/imap-diagnostics.test.mjs worker/live-calendar.test.mjs worker/paddle-binding.test.mjs worker/notification-copy.test.mjs worker/stalwart-provisioning.test.mjs",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/production-smoke.mjs",
     "security": "node scripts/security-audit.mjs",
-    "verify": "npm run lint && npm test && npm run typecheck && npm run security && node scripts/release-preflight.mjs && node --check worker/index.mjs && node --check worker/mail-relay.mjs && node --check worker/imap-sync.mjs",
+    "verify": "npm run lint && npm test && npm run typecheck && npm run security && node scripts/release-preflight.mjs && node --check worker/index.mjs && node --check worker/mail-relay.mjs && node --check worker/imap-sync.mjs && node --check worker/stalwart-provisioning.mjs",
     "check": "npm run verify && npm run build",
     "lint": "eslint .",
     "format": "prettier --write ."
@@ -78,6 +78,7 @@
     "tw-animate-css": "^1.3.4",
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
+    "web-push": "^3.6.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {

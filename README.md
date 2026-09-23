@@ -1,5 +1,7 @@
 # GlobeTrotr
 
+De gecontroleerde uitrol van de eigen SMTP/IMAP-server en automatische mailboxprovisioning staat in [MAIL_SERVER_DEPLOYMENT.md](MAIL_SERVER_DEPLOYMENT.md). Wijzig MX-records pas nadat de volledige acceptatietest daarin is geslaagd.
+
 Voor de bestaande productie-beta gebruik je [de actuele uitrol](IMPLEMENTATION_PENDING.md) en [de publieke vrijgavecontrole](PRE_RELEASE.md). [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md) is alleen voor een volledig nieuw, leeg Supabase-project.
 
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
@@ -70,11 +72,13 @@ Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`T
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1470** uitgevoerd en activeert een echte betaling met 93% korting Pro met een Paddle-factuur. De correctie voor de navigatie tussen website en portal en checklistmigratie **1480** zijn lokaal voorbereid. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md), de [portalomschakeling](PORTAL_DOMAIN_MIGRATION.md), de [publieke vrijgavecontrole](PRE_RELEASE.md), de [productcontrole](PRODUCT_REVIEW_2026-09-22.md), de [functie-gapanalyse](FEATURE_GAP_AND_EXPANSION.md) en het concrete [bouwplan](BUILD_PLAN.md).
+Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1630** uitgevoerd. Agency-klantformulieren, eigen mailhosting, maildiagnose, boekingsmailconcepten, Agency-content, webpush, automatische vluchtcontrole en het expliciete offline dagoverzicht zijn voorbereid als update 1.1; web-, worker- en productieacceptatie staan nog open. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md), de [portalomschakeling](PORTAL_DOMAIN_MIGRATION.md), de [publieke vrijgavecontrole](PRE_RELEASE.md), de [productcontrole](PRODUCT_REVIEW_2026-09-22.md), de [functie-gapanalyse](FEATURE_GAP_AND_EXPANSION.md) en het concrete [bouwplan](BUILD_PLAN.md).
 
 De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag in Central EU (Frankfurt, `eu-central-1`). [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
 
 De productiecontainers gebruiken `Dockerfile`, `deploy/web.compose.yml` en `deploy/worker.compose.yml`. De worker en mailrelay draaien op Node-02. De actuele e-mailmodus staat in Supabase `email_delivery_config`; ga niet uit van testmodus. Zie [`worker/README.md`](worker/README.md).
+
+De bestaande productie-beta verstuurt en ontvangt mail via ZXCS. Eigen Stalwart-hosting en boekingsmail per reis zijn lokaal gebouwd en wachten op migraties 1560–1580, Node-02-configuratie en productieacceptatie. [MAIL_STATUS.md](MAIL_STATUS.md) geeft per onderdeel exact aan wat nu werkt en wat nog moet gebeuren.
 
 De concrete installatie voor `GBT-Node-01` en `GBT-Node-02`, inclusief Caddy,
 HTTPS, omgevingsvariabelen, healthchecks en rollback, staat in
@@ -96,6 +100,8 @@ De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke mig
 - `/quote/:token`: tijdelijke, beveiligde klantweergave van een deelklare Agency-offerte.
 - `/agency-admin/tasks`: taken, prioriteiten, deadlines en toewijzingen aan teamleden.
 - `/agency-admin/templates`: herbruikbare programma's, paklijsten en klantteksten.
+- Dezelfde pagina bevat de versieerbare contentbibliotheek voor bestemmingen, accommodaties, activiteiten, dagblokken, teksten en media, met preview en eenmalige toepassing op een reis of offerte.
+- `/agency-admin/forms`: veilige klantintakes met configureerbare velden, vervallende links, review, audit en bewaartermijnen.
 - `/agency-admin/notifications`: persoonlijke Agency-meldingsvoorkeuren.
 - `/agency-admin/security`: teamstatus, verlopen uitnodigingen en recente veiligheidsrelevante activiteit.
 - `/agency-admin/subscription`: actief Agency-plan en werkelijke gebruiksaantallen zonder gesimuleerde facturen.
@@ -107,6 +113,7 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 ## Projectdocumentatie
 
 - `IMPLEMENTATION_PENDING.md`: enige actuele uitrolroute voor de bestaande beta.
+- `MAIL_STATUS.md`: actuele scheiding tussen werkende productie-mail, lokaal gebouwde mailfuncties en resterende infrastructuur.
 - `roadmap.md`: interne technische roadmap en migratiestatus.
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.

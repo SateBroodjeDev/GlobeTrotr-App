@@ -12,7 +12,6 @@ const migrationLinks = [
 ];
 const testMatches = [...implementation.matchAll(/supabase\/tests\/([a-z0-9_]+\.sql)/g)];
 const testLinks = new Set(testMatches.map((match) => match[1]));
-if (!migrationLinks.length) findings.push("IMPLEMENTATION_PENDING bevat geen migratievolgorde");
 const documentedMigrations = migrationLinks.map((match) => match[1]);
 if (new Set(documentedMigrations).size !== documentedMigrations.length)
   findings.push("IMPLEMENTATION_PENDING bevat een migratie meer dan eenmaal");

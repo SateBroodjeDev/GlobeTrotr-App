@@ -1,13 +1,13 @@
 # GlobeTrotr productiechecklist
 
-**Actuele stand: 22 september 2026.** Release `5df0590` en SQL-migraties/tests tot en met 1470 zijn uitgevoerd. Navigatiecorrectie, reisopties vergelijken en migraties/tests **1480–1490** horen bij de volgende uitrol. Deze lijst ondersteunt de checklist in Corporate Admin; rond een item pas af na een echte productieproef.
+**Actuele stand: 23 september 2026.** SQL-migraties en tests tot en met 1630 zijn volgens de laatste bevestiging uitgevoerd. De bijbehorende web-, worker- en productieacceptatie staan nog open. Rond items pas na een echte productieproef af.
 
 ## 1. Uitrol
 
-- [ ] Voer migratie `20260908148000_cross_domain_navigation_acceptance.sql` uit.
-- [ ] Voer `supabase/tests/cross_domain_navigation_acceptance.sql` uit.
-- [ ] Voer migratie `20260908149000_trip_options_comparison.sql` uit.
-- [ ] Voer `supabase/tests/trip_options_comparison.sql` uit.
+- [x] Migraties en tests tot en met 1630 uitgevoerd (bevestigd door eigenaar).
+- [ ] Test Pro/Agency-vluchtcontrole binnen zeven dagen: basislijn zonder melding, ongewijzigd zonder melding, relevante wijziging eenmaal gemeld, voorkeur uit respecteren en provideruitval begrensd opnieuw proberen.
+- [ ] Configureer één VAPID-sleutelpaar, zet push per apparaat aan en uit, ontvang een algemene push met gesloten tabblad en controleer retry en verwijdering van een verlopen endpoint.
+- [ ] Bekijk een bibliotheekitem vooraf en voeg dezelfde versie eenmaal toe aan een reis en eenmaal aan een conceptofferte; controleer dat een tweede klik geen duplicaat maakt en dat een nieuwe bibliotheekversie bestaande reizen niet wijzigt.
 - [ ] Laat lokaal `npm run verify` en `git diff --check` slagen.
 - [ ] Controleer op Node-01 Compose en de Caddy-configuratie vóór de herbouw.
 - [ ] Controleer na de uitrol dat web en Caddy gezond zijn en dezelfde commit gebruiken.
@@ -36,12 +36,14 @@
 
 - [ ] Voeg minimaal twee verblijf-, vlucht-, vervoer-, huurauto- of activiteitsopties toe; vergelijk prijs en voorwaarden; archiveer een kandidaat en zet één keuze om naar exact één boeking. Herhaal kiezen en bevestig dat geen dubbele boeking ontstaat.
 - [ ] Reis maken, wijzigen, dupliceren, omkeren, omslagfoto, leden, taken en vandaag-overzicht werken.
+- [ ] Bewaar een reis offline, open meerdere reisdagen in vliegtuigmodus, voeg een uitgave toe, synchroniseer deze precies eenmaal na herstel, controleer dat bestaande bedragen/boekingscodes/documenten ontbreken en bevestig dat uitloggen pakket én wachtrij wist.
 - [ ] Planning, boekingen, documenten, paklijst, routekaart en kaartlagen werken op telefoon en desktop.
 - [ ] Uitgaven, betaald-door-keuze, filters, categorieën, budgettempo en verrekening blijven binnen hun vak.
 - [ ] GPX, PDF/reisgids, JSON en losse ICS-download leveren geldige bestanden met echte reisdata.
 - [ ] Live agenda-URL geeft zonder browsersessie `200`, `Content-Type: text/calendar` en geldige VEVENTs; intrekken maakt de oude URL ongeldig.
 - [ ] Publieke reis toont een rustig reisschema, passende kaart en alleen bedoelde openbare data.
 - [ ] Uitnodiging wordt precies eenmaal, met branding en werkende portal-link, verstuurd.
+- [ ] Een uniek reisadres wordt geprovisioned; toegestane afzenders, herkenning, wijziging/annulering, deduplicatie, veldcontrole, omzetting naar precies één boeking, intrekken en bewaartermijn werken.
 
 ## 5. Betaling
 
@@ -82,6 +84,12 @@
 - [ ] Onbekende, verlopen of verkeerd gekoppelde host krijgt geen tenanttoegang.
 - [ ] CNAME/TXT-instructies en certificaatstatus zijn begrijpelijk; gereserveerde platformnamen kunnen niet worden geclaimd.
 - [ ] Agency-uitnodigingen en uitgaande berichten gebruiken de juiste Agency-branding.
+- [ ] Een zelf gehost persoonlijk en gedeeld postvak doorloopt `pending` → `provisioning` → `ready`; een automatisch `trip.*`-adres genereert geen zichtbaar wachtwoord.
+- [ ] Test vóór de MX-cutover inkomend en uitgaand via Stalwart, IMAPS/SMTP-TLS, SPF, DKIM, DMARC, ClamAV, limieten, back-up en volledig herstel.
+- [ ] Agency-klantformulieren ondersteunen sjablonen, tweetalige velden en uitleg per vraag; verboden geheimvelden worden geweigerd.
+- [ ] Formulierlinks verlopen, zijn eenmalig in te dienen, werken mobiel en blijven strikt geïsoleerd per Agency; auditlogs bevatten geen antwoorden.
+- [ ] Review, verwerking naar klantvoorkeuren, JSON-export, intrekken, archiveren en automatische verwijdering na de bewaartermijn werken.
+- [ ] Contentbibliotheek ondersteunt zes typen, persoonlijke concepten, organisatiebrede items, NL/EN, tags, publicatie, versies, bron/licentie, kopiëren en archiveren zonder tenantlek; preview en eenmalige toepassing op reis/offerte werken ook bij dubbel klikken.
 
 ## 9. Privacy, inhoud en releasebesluit
 
@@ -94,3 +102,5 @@
 - [ ] Publiceer pas nadat alle kritieke regels hierboven en de Corporate Admin-releasechecks zijn afgerond.
 
 Exacte commando’s en terugval staan in [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md). Domeingedrag staat in [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md); het releasebesluit staat in [PRE_RELEASE.md](PRE_RELEASE.md).
+
+Gebruik [MAIL_STATUS.md](MAIL_STATUS.md) om tijdens de test onderscheid te houden tussen de actieve ZXCS-productiestroom en de nog te accepteren Stalwart- en boekingsmailfuncties.

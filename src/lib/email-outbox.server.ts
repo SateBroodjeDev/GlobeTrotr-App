@@ -9,7 +9,7 @@ export async function queueInvitationEmail(
     body: string;
     actionUrl: string;
     preferenceUserId?: string;
-    invitationType: "trip" | "agency";
+    invitationType: "trip" | "agency" | "client_form";
     invitationId: string;
     branding?: { brandName: string; accentHue: number };
   },

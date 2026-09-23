@@ -16,6 +16,7 @@ import {
   getEmailDeliveryOverview,
   retryEmailDelivery,
   requestCorporateMailboxSync,
+  retryCorporateMailboxProvisioning,
   saveCorporateMailbox,
   setCorporateMailboxMember,
   setEmailDeliveryMode,
@@ -27,7 +28,8 @@ const blank = {
   id: "",
   address: "",
   displayName: "",
-  mailboxType: "shared" as "shared" | "personal",
+  mailboxType: "shared" as "shared" | "personal" | "automated",
+  hostingMode: "external" as "external" | "self_hosted",
   ownerUserId: "",
   signatureText: "",
   inboundSecretRef: "",
@@ -62,6 +64,7 @@ function Page() {
     [hasStoredPassword, setHasStoredPassword] = useState(false),
     [retrying, setRetrying] = useState(""),
     [requestingSync, setRequestingSync] = useState(false),
+    [retryingProvisioning,setRetryingProvisioning]=useState(false),
     [modeReason, setModeReason] = useState(""),
     [changingMode, setChangingMode] = useState(false);
   const initialMailboxSelected = useRef(false);
@@ -78,6 +81,7 @@ function Page() {
       address: m.address,
       displayName: m.display_name,
       mailboxType: m.mailbox_type,
+      hostingMode: m.hosting_mode ?? "external",
       ownerUserId: m.owner_user_id ?? "",
       signatureText: m.signature_text ?? "",
       inboundSecretRef: m.inbound_secret_ref ?? "",
@@ -100,6 +104,7 @@ function Page() {
           address: f.address,
           displayName: f.displayName,
           mailboxType: f.mailboxType,
+          hostingMode: f.hostingMode,
           signatureText: f.signatureText,
           inboundSecretRef: f.inboundSecretRef,
           outboundSecretRef: f.outboundSecretRef,
@@ -149,6 +154,7 @@ function Page() {
       setRequestingSync(false);
     }
   }
+  async function retryProvisioning(){if(!f.id)return;setRetryingProvisioning(true);try{await retryCorporateMailboxProvisioning({data:{mailboxId:f.id}});await qc.invalidateQueries({queryKey:["corporate-business"]});toast.success(text("Mailboxaanmaak staat opnieuw klaar.","Mailbox provisioning is queued again."))}catch{toast.error(text("Mailboxaanmaak kon niet opnieuw worden gestart.","Mailbox provisioning could not be retried."))}finally{setRetryingProvisioning(false)}}
   async function retry(id: string) {
     setRetrying(id);
     try {
@@ -262,6 +268,7 @@ function Page() {
                   >
                     <option value="shared">{text("Gedeeld", "Shared")}</option>
                     <option value="personal">{text("Persoonlijk", "Personal")}</option>
+                    <option value="automated">{text("Automatisch reisadres", "Automated trip address")}</option>
                   </select>
                 </label>
                 {f.mailboxType === "personal" && (
@@ -282,6 +289,12 @@ function Page() {
                   </label>
                 )}
               </div>
+              <div className="rounded-xl border p-4">
+                <label className="flex items-start gap-3 text-sm">
+                  <input type="checkbox" className="mt-1" checked={f.hostingMode==="self_hosted"} onChange={e=>setF({...f,hostingMode:e.target.checked?"self_hosted":"external",imapHost:e.target.checked?"mail.globetrotr.nl":f.imapHost,imapUsername:e.target.checked?f.address:f.imapUsername})}/>
+                  <span><strong className="block">{text("Host op de GlobeTrotr-mailserver","Host on the GlobeTrotr mail server")}</strong><span className="text-muted-foreground">{text("Maakt of actualiseert dit @globetrotr.nl-postvak automatisch op Node-02. Voor een automatisch reisadres wordt een sterk intern wachtwoord gegenereerd.","Creates or updates this @globetrotr.nl mailbox automatically on Node-02. An automated trip address receives a strong internal password.")}</span></span>
+                </label>
+              </div>
               <label className="block space-y-2">
                 <Label>{text("Handtekening voor dit postvak", "Signature for this mailbox")}</Label>
                 <Textarea
@@ -301,11 +314,13 @@ function Page() {
                   <Field
                     label={text("IMAP-server", "IMAP server")}
                     value={f.imapHost}
+                    disabled={f.hostingMode==="self_hosted"}
                     set={(v) => setF({ ...f, imapHost: v })}
                   />
                   <Field
                     label={text("IMAP-gebruiker", "IMAP username")}
                     value={f.imapUsername}
+                    disabled={f.hostingMode==="self_hosted"}
                     set={(v) => setF({ ...f, imapUsername: v })}
                   />
                   <label className="space-y-2">
@@ -355,6 +370,7 @@ function Page() {
             if (!mailbox) return null;
             return <Card><CardHeader><CardTitle>{text("Synchronisatie", "Synchronisation")}</CardTitle></CardHeader>
               <CardContent className="space-y-3 text-sm">
+                {mailbox.hosting_mode==="self_hosted"&&<div className="space-y-2 rounded-lg border p-3"><p className="font-medium">{text("Mailserverstatus","Mail server status")}: {mailbox.provisioning_status}</p>{mailbox.provisioning_error_code&&<p className="text-destructive"><code>{mailbox.provisioning_error_code}</code></p>}<p className="text-xs text-muted-foreground">{text("De worker maakt het postvak aan via de afgeschermde beheer-API. Wachtwoorden worden niet teruggegeven.","The worker creates the mailbox through the protected management API. Passwords are never returned.")}</p>{mailbox.provisioning_status==="error"&&<Button size="sm" variant="outline" disabled={retryingProvisioning} onClick={()=>void retryProvisioning()}><RefreshCw className={`size-4 ${retryingProvisioning?"animate-spin":""}`}/>{text("Opnieuw proberen","Retry provisioning")}</Button>}</div>}
                 <Badge variant={mailbox.sync_status === "error" ? "destructive" : "secondary"}>{mailboxSyncLabel(mailbox.sync_status, text)}</Badge>
                 <p>{text("Laatste succesvolle ronde", "Last successful cycle")}: {formatSyncTime(mailbox.last_synced_at, locale, text)}</p>
                 <p>{text("Laatste poging", "Last attempt")}: {formatSyncTime(mailbox.last_sync_attempt_at, locale, text)}</p>
@@ -561,17 +577,19 @@ function Field({
   set,
   type = "text",
   placeholder,
+  disabled = false,
 }: {
   label: string;
   value: string;
   set: (v: string) => void;
   type?: string;
   placeholder?: string;
+  disabled?: boolean;
 }) {
   return (
     <label className="space-y-2">
       <Label>{label}</Label>
-      <Input type={type} value={value} placeholder={placeholder} onChange={(e) => set(e.target.value)} />
+      <Input type={type} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => set(e.target.value)} />
     </label>
   );
 }

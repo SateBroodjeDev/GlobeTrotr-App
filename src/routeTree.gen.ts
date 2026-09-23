@@ -51,6 +51,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AgencyInviteTokenRouteImport } from './routes/agency-invite.$token'
 import { Route as AgencyUitnodigingTokenRouteImport } from './routes/agency-uitnodiging.$token'
+import { Route as ClientFormTokenRouteImport } from './routes/client-form.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as QuoteTokenRouteImport } from './routes/quote.$token'
 import { Route as TokenTokenHashRouteImport } from './routes/token.$tokenHash'
@@ -58,6 +59,7 @@ import { Route as UitnodigingTokenRouteImport } from './routes/uitnodiging.$toke
 import { Route as AuthenticatedAgencyAdminIndexRouteImport } from './routes/_authenticated/agency-admin.index'
 import { Route as AuthenticatedAgencyAdminAuditRouteImport } from './routes/_authenticated/agency-admin.audit'
 import { Route as AuthenticatedAgencyAdminClientsRouteImport } from './routes/_authenticated/agency-admin.clients'
+import { Route as AuthenticatedAgencyAdminFormsRouteImport } from './routes/_authenticated/agency-admin.forms'
 import { Route as AuthenticatedAgencyAdminNotificationsRouteImport } from './routes/_authenticated/agency-admin.notifications'
 import { Route as AuthenticatedAgencyAdminOperationsRouteImport } from './routes/_authenticated/agency-admin.operations'
 import { Route as AuthenticatedAgencyAdminPermissionsRouteImport } from './routes/_authenticated/agency-admin.permissions'
@@ -305,6 +307,11 @@ const AgencyUitnodigingTokenRoute = AgencyUitnodigingTokenRouteImport.update({
   path: '/agency-uitnodiging/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientFormTokenRoute = ClientFormTokenRouteImport.update({
+  id: '/client-form/$token',
+  path: '/client-form/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
@@ -341,6 +348,12 @@ const AuthenticatedAgencyAdminClientsRoute =
   AuthenticatedAgencyAdminClientsRouteImport.update({
     id: '/clients',
     path: '/clients',
+    getParentRoute: () => AuthenticatedAgencyAdminRoute,
+  } as any)
+const AuthenticatedAgencyAdminFormsRoute =
+  AuthenticatedAgencyAdminFormsRouteImport.update({
+    id: '/forms',
+    path: '/forms',
     getParentRoute: () => AuthenticatedAgencyAdminRoute,
   } as any)
 const AuthenticatedAgencyAdminNotificationsRoute =
@@ -582,12 +595,14 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/agency-invite/$token': typeof AgencyInviteTokenRoute
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
+  '/client-form/$token': typeof ClientFormTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/token/$tokenHash': typeof TokenTokenHashRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
   '/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
+  '/agency-admin/forms': typeof AuthenticatedAgencyAdminFormsRoute
   '/agency-admin/notifications': typeof AuthenticatedAgencyAdminNotificationsRoute
   '/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
   '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
@@ -663,12 +678,14 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/agency-invite/$token': typeof AgencyInviteTokenRoute
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
+  '/client-form/$token': typeof ClientFormTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/token/$tokenHash': typeof TokenTokenHashRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
   '/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
+  '/agency-admin/forms': typeof AuthenticatedAgencyAdminFormsRoute
   '/agency-admin/notifications': typeof AuthenticatedAgencyAdminNotificationsRoute
   '/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
   '/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
@@ -748,12 +765,14 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/agency-invite/$token': typeof AgencyInviteTokenRoute
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
+  '/client-form/$token': typeof ClientFormTokenRoute
   '/invite/$token': typeof InviteTokenRoute
   '/quote/$token': typeof QuoteTokenRoute
   '/token/$tokenHash': typeof TokenTokenHashRoute
   '/uitnodiging/$token': typeof UitnodigingTokenRoute
   '/_authenticated/agency-admin/audit': typeof AuthenticatedAgencyAdminAuditRoute
   '/_authenticated/agency-admin/clients': typeof AuthenticatedAgencyAdminClientsRoute
+  '/_authenticated/agency-admin/forms': typeof AuthenticatedAgencyAdminFormsRoute
   '/_authenticated/agency-admin/notifications': typeof AuthenticatedAgencyAdminNotificationsRoute
   '/_authenticated/agency-admin/operations': typeof AuthenticatedAgencyAdminOperationsRoute
   '/_authenticated/agency-admin/permissions': typeof AuthenticatedAgencyAdminPermissionsRoute
@@ -833,12 +852,14 @@ export interface FileRouteTypes {
     | '/team'
     | '/agency-invite/$token'
     | '/agency-uitnodiging/$token'
+    | '/client-form/$token'
     | '/invite/$token'
     | '/quote/$token'
     | '/token/$tokenHash'
     | '/uitnodiging/$token'
     | '/agency-admin/audit'
     | '/agency-admin/clients'
+    | '/agency-admin/forms'
     | '/agency-admin/notifications'
     | '/agency-admin/operations'
     | '/agency-admin/permissions'
@@ -914,12 +935,14 @@ export interface FileRouteTypes {
     | '/team'
     | '/agency-invite/$token'
     | '/agency-uitnodiging/$token'
+    | '/client-form/$token'
     | '/invite/$token'
     | '/quote/$token'
     | '/token/$tokenHash'
     | '/uitnodiging/$token'
     | '/agency-admin/audit'
     | '/agency-admin/clients'
+    | '/agency-admin/forms'
     | '/agency-admin/notifications'
     | '/agency-admin/operations'
     | '/agency-admin/permissions'
@@ -998,12 +1021,14 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/agency-invite/$token'
     | '/agency-uitnodiging/$token'
+    | '/client-form/$token'
     | '/invite/$token'
     | '/quote/$token'
     | '/token/$tokenHash'
     | '/uitnodiging/$token'
     | '/_authenticated/agency-admin/audit'
     | '/_authenticated/agency-admin/clients'
+    | '/_authenticated/agency-admin/forms'
     | '/_authenticated/agency-admin/notifications'
     | '/_authenticated/agency-admin/operations'
     | '/_authenticated/agency-admin/permissions'
@@ -1073,6 +1098,7 @@ export interface RootRouteChildren {
   UpdatesRoute: typeof UpdatesRoute
   AgencyInviteTokenRoute: typeof AgencyInviteTokenRoute
   AgencyUitnodigingTokenRoute: typeof AgencyUitnodigingTokenRoute
+  ClientFormTokenRoute: typeof ClientFormTokenRoute
   InviteTokenRoute: typeof InviteTokenRoute
   QuoteTokenRoute: typeof QuoteTokenRoute
   TokenTokenHashRoute: typeof TokenTokenHashRoute
@@ -1377,6 +1403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgencyUitnodigingTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client-form/$token': {
+      id: '/client-form/$token'
+      path: '/client-form/$token'
+      fullPath: '/client-form/$token'
+      preLoaderRoute: typeof ClientFormTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/invite/$token': {
       id: '/invite/$token'
       path: '/invite/$token'
@@ -1424,6 +1457,13 @@ declare module '@tanstack/react-router' {
       path: '/clients'
       fullPath: '/agency-admin/clients'
       preLoaderRoute: typeof AuthenticatedAgencyAdminClientsRouteImport
+      parentRoute: typeof AuthenticatedAgencyAdminRoute
+    }
+    '/_authenticated/agency-admin/forms': {
+      id: '/_authenticated/agency-admin/forms'
+      path: '/forms'
+      fullPath: '/agency-admin/forms'
+      preLoaderRoute: typeof AuthenticatedAgencyAdminFormsRouteImport
       parentRoute: typeof AuthenticatedAgencyAdminRoute
     }
     '/_authenticated/agency-admin/notifications': {
@@ -1678,6 +1718,7 @@ const AuthenticatedAgencyAdminQuotesRouteWithChildren =
 interface AuthenticatedAgencyAdminRouteChildren {
   AuthenticatedAgencyAdminAuditRoute: typeof AuthenticatedAgencyAdminAuditRoute
   AuthenticatedAgencyAdminClientsRoute: typeof AuthenticatedAgencyAdminClientsRoute
+  AuthenticatedAgencyAdminFormsRoute: typeof AuthenticatedAgencyAdminFormsRoute
   AuthenticatedAgencyAdminNotificationsRoute: typeof AuthenticatedAgencyAdminNotificationsRoute
   AuthenticatedAgencyAdminOperationsRoute: typeof AuthenticatedAgencyAdminOperationsRoute
   AuthenticatedAgencyAdminPermissionsRoute: typeof AuthenticatedAgencyAdminPermissionsRoute
@@ -1696,6 +1737,7 @@ const AuthenticatedAgencyAdminRouteChildren: AuthenticatedAgencyAdminRouteChildr
   {
     AuthenticatedAgencyAdminAuditRoute: AuthenticatedAgencyAdminAuditRoute,
     AuthenticatedAgencyAdminClientsRoute: AuthenticatedAgencyAdminClientsRoute,
+    AuthenticatedAgencyAdminFormsRoute: AuthenticatedAgencyAdminFormsRoute,
     AuthenticatedAgencyAdminNotificationsRoute:
       AuthenticatedAgencyAdminNotificationsRoute,
     AuthenticatedAgencyAdminOperationsRoute:
@@ -1854,6 +1896,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpdatesRoute: UpdatesRoute,
   AgencyInviteTokenRoute: AgencyInviteTokenRoute,
   AgencyUitnodigingTokenRoute: AgencyUitnodigingTokenRoute,
+  ClientFormTokenRoute: ClientFormTokenRoute,
   InviteTokenRoute: InviteTokenRoute,
   QuoteTokenRoute: QuoteTokenRoute,
   TokenTokenHashRoute: TokenTokenHashRoute,

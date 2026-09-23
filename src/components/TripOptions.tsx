@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Archive, Check, ExternalLink, GitCompareArrows, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -7,13 +7,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TripOptionDiscussion } from "@/components/TripOptionDiscussion";
+import { TripOptionPoll } from "@/components/TripOptionPoll";
 import { CURRENCIES, convert, formatMoney, type Rates } from "@/lib/services";
 import {
   convertOptionToBooking,
   MAX_COMPARE_OPTIONS,
   normalizeTravelOption,
 } from "@/lib/trip-options";
-import type { Trip, TravelItemType, TravelOption } from "@/lib/types";
+import type {
+  TransportMode,
+  Trip,
+  TravelItemType,
+  TravelOption,
+  TravelOptionDetails,
+} from "@/lib/types";
 import { uid } from "@/lib/workspace";
 
 type Text = (nl: string, en: string) => string;
@@ -27,10 +35,10 @@ type Draft = {
   currency: string;
   chargesIncluded: boolean;
   cancellation: string;
-  durationMinutes: string;
   distanceKm: string;
   sourceUrl: string;
   notes: string;
+  details: TravelOptionDetails;
 };
 
 const emptyDraft = (date: string): Draft => ({
@@ -43,10 +51,10 @@ const emptyDraft = (date: string): Draft => ({
   currency: "EUR",
   chargesIncluded: false,
   cancellation: "",
-  durationMinutes: "",
   distanceKm: "",
   sourceUrl: "",
   notes: "",
+  details: {},
 });
 
 export function TripOptions({
@@ -95,6 +103,10 @@ export function TripOptions({
     [options, selected],
   );
 
+  function detail<K extends keyof TravelOptionDetails>(key: K, value: TravelOptionDetails[K]) {
+    setDraft((current) => ({ ...current, details: { ...current.details, [key]: value } }));
+  }
+
   async function add() {
     if (!draft.title.trim() || !draft.startDate) {
       toast.error(text("Naam en startdatum zijn verplicht.", "Name and start date are required."));
@@ -126,13 +138,14 @@ export function TripOptions({
         currency: draft.currency,
         chargesIncluded: draft.chargesIncluded,
         cancellation: draft.cancellation,
-        durationMinutes: draft.durationMinutes ? Number(draft.durationMinutes) : undefined,
+        durationMinutes: timeDurationMinutes(draft.details.startTime, draft.details.endTime),
         distanceKm: draft.distanceKm ? Number(draft.distanceKm) : undefined,
         sourceUrl: draft.sourceUrl,
         notes: draft.notes,
         status: "candidate",
         checkedAt: new Date().toISOString(),
         createdAt: new Date().toISOString(),
+        details: draft.details,
       });
       await save((current) => ({
         ...current,
@@ -140,12 +153,12 @@ export function TripOptions({
       }));
       setDraft(emptyDraft(trip.start));
       setDialogOpen(false);
-      toast.success(text("Reisoptie toegevoegd.", "Travel option added."));
+      toast.success(text("Kandidaat toegevoegd.", "Candidate added."));
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : text("Optie kon niet worden opgeslagen.", "Option could not be saved."),
+          : text("Kandidaat kon niet worden opgeslagen.", "Candidate could not be saved."),
       );
     } finally {
       setBusy(false);
@@ -164,11 +177,11 @@ export function TripOptions({
       }));
       toast.success(
         status === "rejected"
-          ? text("Optie gearchiveerd.", "Option archived.")
-          : text("Optie bijgewerkt.", "Option updated."),
+          ? text("Kandidaat gearchiveerd.", "Candidate archived.")
+          : text("Kandidaat bijgewerkt.", "Candidate updated."),
       );
     } catch {
-      toast.error(text("Optie kon niet worden bijgewerkt.", "Option could not be updated."));
+      toast.error(text("Kandidaat kon niet worden bijgewerkt.", "Candidate could not be updated."));
     } finally {
       setBusy(false);
     }
@@ -177,7 +190,7 @@ export function TripOptions({
   async function remove(id: string) {
     if (
       !editable ||
-      !confirm(text("Deze optie definitief verwijderen?", "Permanently delete this option?"))
+      !confirm(text("Deze kandidaat definitief verwijderen?", "Permanently delete this candidate?"))
     )
       return;
     setBusy(true);
@@ -187,9 +200,9 @@ export function TripOptions({
         travelOptions: (current.travelOptions ?? []).filter((item) => item.id !== id),
       }));
       setSelected((current) => current.filter((item) => item !== id));
-      toast.success(text("Optie verwijderd.", "Option deleted."));
+      toast.success(text("Kandidaat verwijderd.", "Candidate deleted."));
     } catch {
-      toast.error(text("Optie kon niet worden verwijderd.", "Option could not be deleted."));
+      toast.error(text("Kandidaat kon niet worden verwijderd.", "Candidate could not be deleted."));
     } finally {
       setBusy(false);
     }
@@ -223,11 +236,11 @@ export function TripOptions({
       });
       toast.success(
         changed
-          ? text("Optie staat nu bij de boekingen.", "Option is now listed under bookings.")
-          : text("Deze optie was al omgezet.", "This option was already converted."),
+          ? text("Kandidaat staat nu bij de boekingen.", "Candidate is now listed under bookings.")
+          : text("Deze kandidaat was al omgezet.", "This candidate was already converted."),
       );
     } catch {
-      toast.error(text("Optie kon niet worden omgezet.", "Option could not be converted."));
+      toast.error(text("Kandidaat kon niet worden omgezet.", "Candidate could not be converted."));
     } finally {
       setBusy(false);
     }
@@ -242,7 +255,7 @@ export function TripOptions({
           : current,
     );
     if (!selected.includes(id) && selected.length >= MAX_COMPARE_OPTIONS)
-      toast.error(text("Vergelijk maximaal vier opties.", "Compare up to four options."));
+      toast.error(text("Vergelijk maximaal vier kandidaten.", "Compare up to four candidates."));
   }
 
   return (
@@ -251,19 +264,19 @@ export function TripOptions({
         <div>
           <h2 className="flex items-center gap-2 font-display text-xl font-semibold">
             <GitCompareArrows className="size-5 text-primary" />
-            {text("Reisopties vergelijken", "Compare travel options")}
+            {text("Reisvergelijker", "Trip comparison")}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {text(
-              "Bewaar kandidaten eerst als optie. Pas je definitieve keuze wordt een boeking.",
-              "Save candidates as options first. Only your final choice becomes a booking.",
+              "Vergelijk kandidaten per categorie. Pas je definitieve keuze wordt een boeking.",
+              "Compare candidates by category. Only your final choice becomes a booking.",
             )}
           </p>
         </div>
         {editable && (
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="size-4" />
-            {text("Optie toevoegen", "Add option")}
+            {text("Kandidaat toevoegen", "Add candidate")}
           </Button>
         )}
       </div>
@@ -320,8 +333,8 @@ export function TripOptions({
         <Card className="surface">
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
             {text(
-              "Nog geen opties. Voeg bijvoorbeeld twee hotels of vluchten toe om ze te vergelijken.",
-              "No options yet. Add two hotels or flights to compare them.",
+              "Nog geen kandidaten. Voeg bijvoorbeeld twee hotels of vluchten toe om ze te vergelijken.",
+              "No candidates yet. Add two hotels or flights to compare them.",
             )}
           </CardContent>
         </Card>
@@ -330,6 +343,7 @@ export function TripOptions({
           {visibleOptions.map((option) => (
             <OptionCard
               key={option.id}
+              tripId={trip.id}
               option={option}
               selected={selected.includes(option.id)}
               disabled={busy}
@@ -346,7 +360,10 @@ export function TripOptions({
           {!visibleOptions.length && (
             <Card className="surface md:col-span-2 xl:col-span-3">
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                {text("Geen opties passen bij deze filters.", "No options match these filters.")}
+                {text(
+                  "Geen kandidaten passen bij deze filters.",
+                  "No candidates match these filters.",
+                )}
               </CardContent>
             </Card>
           )}
@@ -357,17 +374,26 @@ export function TripOptions({
         <Comparison options={compared} base={base} rates={rates} text={text} />
       )}
 
+      <TripOptionPoll tripId={trip.id} options={options} editable={editable} />
+
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{text("Reisoptie toevoegen", "Add travel option")}</DialogTitle>
+            <DialogTitle>{text("Kandidaat toevoegen", "Add candidate")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={text("Soort", "Type")}>
               <select
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                 value={draft.type}
-                onChange={(e) => setDraft({ ...draft, type: e.target.value as TravelItemType })}
+                onChange={(e) =>
+                  setDraft((current) => ({
+                    ...current,
+                    type: e.target.value as TravelItemType,
+                    distanceKm: "",
+                    details: {},
+                  }))
+                }
               >
                 {typeEntries(text).map(([value, label]) => (
                   <option key={value} value={value}>
@@ -383,14 +409,14 @@ export function TripOptions({
                 onChange={(e) => setDraft({ ...draft, title: e.target.value })}
               />
             </Field>
-            <Field label={text("Start", "Start")}>
+            <Field label={dateLabel(draft.type, "start", text)}>
               <Input
                 type="date"
                 value={draft.startDate}
                 onChange={(e) => setDraft({ ...draft, startDate: e.target.value })}
               />
             </Field>
-            <Field label={text("Einde", "End")}>
+            <Field label={dateLabel(draft.type, "end", text)}>
               <Input
                 type="date"
                 min={draft.startDate}
@@ -429,23 +455,7 @@ export function TripOptions({
                 </select>
               </Field>
             </div>
-            <Field label={text("Duur in minuten", "Duration in minutes")}>
-              <Input
-                type="number"
-                min="1"
-                value={draft.durationMinutes}
-                onChange={(e) => setDraft({ ...draft, durationMinutes: e.target.value })}
-              />
-            </Field>
-            <Field label={text("Afstand in km", "Distance in km")}>
-              <Input
-                type="number"
-                min="0"
-                step="0.1"
-                value={draft.distanceKm}
-                onChange={(e) => setDraft({ ...draft, distanceKm: e.target.value })}
-              />
-            </Field>
+            <TypeSpecificFields draft={draft} setDraft={setDraft} detail={detail} text={text} />
             <Field
               label={text("Annuleringsvoorwaarden", "Cancellation terms")}
               className="sm:col-span-2"
@@ -484,7 +494,7 @@ export function TripOptions({
               )}
             </label>
             <Button className="sm:col-span-2" disabled={busy} onClick={() => void add()}>
-              {busy ? text("Opslaan…", "Saving…") : text("Optie opslaan", "Save option")}
+              {busy ? text("Opslaan…", "Saving…") : text("Kandidaat opslaan", "Save candidate")}
             </Button>
           </div>
         </DialogContent>
@@ -493,7 +503,304 @@ export function TripOptions({
   );
 }
 
+function TypeSpecificFields({
+  draft,
+  setDraft,
+  detail,
+  text,
+}: {
+  draft: Draft;
+  setDraft: Dispatch<SetStateAction<Draft>>;
+  detail: <K extends keyof TravelOptionDetails>(key: K, value: TravelOptionDetails[K]) => void;
+  text: Text;
+}) {
+  const moving =
+    draft.type === "flight" || draft.type === "transport" || draft.type === "car_rental";
+  return (
+    <div className="grid gap-4 rounded-xl border bg-muted/20 p-3 sm:col-span-2 sm:grid-cols-2">
+      {draft.type === "flight" && (
+        <Field label={text("Vluchtnummer", "Flight number")}>
+          <Input
+            maxLength={24}
+            placeholder="KL1234"
+            value={draft.details.flightNumber ?? ""}
+            onChange={(event) => detail("flightNumber", event.target.value)}
+          />
+        </Field>
+      )}
+      {draft.type === "transport" && (
+        <Field label={text("Vervoerssoort", "Mode of transport")}>
+          <select
+            className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+            value={draft.details.transportMode ?? ""}
+            onChange={(event) =>
+              detail(
+                "transportMode",
+                (event.target.value || undefined) as TransportMode | undefined,
+              )
+            }
+          >
+            <option value="">{text("Kies vervoerssoort", "Choose transport mode")}</option>
+            {transportModes(text).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </Field>
+      )}
+      {moving ? (
+        <>
+          <Field
+            label={
+              draft.type === "car_rental"
+                ? text("Ophaallocatie", "Collection location")
+                : text("Vertrek", "Departure")
+            }
+          >
+            <Input
+              maxLength={160}
+              value={draft.details.departureName ?? ""}
+              onChange={(event) => detail("departureName", event.target.value)}
+            />
+          </Field>
+          <Field
+            label={
+              draft.type === "car_rental"
+                ? text("Inleverlocatie", "Return location")
+                : text("Aankomst", "Arrival")
+            }
+          >
+            <Input
+              maxLength={160}
+              value={draft.details.arrivalName ?? ""}
+              onChange={(event) => detail("arrivalName", event.target.value)}
+            />
+          </Field>
+        </>
+      ) : (
+        <Field label={text("Locatie", "Location")}>
+          <Input
+            maxLength={160}
+            value={draft.details.locationName ?? ""}
+            onChange={(event) => detail("locationName", event.target.value)}
+          />
+        </Field>
+      )}
+      <Field label={timeLabel(draft.type, "start", text)}>
+        <Input
+          type="time"
+          value={draft.details.startTime ?? ""}
+          onChange={(event) => detail("startTime", event.target.value)}
+        />
+      </Field>
+      <Field label={timeLabel(draft.type, "end", text)}>
+        <Input
+          type="time"
+          value={draft.details.endTime ?? ""}
+          onChange={(event) => detail("endTime", event.target.value)}
+        />
+      </Field>
+      {(draft.type === "flight" || draft.type === "transport" || draft.type === "car_rental") && (
+        <Field label={text("Afstand in km", "Distance in km")}>
+          <Input
+            type="number"
+            min="0"
+            step="0.1"
+            value={draft.distanceKm}
+            onChange={(event) =>
+              setDraft((current) => ({ ...current, distanceKm: event.target.value }))
+            }
+          />
+        </Field>
+      )}
+      {draft.type === "flight" && (
+        <CheckField
+          checked={Boolean(draft.details.luggageIncluded)}
+          onChange={(checked) => detail("luggageIncluded", checked)}
+          label={text("Ruimbagage inbegrepen", "Checked baggage included")}
+        />
+      )}
+      {draft.type === "lodging" && (
+        <>
+          <Field label={text("Kamertype", "Room type")}>
+            <Input
+              maxLength={120}
+              value={draft.details.roomType ?? ""}
+              onChange={(event) => detail("roomType", event.target.value)}
+            />
+          </Field>
+          <NumberField
+            label={text("Aantal gasten", "Number of guests")}
+            value={draft.details.guests}
+            onChange={(value) => detail("guests", value)}
+            min={1}
+          />
+          <CheckField
+            checked={Boolean(draft.details.breakfastIncluded)}
+            onChange={(checked) => detail("breakfastIncluded", checked)}
+            label={text("Ontbijt inbegrepen", "Breakfast included")}
+          />
+        </>
+      )}
+      {draft.type === "car_rental" && (
+        <>
+          <Field label={text("Auto", "Vehicle")}>
+            <Input
+              maxLength={120}
+              value={draft.details.vehicle ?? ""}
+              onChange={(event) => detail("vehicle", event.target.value)}
+            />
+          </Field>
+          <Field label={text("Categorie", "Category")}>
+            <Input
+              maxLength={80}
+              value={draft.details.vehicleCategory ?? ""}
+              onChange={(event) => detail("vehicleCategory", event.target.value)}
+            />
+          </Field>
+          <Field label={text("Verzekering", "Insurance")}>
+            <Input
+              maxLength={160}
+              value={draft.details.insurance ?? ""}
+              onChange={(event) => detail("insurance", event.target.value)}
+            />
+          </Field>
+          <NumberField
+            label={text("Borg", "Deposit")}
+            value={draft.details.deposit}
+            onChange={(value) => detail("deposit", value)}
+            min={0}
+          />
+          <NumberField
+            label={text("Eigen risico", "Excess")}
+            value={draft.details.excess}
+            onChange={(value) => detail("excess", value)}
+            min={0}
+          />
+        </>
+      )}
+      {draft.type === "activity" && (
+        <>
+          <Field label={text("Soort activiteit", "Activity type")}>
+            <Input
+              maxLength={100}
+              value={draft.details.activityCategory ?? ""}
+              onChange={(event) => detail("activityCategory", event.target.value)}
+            />
+          </Field>
+          <NumberField
+            label={text("Aantal deelnemers", "Participants")}
+            value={draft.details.participants}
+            onChange={(value) => detail("participants", value)}
+            min={1}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function NumberField({
+  label,
+  value,
+  min,
+  onChange,
+}: {
+  label: string;
+  value?: number;
+  min: number;
+  onChange: (value: number | undefined) => void;
+}) {
+  return (
+    <Field label={label}>
+      <Input
+        type="number"
+        min={min}
+        value={value ?? ""}
+        onChange={(event) =>
+          onChange(event.target.value === "" ? undefined : Number(event.target.value))
+        }
+      />
+    </Field>
+  );
+}
+
+function CheckField({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}) {
+  return (
+    <label className="flex min-h-10 items-center gap-2 self-end text-sm">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      {label}
+    </label>
+  );
+}
+
+function timeLabel(type: TravelItemType, end: "start" | "end", text: Text) {
+  if (type === "lodging")
+    return end === "start"
+      ? text("Inchecktijd", "Check-in time")
+      : text("Uitchecktijd", "Check-out time");
+  if (type === "car_rental")
+    return end === "start"
+      ? text("Ophaaltijd", "Collection time")
+      : text("Inlevertijd", "Return time");
+  if (type === "activity")
+    return end === "start" ? text("Begintijd", "Start time") : text("Eindtijd", "End time");
+  return end === "start"
+    ? text("Vertrektijd", "Departure time")
+    : text("Aankomsttijd", "Arrival time");
+}
+
+function dateLabel(type: TravelItemType, end: "start" | "end", text: Text) {
+  if (type === "lodging")
+    return end === "start"
+      ? text("Incheckdatum", "Check-in date")
+      : text("Uitcheckdatum", "Check-out date");
+  if (type === "car_rental")
+    return end === "start"
+      ? text("Ophaaldatum", "Collection date")
+      : text("Inleverdatum", "Return date");
+  return end === "start" ? text("Startdatum", "Start date") : text("Einddatum", "End date");
+}
+
+function timeDurationMinutes(start?: string, end?: string) {
+  if (!start || !end) return undefined;
+  const [startHour, startMinute] = start.split(":").map(Number);
+  const [endHour, endMinute] = end.split(":").map(Number);
+  const difference = endHour * 60 + endMinute - startHour * 60 - startMinute;
+  return difference > 0 ? difference : undefined;
+}
+
+function transportModes(text: Text): [TransportMode, string][] {
+  return [
+    ["train", text("Trein", "Train")],
+    ["bus", "Bus"],
+    ["public_transport", text("Openbaar vervoer", "Public transport")],
+    ["ferry", text("Veerboot", "Ferry")],
+    ["taxi", "Taxi"],
+    ["car", text("Auto", "Car")],
+    ["motorcycle", text("Motor", "Motorcycle")],
+    ["camper", "Camper"],
+    ["bicycle", text("Fiets", "Bicycle")],
+    ["walking", text("Lopen", "Walking")],
+    ["other", text("Anders", "Other")],
+  ];
+}
+
 function OptionCard({
+  tripId,
   option,
   selected,
   disabled,
@@ -506,6 +813,7 @@ function OptionCard({
   onDelete,
   onConvert,
 }: {
+  tripId: string;
   option: TravelOption;
   selected: boolean;
   disabled: boolean;
@@ -550,15 +858,20 @@ function OptionCard({
               option.chargesIncluded ? text("Inbegrepen", "Included") : text("Onbekend", "Unknown")
             }
           />
-          <Metric
-            label={text("Duur", "Duration")}
-            value={option.durationMinutes ? formatDuration(option.durationMinutes) : "—"}
-          />
-          <Metric
-            label={text("Afstand", "Distance")}
-            value={option.distanceKm == null ? "—" : `${option.distanceKm} km`}
-          />
+          {option.type !== "lodging" && option.type !== "activity" && (
+            <>
+              <Metric
+                label={text("Reistijd", "Travel time")}
+                value={option.durationMinutes ? formatDuration(option.durationMinutes) : "—"}
+              />
+              <Metric
+                label={text("Afstand", "Distance")}
+                value={option.distanceKm == null ? "—" : `${option.distanceKm} km`}
+              />
+            </>
+          )}
         </div>
+        <OptionDetails option={option} text={text} />
         {option.provider && (
           <p className="break-anywhere text-muted-foreground">
             {text("Aanbieder", "Provider")}: {option.provider}
@@ -621,6 +934,7 @@ function OptionCard({
             </Button>
           )}
         </div>
+        <TripOptionDiscussion tripId={tripId} optionId={option.id} />
       </CardContent>
     </Card>
   );
@@ -665,19 +979,26 @@ function Comparison({
                         : text("Onbekend", "Unknown")
                     }
                   />
-                  <Row
-                    label={text("Duur", "Duration")}
-                    value={option.durationMinutes ? formatDuration(option.durationMinutes) : "—"}
-                  />
-                  <Row
-                    label={text("Afstand", "Distance")}
-                    value={option.distanceKm == null ? "—" : `${option.distanceKm} km`}
-                  />
+                  {option.type !== "lodging" && option.type !== "activity" && (
+                    <>
+                      <Row
+                        label={text("Reistijd", "Travel time")}
+                        value={
+                          option.durationMinutes ? formatDuration(option.durationMinutes) : "—"
+                        }
+                      />
+                      <Row
+                        label={text("Afstand", "Distance")}
+                        value={option.distanceKm == null ? "—" : `${option.distanceKm} km`}
+                      />
+                    </>
+                  )}
                   <Row
                     label={text("Annulering", "Cancellation")}
                     value={option.cancellation || "—"}
                   />
                 </dl>
+                <OptionDetails option={option} text={text} />
               </div>
             );
           })}
@@ -717,6 +1038,62 @@ function Row({ label, value }: { label: string; value: string }) {
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="break-anywhere">{value}</dd>
     </div>
+  );
+}
+function OptionDetails({ option, text }: { option: TravelOption; text: Text }) {
+  const details = option.details;
+  if (!details) return null;
+  const rows: [string, string | undefined][] = [
+    [
+      text("Vluchtnummer", "Flight number"),
+      option.type === "flight" ? details.flightNumber : undefined,
+    ],
+    [
+      text("Route", "Route"),
+      details.departureName && details.arrivalName
+        ? `${details.departureName} → ${details.arrivalName}`
+        : undefined,
+    ],
+    [text("Locatie", "Location"), details.locationName],
+    [text("Kamertype", "Room type"), details.roomType],
+    [text("Gasten", "Guests"), details.guests?.toString()],
+    [
+      text("Ontbijt", "Breakfast"),
+      details.breakfastIncluded === undefined
+        ? undefined
+        : details.breakfastIncluded
+          ? text("Inbegrepen", "Included")
+          : text("Niet inbegrepen", "Not included"),
+    ],
+    [
+      text("Ruimbagage", "Checked baggage"),
+      details.luggageIncluded === undefined
+        ? undefined
+        : details.luggageIncluded
+          ? text("Inbegrepen", "Included")
+          : text("Niet inbegrepen", "Not included"),
+    ],
+    [text("Auto", "Vehicle"), details.vehicle],
+    [text("Categorie", "Category"), details.vehicleCategory ?? details.activityCategory],
+    [text("Borg", "Deposit"), details.deposit?.toString()],
+    [text("Eigen risico", "Excess"), details.excess?.toString()],
+    [text("Verzekering", "Insurance"), details.insurance],
+    [text("Deelnemers", "Participants"), details.participants?.toString()],
+    [
+      text("Tijden", "Times"),
+      details.startTime && details.endTime
+        ? `${details.startTime} – ${details.endTime}`
+        : (details.startTime ?? details.endTime),
+    ],
+  ];
+  const visible = rows.filter((row): row is [string, string] => Boolean(row[1]));
+  if (!visible.length) return null;
+  return (
+    <dl className="space-y-1 text-sm text-muted-foreground">
+      {visible.map(([label, value]) => (
+        <Row key={label} label={label} value={value} />
+      ))}
+    </dl>
   );
 }
 function formatDuration(minutes: number) {

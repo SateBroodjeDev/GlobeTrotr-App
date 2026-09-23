@@ -19,7 +19,7 @@ Bij iedere afgeronde stap:
 
 ## Eerst: huidige release afronden
 
-- [ ] Migratie en test 1480 uitvoeren.
+- [x] Migratie en test 1480 uitgevoerd (volgens de laatste bevestiging van de eigenaar).
 - [ ] Node-01 web en Caddy uitrollen.
 - [ ] Website ↔ portal op mobiel en desktop controleren.
 - [ ] De open productieacceptatie uit `PRE_RELEASE.md` uitvoeren.
@@ -35,7 +35,7 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 - [x] Tabellen voor reisopties, prijzen, voorwaarden, bron en controletijd (lokaal gebouwd; migratie 1490 nog uitrollen).
 - [x] RLS voor eigenaar, planner, finance, viewer en Agency-rechten.
-- [x] Optietypes: verblijf, vlucht, trein/bus, huurauto en activiteit.
+- [x] Reisvergelijker met relevante vragen per categorie: verblijf, vlucht, trein/bus, huurauto en activiteit (nieuwe details vereisen migratie 1500).
 - [x] Valuta, totaalprijs, belastingen/toeslagen, flexibiliteit en notities.
 - [x] Vergelijkvenster met maximaal vier opties naast elkaar.
 - [x] Filters en sortering op prijs, duur, afstand en annuleringsinformatie.
@@ -49,7 +49,7 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 - [x] Een viewer kan niets wijzigen (RLS, serverrechten en alleen-lezen UI).
 - [ ] Valuta en onbekende toeslagen worden niet misleidend vergeleken.
 - [x] Omzetten maakt exact één boeking en blijft idempotent (unit-test geslaagd).
-- [ ] Corporate Admin-check `trip.options-comparison` slaagt.
+- [ ] Corporate Admin-check `trip.options-comparison` slaagt na migraties 1490/1500 en een praktijktest.
 
 ## Release 2 — groepsbesluiten
 
@@ -57,18 +57,18 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 ### Bouwen
 
-- [ ] Reacties bij een reisoptie.
-- [ ] Peiling met meerdere keuzes en optionele deadline.
-- [ ] Stem wijzigen of intrekken zolang de peiling open is.
-- [ ] Alleen een bevoegde rol maakt een keuze definitief.
-- [ ] Meldingen bij nieuwe peiling, deadline en definitieve keuze.
-- [ ] Auditregels zonder gevoelige berichtinhoud te dupliceren.
+- [x] Reacties bij een reisvergelijkerkandidaat (SQL uitgevoerd; praktijktest nog open).
+- [x] Peiling met twee tot vier keuzes en optionele deadline (SQL uitgevoerd; praktijktest open).
+- [x] Stem wijzigen of intrekken zolang de peiling open is (lokaal gebouwd; praktijktest open).
+- [x] Alleen een bevoegde planner maakt een keuze definitief (lokaal gebouwd; praktijktest open).
+- [x] In-appmeldingen bij nieuwe peiling, deadline en definitieve keuze (SQL uitgevoerd; praktijktest open).
+- [x] Auditregels voor starten, stemmen, wijzigen, intrekken en afsluiten zonder gevoelige berichtinhoud te dupliceren (lokaal gebouwd; praktijktest open).
 
 ### Klaar wanneer
 
 - [ ] Dubbele stemmen technisch onmogelijk zijn.
 - [ ] Verwijderde leden geen toegang houden.
-- [ ] E-mail- en in-appmeldingen NL/EN volgen.
+- [ ] E-mail- en in-appmeldingen NL/EN in productie bevestigd zijn (lokaal gebouwd; praktijktest open).
 - [ ] Corporate Admin-check `trip.option-decisions` slaagt.
 
 ## Release 3 — veilige Agency-klantformulieren
@@ -77,13 +77,13 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 ### Bouwen
 
-- [ ] Formuliersjablonen per Agency.
-- [ ] Veldtypen met vereist/optioneel, doel, zichtbaarheid en bewaartermijn.
-- [ ] Beveiligde, intrekbare klantlink met vervaldatum.
-- [ ] Antwoorden als aparte conceptgegevens opslaan.
-- [ ] Bevoegde medewerker controleert en verwerkt velden naar klant of reis.
-- [ ] Auditlog, export, verwijdering en privacyarchief aansluiten.
-- [ ] Verbieden van betaalkaart- en authenticatiegeheimen in formulieren.
+- [x] Formuliersjablonen per Agency (SQL uitgevoerd; praktijktest open).
+- [x] Veldtypen met vereist/optioneel, doel en bewaartermijn.
+- [x] Beveiligde, intrekbare klantlink met vervaldatum.
+- [x] Antwoorden als aparte conceptgegevens opslaan.
+- [x] Bevoegde medewerker controleert en verwerkt antwoorden naar klantvoorkeuren.
+- [x] Auditlog, JSON-export, archivering en automatische verwijdering aansluiten.
+- [x] Betaalkaart-, wachtwoord- en authenticatiegeheimvelden blokkeren en publiek waarschuwen.
 
 ### Klaar wanneer
 
@@ -99,19 +99,19 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 ### Bouwen
 
-- [ ] Contenttypes: bestemming, accommodatie, activiteit, dagblok, tekst en media.
-- [ ] Organisatiebrede en persoonlijke conceptstatus.
-- [ ] Tags, taal, versie, eigenaar en laatst gecontroleerd.
-- [ ] Preview en selectief toevoegen aan offerte of reis.
-- [ ] Bron- en licentievelden voor externe afbeeldingen en teksten.
-- [ ] Bestaande itinerary-, packing- en message-sjablonen behouden.
+- [x] Contenttypes: bestemming, accommodatie, activiteit, dagblok, tekst en media.
+- [x] Organisatiebrede en persoonlijke conceptstatus.
+- [x] Tags, taal, versie, eigenaar en laatst gecontroleerd.
+- [x] Preview en selectief toevoegen aan offerte of reis; een vaste versie wordt eenmaal toegevoegd en bestaande inhoud blijft intact.
+- [x] Bron- en licentievelden voor externe afbeeldingen en teksten.
+- [x] Bestaande itinerary-, packing- en message-sjablonen behouden.
 
 ### Klaar wanneer
 
-- [ ] Oude sjablonen zonder conversieverlies blijven werken.
-- [ ] Alleen bevoegde medewerkers publiceren of archiveren.
-- [ ] Een update verandert niet stilzwijgend bestaande reizen.
-- [ ] Corporate Admin-check `agency.content-library` slaagt.
+- [x] Oude sjablonen blijven naast de bibliotheek bestaan zonder conversie.
+- [x] Alleen medewerkers met `trips_plan` publiceren, toepassen of archiveren; persoonlijke concepten blijven bij de eigenaar.
+- [x] Een nieuwe versie verandert bestaande reizen niet stilzwijgend en kan per doel slechts eenmaal worden toegepast.
+- [ ] Corporate Admin-checks `agency.content-library` en `agency.content-application` in productie uitvoeren.
 
 ## Release 5 — boekingsmail naar concept
 
@@ -119,22 +119,22 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 ### Bouwen
 
-- [ ] Uniek, intrekbaar ontvangstadres per reis.
-- [ ] Alleen doorgestuurde berichten van toegestane afzenders accepteren.
-- [ ] HTML, tekst en ondersteunde bijlagen via bestaande mail- en malwarescan verwerken.
-- [ ] Hotel, vlucht, trein, auto en activiteit herkennen.
-- [ ] Herkende velden, onzekerheden en bron tonen in een reviewvenster.
-- [ ] Dubbele bevestiging, wijziging en annulering herkennen.
-- [ ] Nooit automatisch opslaan zonder bevestiging.
-- [ ] Brontekst en bijlagen volgens een expliciete bewaartermijn opruimen.
+- [x] Uniek, intrekbaar ontvangstadres per reis.
+- [x] Alleen doorgestuurde berichten van toegestane afzenders accepteren.
+- [x] HTML, tekst en ondersteunde bijlagen via bestaande mail- en malwarescan verwerken.
+- [x] Hotel, vlucht, trein, auto en activiteit herkennen.
+- [x] Herkende velden, onzekerheden en bron tonen in een reviewvenster.
+- [x] Dubbele bevestiging, wijziging en annulering herkennen.
+- [x] Nooit automatisch opslaan zonder bevestiging.
+- [x] Brontekst en bijlagen volgens een expliciete bewaartermijn opruimen.
 
 ### Klaar wanneer
 
 - [ ] Een onbekende of dubbel doorgestuurde mail geen dubbele boeking maakt.
 - [ ] Parserfouten geen inhoud in logs lekken.
-- [ ] Gebruiker ieder veld kan corrigeren of negeren.
-- [ ] Privacyverklaring, mailvoorwaarden en verwijdering zijn bijgewerkt.
-- [ ] Corporate Admin-check `trip.booking-mail-drafts` slaagt.
+- [x] Gebruiker ieder herkend veld kan corrigeren of het concept negeren.
+- [x] Privacyverklaring, mailstatus, bewaartermijn en verwijdering zijn bijgewerkt.
+- [ ] Corporate Admin-check `trip.booking-mail` slaagt.
 
 ## Release 6 — web-push en periodieke vluchtcontrole
 
@@ -142,19 +142,19 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 ### Bouwen
 
-- [ ] Web Push-abonnement per apparaat met intrekken en verval.
-- [ ] Voorkeur per gebeurtenistype en per reis.
-- [ ] Workerjob voor toekomstige vluchten binnen een begrensd venster.
-- [ ] Wijzigingsdetectie voor status, tijd, gate, terminal en annulering.
-- [ ] Dedupe, cooldown en providerquotum.
-- [ ] Bezorgstatus zonder gevoelige vluchtgegevens in pushpayload.
+- [x] Web Push-abonnement per apparaat met intrekken, beperkte retries, verlopen endpoints en privacyvriendelijke payload (SQL uitgevoerd; VAPID-productieproef open).
+- [x] Bestaande vluchtvoorkeur per reis wordt vóór aanmaak van de melding afgedwongen.
+- [x] Workerjob voor Pro/Agency-vluchten binnen zeven dagen, met maximaal twintig claims per cyclus.
+- [x] Wijzigingsdetectie voor status, tijd, gate, terminal en annulering via providerstatus.
+- [x] Dedupe, tien minuten cooldown, dynamisch controle-interval en exponentiële providerbackoff.
+- [x] Bezorgstatus zonder gevoelige vluchtgegevens in pushpayload.
 
 ### Klaar wanneer
 
-- [ ] Geen melding bij onveranderde vluchtdata wordt verstuurd.
-- [ ] Verlopen abonnementen automatisch worden opgeruimd.
-- [ ] Free/Pro-limieten en provideruitval duidelijk worden afgehandeld.
-- [ ] Corporate Admin-check `notifications.web-push-flight` slaagt.
+- [x] Geen melding bij een basislijn of onveranderde vluchtdata.
+- [x] Verlopen abonnementen worden automatisch ingetrokken en later verwijderd.
+- [x] Free wordt niet automatisch gecontroleerd; Pro/Agency en provideruitval zijn begrensd.
+- [ ] Corporate Admin-checks `notifications.web-push` en `notifications.flight-monitoring` slagen na productieproef.
 
 ## Release 7 — offline Vandaag en uitgaven
 
@@ -162,20 +162,20 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 ### Bouwen
 
-- [ ] Installeerbare PWA en versieerbare service worker.
-- [ ] Per reis expliciet offlinepakket downloaden en verwijderen.
-- [ ] Vandaag, adressen, boekingen en geselecteerde documenten lezen.
-- [ ] Uitgaven offline toevoegen aan een lokale wachtrij.
-- [ ] Synchronisatiestatus, laatste update en opslaggebruik tonen.
-- [ ] Conflicten nooit stilzwijgend overschrijven.
-- [ ] Lokale gevoelige gegevens minimaliseren en waar haalbaar versleutelen.
+- [x] Installeerbare PWA-basis en versieerbare serviceworker die alleen de publieke offline shell cachet (lokaal gebouwd; productieproef open).
+- [x] Per reis expliciet offlinepakket downloaden, bijwerken en verwijderen (SQL uitgevoerd; productieproef open).
+- [x] Route, planning en praktische boekingsinformatie voor iedere reisdag lezen; bedragen, boekingscodes en documenten zijn bewust uitgesloten.
+- [x] Uitgaven offline toevoegen aan een begrensde lokale wachtrij en pas na een expliciete keuze synchroniseren.
+- [ ] Synchronisatiestatus en opslaggebruik tonen; de laatste lokale update is al zichtbaar.
+- [x] Conflicten nooit stilzwijgend overschrijven: alleen nieuwe UUID's worden samengevoegd en bij een mislukte serverwrite blijft de volledige wachtrij lokaal staan.
+- [x] Lokale gevoelige gegevens minimaliseren; het pakket bevat geen bedragen, boekingscodes of documenten.
 
 ### Klaar wanneer
 
 - [ ] Vliegtuigmodus op een echt Android- en iOS-apparaat is getest.
-- [ ] Uitloggen en accountverwijdering lokale pakketten wissen.
-- [ ] Een conflict een begrijpelijke keuze toont.
-- [ ] Corporate Admin-check `trip.offline-pack` slaagt.
+- [x] Uitloggen en accountverwijdering lokale pakketten wissen (codepad gebouwd; productieproef open).
+- [x] Een conflict stopt synchronisatie met een begrijpelijke melding en behoudt de lokale invoer.
+- [ ] Corporate Admin-check `trip.offline-today` slaagt.
 
 ## Release 8 — één accommodatieprovider
 

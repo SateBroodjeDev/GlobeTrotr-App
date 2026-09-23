@@ -1,0 +1,4 @@
+import test from'node:test';import assert from'node:assert/strict';import{parseBookingMail}from'./booking-mail-parser.mjs';
+test('recognises flight fields without retaining the body',()=>{const x=parseBookingMail({sender:'confirm@airline.example',subject:'Flight confirmation KL123',body:'Booking reference: ABC123\n2026-10-12'});assert.equal(x.bookingType,'flight');assert.equal(x.parsedData.flightNumber,'KL123');assert.equal(x.parsedData.bookingReference,'ABC123');assert.equal(x.parsedData.date,'2026-10-12');assert.equal('body'in x.parsedData,false)});
+test('keeps unknown mail reviewable',()=>{const x=parseBookingMail({subject:'Hello',body:'Thanks'});assert.equal(x.bookingType,'unknown');assert.ok(x.confidence<.6)});
+test('marks cancellations for manual review',()=>{const x=parseBookingMail({subject:'Your hotel booking was cancelled',body:'Reservation number: H12345'});assert.equal(x.bookingType,'lodging');assert.equal(x.parsedData.changeKind,'cancelled')});

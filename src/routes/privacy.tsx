@@ -39,8 +39,8 @@ function PrivacyPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed opacity-90">
           {text(
-            "Privacy- en browseropslagverklaring voor de live internationale beta en betaalde accounts. Versie 22 september 2026.",
-            "Privacy and browser-storage notice for the live international beta and paid accounts. Version 22 September 2026.",
+            "Privacy- en browseropslagverklaring voor de live internationale beta en betaalde accounts. Versie 23 september 2026.",
+            "Privacy and browser-storage notice for the live international beta and paid accounts. Version 23 September 2026.",
           )}
         </p>
       </header>
@@ -73,8 +73,8 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
-                  "Reizen, routes, planning, reisleden, boekingen, uitgaven, paklijsten en uploads: om de gekozen functies en samenwerking te leveren; uitvoering van de overeenkomst.",
-                  "Trips, routes, itinerary, members, bookings, expenses, packing lists and uploads: to provide selected features and collaboration; performance of the agreement.",
+                  "Reizen, routes, planning, reisleden, boekingen, uitgaven, paklijsten, reisvergelijkerkandidaten, reacties, peilingen, stemmen en uploads: om de gekozen functies en samenwerking te leveren; uitvoering van de overeenkomst. Reacties en stemmen zijn alleen zichtbaar voor bevoegde reisleden. Reacties verdwijnen wanneer hun kandidaat wordt verwijderd; een afgesloten peiling bewaart de keuze en stemtotalen als reisbesluit.",
+                  "Trips, routes, itinerary, members, bookings, expenses, packing lists, trip-comparison candidates, comments, polls, votes and uploads: to provide selected features and collaboration; performance of the agreement. Comments and votes are visible only to authorised trip members. Comments are removed when their candidate is deleted; a closed poll retains the choice and vote totals as a trip decision.",
                 )}
               </li>
               <li>
@@ -91,8 +91,26 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
+                  "Browserpush is optioneel en per apparaat: na jouw toestemming bewaren we het push-endpoint, technische versleutelingssleutels, beperkte apparaatinfo en bezorgstatus. De zichtbare push bevat alleen dat er een nieuwe melding klaarstaat; inhoud blijft achter de GlobeTrotr-login. Je kunt het apparaat vanuit het meldingenpaneel intrekken.",
+                  "Browser push is optional and device-specific: after your consent, we store the push endpoint, technical encryption keys, limited device information and delivery status. The visible push only says that a new notification is ready; its content remains behind your GlobeTrotr sign-in. You can revoke the device from the notifications panel.",
+                )}
+              </li>
+              <li>
+                {text(
                   "Bedrijfsmail: postvakadressen, toegang van medewerkers, inkomende en uitgaande berichtinhoud, HTML-opmaak, bijlagen, concepten, gespreksgegevens en bezorgstatus om de gekozen postvakdienst te leveren; uitvoering van de overeenkomst. Bijlagen worden daarnaast op schadelijke software gecontroleerd om de dienst en ontvangers te beveiligen; gerechtvaardigd belang.",
                   "Company mail: mailbox addresses, staff access, incoming and outgoing message content, HTML formatting, attachments, drafts, conversation details and delivery status to provide the selected mailbox service; performance of the agreement. Attachments are also checked for malware to protect the service and recipients; legitimate interests.",
+                )}
+              </li>
+              <li>
+                {text(
+                  "Boekingsmail per reis: als je een bevestiging naar een uniek reisadres stuurt, verwerken we afzender, onderwerp, bericht en bijlagen om type en basisvelden te herkennen. GlobeTrotr maakt eerst een controleerbaar concept en voegt niets automatisch aan de reis toe.",
+                  "Booking email per trip: when you send a confirmation to a unique trip address, we process sender, subject, message and attachments to recognise its type and basic fields. GlobeTrotr first creates a reviewable draft and does not add anything to the trip automatically.",
+                )}
+              </li>
+              <li>
+                {text(
+                  "Agency-klantformulieren: vragen, het doel per veld, de gekozen klant en reis, antwoorden, controle- en verwerkingsstatus en auditgegevens om reiswensen gecontroleerd te verzamelen; uitvoering van de overeenkomst. Vul nooit wachtwoorden, betaalkaartgegevens of authenticatiecodes in.",
+                  "Agency client forms: questions, each field's purpose, selected client and trip, answers, review and processing status, and audit data to collect travel requirements in a controlled way; performance of the agreement. Never enter passwords, payment-card details or authentication codes.",
                 )}
               </li>
               <li>
@@ -149,14 +167,14 @@ function PrivacyPage() {
                 </li>
                 <li>
                   {text(
-                  "Supabase verzorgt database, authenticatie en bestandsopslag vanuit Central EU (Frankfurt, eu-central-1) in Duitsland. Primaire account-, reis- en documentgegevens staan daardoor binnen de Europese Unie zolang GlobeTrotr deze configuratie gebruikt. Andere leveranciers en optionele koppelingen kunnen gegevens buiten de EU verwerken; zie hieronder.",
-                  "Supabase provides database, authentication and file storage from Central EU (Frankfurt, eu-central-1) in Germany. Primary account, trip and document data is therefore stored within the European Union while GlobeTrotr uses this configuration. Other providers and optional integrations may process data outside the EU; see below.",
+                    "Supabase verzorgt database, authenticatie en bestandsopslag vanuit Central EU (Frankfurt, eu-central-1) in Duitsland. Primaire account-, reis- en documentgegevens staan daardoor binnen de Europese Unie zolang GlobeTrotr deze configuratie gebruikt. Andere leveranciers en optionele koppelingen kunnen gegevens buiten de EU verwerken; zie hieronder.",
+                    "Supabase provides database, authentication and file storage from Central EU (Frankfurt, eu-central-1) in Germany. Primary account, trip and document data is therefore stored within the European Union while GlobeTrotr uses this configuration. Other providers and optional integrations may process data outside the EU; see below.",
                   )}
                 </li>
                 <li>
                   {text(
-                    "ZXCS verzorgt mailboxen, IMAP en SMTP. De afgeschermde relay op de eigen Duitse server verwerkt adres, naam, inhoud, bijlagen en bezorgstatus voor verzending. Het centrale SMTP-geheim staat uitsluitend op de server; de afzonderlijke IMAP-wachtwoorden van gekoppelde postvakken worden versleuteld in de database bewaard en zijn niet zichtbaar voor postvakgebruikers in de browser.",
-                    "ZXCS provides mailboxes, IMAP and SMTP. The protected relay on our German server processes addresses, names, content, attachments and delivery status for sending. The central SMTP secret is kept only on the server; individual IMAP passwords for connected mailboxes are stored encrypted in the database and are not exposed to mailbox users in the browser.",
+                    "ZXCS verzorgt tijdens de gecontroleerde overgang de bestaande mailboxen, IMAP en SMTP. GlobeTrotr bouwt daarnaast een eigen Stalwart-mailserver op de Duitse Node-02 voor nieuwe, gemigreerde en automatische reispostvakken. De afgeschermde relay verwerkt adres, naam, inhoud, bijlagen en bezorgstatus. Beheer- en postvakgeheimen staan uitsluitend op de server; afzonderlijke postvakwachtwoorden worden versleuteld in de database bewaard en zijn niet zichtbaar voor postvakgebruikers in de browser.",
+                    "During the controlled transition, ZXCS continues to provide existing mailboxes, IMAP and SMTP. GlobeTrotr is also deploying a self-hosted Stalwart mail server on German Node-02 for new, migrated and automated trip mailboxes. The protected relay processes addresses, names, content, attachments and delivery status. Management and mailbox secrets remain server-side; individual mailbox passwords are stored encrypted in the database and are not exposed to mailbox users in the browser.",
                   )}
                 </li>
                 <li>
@@ -219,8 +237,8 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
-                  "Lokale reiscache: totdat je uitlogt, je account verwijdert of browseropslag wist.",
-                  "Local trip cache: until you sign out, delete your account or clear browser storage.",
+                  "Lokale reiscache en bewust opgeslagen offline dagoverzichten: totdat je uitlogt, het pakket verwijdert, je account verwijdert of browseropslag wist. Het reispakket bevat route, planning en praktische boekingsinformatie, maar geen bestaande bedragen, boekingscodes of documenten. Uitgaven die je zelf offline invoert bevatten omschrijving, datum, categorie, bedrag, valuta en betaler en blijven lokaal totdat je ze bewust synchroniseert.",
+                  "Local trip cache and explicitly saved offline day views: until you sign out, remove the pack, delete your account or clear browser storage. The trip pack contains the route, schedule and practical booking information, but excludes existing amounts, booking references and documents. Expenses you enter offline contain a description, date, category, amount, currency and payer and remain local until you explicitly sync them.",
                 )}
               </li>
               <li>
@@ -239,6 +257,18 @@ function PrivacyPage() {
                 {text(
                   "Bedrijfspostvakken: berichten, bijlagen en concepten blijven beschikbaar zolang het postvak bestaat of totdat een bevoegde gebruiker ze verwijdert, behoudens back-ups en wettelijke bewaarplichten. Een nog niet gekoppelde uploadreservering vervalt na twee uur; de worker ruimt de reservering en het bijbehorende bestand vervolgens op. Vertaaltekst wordt tijdelijk verwerkt op de eigen server; een verstuurd of opgeslagen concept kan de vertaalde tekst bevatten.",
                   "Company mailboxes: messages, attachments and drafts remain available while the mailbox exists or until an authorised user removes them, subject to backups and legal retention duties. An unattached upload reservation expires after two hours; the worker then removes the reservation and its file. Translation text is processed temporarily on our own server; a sent or saved draft may contain the translated text.",
+                )}
+              </li>
+              <li>
+                {text(
+                  "Boekingsmailconcepten: de reisplanner kiest een bewaartermijn van 1 tot 365 dagen. Daarna verwijdert de worker het concept, het bronbericht en gekoppelde bijlagen. Intrekken van het reisadres stopt nieuwe verwerking.",
+                  "Booking email drafts: the trip planner selects a retention period from 1 to 365 days. The worker then removes the draft, source message and linked attachments. Revoking the trip address stops new processing.",
+                )}
+              </li>
+              <li>
+                {text(
+                  "Agency-klantformulieren: de Agency kiest per sjabloon een bewaartermijn van 1 tot 730 dagen na het verlopen van de link. Daarna verwijdert de worker het verzoek en de gekoppelde antwoorden automatisch. Een bevoegde medewerker kan de link eerder intrekken of het antwoord archiveren.",
+                  "Agency client forms: the Agency selects a retention period of 1 to 730 days after the link expires for each template. The worker then automatically removes the request and its answers. An authorised employee can revoke the link or archive the response earlier.",
                 )}
               </li>
               <li>
@@ -295,6 +325,18 @@ function PrivacyPage() {
                     retention={text(
                       "Tot uitloggen, verwijderen of browser wissen",
                       "Until sign-out, deletion or browser clearing",
+                    )}
+                  />
+                  <StorageRow
+                    name="IndexedDB: globetrotr-offline-v1"
+                    purpose={text(
+                      "Een door jou gekozen reis zonder netwerk als alleen-lezen dagoverzicht openen",
+                      "Open a trip you selected as a read-only day view without a network",
+                    )}
+                    category={text("Functionele voorkeur", "Functional preference")}
+                    retention={text(
+                      "Tot uitloggen, handmatig verwijderen, account verwijderen of browser wissen",
+                      "Until sign-out, manual removal, account deletion or browser clearing",
                     )}
                   />
                   <StorageRow

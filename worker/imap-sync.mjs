@@ -3,6 +3,7 @@ import { simpleParser } from "mailparser";
 import { createDecipheriv, createHash, randomUUID } from "node:crypto";
 import { scanBuffer } from "./clamav.mjs";
 import { safeImapErrorCode } from "./imap-diagnostics.mjs";
+import { parseBookingMail } from "./booking-mail-parser.mjs";
 
 const env = process.env,
   supabaseUrl = required("SUPABASE_URL").replace(/\/$/, ""),
@@ -195,6 +196,30 @@ async function sync() {
                   }),
                 });
                 if (inserted?.length) {
+                  const bookingAddresses = await rest(`trip_booking_mail_addresses?mailbox_id=eq.${box.id}&active=eq.true&select=id,trip_uuid,allowed_senders,retention_days`);
+                  const bookingAddress = bookingAddresses?.[0];
+                  if (bookingAddress) {
+                    const allowed = bookingAddress.allowed_senders || [];
+                    const senderAllowed = !allowed.length || allowed.some((value) => normalized(value) === sender);
+                    if (senderAllowed) {
+                      const recognized = parseBookingMail({ sender, subject: parsed.subject, body });
+                      const fingerprint = createHash("sha256").update(`${providerId}\n${sender}\n${String(parsed.subject || "")}`).digest("hex");
+                      const bookingDraft = await rest("trip_booking_mail_drafts", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=representation" }, body: JSON.stringify({
+                        address_id: bookingAddress.id, trip_uuid: bookingAddress.trip_uuid, message_id: inserted[0].id,
+                        source_fingerprint: fingerprint, sender_address: sender, subject: String(parsed.subject || "").slice(0, 500),
+                        booking_type: recognized.bookingType, parsed_data: recognized.parsedData, confidence: recognized.confidence,
+                        source_expires_at: new Date(Date.now() + Number(bookingAddress.retention_days || 30) * 86_400_000).toISOString(),
+                      }) });
+                      if (bookingDraft?.length) {
+                        const trips = await rest(`trips?trip_uuid=eq.${bookingAddress.trip_uuid}&select=id,workspace_user_id`);
+                        if (trips?.[0]?.workspace_user_id) await rest("notifications", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }, body: JSON.stringify({
+                          user_id: trips[0].workspace_user_id, kind: "trip", title: "Boekingsmail ontvangen / Booking email received",
+                          body: `booking-mail|${recognized.bookingType}|${String(parsed.subject || "").slice(0,160)}`,
+                          event_key: `trip-booking-mail:${bookingDraft[0].id}`, link: `/trips/${trips[0].id}`,
+                        }) });
+                      }
+                    } else log("info", "booking_mail.sender_rejected", { mailboxId: box.id, senderDomain: sender.split("@")[1] || "unknown" });
+                  }
                   for (const { attachment, content } of safeAttachments) {
                     const contentType = String(attachment.contentType || "application/octet-stream").slice(0, 150);
                     const fileName = String(attachment.filename || "attachment")

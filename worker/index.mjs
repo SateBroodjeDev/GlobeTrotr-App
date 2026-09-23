@@ -1,9 +1,11 @@
 import { createServer } from "node:http";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import webPush from "web-push";
 import { scanBuffer } from "./clamav.mjs";
 import { buildLiveCalendar } from "./live-calendar.mjs";
 import { trustedPaddleCustomData } from "./paddle-binding.mjs";
 import { agencyDomainFilter } from "./agency-domain.mjs";
+import { checkStalwart, decryptMailboxPassword, provisionMailbox } from "./stalwart-provisioning.mjs";
 
 const env = process.env;
 const supabaseUrl = required("SUPABASE_URL").replace(/\/$/, "");
@@ -23,6 +25,11 @@ let lastSuccessAt = null;
 let lastErrorCode = null;
 let lastEntitlementExpiryAt = 0;
 let lastAttachmentCleanupAt = 0;
+let lastTripPollReminderAt = 0;
+let lastAgencyFormCleanupAt = 0;
+let lastBookingMailCleanupAt = 0;
+let lastPushCleanupAt = 0;
+let lastFlightMonitorAt = 0;
 const tlsChecks = new Map();
 
 async function activeAgencyWorkspaceForDomain(domain) {
@@ -258,6 +265,72 @@ async function pollMail() {
         templateKey: message.template_key,
         errorCode: code,
       });
+    }
+  }
+}
+
+async function pollWebPush() {
+  const publicKey=env.VAPID_PUBLIC_KEY?.trim(),privateKey=env.VAPID_PRIVATE_KEY?.trim(),subject=env.VAPID_SUBJECT?.trim();
+  if(!publicKey||!privateKey||!subject)return;
+  webPush.setVapidDetails(subject,publicKey,privateKey);
+  const messages=await rpc("claim_web_push_outbox",{p_limit:Math.min(batchSize,50)});
+  for(const message of messages??[]){
+    let gone=false;
+    try{
+      const subscription=await restSingle(`web_push_subscriptions?id=eq.${encodeURIComponent(message.subscription_id)}&revoked_at=is.null&select=endpoint,p256dh,auth_secret`);
+      if(!subscription?.endpoint)throw Object.assign(new Error("PUSH_SUBSCRIPTION_GONE"),{code:"PUSH_SUBSCRIPTION_GONE",statusCode:410});
+      await webPush.sendNotification({endpoint:subscription.endpoint,keys:{p256dh:subscription.p256dh,auth:subscription.auth_secret}},JSON.stringify(message.payload),{TTL:3600,urgency:"normal"});
+      await rpc("complete_web_push_outbox",{p_id:message.id,p_succeeded:true,p_error_code:null,p_gone:false});
+      log("info","push.sent",{messageId:message.id});
+    }catch(error){
+      const status=Number(error?.statusCode||0);gone=status===404||status===410;const code=gone?"PUSH_SUBSCRIPTION_GONE":status?`PUSH_HTTP_${status}`:String(error?.code||"PUSH_DELIVERY_FAILED").slice(0,80);
+      await rpc("complete_web_push_outbox",{p_id:message.id,p_succeeded:false,p_error_code:code,p_gone:gone});
+      log("error","push.failed",{messageId:message.id,errorCode:code,gone});
+    }
+  }
+}
+
+function flightState(payload){
+  const clean=value=>typeof value==="string"?value.trim().slice(0,120)||null:null;
+  const point=value=>value&&typeof value==="object"?{scheduled:clean(value.scheduled_time),actual:clean(value.actual_time),estimated:clean(value.estimated_time),terminal:clean(value.terminal),gate:clean(value.gate)}:{};
+  return{status:clean(payload?.status),departure:point(payload?.departure),arrival:point(payload?.arrival)};
+}
+
+async function pollFlightMonitors(){
+  const key=env.SKYLINK_API_KEY?.trim();if(!key)return;
+  const flights=await rpc("claim_due_flight_monitors",{p_limit:Math.min(batchSize,20)});
+  for(const flight of flights??[]){
+    try{
+      const response=await fetch(`https://data.skylinkapi.com/v3.1/flight_status/${encodeURIComponent(flight.flight_number)}`,{headers:{"x-api-key":key},signal:AbortSignal.timeout(15_000)});
+      if(!response.ok)throw Object.assign(new Error("FLIGHT_PROVIDER_FAILED"),{code:`FLIGHT_HTTP_${response.status}`});
+      const payload=await response.json();if(!payload?.flight_number)throw Object.assign(new Error("FLIGHT_RESPONSE_INVALID"),{code:"FLIGHT_RESPONSE_INVALID"});
+      const result=await rpc("record_flight_monitor_result",{p_trip:flight.trip_uuid,p_item:flight.travel_item_id,p_state:flightState(payload),p_error_code:null});
+      log("info","flight.checked",{tripId:flight.trip_uuid,itemId:flight.travel_item_id,result});
+    }catch(error){
+      const code=String(error?.name==="TimeoutError"?"FLIGHT_TIMEOUT":error?.code||"FLIGHT_PROVIDER_FAILED").slice(0,80);
+      await rpc("record_flight_monitor_result",{p_trip:flight.trip_uuid,p_item:flight.travel_item_id,p_state:{},p_error_code:code});
+      log("error","flight.check_failed",{tripId:flight.trip_uuid,itemId:flight.travel_item_id,errorCode:code});
+    }
+  }
+}
+
+async function pollMailboxProvisioning() {
+  const url = env.STALWART_URL?.trim(), token = env.STALWART_API_TOKEN?.trim(),
+    domainId = env.STALWART_DOMAIN_ID?.trim();
+  if (!url || !token || !domainId) return;
+  const mailboxes = await rpc("claim_mailbox_provisioning", { p_limit: Math.min(batchSize, 20) });
+  for (const mailbox of mailboxes ?? []) {
+    try {
+      if (!mailbox.imap_password_ciphertext)
+        throw Object.assign(new Error("MAILBOX_PASSWORD_MISSING"), { code: "MAILBOX_PASSWORD_MISSING" });
+      const password = decryptMailboxPassword(mailbox.imap_password_ciphertext, env.MAILBOX_CREDENTIALS_KEY);
+      const accountId = await provisionMailbox({ url, token, domainId }, mailbox, password);
+      await rpc("complete_mailbox_provisioning", { p_mailbox_id: mailbox.id, p_succeeded: true, p_account_id: accountId, p_error_code: null });
+      log("info", "mailbox.provisioned", { mailboxId: mailbox.id, mailboxType: mailbox.mailbox_type });
+    } catch (error) {
+      const code = String(error?.code || "MAIL_PROVISIONING_FAILED").slice(0, 80);
+      await rpc("complete_mailbox_provisioning", { p_mailbox_id: mailbox.id, p_succeeded: false, p_account_id: null, p_error_code: code });
+      log("error", "mailbox.provisioning_failed", { mailboxId: mailbox.id, errorCode: code });
     }
   }
 }
@@ -516,6 +589,8 @@ async function cycle() {
   try {
     await pollJobs();
     await pollMail();
+    await pollWebPush();
+    await pollMailboxProvisioning();
     await pollCorporateMail();
     if (Date.now() - lastEntitlementExpiryAt > 3_600_000) {
       await rpc("expire_billing_entitlements");
@@ -524,6 +599,26 @@ async function cycle() {
     if (Date.now() - lastAttachmentCleanupAt > 3_600_000) {
       await cleanupExpiredCorporateMailUploads();
       lastAttachmentCleanupAt = Date.now();
+    }
+    if (Date.now() - lastTripPollReminderAt > 3_600_000) {
+      await rpc("run_trip_option_poll_reminders", { p_now: new Date().toISOString() });
+      lastTripPollReminderAt = Date.now();
+    }
+    if (Date.now() - lastAgencyFormCleanupAt > 3_600_000) {
+      await rpc("cleanup_expired_agency_form_data", { p_now: new Date().toISOString() });
+      lastAgencyFormCleanupAt = Date.now();
+    }
+    if (Date.now() - lastBookingMailCleanupAt > 3_600_000) {
+      await rpc("cleanup_trip_booking_mail_drafts");
+      lastBookingMailCleanupAt = Date.now();
+    }
+    if (Date.now() - lastPushCleanupAt > 3_600_000) {
+      await rpc("cleanup_web_push_data");
+      lastPushCleanupAt = Date.now();
+    }
+    if (Date.now() - lastFlightMonitorAt > 60_000) {
+      await pollFlightMonitors();
+      lastFlightMonitorAt = Date.now();
     }
     lastSuccessAt = new Date().toISOString();
     lastErrorCode = null;
@@ -677,6 +772,13 @@ createServer(async (request, response) => {
     } catch {
       response.writeHead(503, { "Cache-Control": "no-store" }).end();
     }
+    return;
+  }
+  if (requestUrl.pathname === "/health/mail") {
+    const config={url:env.STALWART_URL?.trim(),token:env.STALWART_API_TOKEN?.trim(),domainId:env.STALWART_DOMAIN_ID?.trim()};
+    if(!config.url||!config.token||!config.domainId){response.writeHead(503,{"Content-Type":"application/json","Cache-Control":"no-store"}).end(JSON.stringify({status:"not_configured"}));return}
+    try{await checkStalwart(config);response.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"}).end(JSON.stringify({status:"operational"}))}
+    catch(error){log("error","mail_server.health_failed",{errorCode:String(error?.code||"MAIL_SERVER_UNAVAILABLE").slice(0,80)});response.writeHead(503,{"Content-Type":"application/json","Cache-Control":"no-store"}).end(JSON.stringify({status:"unavailable"}))}
     return;
   }
   if (request.url !== "/health") {

@@ -60,8 +60,10 @@ import { TripTemplateApply } from "@/components/TripTemplateApply";
 import { TripInsights } from "@/components/TripInsights";
 import { TripTasks } from "@/components/TripTasks";
 import { TripToday } from "@/components/TripToday";
+import { mergeOfflineExpenses } from "@/lib/offline-trip";
 import { TripCover } from "@/components/TripCover";
 import { TripOptions } from "@/components/TripOptions";
+import { TripBookingMail } from "@/components/TripBookingMail";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -869,16 +871,13 @@ function TripDetail() {
             {editable && (
               <optgroup label={text("Plannen", "Planning")}>
                 <option value="plan-edit">{text("Reisschema aanpassen", "Edit itinerary")}</option>
-                <option value="options">
-                  {text("Reisopties vergelijken", "Compare travel options")}
-                </option>
+                <option value="options">{text("Reisvergelijker", "Trip comparison")}</option>
+                <option value="booking-mail">{text("Boekingsmail", "Booking email")}</option>
               </optgroup>
             )}
             {!editable && (
               <optgroup label={text("Plannen", "Planning")}>
-                <option value="options">
-                  {text("Reisopties vergelijken", "Compare travel options")}
-                </option>
+                <option value="options">{text("Reisvergelijker", "Trip comparison")}</option>
               </optgroup>
             )}
             <optgroup label={text("Geld en spullen", "Money and essentials")}>
@@ -901,7 +900,8 @@ function TripDetail() {
               {text("Reisschema aanpassen", "Edit itinerary")}
             </TabsTrigger>
           )}
-          <TabsTrigger value="options">{text("Opties", "Options")}</TabsTrigger>
+          <TabsTrigger value="options">{text("Vergelijker", "Comparison")}</TabsTrigger>
+          {editable && <TabsTrigger value="booking-mail">{text("Boekingsmail", "Booking email")}</TabsTrigger>}
           <TabsTrigger value="expenses">{text("Uitgaven", "Expenses")}</TabsTrigger>
           <TabsTrigger value="money">{text("Geld-tools", "Money tools")}</TabsTrigger>
           <TabsTrigger value="packing">{text("Paklijst", "Packing list")}</TabsTrigger>
@@ -913,6 +913,9 @@ function TripDetail() {
           <TripToday
             trip={trip}
             editable={editable}
+            moneyEditable={moneyEditable}
+            payers={financialParticipants}
+            syncOfflineExpenses={(expenses) => saveTripNow(trip.id, (current) => ({ ...current, expenses: mergeOfflineExpenses(current.expenses, expenses) }))}
             weatherEnabled={hasFeature(state.plan, "weather")}
             text={text}
           />
@@ -928,6 +931,25 @@ function TripDetail() {
             text={text}
           />
         </TabsContent>
+
+        {editable && <TabsContent value="booking-mail" className="space-y-4">
+          <TripBookingMail tripId={trip.id} text={text} acceptDraft={async (draft) => {
+            const parsed = draft.parsed_data ?? {};
+            const rawDate = String(parsed.date ?? trip.start);
+            const date = /^\d{2}[/-]\d{2}[/-]\d{4}$/.test(rawDate)
+              ? rawDate.split(/[/-]/).reverse().join("-") : rawDate;
+            const bookingType: TravelItem["type"] = ["flight","lodging","transport","car_rental","activity"].includes(draft.booking_type)
+              ? draft.booking_type as TravelItem["type"] : "activity";
+            const optionalText = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
+            await saveTripNow(trip.id, (current) => ({ ...current, travelItems: [...(current.travelItems ?? []), {
+              id: uid(), type: bookingType,
+              title: String(parsed.title ?? draft.subject ?? text("Geïmporteerde boeking", "Imported booking")),
+              date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : current.start,
+              provider: optionalText(parsed.provider), bookingReference: optionalText(parsed.bookingReference), flightNumber: optionalText(parsed.flightNumber),
+              notes: text("Gecontroleerd boekingsmailconcept", "Reviewed booking email draft"),
+            }] }));
+          }} />
+        </TabsContent>}
 
         <TabsContent value="settings" className="space-y-4">
           <Tabs defaultValue="general">

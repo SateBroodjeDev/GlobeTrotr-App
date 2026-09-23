@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/corporate-admin/status")({
 const labels: Record<string, [string, string]> = {
   weather: ["Weer", "Weather"], flight_lookup: ["Vluchtinformatie", "Flight data"], routing: ["Routes", "Routing"],
   email: ["E-mail", "Email"], domain_verification: ["Domeincontrole", "Domain verification"], object_storage: ["Objectopslag", "Object storage"],
+  mail_server: ["Mailserver", "Mail server"],
 };
 
 function StatusPage() {

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Bell, BookTemplate, CreditCard, FileText, History, LayoutDashboard, ListTodo, Settings2, ShieldAlert, ShieldCheck, TrendingUp, Truck, Users } from "lucide-react";
+import { BarChart3, Bell, BookOpenCheck, BookTemplate, CreditCard, FileText, History, LayoutDashboard, ListTodo, Settings2, ShieldAlert, ShieldCheck, TrendingUp, Truck, Users } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { useLocale } from "@/lib/locale";
 import { getMyAgencyAccess } from "@/lib/agency.functions";
@@ -19,6 +19,7 @@ const items=[
  {to:"/agency-admin/reports",nl:"Rapportage",en:"Reporting",icon:TrendingUp,permission:"analytics_view"},
  {to:"/agency-admin/tasks",nl:"Taken",en:"Tasks",icon:ListTodo,permission:"trips_view"},
  {to:"/agency-admin/templates",nl:"Sjablonen",en:"Templates",icon:BookTemplate,permission:"trips_view"},
+ {to:"/agency-admin/forms",nl:"Klantformulieren",en:"Client forms",icon:BookOpenCheck,permission:"members_manage"},
  {to:"/agency-admin/quotes",nl:"Offertes",en:"Quotes",icon:FileText,permission:"trips_view"},
  {to:"/agency-admin/audit",nl:"Activiteit",en:"Activity",icon:History,ownerOnly:true},
  {to:"/agency-admin/security",nl:"Beveiliging",en:"Security",icon:ShieldAlert,ownerOnly:true},

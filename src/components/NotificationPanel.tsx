@@ -10,6 +10,7 @@ import { useLocale } from "@/lib/locale";
 import { respondToTripInvitation } from "@/lib/invitation.functions";
 import { respondToAgencyInvitation } from "@/lib/agency.functions";
 import { notificationPreview } from "@/lib/notification-preview";
+import { PushNotificationControl } from "@/components/PushNotificationControl";
 
 const styles = {
   account: {
@@ -101,6 +102,12 @@ const styles = {
     label: "Verrekening",
     color:
       "border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-100",
+  },
+  flight_alert: {
+    emoji: "",
+    label: "Vluchtwijziging",
+    color:
+      "border-red-300 bg-red-50 text-red-950 dark:border-red-800 dark:bg-red-950/50 dark:text-red-100",
   },
 } as const;
 
@@ -272,6 +279,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
             )}
           </p>
         </div>
+        <PushNotificationControl />
         <div
           className="max-h-[min(65dvh,32rem)] space-y-2 overflow-y-auto p-3"
           aria-busy={notifications.isPending}

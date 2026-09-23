@@ -11,7 +11,12 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { PUBLIC_BETA_STATUS, PUBLIC_RELEASES, type PublicChangeKind } from "@/lib/public-changelog";
+import {
+  PUBLIC_BETA_STATUS,
+  PUBLIC_IN_PROGRESS,
+  PUBLIC_RELEASES,
+  type PublicChangeKind,
+} from "@/lib/public-changelog";
 import { useLocale } from "@/lib/locale";
 
 export const Route = createFileRoute("/changelog")({
@@ -50,7 +55,10 @@ const KIND = {
     icon: LockKeyhole,
     className: "bg-violet-500/10 text-violet-700 dark:text-violet-300",
   },
-} satisfies Record<PublicChangeKind, { label: [string, string]; icon: typeof Rocket; className: string }>;
+} satisfies Record<
+  PublicChangeKind,
+  { label: [string, string]; icon: typeof Rocket; className: string }
+>;
 
 export function ChangelogPage() {
   const { locale, text } = useLocale();
@@ -60,9 +68,14 @@ export function ChangelogPage() {
         <Badge variant="secondary" className="mb-4 gap-1.5">
           <Sparkles className="size-3" /> GlobeTrotr updates
         </Badge>
-        <h1 className="font-display text-3xl font-semibold sm:text-5xl">{text("Wat is er nieuw?", "What's new?")}</h1>
+        <h1 className="font-display text-3xl font-semibold sm:text-5xl">
+          {text("Wat is er nieuw?", "What's new?")}
+        </h1>
         <p className="mt-4 max-w-2xl text-sm opacity-90 sm:text-base">
-          {text("Nieuwe functies, verbeteringen en oplossingen. Helder uitgelegd, zodat je meteen weet wat er voor jou is veranderd.", "New features, improvements and fixes, explained clearly so you know what has changed.")}
+          {text(
+            "Nieuwe functies, verbeteringen en oplossingen. Helder uitgelegd, zodat je meteen weet wat er voor jou is veranderd.",
+            "New features, improvements and fixes, explained clearly so you know what has changed.",
+          )}
         </p>
       </header>
 
@@ -73,7 +86,9 @@ export function ChangelogPage() {
           </span>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-lg font-semibold">{text(PUBLIC_BETA_STATUS.label, PUBLIC_BETA_STATUS.labelEn)}</h2>
+              <h2 className="font-display text-lg font-semibold">
+                {text(PUBLIC_BETA_STATUS.label, PUBLIC_BETA_STATUS.labelEn)}
+              </h2>
               <Badge variant="outline">Beta</Badge>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -98,6 +113,20 @@ export function ChangelogPage() {
         </CardContent>
       </Card>
 
+      <Card className="surface border-primary/20">
+        <CardContent className="p-5 sm:p-7">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-display text-lg font-semibold">
+              {text(PUBLIC_IN_PROGRESS.title, PUBLIC_IN_PROGRESS.titleEn)}
+            </h2>
+            <Badge variant="outline">{text("In ontwikkeling", "In development")}</Badge>
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {text(PUBLIC_IN_PROGRESS.description, PUBLIC_IN_PROGRESS.descriptionEn)}
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="relative space-y-8 before:absolute before:bottom-0 before:left-[19px] before:top-3 before:w-px before:bg-border sm:before:left-[27px]">
         {PUBLIC_RELEASES.map((release, releaseIndex) => (
           <article key={release.id} className="relative pl-12 sm:pl-16">
@@ -115,12 +144,16 @@ export function ChangelogPage() {
               <span className="flex items-center gap-1.5">
                 <Clock3 className="size-3.5" /> {formatTime(release.publishedAt, locale)}
               </span>
-              {releaseIndex === 0 && <Badge className="ml-auto">{text("Nieuwste update", "Latest update")}</Badge>}
+              {releaseIndex === 0 && (
+                <Badge className="ml-auto">{text("Nieuwste update", "Latest update")}</Badge>
+              )}
               <Badge variant="outline">{release.version}</Badge>
             </div>
             <Card className="surface overflow-hidden">
               <CardContent className="p-5 sm:p-7">
-                <h2 className="font-display text-xl font-semibold sm:text-2xl">{text(release.title, release.titleEn)}</h2>
+                <h2 className="font-display text-xl font-semibold sm:text-2xl">
+                  {text(release.title, release.titleEn)}
+                </h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {text(release.summary, release.summaryEn)}
                 </p>
@@ -143,7 +176,9 @@ export function ChangelogPage() {
                             {text(config.label[0], config.label[1])}
                           </span>
                         </div>
-                        <h3 className="mt-3 text-sm font-semibold">{text(change.title, change.titleEn)}</h3>
+                        <h3 className="mt-3 text-sm font-semibold">
+                          {text(change.title, change.titleEn)}
+                        </h3>
                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                           {text(change.description, change.descriptionEn)}
                         </p>
@@ -170,6 +205,10 @@ function formatDate(value: string, locale: "nl-NL" | "en-GB") {
 }
 
 function formatTime(value: string, locale: "nl-NL" | "en-GB") {
-  const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Amsterdam" }).format(new Date(value));
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Amsterdam",
+  }).format(new Date(value));
   return locale === "nl-NL" ? `${time} uur` : `${time} Amsterdam time`;
 }

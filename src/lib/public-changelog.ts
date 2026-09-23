@@ -34,6 +34,16 @@ export const PUBLIC_BETA_STATUS = {
   ],
 } as const;
 
+/** Zichtbaar werk in ontwikkeling; verschijnt bewust niet als gepubliceerde release. */
+export const PUBLIC_IN_PROGRESS = {
+  title: "Waar we nu aan werken",
+  titleEn: "What we're working on",
+  description:
+    "Update 1.1 bundelt de Reisvergelijker, veilige Agency-klantformulieren, eigen bedrijfsmail, controleerbare boekingsmailconcepten, een Agency-contentbibliotheek, optionele webpush, begrensde vluchtcontrole en een bewust opgeslagen offline dagoverzicht. Pushberichten tonen geen reisdetails buiten de beveiligde omgeving. Deze onderdelen worden nog gecontroleerd uitgerold en praktisch getest; de MX-overgang gebeurt pas daarna.",
+  descriptionEn:
+    "Update 1.1 combines Trip comparison, secure Agency client forms, self-hosted company mail, reviewable booking email drafts, an Agency content library, optional web push, bounded flight monitoring and an explicitly saved offline day view. Push notices do not expose trip details outside the secure portal. These components still require a controlled rollout and hands-on testing; the MX cutover follows only after that.",
+} as const;
+
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
@@ -42,29 +52,37 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     publishedAt: "2026-09-21T20:30:00+02:00",
     title: "Betrouwbare communicatie en betalingen",
     titleEn: "Reliable communication and payments",
-    summary: "De nieuwste verbeteringen voor mail, vertaling, betalingen en agenda zijn in productie bevestigd.",
-    summaryEn: "The latest improvements to mail, translation, payments and calendars are confirmed in production.",
+    summary:
+      "De nieuwste verbeteringen voor mail, vertaling, betalingen en agenda zijn in productie bevestigd.",
+    summaryEn:
+      "The latest improvements to mail, translation, payments and calendars are confirmed in production.",
     changes: [
       {
         kind: "improved",
         title: "Professionele bedrijfsmail",
         titleEn: "Professional company email",
-        description: "Bedrijfsmail gebruikt veilige HTML, een herkenbare handtekening en behoudt opmaak en bijlagen bij opnieuw bezorgen.",
-        descriptionEn: "Company email uses safe HTML, a recognisable signature and preserves formatting and attachments when retried.",
+        description:
+          "Bedrijfsmail gebruikt veilige HTML, een herkenbare handtekening en behoudt opmaak en bijlagen bij opnieuw bezorgen.",
+        descriptionEn:
+          "Company email uses safe HTML, a recognisable signature and preserves formatting and attachments when retried.",
       },
       {
         kind: "new",
         title: "Vertaalconcepten met controle",
         titleEn: "Translation drafts with review",
-        description: "Feedback, meldingen, onderhoud, recensies en bedrijfsmail kunnen tussen Nederlands en Engels als controleerbaar concept worden vertaald.",
-        descriptionEn: "Feedback, notices, maintenance, testimonials and company email can be translated between Dutch and English as reviewable drafts.",
+        description:
+          "Feedback, meldingen, onderhoud, recensies en bedrijfsmail kunnen tussen Nederlands en Engels als controleerbaar concept worden vertaald.",
+        descriptionEn:
+          "Feedback, notices, maintenance, testimonials and company email can be translated between Dutch and English as reviewable drafts.",
       },
       {
         kind: "fixed",
         title: "Betaling en live agenda hersteld",
         titleEn: "Payments and live calendars restored",
-        description: "Betaalrechten, gelokaliseerde betaalmeldingen en live agenda-abonnementen zijn na de productie-uitrol gecontroleerd.",
-        descriptionEn: "Payment entitlements, localised payment notices and live calendar subscriptions were verified after the production rollout.",
+        description:
+          "Betaalrechten, gelokaliseerde betaalmeldingen en live agenda-abonnementen zijn na de productie-uitrol gecontroleerd.",
+        descriptionEn:
+          "Payment entitlements, localised payment notices and live calendar subscriptions were verified after the production rollout.",
       },
     ],
   },
@@ -77,9 +95,31 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
     summary: "Verbeteringen die in de actieve beta zijn bevestigd.",
     summaryEn: "Improvements confirmed in the active beta.",
     changes: [
-      { kind: "improved", title: "Overzichtelijke openbare reispagina", titleEn: "Clearer public trip page", description: "De gedeelde reis toont de planning leesbaarder.", descriptionEn: "Shared trips present the itinerary more clearly." },
-      { kind: "fixed", title: "GPX en losse agenda-export", titleEn: "GPX and one-time calendar export", description: "GPX-download en losse ICS-export werkten vanaf deze beta; de live abonnementlink was in deze release nog in onderzoek.", descriptionEn: "GPX download and one-time ICS export worked from this beta; the live subscription link was still under investigation in this release." },
-      { kind: "fixed", title: "Uitgaven en bedrijfsbeheer", titleEn: "Expenses and corporate management", description: "De tekst bij 'betaald door' past weer in de knop en bedrijfsbeheerderaccounts kunnen worden opgeslagen.", descriptionEn: "The paid-by label fits its button and corporate administrator accounts can be saved." },
+      {
+        kind: "improved",
+        title: "Overzichtelijke openbare reispagina",
+        titleEn: "Clearer public trip page",
+        description: "De gedeelde reis toont de planning leesbaarder.",
+        descriptionEn: "Shared trips present the itinerary more clearly.",
+      },
+      {
+        kind: "fixed",
+        title: "GPX en losse agenda-export",
+        titleEn: "GPX and one-time calendar export",
+        description:
+          "GPX-download en losse ICS-export werkten vanaf deze beta; de live abonnementlink was in deze release nog in onderzoek.",
+        descriptionEn:
+          "GPX download and one-time ICS export worked from this beta; the live subscription link was still under investigation in this release.",
+      },
+      {
+        kind: "fixed",
+        title: "Uitgaven en bedrijfsbeheer",
+        titleEn: "Expenses and corporate management",
+        description:
+          "De tekst bij 'betaald door' past weer in de knop en bedrijfsbeheerderaccounts kunnen worden opgeslagen.",
+        descriptionEn:
+          "The paid-by label fits its button and corporate administrator accounts can be saved.",
+      },
     ],
   },
   {

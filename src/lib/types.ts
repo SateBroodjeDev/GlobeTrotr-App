@@ -100,6 +100,27 @@ export type TravelItem = {
 
 export type TravelOptionStatus = "candidate" | "selected" | "rejected";
 
+export type TravelOptionDetails = {
+  startTime?: string;
+  endTime?: string;
+  flightNumber?: string;
+  departureName?: string;
+  arrivalName?: string;
+  locationName?: string;
+  transportMode?: TransportMode;
+  luggageIncluded?: boolean;
+  roomType?: string;
+  guests?: number;
+  breakfastIncluded?: boolean;
+  vehicle?: string;
+  vehicleCategory?: string;
+  deposit?: number;
+  insurance?: string;
+  excess?: number;
+  activityCategory?: string;
+  participants?: number;
+};
+
 /** Een nog niet geboekte keuze die reizigers gecontroleerd kunnen vergelijken. */
 export type TravelOption = {
   id: string;
@@ -117,6 +138,8 @@ export type TravelOption = {
   distanceKm?: number;
   sourceUrl?: string;
   notes?: string;
+  /** Velden die alleen bij het gekozen soort kandidaat horen. */
+  details?: TravelOptionDetails;
   status: TravelOptionStatus;
   checkedAt?: string;
   /** Bewijst dat omzetten naar een boeking idempotent is. */

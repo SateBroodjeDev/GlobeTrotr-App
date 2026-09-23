@@ -705,6 +705,11 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
         () => reachable(process.env["WORKER_HEALTH_URL"]!),
         Boolean(process.env["WORKER_HEALTH_URL"]?.trim()),
       ),
+      timedCheck(
+        "mail_server",
+        () => reachable(process.env["MAIL_SERVER_HEALTH_URL"]!),
+        Boolean(process.env["MAIL_SERVER_HEALTH_URL"]?.trim()),
+      ),
     ]);
     const publicKeys: Record<string, string> = {
       database: "database",
@@ -713,6 +718,7 @@ export const runPlatformHealthChecks = createServerFn({ method: "POST" })
       rates: "rates",
       flights: "flights",
       worker: "worker",
+      mail_server: "mail_server",
     };
     await Promise.all(
       checks

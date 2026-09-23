@@ -16,6 +16,22 @@ Dit technische changelog groepeert de huidige releasegeschiedenis. Detailwijzigi
 
 ### Klaar voor kleine vervolguitrol
 
+De onderstaande onderdelen zijn gebouwd maar nog niet als publieke productie-release bevestigd. De actuele mailstatus staat in [MAIL_STATUS.md](MAIL_STATUS.md).
+
+- **Agency-klantformulieren en eigen mailhosting:** veilige tweetalige intakeformulieren zijn toegevoegd. Corp Admin kan persoonlijke, gedeelde en automatische `trip.*@globetrotr.nl`-postvakken laten provisionen op een afgeschermde Stalwart-mailserver; de DNS-cutover volgt pas na acceptatie.
+- **Mailserverbeheer:** Corporate Admin toont de provisioningstatus en beperkte foutcode, kan een mislukte aanmaak bewust opnieuw starten en neemt de interne Stalwart-controle mee in de platformstatus.
+- **Boekingsmail per reis:** planners kunnen een uniek `trip.*@globetrotr.nl`-adres maken. De IMAP-worker herkent veilige basisvelden, wijzigingen en annuleringen, blokkeert dubbele verwerking en maakt een bewerkbaar concept dat pas na bevestiging een boeking wordt. Intrekken en automatische verwijdering volgen de ingestelde bewaartermijn.
+- **Agency-contentbibliotheek:** bestemmingen, accommodaties, activiteiten, dagblokken, teksten en media kunnen als persoonlijk concept of organisatie-item worden bewaard. Taal, tags, publicatiestatus, versiehistorie, bron, licentie, kopiëren en archiveren zijn opgenomen zonder bestaande sjablonen te vervangen. Een preview laat een vaste versie vervolgens eenmaal als planning, reisonderdeel of offertetekst toepassen; bestaande inhoud wordt niet overschreven.
+- **Webpush per apparaat:** gebruikers kunnen vanuit het meldingenpaneel browserpush activeren of intrekken. De push toont bewust geen reis- of accountdetails, de worker bezorgt met VAPID, begrensde retries en automatische intrekking van verdwenen endpoints.
+- **Automatische vluchtcontrole:** toekomstige vluchten van Pro- en Agency-reizen worden binnen zeven dagen begrensd gecontroleerd. De eerste controle legt alleen een basislijn vast; alleen wijzigingen in status, tijd, gate of terminal worden met cooldown en reisvoorkeur als melding aangeboden.
+- **Offline onderweg:** een reiziger kan route, planning en praktische boekingsinformatie expliciet op het apparaat bewaren en per reisdag zonder netwerk openen. Nieuwe uitgaven kunnen in een begrensde lokale wachtrij worden gezet en worden alleen na een bewuste keuze veilig samengevoegd. Bestaande bedragen, boekingscodes en documenten blijven buiten het pakket; uitloggen wist de lokale kopie en wachtrij.
+
+- Agency-klantformulieren zijn lokaal compleet: configureerbare NL/EN-velden met doel en bewaartermijn, beveiligde intrekbare links, HTML-uitnodiging, mobiele invulpagina, eenmalig indienen, review, verwerking naar klantvoorkeuren, JSON-export, audit en automatische verwijdering. Migratie/test 1550 en productieacceptatie staan nog open.
+
+- De reisplanner gebruikt de naam **Vergelijker** en vraagt per categorie relevante gegevens: vlucht en route, verblijf en ontbijt, vervoerssoort, huurauto of activiteit. Het algemene invoerveld ‘Duur in minuten’ is verwijderd; tijdstippen bepalen waar van toepassing de reistijd. Migratie 1500 bewaart deze velden afzonderlijk na 1490. Nog niet gepubliceerd op de website als afgeronde release.
+- Actieve reisleden kunnen per kandidaat een reactie plaatsen en hun eigen reactie verwijderen. De opslag is tot 1.000 tekens begrensd, volgt de bestaande reistoegang en verwijdert reacties met de kandidaat. Migratie 1510 en de bijbehorende acceptatietest staan klaar.
+- Planners kunnen een peiling met twee tot vier kandidaten en een optionele deadline starten. Reisleden kunnen één stem uitbrengen, wijzigen of intrekken; planners kunnen de keuze afsluiten zonder automatisch te boeken. Migratie/test 1520 en een productieproef staan nog open.
+- In-appmeldingen bij starten, deadline en afsluiten van een peiling respecteren bestaande reis- en Agency-voorkeuren. De HTML-mail volgt de accounttaal en `tripUpdates`-voorkeur. Een afgeschermd auditlog registreert de handelingen zonder reacties of gevoelige berichtinhoud. Migraties/tests 1530–1540 en productieacceptatie staan nog open.
 - Logo, Website/Home en publieke menu- en footerlinks gaan vanaf portal rechtstreeks naar `globetrotr.nl`.
 - Publieke routes onder de portalhost krijgen ook serverzijdig een 302 naar de website.
 - Header, hoofdnavigatie, meldingsknop, modals, homepage, About en dashboard schalen rustiger op smalle schermen, met grotere aanraakvlakken en CTA's die niet buiten beeld lopen.

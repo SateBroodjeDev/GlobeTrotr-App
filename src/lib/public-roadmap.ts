@@ -1,5 +1,5 @@
 export const PUBLIC_TODAY = {
-  date: ["22 september 2026", "22 September 2026"],
+  date: ["23 september 2026", "23 September 2026"],
   title: ["Beta in gebruik, publieke opening voorbereiden", "Beta in use, preparing public launch"],
   description: [
     "Een eerste groep gebruikt GlobeTrotr. Voor de publieke opening controleren we de complete reis, betaling, mail en Agency-domeinen opnieuw in productie.",
@@ -71,8 +71,8 @@ export const PUBLIC_ROADMAP = [
         "Confirm sign-up, invitations, payments and live calendar feeds with real accounts",
       ],
       [
-        "Reisopties voor verblijf, vlucht, vervoer en activiteiten met echte rollen en valuta bevestigen",
-        "Verify travel options for accommodation, flights, transport and activities with real roles and currencies",
+        "De Reisvergelijker, reacties en peilingen met echte reisleden, valuta en mobiele schermen bevestigen",
+        "Verify Trip comparison, comments and polls with real trip members, currencies and mobile screens",
       ],
       [
         "Nederlandse en Engelse servicemails en meldingen zonder technische codes controleren",
@@ -86,6 +86,26 @@ export const PUBLIC_ROADMAP = [
         "Bedrijfsmailgesprekken, bijlagen, opmaak en beveiligde verwerking in de beta controleren",
         "Verify company-mail conversations, attachments, formatting and secure processing in the beta",
       ],
+      [
+        "De eigen mailserver, automatische reisadressen en mailauthenticatie gecontroleerd invoeren zonder bestaande post te verliezen",
+        "Roll out the self-hosted mail server, automated trip addresses and email authentication without losing existing mail",
+      ],
+      [
+        "Boekingsmailconcepten met echte hotel- en vluchtbevestigingen controleren voordat ze als boeking worden opgeslagen",
+        "Verify booking email drafts with real hotel and flight confirmations before they are saved as bookings",
+      ],
+      [
+        "De Agency-contentbibliotheek met rollen, talen, versies, bronnen, licenties en gecontroleerde toepassing op reis of offerte in productie controleren",
+        "Verify the Agency content library with roles, languages, versions, sources, licences and controlled application to a trip or quote in production",
+      ],
+      [
+        "Het expliciet opgeslagen offline dagoverzicht zonder netwerk en na uitloggen op echte telefoons controleren",
+        "Verify the explicitly saved offline day view without a network and after sign-out on real phones",
+      ],
+      [
+        "Optionele webpush per apparaat met veilige algemene inhoud in productie controleren",
+        "Verify optional per-device web push with safe generic content in production",
+      ],
     ],
   },
   {
@@ -97,6 +117,10 @@ export const PUBLIC_ROADMAP = [
     ],
     items: [
       [
+        "Samen stemmen over kandidaten met een deadline en een gecontroleerde definitieve keuze",
+        "Vote together on candidates with a deadline and a controlled final choice",
+      ],
+      [
         "Uitnodigingen en rolwissels voor grotere groepen vereenvoudigen",
         "Simplify invitations and role changes for larger groups",
       ],
@@ -105,12 +129,8 @@ export const PUBLIC_ROADMAP = [
         "Bring the Agency client portal closer to each organisation's brand and domain",
       ],
       [
-        "Boekingsmails omzetten naar controleerbare reisconcepten",
-        "Turn booking emails into reviewable trip drafts",
-      ],
-      [
-        "Veilige klantformulieren toevoegen en Agency-sjablonen uitbreiden met rijke herbruikbare inhoud",
-        "Add secure client forms and expand Agency templates with rich reusable content",
+        "Veilige klantformulieren accepteren en Agency-sjablonen uitbreiden met rijke herbruikbare inhoud",
+        "Verify secure client forms and expand Agency templates with rich reusable content",
       ],
       [
         "Bedrijfsmailgesprekken en samenwerken aan antwoorden overzichtelijker maken",
@@ -130,13 +150,22 @@ export const PUBLIC_ROADMAP = [
       "Remove more manual work while keeping you in control of your trip.",
     ],
     items: [
-      ["Offline reisoverzicht vooraf downloaden", "Download an offline trip overview in advance"],
-      ["Optioneel reisdagboek met foto's en expliciete zichtbaarheid", "Optional trip journal with photos and explicit visibility"],
+      [
+        "Offline gebruik later uitbreiden met geselecteerde documenten en gecontroleerde conflictafhandeling",
+        "Later expand offline use with selected documents and controlled conflict resolution",
+      ],
+      [
+        "Optioneel reisdagboek met foto's en expliciete zichtbaarheid",
+        "Optional trip journal with photos and explicit visibility",
+      ],
       [
         "Routevolgorde met handmatige bevestiging optimaliseren",
         "Optimise route order with manual confirmation",
       ],
-      ["Periodieke vluchtupdates", "Periodic flight updates"],
+      [
+        "Vluchtcontrole na de productieproef uitbreiden met meer providers en persoonlijke regels",
+        "After production verification, expand flight monitoring with more providers and personal rules",
+      ],
       [
         "Live aanbod voor verblijven, vervoer en activiteiten via goedgekeurde providers zoeken",
         "Search live accommodation, transport and activity inventory through approved providers",
