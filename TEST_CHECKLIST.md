@@ -5,6 +5,7 @@
 ## 1. Uitrol
 
 - [x] Migraties en tests tot en met 1630 uitgevoerd (bevestigd door eigenaar).
+- [x] Releasecommit `9a67ef0` uitgerold op Node-01 en Node-02 (bevestigd door eigenaar).
 - [ ] Test Pro/Agency-vluchtcontrole binnen zeven dagen: basislijn zonder melding, ongewijzigd zonder melding, relevante wijziging eenmaal gemeld, voorkeur uit respecteren en provideruitval begrensd opnieuw proberen.
 - [ ] Configureer één VAPID-sleutelpaar, zet push per apparaat aan en uit, ontvang een algemene push met gesloten tabblad en controleer retry en verwijdering van een verlopen endpoint.
 - [ ] Bekijk een bibliotheekitem vooraf en voeg dezelfde versie eenmaal toe aan een reis en eenmaal aan een conceptofferte; controleer dat een tweede klik geen duplicaat maakt en dat een nieuwe bibliotheekversie bestaande reizen niet wijzigt.

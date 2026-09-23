@@ -36,16 +36,83 @@ export const PUBLIC_BETA_STATUS = {
 
 /** Zichtbaar werk in ontwikkeling; verschijnt bewust niet als gepubliceerde release. */
 export const PUBLIC_IN_PROGRESS = {
-  title: "Waar we nu aan werken",
-  titleEn: "What we're working on",
+  title: "Wat we nu afronden",
+  titleEn: "What we're finalising",
   description:
-    "Update 1.1 bundelt de Reisvergelijker, veilige Agency-klantformulieren, eigen bedrijfsmail, controleerbare boekingsmailconcepten, een Agency-contentbibliotheek, optionele webpush, begrensde vluchtcontrole en een bewust opgeslagen offline dagoverzicht. Pushberichten tonen geen reisdetails buiten de beveiligde omgeving. Deze onderdelen worden nog gecontroleerd uitgerold en praktisch getest; de MX-overgang gebeurt pas daarna.",
+    "Update 1.1 is uitgerold. We ronden nu de productieacceptatie af. De overstap van ZXCS naar de eigen mailserver blijft een afzonderlijke, gecontroleerde migratie en gebeurt pas na aflever-, back-up- en hersteltests.",
   descriptionEn:
-    "Update 1.1 combines Trip comparison, secure Agency client forms, self-hosted company mail, reviewable booking email drafts, an Agency content library, optional web push, bounded flight monitoring and an explicitly saved offline day view. Push notices do not expose trip details outside the secure portal. These components still require a controlled rollout and hands-on testing; the MX cutover follows only after that.",
+    "Update 1.1 has been deployed and is now completing production acceptance. Moving from ZXCS to the self-hosted mail server remains a separate controlled migration and will only follow delivery, backup and recovery tests.",
 } as const;
 
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-23-update-1-1",
+    version: "Update 1.1",
+    publishedAt: "2026-09-23T12:00:00+02:00",
+    title: "Samen beslissen en voorbereid op reis",
+    titleEn: "Decide together and travel prepared",
+    summary:
+      "Een grote productupdate voor vergelijken, samenwerken, Agency-intake, meldingen en gebruik onderweg.",
+    summaryEn:
+      "A major product update for comparison, collaboration, Agency intake, notifications and use while travelling.",
+    changes: [
+      {
+        kind: "new",
+        title: "Reisvergelijker en gezamenlijke keuzes",
+        titleEn: "Trip comparison and shared decisions",
+        description:
+          "Vergelijk reisopties per categorie, bespreek kandidaten, stem samen en zet de definitieve keuze gecontroleerd om naar één boeking.",
+        descriptionEn:
+          "Compare travel options by category, discuss candidates, vote together and convert the final choice into exactly one booking.",
+      },
+      {
+        kind: "new",
+        title: "Veilige klantformulieren voor Agencies",
+        titleEn: "Secure Agency client forms",
+        description:
+          "Agencies kunnen tweetalige intakeformulieren delen, antwoorden beoordelen en goedgekeurde voorkeuren verwerken zonder gevoelige geheimvelden te verzamelen.",
+        descriptionEn:
+          "Agencies can share bilingual intake forms, review responses and process approved preferences without requesting confidential account details.",
+      },
+      {
+        kind: "new",
+        title: "Offline dagoverzicht en uitgaven",
+        titleEn: "Offline daily view and expenses",
+        description:
+          "Bewaar bewust een beperkt reispakket voor onderweg, bekijk dagen zonder verbinding en synchroniseer nieuwe uitgaven na herstel van internet.",
+        descriptionEn:
+          "Explicitly save a limited trip pack for the road, view travel days without a connection and synchronise new expenses once internet access returns.",
+      },
+      {
+        kind: "improved",
+        title: "Meldingen en vluchtcontrole",
+        titleEn: "Notifications and flight monitoring",
+        description:
+          "Optionele webpush en begrensde vluchtcontrole melden relevante wijzigingen zonder reisdetails in de pushmelding te tonen.",
+        descriptionEn:
+          "Optional web push and bounded flight monitoring report relevant changes without exposing trip details in the push notification.",
+      },
+      {
+        kind: "new",
+        title: "Agency-contentbibliotheek",
+        titleEn: "Agency content library",
+        description:
+          "Beheer herbruikbare, tweetalige reiscontent met rollen, versies en broninformatie en voeg die gecontroleerd toe aan reizen en offertes.",
+        descriptionEn:
+          "Manage reusable bilingual travel content with roles, versions and source information, then apply it to trips and quotes in a controlled way.",
+      },
+      {
+        kind: "improved",
+        title: "Boekingsmail met menselijke controle",
+        titleEn: "Booking email with human review",
+        description:
+          "Doorgestuurde boekingsmail wordt als controleerbaar concept herkend; wijzigingen, annuleringen en dubbelen worden gemarkeerd voordat iets in de reis komt.",
+        descriptionEn:
+          "Forwarded booking email is recognised as a reviewable draft; changes, cancellations and duplicates are flagged before anything enters the trip.",
+      },
+    ],
+  },
   {
     id: "2026-09-21-communication-reliability",
     version: "Beta 0.19",

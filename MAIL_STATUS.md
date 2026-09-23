@@ -22,16 +22,16 @@ De huidige productie gebruikt de bestaande ZXCS-postvakken via SMTP en IMAP. De 
 
 Deze productiefunctionaliteit blijft via ZXCS werken totdat de gecontroleerde MX-overgang naar Stalwart is voltooid.
 
-## Lokaal gebouwd, nog niet in productie bevestigd
+## Uitgerold, productieacceptatie nog afronden
 
-Deze onderdelen zitten in de huidige werkstand. De SQL-migraties en tests zijn uitgevoerd; een nieuwe web- en workerbuild en praktijktests zijn nog nodig:
+Deze onderdelen zijn met releasecommit `9a67ef0` op Node-01 en Node-02 uitgerold. De SQL-migraties en tests zijn uitgevoerd; de genoemde praktijktests en de afzonderlijke mailserverinrichting zijn nog nodig:
 
 | Onderdeel | Code gereed | Nog nodig |
 | --- | --- | --- |
-| Agency-klantformulieren | Ja | Web/worker uitrollen en echte NL/EN-formulieren testen |
+| Agency-klantformulieren | Ja | Echte NL/EN-formulieren testen |
 | Zelf gehoste Stalwart-mailserver | Ja | Node-02 configureren, DNS/mailauthenticatie en back-up/herstel testen |
 | Mailserverstatus en provisioningherstel | Ja | Health-URL en fout/herstelproef controleren |
-| Boekingsmail per reis | Ja | Web en `imap-sync` uitrollen en echte hotel-/vluchtmail testen |
+| Boekingsmail per reis | Ja | Echte hotel-/vluchtmail testen |
 
 Na uitrol kan Corporate Admin persoonlijke, gedeelde en automatische postvakken op de eigen server laten maken. Een reisplanner kan dan een uniek `trip.*@globetrotr.nl`-adres aanmaken, afzenders en bewaartermijn instellen, herkende gegevens corrigeren en het concept bewust als boeking toevoegen of afwijzen. Dubbele berichten, wijzigingen en annuleringen worden voor controle gemarkeerd. Intrekken stopt verdere verwerking.
 

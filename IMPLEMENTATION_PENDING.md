@@ -2,6 +2,8 @@
 
 **Stand: 23 september 2026**
 
+**Uitrolstatus:** releasecommit `9a67ef0` is op 23 september 2026 door de eigenaar op Node-01 en Node-02 uitgerold. De resterende stappen in dit document zijn productieacceptatie en de afzonderlijke mailservermigratie.
+
 <!-- release-preflight: confirmed-through=20260908163000_offline_today_acceptance.sql -->
 
 Deze handleiding rolt releasecommit `9a67ef0` op branch `lovable` uit. SQL-migraties en tests tot en met **1630** zijn uitgevoerd. Voer geen SQL opnieuw uit. Rol eerst de applicatie uit. De eigen Stalwart-mailserver en MX-overgang zijn een afzonderlijke tweede fase.
@@ -17,7 +19,7 @@ npx web-push generate-vapid-keys
 
 Gebruik op beide nodes exact dezelfde public key. Alleen Node-02 krijgt de private key. Commit nooit `.env`, `.env.production`, `.env.mail-relay`, wachtwoorden of tokens.
 
-## 1. De bestaande releasecommit controleren en pushen
+## 1. De bestaande releasecommit controleren en pushen — afgerond
 
 ```powershell
 cd "C:\Users\info\Desktop\Travelplanner\GIT Clone\globetrotr-1d042353"
@@ -34,7 +36,7 @@ git rev-parse --short HEAD
 
 De branch moet `lovable` zijn en `git status --short` moet leeg blijven. Noteer de laatste uitvoer als `VERWACHTE_COMMIT`. Stop bij een test-, build- of diff-fout.
 
-## 2. Node-01 configureren
+## 2. Node-01 configureren — afgerond
 
 Log in op Node-01 en controleer eerst dat de checkout schoon is:
 
@@ -53,7 +55,7 @@ VAPID_PUBLIC_KEY=PLAK_HIER_DE_PUBLIC_KEY
 
 Sla in nano op met `Ctrl+O`, Enter en sluit met `Ctrl+X`. Voeg `MAIL_SERVER_HEALTH_URL` pas toe wanneer fase 7, de eigen mailserver, is voltooid.
 
-## 3. Node-02 configureren
+## 3. Node-02 configureren — afgerond
 
 ```bash
 cd /opt/globetrotr
@@ -71,7 +73,7 @@ VAPID_PRIVATE_KEY=PLAK_HIER_DE_PRIVATE_KEY
 
 Controleer dat de al bestaande waarden voor Supabase, relay, IMAP, Paddle, mailboxencryptie en vluchtprovider intact blijven. Sluit met `Ctrl+O`, Enter en `Ctrl+X`.
 
-## 4. Node-02 worker uitrollen
+## 4. Node-02 worker uitrollen — afgerond
 
 Deze fase start nog geen Stalwart-server en wijzigt geen MX-record.
 
@@ -90,7 +92,7 @@ docker compose --env-file .env.production -f deploy/worker.compose.yml exec mail
 
 De commit moet gelijk zijn aan `VERWACHTE_COMMIT`. `worker`, `imap-sync`, `mail-relay` en `clamav` moeten actief zijn; worker en relay moeten HTTP 200 geven.
 
-## 5. Node-01 web uitrollen
+## 5. Node-01 web uitrollen — afgerond
 
 ```bash
 cd /opt/globetrotr
@@ -106,7 +108,7 @@ docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=
 
 Controleer ook hier dat `git rev-parse --short HEAD` gelijk is aan `VERWACHTE_COMMIT`.
 
-## 6. Technische controle en acceptatie
+## 6. Technische controle en acceptatie — nu uitvoeren
 
 Vanaf je pc:
 

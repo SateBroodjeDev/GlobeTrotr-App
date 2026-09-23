@@ -2,6 +2,12 @@
 
 Dit technische changelog groepeert de huidige releasegeschiedenis. Detailwijzigingen blijven via Git beschikbaar. Alleen bevestigde publieke releases verschijnen op de website.
 
+## Update 1.1 — 23 september 2026
+
+- Update 1.1 is uitgerold op Node-01 en Node-02 en staat nu als gebundelde release op de publieke updatepagina.
+- De release bevat de Reisvergelijker met reacties en peilingen, Agency-klantformulieren, de contentbibliotheek, webpush, begrensde vluchtcontrole, het offline dagoverzicht met uitgavenwachtrij en controleerbare boekingsmailconcepten.
+- De eigen Stalwart-mailserver en MX-overgang horen niet bij de voltooide applicatie-uitrol; die blijven een afzonderlijke migratie na aflever-, back-up- en hersteltests.
+
 ## 22 september 2026 — portal en Agency-ingang
 
 ### Uitgerold in `5df0590`
