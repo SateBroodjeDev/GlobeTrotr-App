@@ -11,6 +11,7 @@ De huidige versie draait als internationale beta op eigen GlobeTrotr-infrastruct
 ## Wat de applicatie bevat
 
 - Meerdere reizen met sjablonen, data, bestemmingen en een interactieve OpenStreetMap-route.
+- Controle op ontbrekende hotelnachten met een begrensde OpenStreetMap-zoekactie en opslag in de Reisvergelijker.
 - Chronologisch reisschema, boekingen, vluchtinformatie, vervoer en paklijsten.
 - Uitgaven in meerdere valuta, live ECB-koersen, slimme verrekening en veilige CSV/PDF-export.
 - Brandstofprognoses per vervoerstype en koppeling met werkelijke tankuitgaven.
@@ -62,7 +63,7 @@ npm run build
 npm run check
 ```
 
-`npm run verify` voert ESLint, 85 regressietests, de volledige TypeScript-controle, de beveiligingsaudit, de release-preflight en syntaxiscontroles van de workers uit. De beveiligingsaudit blokkeert onbeveiligd service-rolegebruik, browserreferenties naar servergeheimen, nieuwe niet-beoordeelde HTML-sinks, onveilige externe links, gevoelige logging en nieuwe `SECURITY DEFINER`-functies zonder vastgezet zoekpad. De preflight controleert onder meer de migratie/testvolgorde, verwijderde handleidingen en kapotte UTF-8-tekst. `npm run check` voert daarna ook de productiebuild uit. De lockfile is `package-lock.json`. De Nitro-build kan lokaal op Windows tijdens de laatste bestandstrace door bestandstoegang (`EPERM`) stranden; de Linux-build in CI en op Node-01 is daarom de beslissende productiecontrole.
+`npm run verify` voert ESLint, 100 regressietests, de volledige TypeScript-controle, de beveiligingsaudit, de release-preflight en syntaxiscontroles van de workers uit. De beveiligingsaudit blokkeert onbeveiligd service-rolegebruik, browserreferenties naar servergeheimen, nieuwe niet-beoordeelde HTML-sinks, onveilige externe links, gevoelige logging en nieuwe `SECURITY DEFINER`-functies zonder vastgezet zoekpad. De preflight controleert onder meer de migratie/testvolgorde, verwijderde handleidingen en kapotte UTF-8-tekst. `npm run check` voert daarna ook de productiebuild uit. De lockfile is `package-lock.json`. De Nitro-build kan lokaal op Windows tijdens de laatste bestandstrace door bestandstoegang (`EPERM`) stranden; de Linux-build in CI en op Node-01 is daarom de beslissende productiecontrole.
 
 Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Sommige zijn alleen-lezen, andere draaien in een transactie met `ROLLBACK`; controleer de kop van ieder bestand.
 

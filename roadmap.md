@@ -2,7 +2,7 @@
 
 ## In ontwikkeling
 
-- [ ] **Eigen GlobeTrotr-mailserver:** Stalwart, mailboxprovisioning, statusdiagnose, gecontroleerd opnieuw proberen en automatische reisadressen zijn lokaal gebouwd en de SQL is uitgevoerd. Nog uitvoeren: Node-02-initialisatie, PTR/SPF/DKIM/DMARC, mailboxmigratie, reputatiecontrole, back-up/hersteltest en gecontroleerde MX-cutover.
+- [ ] **Eigen GlobeTrotr-mailserver:** Stalwart, mailboxprovisioning, statusdiagnose, gecontroleerd opnieuw proberen en automatische reisadressen zijn gebouwd. De omschakeling wacht op vrijgave van uitgaand TCP 25 door Hetzner. Tot die tijd blijft ZXCS productie en staat boekingsmail uit. Daarna volgen Node-02-initialisatie, PTR/SPF/DKIM/DMARC, mailboxmigratie, reputatiecontrole, back-up/hersteltest en gecontroleerde MX-cutover.
 
 **Stand: 23 september 2026**
 
@@ -11,7 +11,8 @@ GlobeTrotr draait als productie-beta. De publieke website staat op `globetrotr.n
 ## Nu — publicatieacceptatie
 
 - [x] Migraties en tests tot en met 1630 uitgevoerd; nieuwe web- en workerbuild nog uitrollen.
-- [ ] Klantformulieren, Stalwart-provisioning, maildiagnose, boekingsmail, Agency-content, webpush, vluchtcontrole en offline dagoverzicht met echte rollen en mobiele schermen accepteren.
+- [ ] Klantformulieren, Stalwart-provisioning, maildiagnose, Agency-content, webpush, vluchtcontrole en offline dagoverzicht met echte rollen en mobiele schermen accepteren. Boekingsmail blijft tijdelijk uit tot Hetzner poort 25 en de MX-cutover zijn geaccepteerd.
+- [ ] GPX-import (update 1.2) uitrollen en praktisch testen met waypoints, routepunten, trackpunten, dubbelen en mobiele selectie. Migratie en test 1640 zijn uitgevoerd.
 - [ ] Vanaf portal op desktop en telefoon logo, Website/Home en alle publieke footerlinks testen; deze moeten direct naar `globetrotr.nl` gaan.
 - [ ] Op 320, 375 en 430 px controleren dat lange merknamen, horizontale navigatie, meldingen, modals, homepage-CTA's, About en dashboardfilters zichtbaar en bedienbaar blijven.
 - [ ] Registratie, e-mailbevestiging, herstel, magic link, Google, Discord, bestaande en nieuwe passkey en TOTP op portal controleren.
@@ -29,6 +30,9 @@ De exacte mailstatus en grens tussen ZXCS-productie en de nog uit te rollen Stal
 
 ## Daarna — productverbeteringen
 
+- [ ] Eén officiële hotel-API selecteren en voorbereiden voor live zoeken, transparante totaalprijzen, vergelijken en doorsturen. Eerst providercontract, quota, caching en privacygrenzen vastleggen; rechtstreeks boeken hoort niet bij de eerste versie.
+- [ ] Het provider-onafhankelijke zoekmodel later uitbreiden naar vluchten, autohuur en activiteiten wanneer hotelzoeken praktisch is bewezen.
+- [ ] Prijsalerts, flexibele reisdata en plaatsen met openingstijden als volgende zoek- en inspiratielaag onderzoeken.
 - [ ] Agency-klantportaal verder laten aansluiten op de eigen huisstijl.
 - [ ] Boekingsmails naar een controleerbaar reisconcept omzetten, zonder volledige persoonlijke mailbox te scannen. SQL is uitgevoerd; de productieacceptatie met uniek reisadres, afzenderfilter, deduplicatie, bewaartermijn en expliciete omzetting staat open.
 - [ ] Veilige Agency-klantformulieren in productie accepteren; SQL, mail, review, audit, export en bewaarbeheer zijn gebouwd. Herbruikbare accommodaties, activiteiten, media en bestemmingsblokken volgen daarna.
@@ -48,7 +52,7 @@ De exacte mailstatus en grens tussen ZXCS-productie en de nog uit te rollen Stal
 - Automatische routeoptimalisatie met handmatige bevestiging.
 - Plaatsaanbevelingen en openingstijden.
 - Vluchtcontrole na de productieproef uitbreiden met meer providers en persoonlijke regels.
-- GPX-import.
+- GPX-import is gebouwd voor update 1.2; alleen de uitrol en productieacceptatie staan nog open.
 - Uitgebreide mailboxintegraties en Agency-automatiseringen.
 - Optionele AI-reisplanning met expliciete controle.
 - Reisdagboek met foto's en bewuste zichtbaarheid.
@@ -60,3 +64,5 @@ De exacte mailstatus en grens tussen ZXCS-productie en de nog uit te rollen Stal
 Reisplanning, boekingen, kaart, uitgaven, verrekening, taken, documenten, dagoverzicht, statistieken, budgettempo, GPX/PDF/JSON/CSV/ICS-export, live agenda, openbare reizen, Agency Admin, klantportaal, Corporate Admin, privacyverzoeken, Paddle, bedrijfsmail en NL/EN-communicatie zijn aanwezig. Provider-onafhankelijke reisopties, groepsbesluiten, webpush, vluchtcontrole en offline gebruik zijn gebouwd; de SQL is uitgevoerd en productieacceptatie staat open. De primaire Supabase-opslag staat bevestigd in Central EU (Frankfurt, `eu-central-1`).
 
 Nieuwe onderdelen worden pas als afgerond aangemerkt nadat codecontrole, SQL-test én een praktijktest op productie zijn geslaagd.
+
+- [ ] De OpenStreetMap-hotelfinder praktisch accepteren: ontbrekende nachten, zoeken binnen 5 km en opslaan in de Vergelijker. Live prijzen en beschikbaarheid volgen via een officiële provider.

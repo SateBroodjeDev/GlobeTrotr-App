@@ -63,7 +63,9 @@ import { TripToday } from "@/components/TripToday";
 import { mergeOfflineExpenses } from "@/lib/offline-trip";
 import { TripCover } from "@/components/TripCover";
 import { TripOptions } from "@/components/TripOptions";
+import { HotelGapFinder } from "@/components/HotelGapFinder";
 import { TripBookingMail } from "@/components/TripBookingMail";
+import { TripGpxImport } from "@/components/TripGpxImport";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -789,6 +791,9 @@ function TripDetail() {
           >
             <Download className="size-4" /> GPX
           </Button>
+          {editable && <TripGpxImport stops={trip.stops} text={text} onImport={async(points)=>{
+            await saveTripNow(trip.id,(current)=>({...current,stops:[...current.stops,...points.map(point=>({id:uid(),name:point.name,country:"",lat:point.lat,lon:point.lon,nights:0}))]}));
+          }}/>}
           <Button
             variant="outline"
             disabled={false}
@@ -922,6 +927,7 @@ function TripDetail() {
         </TabsContent>
 
         <TabsContent value="options" className="space-y-4">
+          <HotelGapFinder trip={trip} editable={editable} save={(fn) => saveTripNow(trip.id, fn)} text={text} />
           <TripOptions
             trip={trip}
             editable={editable}

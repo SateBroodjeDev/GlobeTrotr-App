@@ -39,9 +39,9 @@ export const PUBLIC_IN_PROGRESS = {
   title: "Wat we nu afronden",
   titleEn: "What we're finalising",
   description:
-    "Update 1.1 is uitgerold. We ronden nu de productieacceptatie af. De overstap van ZXCS naar de eigen mailserver blijft een afzonderlijke, gecontroleerde migratie en gebeurt pas na aflever-, back-up- en hersteltests.",
+    "Update 1.1 is uitgerold. Update 1.2 met gecontroleerde GPX-import en de eerste hotelfinder wordt nu afgerond. De overstap van ZXCS naar de eigen mailserver blijft een afzonderlijke migratie en wacht op vrijgave van uitgaand mailverkeer, aflevertests en een bewezen herstelprocedure.",
   descriptionEn:
-    "Update 1.1 has been deployed and is now completing production acceptance. Moving from ZXCS to the self-hosted mail server remains a separate controlled migration and will only follow delivery, backup and recovery tests.",
+    "Update 1.1 has been deployed. Update 1.2 with controlled GPX import and the first hotel finder is now being finalised. Moving from ZXCS to the self-hosted mail server remains a separate migration and is waiting for outbound-mail access, delivery tests and a proven recovery procedure.",
 } as const;
 
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */
@@ -85,6 +85,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Explicitly save a limited trip pack for the road, view travel days without a connection and synchronise new expenses once internet access returns.",
       },
       {
+        kind: "new",
+        title: "Klantintake en herbruikbare Agency-content",
+        titleEn: "Client intake and reusable Agency content",
+        description:
+          "Reisorganisaties kunnen tweetalige formulieren uitsturen, antwoorden gecontroleerd verwerken en versiebeheer gebruiken voor content in reizen en offertes.",
+        descriptionEn:
+          "Travel organisations can send bilingual forms, process responses in a controlled way and use versioned content in trips and quotes.",
+      },
+      {
         kind: "improved",
         title: "Meldingen en vluchtcontrole",
         titleEn: "Notifications and flight monitoring",
@@ -92,6 +101,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Optionele webpush en begrensde vluchtcontrole melden relevante wijzigingen zonder reisdetails in de pushmelding te tonen.",
         descriptionEn:
           "Optional web push and bounded flight monitoring report relevant changes without exposing trip details in the push notification.",
+      },
+      {
+        kind: "secure",
+        title: "Offline met minimale gegevens",
+        titleEn: "Offline with minimal data",
+        description:
+          "De lokale reiskopie bevat alleen route, planning en praktische gegevens. Documenten, boekingscodes en bestaande bedragen blijven buiten het offline pakket en uitloggen wist de kopie.",
+        descriptionEn:
+          "The local trip copy only contains route, itinerary and practical details. Documents, booking references and existing amounts stay outside the offline pack, and signing out clears the copy.",
       },
       {
         kind: "new",
@@ -110,6 +128,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Doorgestuurde boekingsmail wordt als controleerbaar concept herkend; wijzigingen, annuleringen en dubbelen worden gemarkeerd voordat iets in de reis komt.",
         descriptionEn:
           "Forwarded booking email is recognised as a reviewable draft; changes, cancellations and duplicates are flagged before anything enters the trip.",
+      },
+      {
+        kind: "improved",
+        title: "Portal, mobiel en accountbeveiliging",
+        titleEn: "Portal, mobile and account security",
+        description:
+          "Publieke website en accountportaal zijn duidelijk gescheiden, mobiele navigatie is aangescherpt en Google, Discord, passkeys en TOTP sluiten aan op dezelfde accountomgeving.",
+        descriptionEn:
+          "The public website and account portal are clearly separated, mobile navigation is refined, and Google, Discord, passkeys and TOTP connect to the same account environment.",
       },
     ],
   },

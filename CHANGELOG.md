@@ -2,10 +2,26 @@
 
 Dit technische changelog groepeert de huidige releasegeschiedenis. Detailwijzigingen blijven via Git beschikbaar. Alleen bevestigde publieke releases verschijnen op de website.
 
+## Update 1.2 — in ontwikkeling
+
+- GPX-import leest lokaal waypoint-, route- en trackpunten, begrenst bestanden tot 2 MB en 500 geldige punten, weigert onveilige XML en laat de gebruiker vooraf selecteren welke punten bestemmingen worden.
+- Bestaande coördinaten worden als dubbel gemarkeerd en niet standaard geselecteerd; import behoudt de volgorde en gebruikt de bestaande veilige reisopslag.
+- Automatische boekingsadressen zijn tijdelijk zowel in de interface als op de server geblokkeerd totdat Hetzner uitgaand TCP 25 vrijgeeft en de eigen mailserver praktisch is geaccepteerd. Gewone GlobeTrotr-mail blijft via ZXCS werken.
+- De publieke mogelijkhedenpagina beschrijft nu ook de Reisvergelijker, peilingen, offline dagweergave, webpush, vluchtcontrole, open exportformaten, Agency-intake en accountbeveiliging.
+- De interactieve demo is uitgebreid van vier naar zes stappen en laat nu ook een echte vergelijkingskeuze en de begrensde offline reisweergave zien.
+- De publieke roadmap maakt zichtbaar dat de eigen mailserver wordt voorbereid, maar dat de productieomschakeling wacht op vrijgave van uitgaand mailverkeer. Reguliere mail blijft ondertussen via ZXCS beschikbaar.
+- De publieke release notes van update 1.1 leggen klantintake, Agency-content, minimale offline opslag, portalscheiding en accountbeveiliging uitgebreider uit.
+- Migratie en acceptatietest 1640 voor GPX-import zijn uitgevoerd; alleen webuitrol en de praktische productieproef staan nog open.
+- De publieke roadmap toont nu ook de voorbereiding van een officiële hotel-API, gevolgd door mogelijke vlucht-, autohuur- en activiteitenzoekfuncties, prijsalerts, routeontdekking en verdere offline uitbreiding.
+
 ## Update 1.1 — 23 september 2026
 
 - Update 1.1 is uitgerold op Node-01 en Node-02 en staat nu als gebundelde release op de publieke updatepagina.
 - De release bevat de Reisvergelijker met reacties en peilingen, Agency-klantformulieren, de contentbibliotheek, webpush, begrensde vluchtcontrole, het offline dagoverzicht met uitgavenwachtrij en controleerbare boekingsmailconcepten.
+- Reizigers kunnen kandidaten per categorie vergelijken, bespreken en laten stemmen; een planner zet daarna precies één definitieve keuze om naar een boeking.
+- Het offline pakket wordt alleen na een bewuste keuze opgeslagen, bevat geen documenten, boekingscodes of bestaande bedragen en wordt bij uitloggen gewist. Maximaal vijftig nieuwe uitgaven kunnen lokaal wachten op handmatige synchronisatie.
+- Agencies beschikken over tweetalige klantformulieren, herbruikbare content met versies en broninformatie, rollen, offertes, leveranciers, taken en klantreizen binnen dezelfde afgeschermde werkruimte.
+- Browserpush bevat geen reisdetails; vluchtcontrole legt eerst een basislijn vast en meldt daarna alleen relevante wijzigingen met begrenzing en voorkeuren.
 - De eigen Stalwart-mailserver en MX-overgang horen niet bij de voltooide applicatie-uitrol; die blijven een afzonderlijke migratie na aflever-, back-up- en hersteltests.
 
 ## 22 september 2026 — portal en Agency-ingang
@@ -82,3 +98,9 @@ De onderstaande onderdelen zijn gebouwd maar nog niet als publieke productie-rel
 - Zet niet-uitgerolde wijzigingen duidelijk onder een voorbereide vervolguitrol.
 - Noem geen interne secrets, persoonsgegevens of testadressen.
 - Werk bij iedere functionele stap ook de interne roadmap, publieke roadmap, publieke changelog en Corporate Admin-testchecklist bij.
+
+## Hotelfinder — update 1.2
+
+- GlobeTrotr signaleert per bestemming welke nachten nog geen geboekt verblijf hebben.
+- Met één knop worden verblijven binnen 5 km via OpenStreetMap gezocht en kan een resultaat aan de Vergelijker worden toegevoegd.
+- Caching en snelheidsbegrenzing beschermen de zoekdienst; prijs en beschikbaarheid moeten bij de aanbieder worden gecontroleerd.

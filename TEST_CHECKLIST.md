@@ -41,6 +41,7 @@
 - [ ] Planning, boekingen, documenten, paklijst, routekaart en kaartlagen werken op telefoon en desktop.
 - [ ] Uitgaven, betaald-door-keuze, filters, categorieën, budgettempo en verrekening blijven binnen hun vak.
 - [ ] GPX, PDF/reisgids, JSON en losse ICS-download leveren geldige bestanden met echte reisdata.
+- [ ] GPX-import accepteert waypoint-, route- en trackpunten, weigert onveilige of te grote bestanden, markeert dubbelen en voegt alleen geselecteerde punten in de juiste volgorde toe.
 - [ ] Live agenda-URL geeft zonder browsersessie `200`, `Content-Type: text/calendar` en geldige VEVENTs; intrekken maakt de oude URL ongeldig.
 - [ ] Publieke reis toont een rustig reisschema, passende kaart en alleen bedoelde openbare data.
 - [ ] Uitnodiging wordt precies eenmaal, met branding en werkende portal-link, verstuurd.
@@ -105,3 +106,5 @@
 Exacte commando’s en terugval staan in [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md). Domeingedrag staat in [PORTAL_DOMAIN_MIGRATION.md](PORTAL_DOMAIN_MIGRATION.md); het releasebesluit staat in [PRE_RELEASE.md](PRE_RELEASE.md).
 
 Gebruik [MAIL_STATUS.md](MAIL_STATUS.md) om tijdens de test onderscheid te houden tussen de actieve ZXCS-productiestroom en de nog te accepteren Stalwart- en boekingsmailfuncties.
+
+- [ ] De Vergelijker toont iedere route-nacht zonder geboekt verblijf, zoekt verblijven binnen 5 km en bewaart een resultaat als kandidaat zonder live prijs of beschikbaarheid te claimen.

@@ -1,11 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
+  BellRing,
   BookOpenCheck,
   BriefcaseBusiness,
+  Building2,
   CalendarRange,
   Check,
   FileDown,
+  FileInput,
+  GitCompareArrows,
   Globe2,
   ListChecks,
   MapPinned,
@@ -15,6 +19,7 @@ import {
   ShieldCheck,
   Users,
   WalletCards,
+  WifiOff,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +47,15 @@ const PHASES = [
   { icon: Share2, title: ["Maak van je route een reisverhaal", "Turn your route into a travel story"], copy: ["Publiceer een verzorgde pagina met intro, kaart en planning. Voeg desgewenst een PIN toe.", "Publish a polished page with an introduction, map and itinerary. Add a PIN if you wish."], points: [["Eigen omschrijving", "Your own introduction"], ["PIN-bescherming", "PIN protection"], ["Financiën apart aan of uit", "Separate financial sharing control"]] },
 ] as const;
 
+const CAPABILITIES = [
+  { icon: GitCompareArrows, title: ["Vergelijk en beslis samen", "Compare and decide together"], copy: ["Zet verblijven, vervoer en activiteiten naast elkaar, bespreek kandidaten en laat reisleden stemmen voordat je precies één keuze als boeking vastlegt.", "Compare stays, transport and activities, discuss candidates and let trip members vote before turning exactly one choice into a booking."], badge: ["Reisvergelijker", "Trip comparison"] },
+  { icon: WifiOff, title: ["Voorbereid zonder internet", "Prepared without internet"], copy: ["Bewaar bewust een beperkt dagoverzicht op je apparaat. Route, planning en praktische boekingsinformatie blijven leesbaar en nieuwe uitgaven wachten lokaal op jouw synchronisatie.", "Explicitly save a limited daily view on your device. Route, itinerary and practical booking details remain readable while new expenses wait locally for you to sync them."], badge: ["Offline dagoverzicht", "Offline daily view"] },
+  { icon: BellRing, title: ["Meldingen die jij beheert", "Notifications you control"], copy: ["Kies e-mail-, portaal- en browsermeldingen. Vluchtcontrole kan relevante tijd-, gate-, terminal- en statuswijzigingen signaleren zonder reisdetails in een pushbericht te zetten.", "Choose email, portal and browser notifications. Flight monitoring can flag relevant time, gate, terminal and status changes without placing trip details in a push notification."], badge: ["Webpush en vluchtcontrole", "Web push and flight monitoring"] },
+  { icon: FileInput, title: ["Importeer, exporteer en abonneer", "Import, export and subscribe"], copy: ["Gebruik GPX, PDF, JSON, CSV en ICS, of abonneer een agenda op een persoonlijke live link. GPX-import toont eerst een veilige preview en laat je zelf de routepunten kiezen.", "Use GPX, PDF, JSON, CSV and ICS, or subscribe a calendar to a personal live link. GPX import first shows a safe preview and lets you choose route points yourself."], badge: ["Open formaten", "Open formats"] },
+  { icon: Building2, title: ["Een complete Agency-werkruimte", "A complete Agency workspace"], copy: ["Beheer klanten, intakeformulieren, offertes, leveranciers, taken, rollen, herbruikbare content, huisstijl en klantreizen vanuit één afgeschermde organisatieomgeving.", "Manage clients, intake forms, quotes, suppliers, tasks, roles, reusable content, branding and client trips from one protected organisation workspace."], badge: ["Voor reisprofessionals", "For travel professionals"] },
+  { icon: ShieldCheck, title: ["Controle over toegang en privacy", "Control over access and privacy"], copy: ["Gebruik Google of Discord, passkeys en TOTP. Beheer sessies, communicatievoorkeuren en privacyverzoeken terwijl reisrollen gevoelige financiële informatie begrenzen.", "Use Google or Discord, passkeys and TOTP. Manage sessions, communication preferences and privacy requests while trip roles restrict sensitive financial information."], badge: ["Accountbeveiliging", "Account security"] },
+] as const;
+
 export function FeaturesPage() {
   const { user } = useAuth();
   const { text } = useLocale();
@@ -61,6 +75,11 @@ export function FeaturesPage() {
       <section>
         <div className="mx-auto max-w-2xl text-center"><p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">{text("De hele reiscyclus", "The complete trip lifecycle")}</p><h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">{text("Van eerste prik op de kaart tot de laatste terugbetaling", "From the first map pin to the final repayment")}</h2></div>
         <div className="mt-9 grid gap-5 lg:grid-cols-2">{PHASES.map(({ icon: Icon, title, copy, points }, index) => <Card key={title[0]} className="surface overflow-hidden"><CardContent className="grid gap-5 p-6 sm:grid-cols-[auto_1fr]"><span className="grid size-12 place-items-center rounded-2xl bg-primary/10 text-primary"><Icon className="size-6" /></span><div><p className="text-xs font-semibold text-primary">0{index + 1}</p><h3 className="mt-1 font-display text-xl font-semibold">{text(title[0], title[1])}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text(copy[0], copy[1])}</p><ul className="mt-4 grid gap-2 text-xs sm:grid-cols-2">{points.map(point => <li key={point[0]} className="flex gap-2"><Check className="size-3.5 shrink-0 text-primary" />{text(point[0], point[1])}</li>)}</ul></div></CardContent></Card>)}</div>
+      </section>
+
+      <section>
+        <div className="mx-auto max-w-3xl text-center"><p className="text-xs font-semibold uppercase tracking-[.2em] text-primary">{text("Meer dan de basis", "Beyond the basics")}</p><h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">{text("Ook de lastige stukken van een reis geregeld", "The complicated parts of a trip, handled too")}</h2><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{text("Deze mogelijkheden zijn onderdeel van het huidige platform of staan in de eerstvolgende gecontroleerde uitrol.", "These capabilities are part of the current platform or the next controlled release.")}</p></div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{CAPABILITIES.map(({icon:Icon,title,copy,badge})=><Card key={title[0]} className="surface"><CardContent className="p-6"><div className="flex items-start justify-between gap-3"><span className="grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary"><Icon className="size-5"/></span><Badge variant="outline">{text(badge[0],badge[1])}</Badge></div><h3 className="mt-5 font-display text-xl font-semibold">{text(title[0],title[1])}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text(copy[0],copy[1])}</p></CardContent></Card>)}</div>
       </section>
 
       <section className="rounded-3xl border border-border bg-muted/20 p-6 sm:p-10">

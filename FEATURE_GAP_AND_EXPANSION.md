@@ -30,11 +30,12 @@ Daarmee is GlobeTrotr functioneel publiceerbaar zodra de open productieacceptati
 | Bedrijfsmail | Gebouwd, verfijning open | Interne notities, toewijzen, antwoordstatus en boekingsverwerking. |
 | Vertaalconcepten | Gebouwd, verfijning open | Terminologielijst, wijzigingsvergelijking en bulkcontrole. |
 | Meldingen | Gebouwd, uitrol open | Webpush per apparaat en bezorging zijn gebouwd; VAPID en productieacceptatie staan open. |
-| Volwaardige offline modus | Veilige leesbasis gebouwd | Expliciete route-, planning- en boekingssamenvatting per reis is lokaal gebouwd. Offline uitgaven, documenten, synchronisatie en conflictafhandeling ontbreken nog. |
+| Volwaardige offline modus | Veilige basis gebouwd | Route, planning en praktische boekingsinformatie zijn lokaal beschikbaar; maximaal vijftig nieuwe uitgaven kunnen bewust worden gesynchroniseerd. Geselecteerde documenten en uitgebreidere conflictafhandeling ontbreken nog. |
 | Automatische routeoptimalisatie | Niet gebouwd | Reistijdmatrix, voorkeuren, provider, kostenlimiet en bevestigingspreview. Route omkeren bestaat al. |
 | Plaatsaanbevelingen en openingstijden | Niet gebouwd | Provider, filters, openingstijden, bronvermelding, quota en privacykeuze. |
 | Periodieke vluchtcontrole | Gebouwd, uitrol open | Begrensde Pro/Agency-worker, wijzigingsdetectie, cooldown en webpush zijn gebouwd; provider- en productieproef staan open. |
-| GPX-import | Niet gebouwd | Validatie, limieten, preview, dubbele punten en omzetting naar stops. GPX-export bestaat al. |
+| GPX-import | Gebouwd, acceptatie open | Lokale validatie, limieten, preview, selectie, dubbele punten en omzetting naar stops zijn gebouwd; migratie en test 1640 zijn uitgevoerd. Webuitrol en praktische productieacceptatie staan open. |
+| Live hotels zoeken | Voorbereiding gestart | Providerselectie, commerciële toegang, gegevensmodel, transparante totaalprijzen, quota, privacytekst en zoekinterface. Start met één officiële provider en doorsturen voor boeken. |
 | Reisdagboek | Niet gebouwd | Foto’s en verhalen per dag/stop, zichtbaarheid, moderatie en export. |
 | AI-reisplanning | Niet gebouwd | Provider, bronnen, kostenlimieten, privacygrenzen en verplichte menselijke controle. |
 
@@ -145,10 +146,10 @@ Begin met zoeken en doorsturen. Meerdere providers vergelijken vereist contracte
 1. Rond productieacceptatie en migratie 1480 af.
 2. Bouw een provider-onafhankelijk model voor reisopties, vergelijking en groepskeuze.
 3. Voeg boekingsmailconcepten en veilige Agency-klantformulieren toe.
-4. Koppel één accommodatieprovider met zoeken en doorsturen.
-5. Bouw offline Vandaag plus offline uitgaven.
-6. Voeg periodieke vluchtcontrole en web-push toe.
-7. Meet gebruik voordat een tweede hotelprovider, vluchtprijzen, autohuur of activiteiten worden aangesloten.
+4. Selecteer en koppel één accommodatieprovider met zoeken, transparant vergelijken en doorsturen.
+5. Accepteer offline Vandaag, offline uitgaven, vluchtcontrole en webpush op echte apparaten.
+6. Breid offline gebruik pas daarna uit met geselecteerde documenten en gecontroleerde conflictafhandeling.
+7. Meet gebruik voordat een tweede hotelprovider, vluchtprijzen, autohuur, activiteiten of prijsalerts worden aangesloten.
 8. Voeg zakelijke goedkeuringen, duurzaamheid of AI alleen toe wanneer de doelgroep en operationele verantwoordelijkheid duidelijk zijn.
 
 ## Niet als eerste bouwen
@@ -162,3 +163,5 @@ Begin met zoeken en doorsturen. Meerdere providers vergelijken vereist contracte
 - prijsvergelijking door websites te scrapen.
 
 Deze onderdelen brengen aanzienlijk meer support, aansprakelijkheid, gegevensverwerking, licentievoorwaarden en operationele kosten mee dan zoeken, vergelijken en gecontroleerd doorsturen.
+
+**Nieuwe basis gebouwd:** GlobeTrotr herkent ontbrekende hotelnachten en zoekt nabijgelegen verblijven via OpenStreetMap. Kandidaten kunnen naar de Vergelijker; een officiële provider voor live prijzen en beschikbaarheid blijft een latere uitbreiding.

@@ -117,6 +117,8 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 
 **Doel:** doorgestuurde bevestigingen veilig verwerken zonder een volledige inbox te scannen.
 
+**Tijdelijke productiestatus:** uitgeschakeld via `TRIP_BOOKING_MAIL_ENABLED=false` totdat Hetzner uitgaand TCP 25 heeft vrijgegeven en de Stalwart/MX-acceptatie is afgerond. De UI toont gedurende deze periode een duidelijke melding en de server blokkeert mutaties.
+
 ### Bouwen
 
 - [x] Uniek, intrekbaar ontvangstadres per reis.
@@ -206,7 +208,7 @@ Hierna krijgt iedere functierelease een eigen migratienummer, test en duidelijke
 - Activiteiten en beschikbaarheid.
 - Prijsalerts en flexibele data.
 - Plaatsen langs de route en openingstijden.
-- GPX-import.
+- GPX-import is gebouwd; migratie en test 1640 zijn uitgevoerd. Webuitrol en productieacceptatie staan open.
 - Reisdagboek.
 - Routeoptimalisatie.
 - Zakelijke reisaanvragen, beleid en goedkeuringen.
@@ -217,4 +219,4 @@ Voor elk van deze onderwerpen wordt eerst gecontroleerd of echte gebruikers het 
 
 ## Eerstvolgende bouwactie
 
-**Release 1 — reisopties vergelijken** is lokaal gebouwd en automatisch gecontroleerd. Eerst volgen migratie 1490 en de productieacceptatie uit `IMPLEMENTATION_PENDING.md`. Daarna start **Release 2 — groepsbesluiten** op de opgeslagen reisopties; zo krijgt samenwerking één duidelijke volgende stap zonder de open uitrol te vergroten.
+**Live hotels zoeken** is de volgende integratielijn na de GPX-uitrol. Eerst worden één officiële provider, partnervoorwaarden, quota, totaalprijsvelden, caching en privacygrenzen vastgelegd. Daarna volgt zoeken vanuit bestemming, data en reizigers, opslaan als provider-onafhankelijke vergelijkingsoptie en gecontroleerd doorsturen om bij de aanbieder te boeken. Rechtstreeks boeken en meerdere providers volgen pas na bewezen gebruik.

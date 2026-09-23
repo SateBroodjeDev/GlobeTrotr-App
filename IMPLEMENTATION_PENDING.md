@@ -1,10 +1,81 @@
-# GlobeTrotr update 1.1 — exacte releasehandleiding
+# GlobeTrotr — actueel implementatiehandboek
 
 **Stand: 23 september 2026**
 
-**Uitrolstatus:** releasecommit `9a67ef0` is op 23 september 2026 door de eigenaar op Node-01 en Node-02 uitgerold. De resterende stappen in dit document zijn productieacceptatie en de afzonderlijke mailservermigratie.
+**Uitrolstatus:** update 1.1 is op Node-01 en Node-02 uitgerold. De onderstaande update 1.2 staat lokaal klaar, maar is nog niet gecommit of uitgerold. De eigen mailserver blijft een afzonderlijke, uitgestelde migratie.
 
-<!-- release-preflight: confirmed-through=20260908163000_offline_today_acceptance.sql -->
+<!-- release-preflight: confirmed-through=20260908164000_gpx_import_acceptance.sql -->
+
+## Aanvulling update 1.2 — hotelfinder
+
+Migratie en test 1640 zijn al uitgevoerd. Voer voor de hotelfinder in de Supabase SQL Editor nu eerst [20260908165000_hotel_gap_discovery_acceptance.sql](supabase/migrations/20260908165000_hotel_gap_discovery_acceptance.sql) en daarna [hotel_gap_discovery_acceptance.sql](supabase/tests/hotel_gap_discovery_acceptance.sql) uit.
+
+Zet op Node-01 in `.env.production`:
+
+```dotenv
+OVERPASS_API_URL=https://overpass-api.de/api/interpreter
+```
+
+Node-02 verandert hiervoor niet. Bouw Node-01 opnieuw. Open daarna een reis met bestemmingen, aankomstdatums en nachten. Controleer onder **Vergelijker** dat ontbrekende hotelnachten verschijnen, zoek een hotel en voeg één resultaat toe aan de Vergelijker. De zoekactie gebruikt OpenStreetMap; live prijzen en beschikbaarheid moeten bij de aanbieder worden gecontroleerd.
+
+## Eerstvolgende uitrol: update 1.2
+
+Update 1.2 bevat GPX-import en de tijdelijke productieschakelaar voor boekingsmail. Reguliere accountmail, transactionele mail en bedrijfsmail blijven via ZXCS werken. Alleen het automatisch aanmaken en verwerken van `trip.*@globetrotr.nl` blijft verborgen totdat Hetzner poort 25 heeft vrijgegeven en Stalwart volledig is getest.
+
+### A. Voor de commit op de eigen pc
+
+```powershell
+cd "C:\Users\info\Desktop\Travelplanner\GIT Clone\globetrotr-1d042353"
+npm ci
+npm run verify
+npm run build
+git -c core.safecrlf=false diff --check
+git status --short
+```
+
+Commit en push pas wanneer alle opdrachten slagen. Gebruik geen force-push en herschrijf geen bestaande Lovable-commits.
+
+### B. Supabase — afgerond
+
+Migratie `20260908164000_gpx_import_acceptance.sql` en test `gpx_import_acceptance.sql` zijn op 23 september 2026 uitgevoerd. Voer deze bij deze uitrol niet opnieuw uit.
+
+### C. Alleen Node-01 bijwerken
+
+Deze wijziging bevat geen nieuwe worker- of Node-02-runtimecode. Node-02 hoeft hiervoor niet opnieuw gebouwd te worden.
+
+```bash
+cd /opt/globetrotr
+git status --short
+git pull --ff-only origin lovable
+nano .env.production
+```
+
+Zorg dat deze regel aanwezig is:
+
+```dotenv
+TRIP_BOOKING_MAIL_ENABLED=false
+```
+
+Sla op met `Ctrl+O`, Enter en sluit met `Ctrl+X`. Bouw daarna het web opnieuw:
+
+```bash
+docker compose --env-file .env.production -f deploy/web.compose.yml config --quiet
+docker compose --env-file .env.production -f deploy/web.compose.yml up -d --build --force-recreate web caddy
+docker compose --env-file .env.production -f deploy/web.compose.yml ps
+docker compose --env-file .env.production -f deploy/web.compose.yml logs --tail=150 web caddy
+```
+
+### D. Update 1.2 accepteren
+
+1. Open een bewerkbare reis en kies **GPX importeren**.
+2. Test een waypoint, routepunt en trackpunt en controleer de volgorde.
+3. Controleer dat een bestaand coördinaat als dubbel wordt gemarkeerd en niet geselecteerd is.
+4. Controleer selectie en scrollen op 320, 375 en 430 px breedte.
+5. Controleer dat een bestand groter dan 2 MB en een bestand met meer dan 500 geldige punten wordt geweigerd.
+6. Open **Boekingen per e-mail** en controleer de tijdelijke melding zonder aanmaakknop.
+7. Test één gewone accountmail en één bedrijfsmail om te bevestigen dat ZXCS actief is gebleven.
+
+De rest van dit document bewaart de afgeronde update 1.1-uitrol en de nog uit te voeren productieacceptatie.
 
 Deze handleiding rolt releasecommit `9a67ef0` op branch `lovable` uit. SQL-migraties en tests tot en met **1630** zijn uitgevoerd. Voer geen SQL opnieuw uit. Rol eerst de applicatie uit. De eigen Stalwart-mailserver en MX-overgang zijn een afzonderlijke tweede fase.
 

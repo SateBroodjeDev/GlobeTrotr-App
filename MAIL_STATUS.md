@@ -37,6 +37,7 @@ Na uitrol kan Corporate Admin persoonlijke, gedeelde en automatische postvakken 
 
 ## Vereist vóór de MX-overgang
 
+- Hetzner heeft uitgaand TCP 25 en 465 schriftelijk vrijgegeven; door de accountleeftijd kan de aanvraag naar verwachting pas rond half oktober 2026 worden ingediend;
 - PTR/rDNS van Node-02 naar `mail.globetrotr.nl`;
 - geldige A/AAAA-keuze, MX, SPF, DKIM, DMARC, MTA-STS en TLS-RPT;
 - Stalwart-beheerder met MFA en een beperkt provisioningtoken;
