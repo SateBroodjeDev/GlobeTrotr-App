@@ -4,7 +4,7 @@
 
 <!-- release-preflight: confirmed-through=20260908163000_offline_today_acceptance.sql -->
 
-Deze handleiding begint bij de huidige productiecommit `5df0590` op branch `lovable`. SQL-migraties en tests tot en met **1630** zijn uitgevoerd. Voer geen SQL opnieuw uit. Rol eerst de applicatie uit. De eigen Stalwart-mailserver en MX-overgang zijn een afzonderlijke tweede fase.
+Deze handleiding rolt releasecommit `9a67ef0` op branch `lovable` uit. SQL-migraties en tests tot en met **1630** zijn uitgevoerd. Voer geen SQL opnieuw uit. Rol eerst de applicatie uit. De eigen Stalwart-mailserver en MX-overgang zijn een afzonderlijke tweede fase.
 
 ## Vooraf gereedmaken
 
