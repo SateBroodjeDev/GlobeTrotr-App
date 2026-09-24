@@ -35,7 +35,10 @@ services:
     environment:
       LT_LOAD_ONLY: en,nl
       LT_DISABLE_WEB_UI: "true"
-      LT_CHAR_LIMIT: "5000"
+      # Corporate HTML email includes markup and may legitimately be larger
+      # than the visible message. Keep this aligned with the server-side
+      # translation validation limit.
+      LT_CHAR_LIMIT: "30000"
       LT_REQ_LIMIT: "60"
       LT_THREADS: "2"
     ports:

@@ -102,6 +102,11 @@ docker compose --env-file .env.production -f deploy/worker.compose.yml --profile
 curl -fsS http://10.0.0.3:5000/languages
 ```
 
+De translation-container accepteert maximaal 30.000 tekens per aanvraag. Dit
+is bewust gelijk aan de limiet voor ontvangen bedrijfsmail, omdat HTML-opmaak
+aanzienlijk groter kan zijn dan de zichtbare tekst. Herbouw de
+translation-container na een wijziging aan `deploy/worker.compose.yml`.
+
 TCP 5000 mag in de providerfirewall en UFW uitsluitend vanaf het private IP van Node-01 bereikbaar zijn. Publiceer deze poort niet op internet.
 
 ZXCS blijft actief. Start Stalwart niet en wijzig MX, SPF, DKIM of DMARC niet tijdens deze release.
