@@ -7,12 +7,14 @@ export const Route = createFileRoute("/oauth-callback")({ component: OAuthCallba
 
 function OAuthCallback() {
   const navigate = useNavigate();
-  const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState("");
   useEffect(() => {
     void (async () => {
       const params = new URLSearchParams(window.location.search);
       const code = params.get("code");
       try {
+        const oauthError = params.get("error_description") || params.get("error");
+        if (oauthError) throw new Error(oauthError);
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error && !/code verifier/i.test(error.message)) throw error;
@@ -20,6 +22,10 @@ function OAuthCallback() {
         const { data: refreshed, error } = await supabase.auth.refreshSession();
         if (error) throw error;
         const user = refreshed.user;
+        const linkedProvider = params.get("linked");
+        if (linkedProvider && !user?.identities?.some((identity) => identity.provider === linkedProvider)) {
+          throw new Error("IDENTITY_ALREADY_LINKED_TO_ANOTHER_ACCOUNT");
+        }
         const next = params.get("next");
         const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
         if (!params.has("linked") && user) {
@@ -31,17 +37,19 @@ function OAuthCallback() {
           }
         }
         await navigate({ to: params.has("linked") ? "/account" : safeNext, replace: true });
-      } catch {
-        setFailed(true);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "OAUTH_LINK_FAILED";
+        setFailure(/already|exists|linked/i.test(message) ? "Dit Google- of Discord-account hoort al bij een ander GlobeTrotr-account. Log daar in of ontkoppel het daar eerst." : "De inlogmethode kon niet worden gekoppeld. Probeer het opnieuw of neem contact op met support.");
       }
     })();
   }, [navigate]);
   return (
     <main className="grid min-h-screen place-items-center p-6">
       <div className="text-center">
-        {failed ? (
+        {failure ? (
           <>
             <h1 className="font-display text-xl font-semibold">Koppelen mislukt</h1>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">{failure}</p>
             <a className="mt-3 inline-block text-primary underline" href="/account">
               Terug naar account
             </a>

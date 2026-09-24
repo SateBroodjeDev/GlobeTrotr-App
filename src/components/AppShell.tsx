@@ -92,7 +92,7 @@ function FooterMenu({label,children}:{label:string;children:ReactNode}) {
 function AppShellContent({ children }: { children: ReactNode }) {
   const { state, cloud, refreshWorkspace } = useWorkspace();
   const plan = planOf(state.plan);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { locale, setLocale, text } = useLocale();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (routerState) => routerState.location.pathname });
@@ -138,7 +138,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const preference = user
     ? profileQuery.data === undefined ? cachedTheme() : asTheme(profileQuery.data?.theme)
     : guestTheme;
-  const navItems = user
+  const navItems = authLoading ? [] : user
     ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : []), ...SUPPORT_NAV.slice().reverse()]
     : PUBLIC_NAV;
   const displayName =
@@ -259,7 +259,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
               </span>
             </span>
           </a>
-          {!user && <div className="order-2 flex w-full gap-2 lg:hidden">
+          {!authLoading && !user && <div className="order-2 flex w-full gap-2 lg:hidden">
             <Button asChild variant="outline" size="sm" className="min-h-10 flex-1"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
             <Button asChild size="sm" className="min-h-10 flex-1"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
           </div>}
@@ -280,7 +280,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
             {user && <NotificationPanel key={user.id} userId={user.id} />}
-            {!user && <div className="hidden items-center gap-2 lg:flex">
+            {!authLoading && !user && <div className="hidden items-center gap-2 lg:flex">
               <Button asChild variant="ghost" size="sm"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
               <Button asChild size="sm"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
             </div>}
@@ -289,7 +289,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 {text("Opslaan…", "Saving…")}
               </span>
             )}
-            {!user && (
+            {!authLoading && !user && (
               <Button
                 type="button"
                 variant="ghost"
@@ -313,7 +313,11 @@ function AppShellContent({ children }: { children: ReactNode }) {
             >
               {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
-            {user ? (
+            {authLoading ? (
+              <Button type="button" variant="ghost" size="icon" disabled aria-label={text("Sessie laden", "Loading session")}>
+                <UserRound className="size-5 animate-pulse" />
+              </Button>
+            ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -407,7 +411,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
             <DropdownMenuItem asChild><a href={publicSiteUrl("/privacy")}><Shield className="size-4"/>{text("Privacyverklaring", "Privacy notice")}</a></DropdownMenuItem>
             <DropdownMenuItem asChild><a href={publicSiteUrl("/terms")}><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</a></DropdownMenuItem>
             <DropdownMenuItem asChild><a href={publicSiteUrl("/refund-policy")}><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</a></DropdownMenuItem>
-            {!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}><Palette className="size-4"/>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
+            {!authLoading&&!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}><Palette className="size-4"/>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
             <DropdownMenuItem asChild><a href={publicSiteUrl("/beta")}><Sparkles className="size-4"/>{text("Beta en voorwaarden", "Beta and terms")}</a></DropdownMenuItem>
           </FooterMenu>
           <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo/MET Norway · Frankfurter/ECB</span>

@@ -367,7 +367,7 @@ export const getMyCorporateMail = createServerFn({ method: "GET" })
         mailboxes: [], messages: [], outbox: [], drafts: [], selected: null, archiveHasMore: false,
       };
     const selected = unique.find((m) => m.id === selectedId);
-    const archiveLimit = Math.min(250, Math.max(25, Math.floor(data.archiveLimit ?? 25)));
+    const archiveLimit = Math.min(250, Math.max(10, Math.floor(data.archiveLimit ?? 10)));
     const [messages, archivedMessages, outbox, drafts] = await Promise.all([
       db
         .from("corporate_mail_messages")
@@ -799,7 +799,7 @@ export const translateCorporateMailDraft = createServerFn({ method: "POST" })
       const chunks = value.match(/[\s\S]{1,4500}(?:\n\n|\n|\s|$)/g) ?? [value];
       const translated: string[] = [];
       for (const chunk of chunks) {
-        const response = await fetch(endpoint, {
+        const translate = (source: "auto" | "nl" | "en") => fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -807,13 +807,15 @@ export const translateCorporateMailDraft = createServerFn({ method: "POST" })
           },
           body: JSON.stringify({
             q: chunk,
-            source: data.source,
+            source,
             target: data.target,
             format: "text",
             api_key: apiKey || undefined,
           }),
           signal: controller.signal,
         });
+        let response = await translate(data.source);
+        if (!response.ok && data.source === "auto") response = await translate(data.target === "en" ? "nl" : "en");
         if (!response.ok) throw new Error(`TRANSLATION_PROVIDER_FAILED_${response.status}`);
         const result = (await response.json()) as { translatedText?: string; translation?: string };
         const resultText = (result.translatedText ?? result.translation ?? "").trim();

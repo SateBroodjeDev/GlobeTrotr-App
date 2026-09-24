@@ -81,7 +81,7 @@ function CompanyMail() {
   const [mailboxId, setMailboxId] = useState("");
   const [folder, setFolder] = useState<Folder>("inbox");
   const [search, setSearch] = useState("");
-  const [archiveLimit, setArchiveLimit] = useState(25);
+  const [archiveLimit, setArchiveLimit] = useState(10);
   const [selected, setSelected] = useState<any>();
   const [compose, setCompose] = useState<Compose>({
     ...blank(Boolean(searchParams.to)),
@@ -380,7 +380,7 @@ function CompanyMail() {
                     variant={folder === item.id ? "default" : "ghost"}
                     onClick={() => {
                       setFolder(item.id);
-                      if (item.id === "archive") setArchiveLimit(25);
+                      if (item.id === "archive") setArchiveLimit(10);
                       setSelected(undefined);
                     }}
                   >
@@ -424,8 +424,8 @@ function CompanyMail() {
               ))
             )}
             {folder === "archive" && query.data?.archiveHasMore && (
-              <Button className="w-full" variant="outline" onClick={() => setArchiveLimit((value) => Math.min(250, value + 25))}>
-                {text("Meer laten zien", "Show more")}
+              <Button className="w-full" variant="outline" onClick={() => setArchiveLimit((value) => Math.min(250, value + 10))}>
+                {text("10 oudere berichten laden", "Load 10 older messages")}
               </Button>
             )}
           </CardContent>
@@ -698,7 +698,7 @@ function MessageDetail({
     } catch (error) {
       toast.error(String(error).includes("TRANSLATION_NOT_CONFIGURED")
         ? text("De vertaalprovider is nog niet ingesteld.", "The translation provider is not configured yet.")
-        : text("Bericht kon niet worden vertaald. Controleer de gekozen brontaal.", "Message could not be translated. Check the selected source language."));
+        : text("Vertalen is tijdelijk mislukt. De taal wordt automatisch herkend; controleer of de vertaalservice op Node-02 bereikbaar is.", "Translation temporarily failed. Language is detected automatically; check whether the translation service on Node-02 is reachable."));
     } finally {
       setTranslating("");
     }

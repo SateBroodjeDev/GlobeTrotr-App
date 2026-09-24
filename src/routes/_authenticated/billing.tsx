@@ -14,7 +14,6 @@ import {
   getBillingOverview,
 } from "@/lib/billing.functions";
 import { useLocale } from "@/lib/locale";
-import { loadPaddle } from "@/lib/paddle-client";
 import { PLANS, canBill, planOf } from "@/lib/plans";
 import { CURRENCIES } from "@/lib/services";
 import { useWorkspace } from "@/lib/workspace";
@@ -68,23 +67,16 @@ function Billing() {
       const binding = await createPaddleCheckoutBinding({
         data: { plan, mode: billingMode === "oneTime" ? "one_time" : "recurring" },
       });
-      const paddle = await loadPaddle(
-        billing.data.checkout.clientToken,
-        billing.data.checkout.environment,
-      );
-      paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        customer: billing.data.checkout.email ? { email: billing.data.checkout.email } : undefined,
-        customData: {
-          checkout_binding: binding.token,
-        },
-        settings: {
-          displayMode: "overlay",
-          theme: "light",
-          locale: locale.startsWith("nl") ? "nl" : "en",
-          successUrl: `${window.location.origin}/billing?checkout=success`,
-        },
+      const params = new URLSearchParams({
+        plan,
+        mode: billingMode,
+        binding: binding.token,
+        locale: locale.startsWith("nl") ? "nl" : "en",
+        price: priceId,
+        clientToken: billing.data.checkout.clientToken,
+        environment: billing.data.checkout.environment,
       });
+      window.location.assign(`https://globetrotr.nl/paddle-checkout#${params.toString()}`);
     } catch {
       toast.error(text("De checkout kon niet worden geopend.", "Checkout could not be opened."));
     } finally {

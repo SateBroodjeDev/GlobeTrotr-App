@@ -17,16 +17,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    let authEventReceived = false;
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      if (!active) return;
+      authEventReceived = true;
       setSession(s);
       setLoading(false);
       if (event === "SIGNED_OUT") void clearOfflineTrips().catch(() => undefined);
     });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      // INITIAL_SESSION may win this race with fresher state. Never replace it
+      // with an older null result from the parallel storage read.
+      if (!authEventReceived && !error) setSession(data.session);
       setLoading(false);
-    });
-    return () => sub.subscription.unsubscribe();
+    }).catch(() => { if (active) setLoading(false); });
+    const resync = () => {
+      if (document.visibilityState !== "visible") return;
+      void supabase.auth.getSession().then(({ data, error }) => {
+        if (active && !error) setSession(data.session);
+      });
+    };
+    document.addEventListener("visibilitychange", resync);
+    window.addEventListener("focus", resync);
+    return () => {
+      active = false;
+      document.removeEventListener("visibilitychange", resync);
+      window.removeEventListener("focus", resync);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   async function refreshUser() {

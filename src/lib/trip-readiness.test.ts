@@ -13,8 +13,8 @@ test("trip readiness reports planning, hotel and packing gaps without inventing 
   } satisfies Trip;
   assert.deepEqual(getTripReadiness(trip), { stops: 1, tripDays: 3, plannedDays: 3, routeNights: 2, missingHotelNights: 1, packingTotal: 2, packingDone: 1 });
   const withoutNights = getTripReadiness({ ...trip, stops: [{ ...trip.stops[0], nights: undefined }], travelItems: [] });
-  assert.equal(withoutNights.routeNights, 0);
-  assert.equal(withoutNights.missingHotelNights, 0);
+  assert.equal(withoutNights.routeNights, 2);
+  assert.equal(withoutNights.missingHotelNights, 2);
 });
 
 test("route stops and bookings count as scheduled trip days", () => {

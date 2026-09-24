@@ -1,5 +1,17 @@
 # Uitrolhandboek beta 0.9 naar release 1.0
 
+## Paddle: goedgekeurd hoofddomein gebruiken
+
+`globetrotr.nl` is al door Paddle goedgekeurd. De applicatie gebruikt daarom een checkoutbrug op `https://globetrotr.nl/paddle-checkout`; `portal.globetrotr.nl` hoeft niet afzonderlijk goedgekeurd te zijn om deze checkout te openen.
+
+1. Laat `globetrotr.nl` in het **live** Paddle-dashboard onder **Checkout → Website approval** op **Approved** staan.
+2. Rol de nieuwe webversie uit op Node-01. Er is geen extra DNS- of Caddy-regel nodig.
+3. Start een aankoop op `https://portal.globetrotr.nl/billing`.
+4. De browser opent de checkout op het goedgekeurde hoofddomein en keert na betaling terug naar `https://portal.globetrotr.nl/billing?checkout=success`.
+5. Controleer eenmalig een maandbetaling en een eenmalige betaling.
+
+De ondertekende checkoutkoppeling staat alleen in het URL-fragment en wordt daardoor niet naar de webserver of in de referrer meegestuurd. Laat de bestaande Paddle-webhook ongewijzigd.
+
 **Stand: 24 september 2026 · geplande release: 1 oktober 2026**
 
 Dit is de enige handleiding voor deze uitrol. Algemeen serverbeheer staat in `SERVER_OPERATIONS.md`; herhaal die commando’s hier niet vanuit andere documenten. Migraties en tests tot en met **1650** zijn volgens de eigenaar uitgevoerd.

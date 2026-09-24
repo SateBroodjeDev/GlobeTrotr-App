@@ -1,4 +1,4 @@
-import type { Stop, TravelItem } from "./types";
+import type { Stop, TravelItem, Trip } from "./types";
 
 export type HotelGap = {
   id: string;
@@ -10,6 +10,15 @@ export type HotelGap = {
   startDate: string;
   endDate: string;
   nights: number;
+};
+
+export type TripHotelGap = {
+  id: string;
+  startDate: string;
+  endDate: string;
+  nights: number;
+  suggestedStopId?: string;
+  confidence: "overnight" | "route" | "unknown";
 };
 
 export function configuredRouteNights(stops: Stop[]) {
@@ -57,4 +66,41 @@ export function findHotelGaps(stops: Stop[], travelItems: TravelItem[] = []): Ho
     }
   }
   return gaps;
+}
+
+/** Finds every uncovered night in the trip period and suggests the most likely route stop. */
+export function findTripHotelGaps(trip: Pick<Trip, "start" | "end" | "stops" | "travelItems">): TripHotelGap[] {
+  if (!DATE.test(trip.start) || !DATE.test(trip.end) || trip.end <= trip.start) return [];
+  const covered = new Set<string>();
+  for (const item of trip.travelItems ?? []) {
+    if (item.type !== "lodging" || !DATE.test(item.date)) continue;
+    const end = DATE.test(item.endDate ?? "") && String(item.endDate) > item.date ? String(item.endDate) : day(item.date, 1);
+    for (let date = item.date, guard = 0; date < end && guard < 366; date = day(date, 1), guard += 1) covered.add(date);
+  }
+
+  const datedStops = [...trip.stops]
+    .filter((stop) => DATE.test(stop.arrive ?? ""))
+    .sort((a, b) => String(a.arrive).localeCompare(String(b.arrive)));
+  const missing: Array<{ date: string; stopId?: string; confidence: TripHotelGap["confidence"] }> = [];
+  for (let date = trip.start, guard = 0; date < trip.end && guard < 366; date = day(date, 1), guard += 1) {
+    if (covered.has(date)) continue;
+    const overnight = datedStops.find((stop) => {
+      const nights = Math.max(0, Math.floor(Number(stop.nights) || 0));
+      return nights > 0 && String(stop.arrive) <= date && date < day(String(stop.arrive), nights);
+    });
+    const latest = [...datedStops].reverse().find((stop) => String(stop.arrive) <= date);
+    missing.push({ date, stopId: overnight?.id ?? latest?.id, confidence: overnight ? "overnight" : latest ? "route" : "unknown" });
+  }
+
+  const groups: TripHotelGap[] = [];
+  for (const night of missing) {
+    const previous = groups.at(-1);
+    if (previous && previous.endDate === night.date && previous.suggestedStopId === night.stopId && previous.confidence === night.confidence) {
+      previous.endDate = day(night.date, 1);
+      previous.nights += 1;
+    } else {
+      groups.push({ id: `${night.date}:${night.stopId ?? "unknown"}`, startDate: night.date, endDate: day(night.date, 1), nights: 1, suggestedStopId: night.stopId, confidence: night.confidence });
+    }
+  }
+  return groups;
 }

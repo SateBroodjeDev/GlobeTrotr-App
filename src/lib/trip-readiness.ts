@@ -1,4 +1,4 @@
-import { configuredRouteNights, findHotelGaps } from "./hotel-gaps.ts";
+import { findTripHotelGaps } from "./hotel-gaps.ts";
 import type { Trip } from "./types.ts";
 
 export type TripReadiness = {
@@ -35,7 +35,7 @@ export function getTripReadiness(trip: Trip): TripReadiness {
     for (let date = item.date, guard = 0; date <= endDate && guard < 367; date = addDay(date, 1), guard += 1) scheduled.add(date);
   }
   const plannedDays = [...scheduled].filter((day) => (!trip.start || day >= trip.start) && (!trip.end || day <= trip.end)).length;
-  const routeNights = configuredRouteNights(trip.stops);
+  const routeNights = Math.max(0, tripDays - 1);
   const packing = trip.packing ?? [];
 
   return {
@@ -43,7 +43,7 @@ export function getTripReadiness(trip: Trip): TripReadiness {
     tripDays,
     plannedDays,
     routeNights,
-    missingHotelNights: findHotelGaps(trip.stops, trip.travelItems ?? []).reduce((total, gap) => total + gap.nights, 0),
+    missingHotelNights: findTripHotelGaps(trip).reduce((total, gap) => total + gap.nights, 0),
     packingTotal: packing.length,
     packingDone: packing.filter((item) => item.done).length,
   };

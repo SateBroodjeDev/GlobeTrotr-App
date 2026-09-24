@@ -28,6 +28,7 @@ import { Route as ForTravelersRouteImport } from './routes/for-travelers'
 import { Route as KnownIssuesRouteImport } from './routes/known-issues'
 import { Route as MogelijkhedenRouteImport } from './routes/mogelijkheden'
 import { Route as OauthCallbackRouteImport } from './routes/oauth-callback'
+import { Route as PaddleCheckoutRouteImport } from './routes/paddle-checkout'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrijzenRouteImport } from './routes/prijzen'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -186,6 +187,11 @@ const MogelijkhedenRoute = MogelijkhedenRouteImport.update({
 const OauthCallbackRoute = OauthCallbackRouteImport.update({
   id: '/oauth-callback',
   path: '/oauth-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PaddleCheckoutRoute = PaddleCheckoutRouteImport.update({
+  id: '/paddle-checkout',
+  path: '/paddle-checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -572,6 +578,7 @@ export interface FileRoutesByFullPath {
   '/known-issues': typeof KnownIssuesRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
   '/oauth-callback': typeof OauthCallbackRoute
+  '/paddle-checkout': typeof PaddleCheckoutRoute
   '/pricing': typeof PricingRoute
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
@@ -657,6 +664,7 @@ export interface FileRoutesByTo {
   '/known-issues': typeof KnownIssuesRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
   '/oauth-callback': typeof OauthCallbackRoute
+  '/paddle-checkout': typeof PaddleCheckoutRoute
   '/pricing': typeof PricingRoute
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
@@ -742,6 +750,7 @@ export interface FileRoutesById {
   '/known-issues': typeof KnownIssuesRoute
   '/mogelijkheden': typeof MogelijkhedenRoute
   '/oauth-callback': typeof OauthCallbackRoute
+  '/paddle-checkout': typeof PaddleCheckoutRoute
   '/pricing': typeof PricingRoute
   '/prijzen': typeof PrijzenRoute
   '/privacy': typeof PrivacyRoute
@@ -829,6 +838,7 @@ export interface FileRouteTypes {
     | '/known-issues'
     | '/mogelijkheden'
     | '/oauth-callback'
+    | '/paddle-checkout'
     | '/pricing'
     | '/prijzen'
     | '/privacy'
@@ -914,6 +924,7 @@ export interface FileRouteTypes {
     | '/known-issues'
     | '/mogelijkheden'
     | '/oauth-callback'
+    | '/paddle-checkout'
     | '/pricing'
     | '/prijzen'
     | '/privacy'
@@ -998,6 +1009,7 @@ export interface FileRouteTypes {
     | '/known-issues'
     | '/mogelijkheden'
     | '/oauth-callback'
+    | '/paddle-checkout'
     | '/pricing'
     | '/prijzen'
     | '/privacy'
@@ -1085,6 +1097,7 @@ export interface RootRouteChildren {
   KnownIssuesRoute: typeof KnownIssuesRoute
   MogelijkhedenRoute: typeof MogelijkhedenRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
+  PaddleCheckoutRoute: typeof PaddleCheckoutRoute
   PricingRoute: typeof PricingRoute
   PrijzenRoute: typeof PrijzenRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1240,6 +1253,13 @@ declare module '@tanstack/react-router' {
       path: '/oauth-callback'
       fullPath: '/oauth-callback'
       preLoaderRoute: typeof OauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/paddle-checkout': {
+      id: '/paddle-checkout'
+      path: '/paddle-checkout'
+      fullPath: '/paddle-checkout'
+      preLoaderRoute: typeof PaddleCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -1883,6 +1903,7 @@ const rootRouteChildren: RootRouteChildren = {
   KnownIssuesRoute: KnownIssuesRoute,
   MogelijkhedenRoute: MogelijkhedenRoute,
   OauthCallbackRoute: OauthCallbackRoute,
+  PaddleCheckoutRoute: PaddleCheckoutRoute,
   PricingRoute: PricingRoute,
   PrijzenRoute: PrijzenRoute,
   PrivacyRoute: PrivacyRoute,
