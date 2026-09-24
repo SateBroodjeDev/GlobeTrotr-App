@@ -14,7 +14,7 @@ Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor
 - Live agenda-abonnementen krijgen een wijzigingsdatum, ETag en verversingshint; verblijf en huurauto worden compacte hele-dagactiviteiten; migratie/test 1670 staan klaar.
 - Vandaag toont een vertrekcheck voor route, dagplanning, overnachtingen en paklijst.
 - De vertrekcheck telt route-, boekings- en dagplanningsdatums samen en gebruikt dezelfde definitie voor ingestelde overnachtingen als de hotelzoeker.
-- De hotelcontrole heeft nu een zichtbaar stappenplan, directe invoer voor echte overnachtingsplaatsen en duidelijke dekking per nacht; luchthavens en tussenstops worden zonder extra invoer genegeerd en zoekresultaten worden bewust niet als aanbevelingen benoemd.
+- Bij het toevoegen van een bestemming kies je direct tussen routepunt en overnachtingsplaats; de hotelcontrole heeft daarnaast directe invoer voor slaapplaatsen en duidelijke dekking per nacht, terwijl luchthavens en tussenstops zonder extra invoer worden genegeerd.
 - Het offline pakket toont grootte, inhoud, verbinding, synchronisatiestatus en bescherming tegen browseropschoning.
 - Reisacties zijn vereenvoudigd; lange boekingsteksten blijven leesbaar op mobiel.
 - Vandaag toont vóór of na de reis geen willekeurige bestemming.

@@ -71,12 +71,14 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
@@ -267,6 +269,11 @@ function TripDetail() {
   const [settings, setSettings] = useState<TripSettingsDraft>(() => settingsFromTrip(trip));
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [showAllStops, setShowAllStops] = useState(false);
+  const [pendingStop, setPendingStop] = useState<GeoResult>();
+  const [pendingStopOvernight, setPendingStopOvernight] = useState(false);
+  const [pendingStopArrival, setPendingStopArrival] = useState("");
+  const [pendingStopNights, setPendingStopNights] = useState("1");
+  const [pendingStopSaving, setPendingStopSaving] = useState(false);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [activeStopId, setActiveStopId] = useState<string>();
   const visibleStops = showAllStops ? trip.stops : trip.stops.slice(0, 4);
@@ -553,14 +560,21 @@ function TripDetail() {
     }
   }
 
-  async function addStop(location: GeoResult) {
+  async function addStop(location: GeoResult, overnight: boolean, arrive: string, nights: number) {
     const stopId = uid();
+    setPendingStopSaving(true);
     try {
       await saveTripNow(trip.id, (current) => ({
         ...current,
-        stops: [...current.stops, { id: stopId, ...location, nights: 1 }],
+        stops: [...current.stops, {
+          id: stopId,
+          ...location,
+          nights: overnight ? nights : 0,
+          ...(overnight ? { arrive } : {}),
+        }],
       }));
       setActiveStopId(stopId);
+      setPendingStop(undefined);
       toast.success(text(`${location.name} toegevoegd.`, `${location.name} added.`));
     } catch (error) {
       toast.error(
@@ -568,6 +582,8 @@ function TripDetail() {
           ? error.message
           : text("Bestemming kon niet worden opgeslagen.", "Destination could not be saved."),
       );
+    } finally {
+      setPendingStopSaving(false);
     }
   }
 
@@ -1401,7 +1417,27 @@ function TripDetail() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <PlaceSearch disabled={!editable} onPick={(location) => void addStop(location)} />
+                  <PlaceSearch disabled={!editable} onPick={(location) => {
+                    setPendingStop(location);
+                    setPendingStopOvernight(false);
+                    setPendingStopArrival("");
+                    setPendingStopNights("1");
+                  }} />
+                  <Dialog open={Boolean(pendingStop)} onOpenChange={(open) => { if (!open && !pendingStopSaving) setPendingStop(undefined); }}>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader><DialogTitle>{pendingStop?.name} {text("toevoegen", "add")}</DialogTitle></DialogHeader>
+                      <p className="text-sm text-muted-foreground">{text("Is dit alleen een punt op je route, of slaap je hier? Dit bepaalt of GlobeTrotr naar een ontbrekend verblijf zoekt.", "Is this only a point on your route, or will you sleep here? This determines whether GlobeTrotr checks for missing accommodation.")}</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <button type="button" disabled={pendingStopSaving} onClick={() => setPendingStopOvernight(false)} className={`rounded-xl border p-4 text-left ${!pendingStopOvernight ? "border-primary bg-primary/10" : ""}`}><strong className="block">{text("Alleen routepunt", "Route point only")}</strong><span className="mt-1 block text-xs text-muted-foreground">{text("Bijvoorbeeld een luchthaven, overstap of tussenstop.", "For example an airport, transfer or intermediate stop.")}</span></button>
+                        <button type="button" disabled={pendingStopSaving} onClick={() => setPendingStopOvernight(true)} className={`rounded-xl border p-4 text-left ${pendingStopOvernight ? "border-primary bg-primary/10" : ""}`}><strong className="block">{text("Ik overnacht hier", "I stay overnight here")}</strong><span className="mt-1 block text-xs text-muted-foreground">{text("Deze nachten worden door de hotelcontrole gevolgd.", "These nights are tracked by the accommodation check.")}</span></button>
+                      </div>
+                      {pendingStopOvernight && <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="space-y-1"><Label>{text("Aankomstdatum", "Arrival date")}</Label><Input type="date" min={trip.start || undefined} max={trip.end || undefined} value={pendingStopArrival} disabled={pendingStopSaving} onChange={(event) => setPendingStopArrival(event.target.value)} /></label>
+                        <label className="space-y-1"><Label>{text("Aantal nachten", "Number of nights")}</Label><Input type="number" min={1} max={366} value={pendingStopNights} disabled={pendingStopSaving} onChange={(event) => setPendingStopNights(event.target.value)} /></label>
+                      </div>}
+                      <div className="flex justify-end gap-2"><Button type="button" variant="outline" disabled={pendingStopSaving} onClick={() => setPendingStop(undefined)}>{text("Annuleren", "Cancel")}</Button><Button type="button" disabled={!pendingStop || pendingStopSaving || (pendingStopOvernight && (!/^\d{4}-\d{2}-\d{2}$/.test(pendingStopArrival) || !Number.isInteger(Number(pendingStopNights)) || Number(pendingStopNights) < 1 || Number(pendingStopNights) > 366))} onClick={() => pendingStop && void addStop(pendingStop, pendingStopOvernight, pendingStopArrival, Number(pendingStopNights))}>{pendingStopSaving ? text("Toevoegen…", "Adding…") : text("Bestemming toevoegen", "Add destination")}</Button></div>
+                    </DialogContent>
+                  </Dialog>
                   {trip.stops.length > 0 && (
                     <p className="text-xs text-muted-foreground">
                       {trip.stops.length}{" "}
