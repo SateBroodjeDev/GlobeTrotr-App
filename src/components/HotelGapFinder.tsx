@@ -18,7 +18,8 @@ type Props = { trip: Trip; editable: boolean; save: (fn: (trip: Trip) => Trip) =
 export function HotelGapFinder({ trip, editable, save, text }: Props) {
   const gaps = useMemo(() => findHotelGaps(trip.stops, trip.travelItems), [trip.stops, trip.travelItems]);
   const configuredNights = useMemo(() => configuredRouteNights(trip.stops), [trip.stops]);
-  const incompleteStops = useMemo(() => trip.stops.filter((stop) => !stop.arrive || !Number.isFinite(stop.nights) || Number(stop.nights) < 1), [trip.stops]);
+  const incompleteStops = useMemo(() => trip.stops.filter((stop) => Number(stop.nights) > 0 && !stop.arrive), [trip.stops]);
+  const dayStops = useMemo(() => trip.stops.filter((stop) => !Number.isFinite(stop.nights) || Number(stop.nights) < 1), [trip.stops]);
   const bookedStays = (trip.travelItems ?? []).filter((item) => item.type === "lodging").length;
   const [gap, setGap] = useState<HotelGap>();
   const [results, setResults] = useState<HotelSearchResult[]>([]);
@@ -59,7 +60,7 @@ export function HotelGapFinder({ trip, editable, save, text }: Props) {
       <CardContent className="space-y-5">
         <p className="text-sm text-muted-foreground">{text("GlobeTrotr controleert je route per nacht. Het zoeken toont benoemde verblijven binnen 5 km, gesorteerd op afstand. Dit zijn zoekresultaten en geen persoonlijke of betaalde aanbevelingen.", "GlobeTrotr checks your route night by night. Search shows named accommodation within 5 km, ordered by distance. These are search results, not personal or paid recommendations.")}</p>
         <ol className="grid gap-2 text-sm md:grid-cols-3">
-          <Step icon={CalendarDays} number="1" value={text("Vul aankomst en nachten per bestemming in.", "Set arrival and nights for each destination.")} />
+          <Step icon={CalendarDays} number="1" value={text("Markeer alleen plaatsen waar je overnacht.", "Mark only the places where you stay overnight.")} />
           <Step icon={Search} number="2" value={text("Zoek voor nachten zonder boeking.", "Search for nights without a booking.")} />
           <Step icon={CheckCircle2} number="3" value={text("Vergelijk, boek extern en zet je keuze om naar een boeking.", "Compare, book externally and convert your choice to a booking.")} />
         </ol>
@@ -69,9 +70,10 @@ export function HotelGapFinder({ trip, editable, save, text }: Props) {
           <Stat label={text("Ontbrekende nachten", "Missing nights")} value={gaps.reduce((sum, item) => sum + item.nights, 0)} />
         </div>
         {incompleteStops.length > 0 && <div className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
-          <div><strong>{text("Maak eerst de route controleerbaar", "Complete the route first")}</strong><p className="mt-1 text-sm text-muted-foreground">{text("Deze bestemmingen missen een aankomstdatum of aantal nachten. Vul ze hieronder in; daarna verschijnen ontbrekende verblijven automatisch.", "These destinations need an arrival date or number of nights. Complete them below and missing accommodation will appear automatically.")}</p></div>
+          <div><strong>{text("Aankomstdatum ontbreekt", "Arrival date missing")}</strong><p className="mt-1 text-sm text-muted-foreground">{text("Bij deze plaatsen staat al minimaal één nacht. Vul alleen de aankomstdatum in om de juiste nachten te controleren.", "These places already have at least one night. Add only the arrival date so the correct nights can be checked.")}</p></div>
           {incompleteStops.map((stop) => <StopScheduleRow key={stop.id} stop={stop} editable={editable} save={save} text={text} />)}
         </div>}
+        {dayStops.length > 0 && <StayStopForm stops={dayStops} editable={editable} save={save} text={text} />}
         {configuredNights > 0 && gaps.length === 0 && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">{text("Alle controleerbare routenachten worden door een verblijfsboeking gedekt.", "Every route night that can be checked is covered by an accommodation booking.")}</p>}
         {gaps.map((item) => <div key={item.id} className="flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"><div><strong>{item.stopName}</strong><p className="text-sm text-muted-foreground">{item.startDate} – {item.endDate} · {item.nights} {item.nights === 1 ? text("nacht", "night") : text("nachten", "nights")}</p></div><Button disabled={!editable || loading} onClick={() => search(item)}><Search className="size-4" />{text("Zoek verblijven voor deze nachten", "Find stays for these nights")}</Button></div>)}
         <p className="text-xs text-muted-foreground">{text("Een resultaat in de Vergelijker is nog geen boeking en dekt daarom geen nacht. GlobeTrotr toont geen live prijs of beschikbaarheid; controleer en boek altijd bij de aanbieder.", "A result in Comparison is not yet a booking and therefore does not cover a night. GlobeTrotr does not show live prices or availability; always verify and book with the provider.")}</p>
@@ -101,6 +103,34 @@ function StopScheduleRow({ stop, editable, save, text }: { stop: Stop; editable:
     finally { setBusy(false); }
   }
   return <div className="grid gap-3 rounded-lg bg-background p-3 sm:grid-cols-[minmax(8rem,1fr)_10rem_7rem_auto] sm:items-end"><div className="min-w-0"><span className="block truncate font-medium">{stop.name}</span><span className="text-xs text-muted-foreground">{stop.country}</span></div><label className="space-y-1"><Label>{text("Aankomst", "Arrival")}</Label><Input type="date" value={arrive} disabled={!editable || busy} onChange={(event) => setArrive(event.target.value)} /></label><label className="space-y-1"><Label>{text("Nachten", "Nights")}</Label><Input type="number" min={1} max={366} value={nights} disabled={!editable || busy} onChange={(event) => setNights(event.target.value)} /></label><Button type="button" size="sm" disabled={!editable || busy || !valid} onClick={() => void submit()}>{busy && <Loader2 className="size-4 animate-spin" />}{text("Opslaan", "Save")}</Button></div>;
+}
+
+function StayStopForm({ stops, editable, save, text }: { stops: Stop[]; editable: boolean; save: Props["save"]; text: Text }) {
+  const [stopId, setStopId] = useState("");
+  const [arrive, setArrive] = useState("");
+  const [nights, setNights] = useState("1");
+  const [busy, setBusy] = useState(false);
+  const valid = Boolean(stopId) && /^\d{4}-\d{2}-\d{2}$/.test(arrive) && Number.isInteger(Number(nights)) && Number(nights) >= 1 && Number(nights) <= 366;
+  async function submit() {
+    if (!valid) return;
+    setBusy(true);
+    try {
+      await save((trip) => ({ ...trip, stops: trip.stops.map((item) => item.id === stopId ? { ...item, arrive, nights: Number(nights) } : item) }));
+      setStopId(""); setArrive(""); setNights("1");
+      toast.success(text("Overnachtingsplaats toegevoegd.", "Overnight stop added."));
+    } catch { toast.error(text("Overnachtingsplaats kon niet worden opgeslagen.", "Overnight stop could not be saved.")); }
+    finally { setBusy(false); }
+  }
+  return <details className="rounded-xl border p-4">
+    <summary className="cursor-pointer font-medium">{text("Overnachtingsplaats toevoegen", "Add an overnight stop")}</summary>
+    <p className="mt-2 text-sm text-muted-foreground">{text("Routepunten zonder nachten, zoals luchthavens en tussenstops, worden automatisch genegeerd. Kies hier alleen een plaats waar je werkelijk slaapt.", "Route points without nights, such as airports and intermediate stops, are ignored automatically. Choose only a place where you will actually sleep.")}</p>
+    <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(10rem,1fr)_10rem_7rem_auto] sm:items-end">
+      <label className="space-y-1"><Label>{text("Plaats", "Place")}</Label><select className="h-10 w-full rounded-md border bg-background px-3" value={stopId} disabled={!editable || busy} onChange={(event) => setStopId(event.target.value)}><option value="">{text("Kies een routepunt", "Choose a route point")}</option>{stops.map((stop) => <option key={stop.id} value={stop.id}>{stop.name}{stop.country ? ` · ${stop.country}` : ""}</option>)}</select></label>
+      <label className="space-y-1"><Label>{text("Aankomst", "Arrival")}</Label><Input type="date" value={arrive} disabled={!editable || busy} onChange={(event) => setArrive(event.target.value)} /></label>
+      <label className="space-y-1"><Label>{text("Nachten", "Nights")}</Label><Input type="number" min={1} max={366} value={nights} disabled={!editable || busy} onChange={(event) => setNights(event.target.value)} /></label>
+      <Button type="button" size="sm" disabled={!editable || busy || !valid} onClick={() => void submit()}>{busy && <Loader2 className="size-4 animate-spin" />}{text("Toevoegen", "Add")}</Button>
+    </div>
+  </details>;
 }
 
 function Step({ icon: Icon, number, value }: { icon: typeof Search; number: string; value: string }) {
