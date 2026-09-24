@@ -105,7 +105,7 @@ function asThemePreference(value: string | null | undefined): ThemePreference {
 }
 
 function AccountPage() {
-  const { user: authenticatedUser } = useAuth();
+  const { user: authenticatedUser, refreshUser } = useAuth();
   // This route is mounted below the authenticated layout, which guarantees a user.
   const user = authenticatedUser!;
   const { state, cloud, addTrip, saveTripNow } = useWorkspace();
@@ -497,7 +497,8 @@ function AccountPage() {
     try {
       const { error } = await supabase.auth.unlinkIdentity(identity);
       if (error) throw error;
-      toast.success("Inlogmethode ontkoppeld.");
+      await refreshUser();
+      toast.success(text("Inlogmethode ontkoppeld.", "Sign-in method unlinked."));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Provider ontkoppelen lukte niet.");
     } finally {

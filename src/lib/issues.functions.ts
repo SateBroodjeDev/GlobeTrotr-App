@@ -279,10 +279,14 @@ export const getCorporateAdminData = createServerFn({ method: "GET" })
       auditLog: (auditLog.data ?? []).map((entry: any) => {
         const actor: any = profileById.get(entry.actor_user_id);
         const authActor = authUsers.data.users.find((user: any) => user.id === entry.actor_user_id);
+        const target: any = profileById.get(entry.target_id);
+        const authTarget = authUsers.data.users.find((user: any) => user.id === entry.target_id);
         return {
           ...entry,
           actorName: actor?.display_name || authActor?.user_metadata?.full_name || "",
           actorEmail: actor?.email || authActor?.email || "",
+          targetName: target?.display_name || authTarget?.user_metadata?.full_name || "",
+          targetEmail: target?.email || authTarget?.email || "",
         };
       }),
       users: authUsers.data.users.map((user: any) => {

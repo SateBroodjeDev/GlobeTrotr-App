@@ -111,6 +111,7 @@ export function buildTripCalendar(trip: Trip) {
       startTime: "",
       endTime: "",
       location: "",
+      allDay: true,
     })),
     ...(trip.travelItems ?? []).map((item) => ({
       id: `booking-${item.id}`,
@@ -121,6 +122,7 @@ export function buildTripCalendar(trip: Trip) {
       startTime: item.details?.startTime ?? "",
       endTime: item.details?.endTime ?? "",
       location: item.location?.name ?? item.departure?.name ?? item.arrival?.name ?? "",
+      allDay: item.type === "lodging" || item.type === "car_rental",
     })),
   ].filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.date));
   const lines = [
@@ -131,7 +133,7 @@ export function buildTripCalendar(trip: Trip) {
     `X-WR-CALNAME:${icsText(trip.name)}`,
   ];
   for (const event of events) {
-    const timed = /^\d{2}:\d{2}$/.test(event.startTime);
+    const timed = !event.allDay && /^\d{2}:\d{2}$/.test(event.startTime);
     lines.push("BEGIN:VEVENT", `UID:${event.id}@globetrotr.nl`, `DTSTAMP:${stamp}`);
     if (timed) {
       lines.push(`DTSTART:${icsDate(event.date)}T${event.startTime.replace(":", "")}00`);
@@ -151,6 +153,7 @@ export function buildTripCalendar(trip: Trip) {
     lines.push(`SUMMARY:${icsText(event.title)}`);
     if (event.notes) lines.push(`DESCRIPTION:${icsText(event.notes)}`);
     if (event.location) lines.push(`LOCATION:${icsText(event.location)}`);
+    lines.push(`TRANSP:${event.allDay ? "TRANSPARENT" : "OPAQUE"}`);
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");

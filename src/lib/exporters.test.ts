@@ -65,3 +65,16 @@ test("agenda-export geeft activiteiten zonder eindtijd een geldig uur en vouwt l
   assert.match(calendar, /DTSTART:20260601T133000\r\nDTEND:20260601T143000/);
   assert.ok(calendar.split("\r\n").every((line) => new TextEncoder().encode(line).length <= 75));
 });
+
+test("agenda-export houdt verblijf en huurauto compact als hele-dagactiviteit", () => {
+  const trip = {
+    id: "all-day", name: "Roadtrip", start: "2026-06-01", end: "2026-06-05", itinerary: [], expenses: [], stops: [],
+    travelItems: [
+      { id: "car", type: "car_rental", title: "Rental car", date: "2026-06-01", endDate: "2026-06-03", details: { startTime: "10:30" } },
+      { id: "hotel", type: "lodging", title: "Hotel", date: "2026-06-01", endDate: "2026-06-02", details: { startTime: "15:00" } },
+    ],
+  } as unknown as Trip;
+  const calendar = buildTripCalendar(trip);
+  assert.match(calendar, /UID:booking-car@globetrotr.nl[\s\S]*?DTSTART;VALUE=DATE:20260601\r\nDTEND;VALUE=DATE:20260604[\s\S]*?TRANSP:TRANSPARENT/);
+  assert.match(calendar, /UID:booking-hotel@globetrotr.nl[\s\S]*?DTSTART;VALUE=DATE:20260601\r\nDTEND;VALUE=DATE:20260603/);
+});

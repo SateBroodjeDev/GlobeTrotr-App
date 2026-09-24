@@ -39,8 +39,8 @@ function PrivacyPage() {
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed opacity-90">
           {text(
-            "Privacy- en browseropslagverklaring voor de live internationale beta en betaalde accounts. Versie 23 september 2026.",
-            "Privacy and browser-storage notice for the live international beta and paid accounts. Version 23 September 2026.",
+            "Privacy- en browseropslagverklaring voor de live internationale beta en betaalde accounts. Versie 24 september 2026.",
+            "Privacy and browser-storage notice for the live international beta and paid accounts. Version 24 September 2026.",
           )}
         </p>
       </header>
@@ -75,6 +75,12 @@ function PrivacyPage() {
                 {text(
                   "Reizen, routes, planning, reisleden, boekingen, uitgaven, paklijsten, reisvergelijkerkandidaten, reacties, peilingen, stemmen en uploads: om de gekozen functies en samenwerking te leveren; uitvoering van de overeenkomst. Reacties en stemmen zijn alleen zichtbaar voor bevoegde reisleden. Reacties verdwijnen wanneer hun kandidaat wordt verwijderd; een afgesloten peiling bewaart de keuze en stemtotalen als reisbesluit.",
                   "Trips, routes, itinerary, members, bookings, expenses, packing lists, trip-comparison candidates, comments, polls, votes and uploads: to provide selected features and collaboration; performance of the agreement. Comments and votes are visible only to authorised trip members. Comments are removed when their candidate is deleted; a closed poll retains the choice and vote totals as a trip decision.",
+                )}
+              </li>
+              <li>
+                {text(
+                  "Als je reisdatums verschuift, toont GlobeTrotr eerst een impactpreview en wijzigt na jouw bevestiging de reisperiode en gekoppelde planningsdatums. Historische uitgaven, aanmaakmomenten en controletijden blijven ongewijzigd. Externe reserveringen worden niet bij de aanbieder aangepast.",
+                  "When you shift trip dates, GlobeTrotr first shows an impact preview and, after your confirmation, changes the trip period and linked planning dates. Historical expenses, creation timestamps and check times remain unchanged. External reservations are not changed with the provider.",
                 )}
               </li>
               <li>
@@ -255,8 +261,8 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
-                  "Bedrijfspostvakken: berichten, bijlagen en concepten blijven beschikbaar zolang het postvak bestaat of totdat een bevoegde gebruiker ze verwijdert, behoudens back-ups en wettelijke bewaarplichten. Een nog niet gekoppelde uploadreservering vervalt na twee uur; de worker ruimt de reservering en het bijbehorende bestand vervolgens op. Vertaaltekst wordt tijdelijk verwerkt op de eigen server; een verstuurd of opgeslagen concept kan de vertaalde tekst bevatten.",
-                  "Company mailboxes: messages, attachments and drafts remain available while the mailbox exists or until an authorised user removes them, subject to backups and legal retention duties. An unattached upload reservation expires after two hours; the worker then removes the reservation and its file. Translation text is processed temporarily on our own server; a sent or saved draft may contain the translated text.",
+                  "Bedrijfspostvakken: berichten, bijlagen en concepten blijven beschikbaar zolang het postvak bestaat. Een beheerder kan een bericht eerst archiveren en daarna definitief uit de actieve opslag verwijderen; back-ups en wettelijke bewaarplichten kunnen nog van toepassing zijn. Een nog niet gekoppelde uploadreservering vervalt na twee uur; de worker ruimt de reservering en het bijbehorende bestand vervolgens op. Vertaaltekst wordt alleen na een bewuste vertaalactie tijdelijk op de eigen server verwerkt; een verstuurd of opgeslagen concept kan de vertaalde tekst bevatten.",
+                  "Company mailboxes: messages, attachments and drafts remain available while the mailbox exists. A manager can first archive a message and then permanently remove it from active storage; backups and statutory retention duties may still apply. An unattached upload reservation expires after two hours; the worker then removes the reservation and its file. Translation text is processed temporarily on our own server only after an explicit translation action; a sent or saved draft may contain the translated text.",
                 )}
               </li>
               <li>
@@ -340,10 +346,22 @@ function PrivacyPage() {
                     )}
                   />
                   <StorageRow
-                    name="globetrotr.privacy-choice.v1"
+                    name="globetrotr.privacy-choice.v2"
                     purpose={text("Je privacykeuze onthouden", "Remember your privacy choice")}
                     category={text("Noodzakelijk", "Necessary")}
                     retention={text("Tot wissen of vervangen", "Until cleared or replaced")}
+                  />
+                  <StorageRow
+                    name="Cache Storage: globetrotr-shell-v1"
+                    purpose={text(
+                      "De beperkte offline startpagina en bijbehorende basisbestanden openen wanneer het netwerk ontbreekt",
+                      "Open the limited offline start page and its basic files when the network is unavailable",
+                    )}
+                    category={text("Noodzakelijke offline basis", "Necessary offline foundation")}
+                    retention={text(
+                      "Tot een nieuwe service-workerversie of browser wissen",
+                      "Until a new service-worker version or browser clearing",
+                    )}
                   />
                   <StorageRow
                     name="globetrotr.theme"

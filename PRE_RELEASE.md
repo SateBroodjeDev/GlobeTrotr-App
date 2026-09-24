@@ -1,56 +1,40 @@
-# Publieke opening: vrijgavecontrole
+# Release 1.0 vrijgavebesluit
 
-**Stand: 22 september 2026.** Dit is de korte beslislijst voor de grote publicatie. De beta is al in gebruik; een geslaagde lokale build is nog geen productieacceptatie. [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md) bevat de uitvoercommando's en migratievolgorde. Zet een controle pas op afgerond na een proef op het echte domein.
+**Gepland: 1 oktober 2026**
 
-**Portalverhuizing actief:** website op `globetrotr.nl`, accountomgeving op `portal.globetrotr.nl`. De navigatiecorrectie en checklistmigratie 1480 staan klaar voor de volgende kleine web/Caddy-uitrol. Agency-hosts worden gecontroleerd en verwijzen naar het centrale dashboard; test de tenantcontrole met twee verschillende Agency-accounts.
+Dit document bevat alleen het uiteindelijke go/no-go-besluit. De uitvoering en praktijktests staan in `IMPLEMENTATION_PENDING.md`; servercommando’s in `SERVER_OPERATIONS.md`.
 
-## Wat nu al in de code zit
+## Go wanneer
 
-| Onderdeel | Beoordeling voor publicatie |
-| --- | --- |
-| Homepage | Route, boekingen, groepskosten, doelgroep, privacy en publieke reizen zijn zichtbaar. Het dashboard in de hero is nu als **voorbeeld** gelabeld. Controleer echte testimonials en openbare reizen voor publicatie. |
-| Demo | Klikbare route, boekingen, planning, paklijst en verrekening met fictieve data; de startknop gaat voor gasten naar registratie. Test op telefoon met toetsenbord en touch. |
-| Prijzen en betaalvoorwaarden | Free, Pro en Agency, terugkerende en losse maanden, Paddle als verkoper en terugbetaling staan beschreven. Controleer weergegeven prijs, belasting, looptijd en juiste accountrechten tegen een echte checkout. |
-| Privacy en browseropslag | NL/EN-verklaring benoemt EU-opslag, externe leveranciers, optionele sociale login, Paddle, mail, kaart, externe afbeeldingen, rechten en bewaartermijnen. Supabase-regio **Central EU (Frankfurt, `eu-central-1`)** is bevestigd. Controleer vóór vrijgave nog leveranciersovereenkomsten, toestemming en feitelijke bewaartermijnen. |
-| About, contact en status | Pagina's en links zijn aanwezig. Controleer eigenaarstekst, adres, contactontvangst, statusfeed en taal op echte domeinen. |
-| Publieke roadmap en updates | Roadmap beschrijft toekomstig werk; updates tonen alleen eerder uitgerolde wijzigingen. Nieuwe code uit deze ronde verschijnt pas na productiebevestiging in de publieke changelog. |
-| Agency DNS | De verificatie controleert TXT en CNAME of hetzelfde IPv4-doel. De TLS-toelating accepteert alleen geregistreerde Agency-subdomeinen of geverifieerde eigen domeinen met een actief Agency-plan. De host dient als gecontroleerde ingang naar het centrale portal; test dit nog met twee gescheiden Agency-accounts. |
+- migraties en tests 1660, 1670, 1680 en 1690 slagen;
+- `npm run verify`, `npm run build` en `git diff --check` slagen;
+- Node-01 en Node-02 gezond zijn en dezelfde releasecommit draaien;
+- registratie, login, Paddle, ZXCS-mail en privacyverzoeken werken;
+- Reisvergelijker, live agenda, offline gebruik, reisdatumverschuiving, bedrijfsmail, mobiel en Agency-domeinen praktisch zijn getest;
+- webpush werkelijk met een gesloten tabblad is ontvangen;
+- geen kritisch of hoog beveiligingsprobleem openstaat;
+- publieke homepage, prijzen, roadmap, updates en juridische teksten overeenkomen met productie.
 
-## Vrijgavevoorwaarden
+## No-go wanneer
 
-1. **Uitrol en data:** migraties en tests tot en met 1470 zijn uitgevoerd en release `5df0590` draait op beide nodes. Voer alleen migratie/test 1480 uit en bouw daarna Node-01 web en Caddy opnieuw volgens [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md). Node-02 hoeft voor deze navigatiecorrectie niet opnieuw te worden gebouwd.
-2. **Publieke pagina's:** doorloop `/`, `/demo`, `/register`, `/prijzen`, `/about`, `/contact`, `/status`, `/privacy`, de voorwaarden, `/roadmap`, `/updates` en een openbare reis in NL en EN op een smalle telefoon en desktop. Controleer alle primaire knoppen, geen horizontale overflow, leesbare tekst en juiste meta/social-preview.
-3. **Kernstroom:** registreer een nieuw account, bevestig e-mail, log in met e-mail en Google/Discord, maak een reis en boeking, nodig iemand uit, deel de reis, voeg een uitgave toe, download GPX/ICS/PDF en test een live ICS-link. Controleer geen dubbele mail en juiste taal.
-4. **Betaling:** test Free → Pro, Free → Agency, terugkerend en eenmalig, kortingsbetaling, opzegging en een mislukte webhook. Controleer Paddle-transactie, één factuur volgens Paddle, lokaal recht, correcte einddatum en Corporate Admin-diagnose.
-5. **Agency-domein:** test een echt `naam.globetrotr.nl` en een eigen domein. DNS en HTTPS moeten kloppen; de hoofdroute moet na een servercontrole naar de juiste Agency-workspace op het centrale portal sturen. Andere paden op de Agency-host geven 404. Een account van Agency B mag via de ingang van Agency A nooit diens dashboard zien. **Zonder deze praktijkproef geen publieke belofte over eigen Agency-domeinen.**
-6. **Beveiliging en privacy:** voer `npm run verify`, `npm run build`, de productie-smokecheck en de Corporate Admin-checklist uit. De bevestigde Supabase-regio is Central EU (Frankfurt, `eu-central-1`); controleer nog Storage-rechten, toegangsrollen, het wissen/exporteren van data, consent, externe afbeeldingen en status-/incidentcommunicatie. Sluit hoge beveiligingsbevindingen vóór vrijgave.
+- een betaling geen recht activeert of een dubbele factuur veroorzaakt;
+- registratie of herstelmail structureel faalt;
+- tenantisolatie, RLS of Agency-domeinbinding twijfelachtig is;
+- een geheime sleutel of mailboxwachtwoord in Git staat;
+- migratie, build, healthcheck of kernpraktijktest faalt;
+- privacytekst een actieve leverancier of gegevensstroom mist.
 
-## DNS en certificaten: concrete proef
+## Buiten release 1.0
 
-Zet bij de DNS-provider van `globetrotr.nl` een expliciet `portal`-record en een wildcard **A**-record `*` naar het publieke IPv4-adres van Node-01. Laat bestaande expliciete `mail`, `smtp`, `www` en `dashboard`-records ongemoeid. De Node-01-firewall moet TCP 80/443 toestaan; Node-02 blijft alleen via het privénetwerk bereikbaar. Gebruik voor een eigen Agency-subdomein bijvoorbeeld `reizen.bedrijf.nl CNAME portal.globetrotr.nl` plus `TXT _globetrotr.reizen.bedrijf.nl = globetrotr-verification=<token>` uit Agency-instellingen. Bij een DNS-provider die geen CNAME op het hoofddomein toestaat, kan een ALIAS/ANAME of een A-record naar hetzelfde IPv4-adres werken; de TXT-verificatie blijft vereist. Een geproxied CNAME kan de controle verbergen; test eerst met directe DNS.
+De eigen Stalwart-mailserver, Agency-SMTP en MX-omschakeling zijn geen blokkade voor 1.0. ZXCS blijft actief. Live hotelprijzen en verdere providerzoekfuncties volgen pas na partner- en privacybeoordeling.
 
-Na de code-uitrol op Node-02 en Node-01, vanaf een **ander netwerk**:
+## Vastleggen
 
-```bash
-# Node-02, vanuit /opt/globetrotr na git pull --ff-only
-docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation up -d --build --force-recreate worker
+Noteer bij vrijgave:
 
-# Node-01, vanuit /opt/globetrotr na git pull --ff-only
-docker compose --env-file .env.production -f deploy/web.compose.yml up -d --build --force-recreate web
-```
-
-Controleer eerst dat beide nodes dezelfde commit hebben. Sla de Node-02-stap niet over: zonder de nieuwe worker blijft de `tls/ask`-controle voor Agency-subdomeinen verouderd. Test daarna vanaf een **ander netwerk**:
-
-```bash
-dig +short testnaam.globetrotr.nl A
-dig +short reizen.bedrijf.nl CNAME
-dig +short _globetrotr.reizen.bedrijf.nl TXT
-curl -I https://testnaam.globetrotr.nl/
-curl -I https://reizen.bedrijf.nl/
-```
-
-Gebruik voor `testnaam` een subdomein dat in een actieve Agency-workspace is opgeslagen. Verwacht een geldig certificaat, geen TLS-fout en de juiste site. Controleer daarnaast in de Caddy-log of certificaatuitgifte slaagt en op Node-02 of `/tls/ask` de juiste host toeliet. Een DNS-record alleen is **geen** bewijs dat het Agency-dashboard aan de juiste workspace is gekoppeld. De domeinprovider kan niet door GlobeTrotr worden aangepast zonder afzonderlijke toegang; de eigenaar moet de getoonde records zelf publiceren.
-
-## Besluit
-
-Publiceer breed als alle zes voorwaarden met echte accounts en domeinen zijn afgevinkt en open incidenten opnieuw zijn beoordeeld. De huidige codecontrole kan DNS-propagatie, mailboxbezorging, Supabase-productieconfiguratie, Paddle-webhooks of alle schermgroottes niet bewijzen. Houd die punten tot hun praktijktest open in Corporate Admin.
+- Git-commit;
+- datum en tijd van Node-01 en Node-02;
+- uitgevoerde migraties;
+- uitvoerder van de praktijktest;
+- resterende niet-kritieke afwijkingen;
+- definitief go/no-go-besluit.

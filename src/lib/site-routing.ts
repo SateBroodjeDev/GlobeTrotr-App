@@ -12,6 +12,8 @@ export function canonicalSiteLocation(hostname: string, pathname: string, search
     return `${PORTAL_ORIGIN}/dashboard${search}${hash}`;
   if (hostname === "portal.globetrotr.nl" && websitePaths.test(pathname))
     return `${PUBLIC_SITE_ORIGIN}${pathname}${search}${hash}`;
+  if (!["globetrotr.nl", "www.globetrotr.nl", "portal.globetrotr.nl", "dashboard.globetrotr.nl"].includes(hostname) && pathname === "/")
+    return `https://${hostname}/agency-admin${search}${hash}`;
   return null;
 }
 

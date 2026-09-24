@@ -1,106 +1,85 @@
-# GlobeTrotr changelog
+# GlobeTrotr technisch changelog
 
-Dit technische changelog groepeert de huidige releasegeschiedenis. Detailwijzigingen blijven via Git beschikbaar. Alleen bevestigde publieke releases verschijnen op de website.
+Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor 1 oktober 2026 en wordt pas gepubliceerd na een geslaagde productieacceptatie. Detailwijzigingen blijven in Git beschikbaar.
 
-## Update 1.2 — in ontwikkeling
+## Release 1.0 — in voorbereiding, 24 september 2026
 
-- GPX-import leest lokaal waypoint-, route- en trackpunten, begrenst bestanden tot 2 MB en 500 geldige punten, weigert onveilige XML en laat de gebruiker vooraf selecteren welke punten bestemmingen worden.
-- Bestaande coördinaten worden als dubbel gemarkeerd en niet standaard geselecteerd; import behoudt de volgorde en gebruikt de bestaande veilige reisopslag.
-- Automatische boekingsadressen zijn tijdelijk zowel in de interface als op de server geblokkeerd totdat Hetzner uitgaand TCP 25 vrijgeeft en de eigen mailserver praktisch is geaccepteerd. Gewone GlobeTrotr-mail blijft via ZXCS werken.
-- De publieke mogelijkhedenpagina beschrijft nu ook de Reisvergelijker, peilingen, offline dagweergave, webpush, vluchtcontrole, open exportformaten, Agency-intake en accountbeveiliging.
-- De interactieve demo is uitgebreid van vier naar zes stappen en laat nu ook een echte vergelijkingskeuze en de begrensde offline reisweergave zien.
-- De publieke roadmap maakt zichtbaar dat de eigen mailserver wordt voorbereid, maar dat de productieomschakeling wacht op vrijgave van uitgaand mailverkeer. Reguliere mail blijft ondertussen via ZXCS beschikbaar.
-- De publieke release notes van update 1.1 leggen klantintake, Agency-content, minimale offline opslag, portalscheiding en accountbeveiliging uitgebreider uit.
-- Migratie en acceptatietest 1640 voor GPX-import zijn uitgevoerd; alleen webuitrol en de praktische productieproef staan nog open.
-- De publieke roadmap toont nu ook de voorbereiding van een officiële hotel-API, gevolgd door mogelijke vlucht-, autohuur- en activiteitenzoekfuncties, prijsalerts, routeontdekking en verdere offline uitbreiding.
+- Bedrijfsmail heeft een gepagineerd archief, een echt schermvullend leesvenster en definitief verwijderen voor beheerders na archivering.
+- NL/EN-vertaalconcepten verwerken ook langere berichten en tonen nu zichtbaar succes- of configuratiefouten.
+- Reisdatums kunnen met een impactpreview gezamenlijk worden verschoven; historische uitgaven en controledata blijven staan.
+- De privacyverklaring en browseropslaginventaris zijn bijgewerkt; bezoekers krijgen de vernieuwde privacykeuze opnieuw te zien en offline opslag en push blijven aparte, bewuste handelingen.
 
-## Update 1.1 — 23 september 2026
+- Reisvergelijker-kandidaten worden duurzaam opgeslagen zodat reacties en peilingen naar echte records verwijzen; migratie/test 1660 staan klaar.
+- Live agenda-abonnementen krijgen een wijzigingsdatum, ETag en verversingshint; verblijf en huurauto worden compacte hele-dagactiviteiten; migratie/test 1670 staan klaar.
+- Vandaag toont een vertrekcheck voor route, dagplanning, overnachtingen en paklijst.
+- Het offline pakket toont grootte, inhoud, verbinding, synchronisatiestatus en bescherming tegen browseropschoning.
+- Reisacties zijn vereenvoudigd; lange boekingsteksten blijven leesbaar op mobiel.
+- Vandaag toont vóór of na de reis geen willekeurige bestemming.
+- Google- en Discord-status vernieuwen direct na ontkoppelen.
+- JSON-export vat weggedrukte meldingen samen; Corporate en Agency Audit tonen actor, doel, context en reden.
+- Hotelcontrole onderscheidt ontbrekende nachten van een reis zonder ingestelde nachten.
+- Agency DNS-instructies openen in een dialoog en geverifieerde hosts behouden hun eigen domein.
+- Webpush wacht nog op VAPID-configuratie en een echte bezorgproef.
+- Stalwart en Agency-SMTP blijven buiten 1.0; ZXCS blijft actief totdat TCP 25 en alle mailproeven slagen.
 
-- Update 1.1 is uitgerold op Node-01 en Node-02 en staat nu als gebundelde release op de publieke updatepagina.
-- De release bevat de Reisvergelijker met reacties en peilingen, Agency-klantformulieren, de contentbibliotheek, webpush, begrensde vluchtcontrole, het offline dagoverzicht met uitgavenwachtrij en controleerbare boekingsmailconcepten.
-- Reizigers kunnen kandidaten per categorie vergelijken, bespreken en laten stemmen; een planner zet daarna precies één definitieve keuze om naar een boeking.
-- Het offline pakket wordt alleen na een bewuste keuze opgeslagen, bevat geen documenten, boekingscodes of bestaande bedragen en wordt bij uitloggen gewist. Maximaal vijftig nieuwe uitgaven kunnen lokaal wachten op handmatige synchronisatie.
-- Agencies beschikken over tweetalige klantformulieren, herbruikbare content met versies en broninformatie, rollen, offertes, leveranciers, taken en klantreizen binnen dezelfde afgeschermde werkruimte.
-- Browserpush bevat geen reisdetails; vluchtcontrole legt eerst een basislijn vast en meldt daarna alleen relevante wijzigingen met begrenzing en voorkeuren.
-- De eigen Stalwart-mailserver en MX-overgang horen niet bij de voltooide applicatie-uitrol; die blijven een afzonderlijke migratie na aflever-, back-up- en hersteltests.
+## Beta 0.9 — 23 september 2026, 12:00 CEST
 
-## 22 september 2026 — portal en Agency-ingang
+- Reisvergelijker, groepskeuzes, Agency-klantformulieren en herbruikbare Agency-content.
+- Begrensd offline dagoverzicht met uitgavenwachtrij.
+- Portal- en websiteverdeling, mobiele verfijning en accountbeveiliging.
+- Webpush, vluchtcontrole en boekingsmail technisch voorbereid maar nog niet volledig vrijgegeven.
 
-### Uitgerold in `5df0590`
+## Beta 0.8 — 21 september 2026, 20:30 CEST
 
-- De publieke website blijft op `globetrotr.nl`; registratie, login en dashboards openen op `portal.globetrotr.nl`.
-- Oude privélinks worden tijdelijk met behoud van pad doorgestuurd.
-- Een geregistreerd Agency-domein met actief plan krijgt een gecontroleerde ingang naar de verwachte workspace; onbekende hosts en verkeerde Agency-accounts worden geweigerd.
-- Mailboxwachtwoorden tonen een gemaskeerde opgeslagen status.
-- Corporate Admin beheert HTML-handtekeningen, incidenten en het privacyarchief.
-- Ontvangen HTML-mail heeft een groter leesvenster, veilige inline afbeeldingen en bewuste toestemming voor externe afbeeldingen.
-- Dashboard, mobiele reisnavigatie, publieke pagina's, privacytekst en releasechecks zijn bijgewerkt.
+- Veilige HTML-bedrijfsmail, vaste handtekeningen en gecontroleerd opnieuw bezorgen.
+- Handmatig controleerbare NL/EN-vertaalconcepten.
+- Herstel en diagnose voor betalingen en live agenda.
 
-### Klaar voor kleine vervolguitrol
+## Beta 0.7 — 21 september 2026, 12:00 CEST
 
-De onderstaande onderdelen zijn gebouwd maar nog niet als publieke productie-release bevestigd. De actuele mailstatus staat in [MAIL_STATUS.md](MAIL_STATUS.md).
+- Leesbaardere publieke reispagina.
+- Werkende GPX-download en eenmalige ICS-export.
+- Correcte uitgavenknoppen en opslag van bedrijfsbeheerderaccounts.
 
-- **Agency-klantformulieren en eigen mailhosting:** veilige tweetalige intakeformulieren zijn toegevoegd. Corp Admin kan persoonlijke, gedeelde en automatische `trip.*@globetrotr.nl`-postvakken laten provisionen op een afgeschermde Stalwart-mailserver; de DNS-cutover volgt pas na acceptatie.
-- **Mailserverbeheer:** Corporate Admin toont de provisioningstatus en beperkte foutcode, kan een mislukte aanmaak bewust opnieuw starten en neemt de interne Stalwart-controle mee in de platformstatus.
-- **Boekingsmail per reis:** planners kunnen een uniek `trip.*@globetrotr.nl`-adres maken. De IMAP-worker herkent veilige basisvelden, wijzigingen en annuleringen, blokkeert dubbele verwerking en maakt een bewerkbaar concept dat pas na bevestiging een boeking wordt. Intrekken en automatische verwijdering volgen de ingestelde bewaartermijn.
-- **Agency-contentbibliotheek:** bestemmingen, accommodaties, activiteiten, dagblokken, teksten en media kunnen als persoonlijk concept of organisatie-item worden bewaard. Taal, tags, publicatiestatus, versiehistorie, bron, licentie, kopiëren en archiveren zijn opgenomen zonder bestaande sjablonen te vervangen. Een preview laat een vaste versie vervolgens eenmaal als planning, reisonderdeel of offertetekst toepassen; bestaande inhoud wordt niet overschreven.
-- **Webpush per apparaat:** gebruikers kunnen vanuit het meldingenpaneel browserpush activeren of intrekken. De push toont bewust geen reis- of accountdetails, de worker bezorgt met VAPID, begrensde retries en automatische intrekking van verdwenen endpoints.
-- **Automatische vluchtcontrole:** toekomstige vluchten van Pro- en Agency-reizen worden binnen zeven dagen begrensd gecontroleerd. De eerste controle legt alleen een basislijn vast; alleen wijzigingen in status, tijd, gate of terminal worden met cooldown en reisvoorkeur als melding aangeboden.
-- **Offline onderweg:** een reiziger kan route, planning en praktische boekingsinformatie expliciet op het apparaat bewaren en per reisdag zonder netwerk openen. Nieuwe uitgaven kunnen in een begrensde lokale wachtrij worden gezet en worden alleen na een bewuste keuze veilig samengevoegd. Bestaande bedragen, boekingscodes en documenten blijven buiten het pakket; uitloggen wist de lokale kopie en wachtrij.
+## Beta 0.6 — 15 september 2026, 16:00 CEST
 
-- Agency-klantformulieren zijn lokaal compleet: configureerbare NL/EN-velden met doel en bewaartermijn, beveiligde intrekbare links, HTML-uitnodiging, mobiele invulpagina, eenmalig indienen, review, verwerking naar klantvoorkeuren, JSON-export, audit en automatische verwijdering. Migratie/test 1550 en productieacceptatie staan nog open.
+- Paddle voor doorlopende abonnementen en een losse vooruitbetaalde maand.
+- Facturen en abonnementsbeheer via het Paddle-klantportaal.
+- Eerste agenda-export en voorbereiding van live abonnementen.
 
-- De reisplanner gebruikt de naam **Vergelijker** en vraagt per categorie relevante gegevens: vlucht en route, verblijf en ontbijt, vervoerssoort, huurauto of activiteit. Het algemene invoerveld ‘Duur in minuten’ is verwijderd; tijdstippen bepalen waar van toepassing de reistijd. Migratie 1500 bewaart deze velden afzonderlijk na 1490. Nog niet gepubliceerd op de website als afgeronde release.
-- Actieve reisleden kunnen per kandidaat een reactie plaatsen en hun eigen reactie verwijderen. De opslag is tot 1.000 tekens begrensd, volgt de bestaande reistoegang en verwijdert reacties met de kandidaat. Migratie 1510 en de bijbehorende acceptatietest staan klaar.
-- Planners kunnen een peiling met twee tot vier kandidaten en een optionele deadline starten. Reisleden kunnen één stem uitbrengen, wijzigen of intrekken; planners kunnen de keuze afsluiten zonder automatisch te boeken. Migratie/test 1520 en een productieproef staan nog open.
-- In-appmeldingen bij starten, deadline en afsluiten van een peiling respecteren bestaande reis- en Agency-voorkeuren. De HTML-mail volgt de accounttaal en `tripUpdates`-voorkeur. Een afgeschermd auditlog registreert de handelingen zonder reacties of gevoelige berichtinhoud. Migraties/tests 1530–1540 en productieacceptatie staan nog open.
-- Logo, Website/Home en publieke menu- en footerlinks gaan vanaf portal rechtstreeks naar `globetrotr.nl`.
-- Publieke routes onder de portalhost krijgen ook serverzijdig een 302 naar de website.
-- Header, hoofdnavigatie, meldingsknop, modals, homepage, About en dashboard schalen rustiger op smalle schermen, met grotere aanraakvlakken en CTA's die niet buiten beeld lopen.
-- Privacy- en browseropslagteksten zijn opnieuw vergeleken met de gebruikte leveranciers en frontendopslag; Central EU (Frankfurt, `eu-central-1`) is als daadwerkelijke Supabase-regio vastgelegd.
-- De product- en concurrentiecontrole is vernieuwd op basis van de officiële pagina's van Wanderlog, TripIt, Travefy, TravelSpend, Polarsteps en Roadtrippers. Boekingsmailconcepten, Agency-klantformulieren en herbruikbare Agency-inhoud staan als eerstvolgende kandidaten op de roadmap.
-- De roadmapaudit onderscheidt nu gebouwd, gedeeltelijk gebouwd en ontbrekend werk. Een uitbreidingslijn voor het zoeken en vergelijken van verblijven, vluchten, vervoer en activiteiten is toegevoegd, inclusief partner-, prijs- en privacyvoorwaarden.
-- `FEATURE_GAP_AND_EXPANSION.md` bundelt voortaan los van de uitrolhandleiding alle ontbrekende roadmapfuncties, concurrentieverschillen, integratiekeuzes en aanbevolen bouwvolgorde.
-- `BUILD_PLAN.md` vertaalt deze analyse naar acht begrensde functiereleases, beginnend met provider-onafhankelijke reisopties en vergelijking na afronding van de portaluitrol.
-- Migratie 1480 voegt hiervoor een gerichte Corporate Admin-acceptatiecontrole toe.
-- Reizigers kunnen verblijf-, vlucht-, vervoer-, huurauto- en activiteitsopties eerst als kandidaat bewaren, maximaal vier opties vergelijken en een definitieve keuze één keer omzetten naar een boeking. Migratie 1490 voegt de productieacceptatie toe.
+## Beta 0.5 — 14 september 2026, 23:55 CEST
 
-## 21 september 2026 — betaling, agenda en communicatie
+- Google, Discord, passkeys en TOTP naast e-mailauthenticatie.
+- Communicatievoorkeuren en privacyverzoeken.
+- Gedeelde en persoonlijke bedrijfspostvakken met handtekeningen.
 
-- Paddle activeert terugkerende abonnementen en losse vooruitbetaalde maanden; meerdere losse betalingen stapelen de toegang.
-- Kortings- en nul-eurotransacties worden correct verwerkt; facturen worden alleen getoond wanneer Paddle werkelijk een factuur heeft uitgegeven.
-- Betaalmeldingen volgen de profieltaal en webhookherstel heeft gerichte diagnose.
-- Losse ICS, live agenda, GPX en reisgids zijn aangesloten.
-- Servicemails, uitnodigingen en kritieke storingsmail gebruiken nette HTML en NL/EN-inhoud.
-- Bedrijfsmail ondersteunt HTML, veilige handtekeningen, gesprekken, bijlagen, IMAP-diagnose en gecontroleerd opnieuw bezorgen.
-- Gratis NL/EN-vertaalconcepten zijn beschikbaar met handmatige controle.
+## Beta 0.4 — 14 september 2026, 12:00 CEST
 
-## 14–20 september 2026 — productieplatform
+- Reisstatistieken, budgettempo, taken en Vandaag.
+- Route omkeren, conceptkopieën en reisvergelijking.
+- Rustigere bediening voor langere reizen.
 
-- Eigen VPS-web/workerarchitectuur, Caddy, SMTP-relay, IMAP-sync en gezondheidscontroles.
-- Google, Discord, passkeys en TOTP via Supabase Auth.
-- Paddle Checkout, abonnementsbeheer en betaaldiagnose.
-- Corporate Admin voor governance, contact, feedback, problemen, meldingen, facturen en mailboxen.
-- Agency Admin voor teamrechten, klanten, offertes, taken, leveranciers, rapportage, branding en domeinverificatie.
-- Privacy-, cookie-, voorwaarden- en terugbetalingsinformatie voor betaalde productie.
+## Beta 0.3 — 12 september 2026, 20:00 CEST
 
-## 7–13 september 2026 — reisproduct en beta
+- Agency-klanten, offertes, teamrechten en audit.
+- Organisatiebranding en gecontroleerde domeinkoppeling.
+- Operationele Agency-werkruimte.
 
-- Reizen, routes, boekingen, dagplanning, taken, paklijsten, documenten en Vandaag-scherm.
-- Uitgaven, valuta, slimme verrekening, budgettempo en statistieken.
-- Delen met reisgenoten en klanten, openbare reizen en moderatie.
-- GPX, PDF, JSON, CSV en agenda-export.
-- Feedback, meldingen, status, onderhoud, auditlogs en releasechecklist.
+## Beta 0.2 — 10 september 2026, 18:00 CEST
 
-## Onderhoudsafspraken
+- Publieke website, feedback, bekende problemen en Corporate Admin.
+- Prijzen, contact, status, roadmap en juridische pagina’s.
+- Uitleg over Europese infrastructuur en privacykeuzes.
 
-- Voeg alleen een korte, gegroepeerde release bovenaan toe.
-- Zet niet-uitgerolde wijzigingen duidelijk onder een voorbereide vervolguitrol.
-- Noem geen interne secrets, persoonsgegevens of testadressen.
-- Werk bij iedere functionele stap ook de interne roadmap, publieke roadmap, publieke changelog en Corporate Admin-testchecklist bij.
+## Beta 0.1 — 7 september 2026, 23:34 CEST
 
-## Hotelfinder — update 1.2
+- Route, dagplanning, boekingen en kaart in één reis.
+- Uitgaven in meerdere valuta en kostenverrekening.
+- Samenwerking met reisrollen en gecontroleerd delen.
 
-- GlobeTrotr signaleert per bestemming welke nachten nog geen geboekt verblijf hebben.
-- Met één knop worden verblijven binnen 5 km via OpenStreetMap gezocht en kan een resultaat aan de Vergelijker worden toegevoegd.
-- Caching en snelheidsbegrenzing beschermen de zoekdienst; prijs en beschikbaarheid moeten bij de aanbieder worden gecontroleerd.
+## Onderhoud
+
+- Publiceer alleen functies die werkelijk zijn uitgerold en bevestigd.
+- Zet gebouwd maar nog niet uitgerold werk onder de eerstvolgende release.
+- Houd versies, datum en tijd gelijk aan `src/lib/public-changelog.ts`.
+- Noem geen secrets, persoonsgegevens of interne testadressen.

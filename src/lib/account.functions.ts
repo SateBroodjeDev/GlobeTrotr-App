@@ -95,9 +95,18 @@ export const exportAccountData = createServerFn({ method: "GET" })
       }),
     );
     const authUser = authData.user;
+    const exportedData = Object.fromEntries(entries) as Record<string, any[]>;
+    const notifications = exportedData.notifications ?? [];
+    const dismissedNotifications = notifications.filter((row) => row.dismissed_at);
+    exportedData.notifications = notifications.filter((row) => !row.dismissed_at);
+    const dismissedByKind = dismissedNotifications.reduce<Record<string, number>>((summary, row) => {
+      const kind = String(row.kind || "other");
+      summary[kind] = (summary[kind] ?? 0) + 1;
+      return summary;
+    }, {});
     const result = {
       format: "GlobeTrotr account export",
-      formatVersion: 1,
+      formatVersion: 2,
       exportedAt: new Date().toISOString(),
       account: authUser
         ? {
@@ -114,7 +123,12 @@ export const exportAccountData = createServerFn({ method: "GET" })
             })),
           }
         : null,
-      data: redactCredentials(Object.fromEntries(entries)),
+      data: redactCredentials(exportedData),
+      dismissedNotificationSummary: {
+        count: dismissedNotifications.length,
+        byKind: dismissedByKind,
+        note: "Dismissed interface notifications are aggregated to keep the portable JSON export compact.",
+      },
       files: {
         note: "Uploaded files are not embedded. Their metadata and storage paths are included in the exported records.",
       },

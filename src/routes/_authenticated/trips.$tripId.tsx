@@ -66,6 +66,7 @@ import { TripOptions } from "@/components/TripOptions";
 import { HotelGapFinder } from "@/components/HotelGapFinder";
 import { TripBookingMail } from "@/components/TripBookingMail";
 import { TripGpxImport } from "@/components/TripGpxImport";
+import { TripDateShift } from "@/components/TripDateShift";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -763,70 +764,10 @@ function TripDetail() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            disabled={!moneyEditable}
-            onClick={() => {
-              downloadCsv(trip, base, rates, locale);
-              toast.success(text("CSV geëxporteerd", "CSV exported"));
-            }}
-          >
-            <FileDown className="size-4" /> CSV
+          <Button variant="outline" onClick={() => setActiveTab("today")}>
+            <Download className="size-4" /> {text("Offline", "Offline")}
           </Button>
           <TripCalendarExport trip={trip} paid={state.plan === "pro" || state.plan === "agency"} />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              if (downloadTripGpx(trip))
-                toast.success(text("GPX-route gedownload", "GPX route downloaded"));
-              else
-                toast.error(
-                  text(
-                    "Voeg eerst een bestemming met kaartcoördinaten toe.",
-                    "Add a destination with map coordinates first.",
-                  ),
-                );
-            }}
-          >
-            <Download className="size-4" /> GPX
-          </Button>
-          {editable && <TripGpxImport stops={trip.stops} text={text} onImport={async(points)=>{
-            await saveTripNow(trip.id,(current)=>({...current,stops:[...current.stops,...points.map(point=>({id:uid(),name:point.name,country:"",lat:point.lat,lon:point.lon,nights:0}))]}));
-          }}/>}
-          <Button
-            variant="outline"
-            disabled={false}
-            onClick={() => {
-              openGuide(trip, base, rates, exportBranding, locale, coverUrl);
-              toast.success(text("Reisgids gedownload", "Trip guide downloaded"));
-            }}
-          >
-            <BookOpen className="size-4" /> {text("Reisgids", "Trip guide")}
-          </Button>
-          <Button
-            disabled={!moneyEditable}
-            onClick={() => {
-              if (!hasFeature(state.plan, "pdf_export")) {
-                toast.error(
-                  text(
-                    "PDF-declaraties zitten in Pro en hoger.",
-                    "PDF expense reports are available on Pro and above.",
-                  ),
-                );
-                return;
-              }
-              if (!openPdf(trip, base, rates, exportBranding, locale))
-                toast.error(
-                  text(
-                    "Sta pop-ups toe om de PDF te genereren.",
-                    "Allow pop-ups to generate the PDF.",
-                  ),
-                );
-            }}
-          >
-            <FileText className="size-4" /> PDF {text("declaratie", "expense report")}
-          </Button>
         </div>
       </div>
 
@@ -961,6 +902,7 @@ function TripDetail() {
           <Tabs defaultValue="general">
             <TabsList className="h-auto flex-wrap justify-start">
               <TabsTrigger value="general">{text("Algemeen", "General")}</TabsTrigger>
+              <TabsTrigger value="exports">{text("Export en import", "Export and import")}</TabsTrigger>
               <TabsTrigger value="notifications">{text("Meldingen", "Notifications")}</TabsTrigger>
               {state.plan === "agency" && (
                 <TabsTrigger value="branding">{text("Huisstijl", "Branding")}</TabsTrigger>
@@ -1091,11 +1033,19 @@ function TripDetail() {
                         </select>
                       </label>
                       <div className="mt-2 flex items-end sm:col-span-2">
-                        <Button type="submit" disabled={!settingsEditable || settingsSaving}>
-                          {settingsSaving
-                            ? text("Opslaan…", "Saving…")
-                            : text("Wijzigingen opslaan", "Save changes")}
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="submit" disabled={!settingsEditable || settingsSaving}>
+                            {settingsSaving
+                              ? text("Opslaan…", "Saving…")
+                              : text("Wijzigingen opslaan", "Save changes")}
+                          </Button>
+                          <TripDateShift
+                            trip={trip}
+                            disabled={!settingsEditable || settingsSaving}
+                            save={(update) => saveTripNow(trip.id, update)}
+                            text={text}
+                          />
+                        </div>
                       </div>
                     </form>
                   </CardContent>
@@ -1117,6 +1067,19 @@ function TripDetail() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="exports" className="mt-4">
+              <Card className="surface">
+                <CardHeader className="pb-2"><CardTitle className="text-sm">{text("Bestanden en gegevens", "Files and data")}</CardTitle></CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                  <Button variant="outline" disabled={!moneyEditable} onClick={() => { downloadCsv(trip, base, rates, locale); toast.success(text("CSV geëxporteerd", "CSV exported")); }}><FileDown className="size-4" />CSV</Button>
+                  <Button variant="outline" onClick={() => { if (downloadTripGpx(trip)) toast.success(text("GPX-route gedownload", "GPX route downloaded")); else toast.error(text("Voeg eerst een bestemming met kaartcoördinaten toe.", "Add a destination with map coordinates first.")); }}><Download className="size-4" />GPX</Button>
+                  {editable && <TripGpxImport stops={trip.stops} text={text} onImport={async(points) => { await saveTripNow(trip.id, (current) => ({ ...current, stops: [...current.stops, ...points.map((point) => ({ id: uid(), name: point.name, country: "", lat: point.lat, lon: point.lon, nights: 0 }))] })); }} />}
+                  <Button variant="outline" onClick={() => { openGuide(trip, base, rates, exportBranding, locale, coverUrl); toast.success(text("Reisgids gedownload", "Trip guide downloaded")); }}><BookOpen className="size-4" />{text("Reisgids", "Trip guide")}</Button>
+                  <Button disabled={!moneyEditable} onClick={() => { if (!hasFeature(state.plan, "pdf_export")) { toast.error(text("PDF-declaraties zitten in Pro en hoger.", "PDF expense reports are available on Pro and above.")); return; } if (!openPdf(trip, base, rates, exportBranding, locale)) toast.error(text("Sta pop-ups toe om de PDF te genereren.", "Allow pop-ups to generate the PDF.")); }}><FileText className="size-4" />PDF {text("declaratie", "expense report")}</Button>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="notifications" className="mt-4">

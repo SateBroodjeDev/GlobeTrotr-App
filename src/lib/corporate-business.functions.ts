@@ -334,7 +334,7 @@ export const setEmailDeliveryMode = createServerFn({ method: "POST" })
 
 export const getMyCorporateMail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((input?: { mailboxId?: string }) => input ?? {})
+  .validator((input?: { mailboxId?: string; archiveLimit?: number }) => input ?? {})
   .handler(async ({ data, context }) => {
     const db = await staffDb(context.userId);
     const [{ data: owned }, { data: members }] = await Promise.all([
@@ -362,17 +362,31 @@ export const getMyCorporateMail = createServerFn({ method: "GET" })
       data.mailboxId && unique.some((m) => m.id === data.mailboxId)
         ? data.mailboxId
         : unique[0]?.id;
-    if (!selectedId) return { mailboxes: [], messages: [], outbox: [], drafts: [], selected: null };
+    if (!selectedId)
+      return {
+        mailboxes: [], messages: [], outbox: [], drafts: [], selected: null, archiveHasMore: false,
+      };
     const selected = unique.find((m) => m.id === selectedId);
-    const [messages, outbox, drafts] = await Promise.all([
+    const archiveLimit = Math.min(250, Math.max(25, Math.floor(data.archiveLimit ?? 25)));
+    const [messages, archivedMessages, outbox, drafts] = await Promise.all([
       db
         .from("corporate_mail_messages")
         .select(
           "id,provider_message_id,thread_key,direction,sender_address,recipient_addresses,subject,preview_text,body_text,body_html,received_at,read_at,archived_at",
         )
         .eq("mailbox_id", selectedId)
+        .is("archived_at", null)
         .order("received_at", { ascending: false })
         .limit(100),
+      db
+        .from("corporate_mail_messages")
+        .select(
+          "id,provider_message_id,thread_key,direction,sender_address,recipient_addresses,subject,preview_text,body_text,body_html,received_at,read_at,archived_at",
+        )
+        .eq("mailbox_id", selectedId)
+        .not("archived_at", "is", null)
+        .order("archived_at", { ascending: false })
+        .limit(archiveLimit + 1),
       db
         .from("corporate_mail_send_queue")
         .select(
@@ -391,8 +405,11 @@ export const getMyCorporateMail = createServerFn({ method: "GET" })
         .order("updated_at", { ascending: false })
         .limit(50),
     ]);
-    if (messages.error || outbox.error || drafts.error) throw new Error("MAIL_LOAD_FAILED");
-    const messageIds = (messages.data ?? []).map((row: any) => row.id);
+    if (messages.error || archivedMessages.error || outbox.error || drafts.error)
+      throw new Error("MAIL_LOAD_FAILED");
+    const archiveRows = (archivedMessages.data ?? []).slice(0, archiveLimit);
+    const allMessages = [...(messages.data ?? []), ...archiveRows];
+    const messageIds = allMessages.map((row: any) => row.id);
     const queueIds = (outbox.data ?? []).map((row: any) => row.id);
     const filters = [
       messageIds.length ? `message_id.in.(${messageIds.join(",")})` : "",
@@ -409,10 +426,11 @@ export const getMyCorporateMail = createServerFn({ method: "GET" })
       (attachments ?? []).filter((attachment: any) => attachment[key] === id);
     return {
       mailboxes: unique,
-      messages: (messages.data ?? []).map((row: any) => ({
+      messages: allMessages.map((row: any) => ({
         ...row,
         attachments: forParent("message_id", row.id),
       })),
+      archiveHasMore: (archivedMessages.data?.length ?? 0) > archiveLimit,
       outbox: (outbox.data ?? []).map((row: any) => ({
         ...row,
         attachments: forParent("send_queue_id", row.id),
@@ -767,7 +785,7 @@ export const translateCorporateMailDraft = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const value = data.text.trim();
-    if (value.length < 2 || value.length > 5000 || data.source === data.target)
+    if (value.length < 2 || value.length > 30000 || data.source === data.target)
       throw new Error("INVALID_TRANSLATION_REQUEST");
     const db = await staffDb(context.userId);
     const access = await mailboxPermission(db, context.userId, data.mailboxId);
@@ -775,29 +793,36 @@ export const translateCorporateMailDraft = createServerFn({ method: "POST" })
     const endpoint = process.env["TRANSLATION_API_URL"]?.trim();
     if (!endpoint) throw new Error("TRANSLATION_NOT_CONFIGURED");
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
+    const timer = setTimeout(() => controller.abort(), 30000);
     try {
       const apiKey = process.env["TRANSLATION_API_KEY"]?.trim();
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-        },
-        body: JSON.stringify({
-          q: value,
-          source: data.source,
-          target: data.target,
-          format: "text",
-          api_key: apiKey || undefined,
-        }),
-        signal: controller.signal,
-      });
-      if (!response.ok) throw new Error("TRANSLATION_PROVIDER_FAILED");
-      const result = (await response.json()) as { translatedText?: string; translation?: string };
-      const translated = (result.translatedText ?? result.translation ?? "").trim();
-      if (!translated || translated.length > 7000) throw new Error("TRANSLATION_PROVIDER_INVALID");
-      return { translated };
+      const chunks = value.match(/[\s\S]{1,4500}(?:\n\n|\n|\s|$)/g) ?? [value];
+      const translated: string[] = [];
+      for (const chunk of chunks) {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+          },
+          body: JSON.stringify({
+            q: chunk,
+            source: data.source,
+            target: data.target,
+            format: "text",
+            api_key: apiKey || undefined,
+          }),
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`TRANSLATION_PROVIDER_FAILED_${response.status}`);
+        const result = (await response.json()) as { translatedText?: string; translation?: string };
+        const resultText = (result.translatedText ?? result.translation ?? "").trim();
+        if (!resultText) throw new Error("TRANSLATION_PROVIDER_INVALID");
+        translated.push(resultText);
+      }
+      const result = translated.join("\n\n");
+      if (result.length > 40000) throw new Error("TRANSLATION_PROVIDER_INVALID");
+      return { translated: result };
     } finally {
       clearTimeout(timer);
     }
@@ -857,6 +882,43 @@ export const updateCorporateMailMessage = createServerFn({ method: "POST" })
       .eq("id", data.messageId)
       .eq("mailbox_id", data.mailboxId);
     if (error) throw new Error("MAIL_UPDATE_FAILED");
+    return { ok: true };
+  });
+
+export const deleteCorporateMailMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: { mailboxId: string; messageId: string }) => input)
+  .handler(async ({ data, context }) => {
+    if (!uuid.test(data.mailboxId) || !uuid.test(data.messageId))
+      throw new Error("INVALID_MAIL_MESSAGE");
+    const db = await staffDb(context.userId);
+    const access = await mailboxPermission(db, context.userId, data.mailboxId);
+    if (access.permission !== "manage") throw new Error("FORBIDDEN");
+    const { data: message } = await db
+      .from("corporate_mail_messages")
+      .select("id,archived_at")
+      .eq("id", data.messageId)
+      .eq("mailbox_id", data.mailboxId)
+      .maybeSingle();
+    if (!message?.archived_at) throw new Error("MAIL_MESSAGE_NOT_ARCHIVED");
+    const { data: attachments, error: attachmentError } = await db
+      .from("corporate_mail_attachments")
+      .select("storage_key")
+      .eq("message_id", data.messageId);
+    if (attachmentError) throw new Error("MAIL_DELETE_FAILED");
+    const { error } = await db
+      .from("corporate_mail_messages")
+      .delete()
+      .eq("id", data.messageId)
+      .eq("mailbox_id", data.mailboxId)
+      .not("archived_at", "is", null);
+    if (error) throw new Error("MAIL_DELETE_FAILED");
+    const storageKeys = (attachments ?? []).map((row: any) => row.storage_key).filter(Boolean);
+    if (storageKeys.length) await db.storage.from("corporate-mail").remove(storageKeys);
+    await log(db, context.userId, "platform.corporate_mail.message.delete", data.messageId, {
+      mailboxId: data.mailboxId,
+      attachmentCount: storageKeys.length,
+    });
     return { ok: true };
   });
 

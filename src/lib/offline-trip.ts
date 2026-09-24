@@ -38,6 +38,24 @@ export type OfflineExpense = Pick<Expense, "id" | "date" | "title" | "amount" | 
   queuedAt: string;
 };
 
+export type OfflineTripPackSummary = {
+  bytes: number;
+  stops: number;
+  itineraryItems: number;
+  bookings: number;
+  queuedExpenses: number;
+};
+
+export function summarizeOfflineTripPack(pack: OfflineTripPack): OfflineTripPackSummary {
+  return {
+    bytes: new TextEncoder().encode(JSON.stringify(pack)).byteLength,
+    stops: pack.stops.length,
+    itineraryItems: pack.itinerary.length,
+    bookings: pack.travelItems.length,
+    queuedExpenses: pack.queuedExpenses.length,
+  };
+}
+
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (!("indexedDB" in window)) return reject(new Error("OFFLINE_STORAGE_UNAVAILABLE"));

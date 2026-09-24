@@ -51,7 +51,8 @@ function nextHour(day, time) {
 }
 
 export function buildLiveCalendar(calendar, now = new Date()) {
-  const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const modified = new Date(calendar.updated_at ?? now);
+  const stamp = (Number.isFinite(modified.getTime()) ? modified : now).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
   const events = [
     ...(calendar.itinerary ?? []).map((item) => ({
       id: `itinerary-${item.id}`, day: item.day, end: item.day,
@@ -62,11 +63,13 @@ export function buildLiveCalendar(calendar, now = new Date()) {
       title: item.title, notes: item.notes,
       startTime: item.details?.startTime, endTime: item.details?.endTime,
       location: item.location?.name ?? item.departure?.name ?? item.arrival?.name,
+      allDay: ["lodging", "car_rental"].includes(item.item_type),
     })),
   ];
   const lines = [
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//GlobeTrotr//Live trip calendar//EN",
-    "CALSCALE:GREGORIAN", `X-WR-CALNAME:${icsText(calendar.name)}`,
+    "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "X-PUBLISHED-TTL:PT5M",
+    "REFRESH-INTERVAL;VALUE=DURATION:PT5M", `X-WR-CALNAME:${icsText(calendar.name)}`,
   ];
   for (const event of events) {
     const day = icsDate(event.day);
@@ -75,13 +78,14 @@ export function buildLiveCalendar(calendar, now = new Date()) {
     const startTime = validTime(event.startTime);
     const endTime = validTime(event.endTime);
     lines.push("BEGIN:VEVENT", `UID:${icsText(event.id)}@globetrotr.nl`, `DTSTAMP:${stamp}`);
-    if (startTime) {
+    if (startTime && !event.allDay) {
       lines.push(`DTSTART:${day}T${startTime}00`);
       const suppliedEnd = endTime ? `${icsDate(endDay)}T${endTime}00` : null;
       lines.push(`DTEND:${suppliedEnd && suppliedEnd > `${day}T${startTime}00` ? suppliedEnd : nextHour(event.day, startTime)}`);
     } else {
       lines.push(`DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${afterDay(endDay)}`);
     }
+    lines.push(`LAST-MODIFIED:${stamp}`, "STATUS:CONFIRMED", `TRANSP:${event.allDay ? "TRANSPARENT" : "OPAQUE"}`);
     lines.push(`SUMMARY:${icsText(event.title)}`);
     if (event.notes) lines.push(`DESCRIPTION:${icsText(event.notes)}`);
     if (event.location) lines.push(`LOCATION:${icsText(event.location)}`);

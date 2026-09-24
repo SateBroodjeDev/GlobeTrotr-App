@@ -1,5 +1,7 @@
 # Nieuwe Supabase-productieomgeving
 
+> Alleen gebruiken voor de eerste inrichting van een leeg Supabase-project. Voor de bestaande productie en de eerstvolgende migraties gebruik je `IMPLEMENTATION_PENDING.md`.
+
 > Historische handleiding voor het eenmalig opbouwen van een leeg project.
 > GlobeTrotr draait inmiddels met bestaande accounts en migraties tot en met
 > 1170 zijn door de eigenaar uitgevoerd. Gebruik voor updates van het actieve

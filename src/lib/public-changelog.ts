@@ -36,19 +36,19 @@ export const PUBLIC_BETA_STATUS = {
 
 /** Zichtbaar werk in ontwikkeling; verschijnt bewust niet als gepubliceerde release. */
 export const PUBLIC_IN_PROGRESS = {
-  title: "Wat we nu afronden",
-  titleEn: "What we're finalising",
+  title: "Op weg naar 1.0 · gepland voor 1 oktober",
+  titleEn: "On the way to 1.0 · planned for 1 October",
   description:
-    "Update 1.1 is uitgerold. Update 1.2 met gecontroleerde GPX-import en de eerste hotelfinder wordt nu afgerond. De overstap van ZXCS naar de eigen mailserver blijft een afzonderlijke migratie en wacht op vrijgave van uitgaand mailverkeer, aflevertests en een bewezen herstelprocedure.",
+    "We testen dagelijks de Reisvergelijker, live agenda, vertrekcheck, offline gebruik, het verschuiven van reisdatums, Agency-domeinen, pushmeldingen en verbeterd bedrijfsmailbeheer. Release 1.0 volgt alleen als de productiechecks slagen. ZXCS blijft de actieve mailvoorziening; de eigen mailserver hoort niet bij deze release.",
   descriptionEn:
-    "Update 1.1 has been deployed. Update 1.2 with controlled GPX import and the first hotel finder is now being finalised. Moving from ZXCS to the self-hosted mail server remains a separate migration and is waiting for outbound-mail access, delivery tests and a proven recovery procedure.",
+    "We are testing Trip Comparison, live calendars, departure checks, offline use, trip date shifting, Agency domains, push notifications and improved company mail management every day. Release 1.0 will only follow when production checks pass. ZXCS remains the active email service; the self-hosted mail server is outside this release.",
 } as const;
 
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
   {
-    id: "2026-09-23-update-1-1",
-    version: "Update 1.1",
+    id: "2026-09-23-beta-0-9",
+    version: "Beta 0.9",
     publishedAt: "2026-09-23T12:00:00+02:00",
     title: "Samen beslissen en voorbereid op reis",
     titleEn: "Decide together and travel prepared",
@@ -94,15 +94,6 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
           "Travel organisations can send bilingual forms, process responses in a controlled way and use versioned content in trips and quotes.",
       },
       {
-        kind: "improved",
-        title: "Meldingen en vluchtcontrole",
-        titleEn: "Notifications and flight monitoring",
-        description:
-          "Optionele webpush en begrensde vluchtcontrole melden relevante wijzigingen zonder reisdetails in de pushmelding te tonen.",
-        descriptionEn:
-          "Optional web push and bounded flight monitoring report relevant changes without exposing trip details in the push notification.",
-      },
-      {
         kind: "secure",
         title: "Offline met minimale gegevens",
         titleEn: "Offline with minimal data",
@@ -122,15 +113,6 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
       },
       {
         kind: "improved",
-        title: "Boekingsmail met menselijke controle",
-        titleEn: "Booking email with human review",
-        description:
-          "Doorgestuurde boekingsmail wordt als controleerbaar concept herkend; wijzigingen, annuleringen en dubbelen worden gemarkeerd voordat iets in de reis komt.",
-        descriptionEn:
-          "Forwarded booking email is recognised as a reviewable draft; changes, cancellations and duplicates are flagged before anything enters the trip.",
-      },
-      {
-        kind: "improved",
         title: "Portal, mobiel en accountbeveiliging",
         titleEn: "Portal, mobile and account security",
         description:
@@ -142,14 +124,14 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-21-communication-reliability",
-    version: "Beta 0.19",
+    version: "Beta 0.8",
     publishedAt: "2026-09-21T20:30:00+02:00",
     title: "Betrouwbare communicatie en betalingen",
     titleEn: "Reliable communication and payments",
     summary:
-      "De nieuwste verbeteringen voor mail, vertaling, betalingen en agenda zijn in productie bevestigd.",
+      "Verbeteringen voor mailopmaak, vertaling, betalingen en agenda zijn in de beta beschikbaar. De bestaande mailbezorging blijft via ZXCS lopen.",
     summaryEn:
-      "The latest improvements to mail, translation, payments and calendars are confirmed in production.",
+      "Improvements to email formatting, translation, payments and calendars are available in beta. Existing email delivery continues through ZXCS.",
     changes: [
       {
         kind: "improved",
@@ -182,7 +164,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-21-trip-polish",
-    version: "Beta 0.18",
+    version: "Beta 0.7",
     publishedAt: "2026-09-21T12:00:00+02:00",
     title: "Reizen delen en exporteren",
     titleEn: "Share and export trips",
@@ -218,7 +200,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-15-payments-calendar",
-    version: "Beta 0.17",
+    version: "Beta 0.6",
     publishedAt: "2026-09-15T16:00:00+02:00",
     title: "Betalen en agenda",
     titleEn: "Payments and calendar",
@@ -258,7 +240,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-14-access-communication",
-    version: "Beta 0.16",
+    version: "Beta 0.5",
     publishedAt: "2026-09-14T23:55:00+02:00",
     title: "Toegang en communicatie",
     titleEn: "Access and communication",
@@ -305,7 +287,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-14-travel-tools",
-    version: "Beta 0.15",
+    version: "Beta 0.4",
     publishedAt: "2026-09-14T12:00:00+02:00",
     title: "Meer gereedschap voor onderweg",
     titleEn: "More tools for the road",
@@ -345,7 +327,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-12-agency-operations",
-    version: "Beta 0.14",
+    version: "Beta 0.3",
     publishedAt: "2026-09-12T20:00:00+02:00",
     title: "Agency als werkruimte",
     titleEn: "Agency as a workspace",
@@ -384,7 +366,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-10-public-beta",
-    version: "Beta 0.13",
+    version: "Beta 0.2",
     publishedAt: "2026-09-10T18:00:00+02:00",
     title: "Publieke beta en beheer",
     titleEn: "Public beta and administration",
@@ -424,7 +406,7 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
   },
   {
     id: "2026-09-07-core-planner",
-    version: "Beta 0.12",
+    version: "Beta 0.1",
     publishedAt: "2026-09-07T23:34:00+02:00",
     title: "De reisplanner staat",
     titleEn: "The trip planner is ready",

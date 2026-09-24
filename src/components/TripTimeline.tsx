@@ -483,10 +483,10 @@ export function TripTimeline({
                               <Icon className="size-3.5" />
                             </span>
                             <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium">{entry.title}</p>
+                              <div className="min-w-0 flex-1 basis-60">
+                                <p className="break-words font-medium">{entry.title}</p>
                                 {(entry.subtitle || entry.item) && (
-                                  <p className="mt-1 text-xs text-muted-foreground">
+                                  <p className="mt-1 break-words text-xs text-muted-foreground">
                                     {entry.subtitle || detailFor(entry.item!, text)}
                                   </p>
                                 )}

@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   deleteCorporateMailDraft,
+  deleteCorporateMailMessage,
   getMyCorporateMail,
   queueCorporateMail,
   saveCorporateMailDraft,
@@ -80,6 +81,7 @@ function CompanyMail() {
   const [mailboxId, setMailboxId] = useState("");
   const [folder, setFolder] = useState<Folder>("inbox");
   const [search, setSearch] = useState("");
+  const [archiveLimit, setArchiveLimit] = useState(25);
   const [selected, setSelected] = useState<any>();
   const [compose, setCompose] = useState<Compose>({
     ...blank(Boolean(searchParams.to)),
@@ -87,8 +89,8 @@ function CompanyMail() {
     subject: searchParams.subject,
   });
   const query = useQuery({
-    queryKey: ["my-company-mail", mailboxId],
-    queryFn: () => getMyCorporateMail({ data: { mailboxId: mailboxId || undefined } }),
+    queryKey: ["my-company-mail", mailboxId, archiveLimit],
+    queryFn: () => getMyCorporateMail({ data: { mailboxId: mailboxId || undefined, archiveLimit } }),
   });
   const activeId = mailboxId || query.data?.selected?.id || "";
   const refresh = () => qc.invalidateQueries({ queryKey: ["my-company-mail"] });
@@ -206,16 +208,20 @@ function CompanyMail() {
       ]);
       return { body: body.translated, subject: subject.translated };
     },
-    onSuccess: (result) =>
+    onSuccess: (result) => {
       setCompose((value) => ({
         ...value,
         subject: result.subject || value.subject,
         body: result.body,
         bodyHtml: plainTextToMailHtml(result.body),
-      })),
-    onError: () =>
+      }));
+      toast.success(text("Vertaalconcept toegevoegd.", "Translation draft added."));
+    },
+    onError: (error) =>
       toast.error(
-        text("Vertaalconcept kon niet worden gemaakt.", "Translation draft could not be created."),
+        String(error).includes("TRANSLATION_NOT_CONFIGURED")
+          ? text("De vertaalservice is nog niet ingesteld.", "The translation service is not configured yet.")
+          : text("Vertaalconcept kon niet worden gemaakt.", "Translation draft could not be created."),
       ),
   });
   const retryOutbox = useMutation({
@@ -325,6 +331,7 @@ function CompanyMail() {
           value={activeId}
           onChange={(e) => {
             setMailboxId(e.target.value);
+            setArchiveLimit(25);
             setSelected(undefined);
             setCompose(blank());
           }}
@@ -373,6 +380,7 @@ function CompanyMail() {
                     variant={folder === item.id ? "default" : "ghost"}
                     onClick={() => {
                       setFolder(item.id);
+                      if (item.id === "archive") setArchiveLimit(25);
                       setSelected(undefined);
                     }}
                   >
@@ -415,6 +423,11 @@ function CompanyMail() {
                 </button>
               ))
             )}
+            {folder === "archive" && query.data?.archiveHasMore && (
+              <Button className="w-full" variant="outline" onClick={() => setArchiveLimit((value) => Math.min(250, value + 25))}>
+                {text("Meer laten zien", "Show more")}
+              </Button>
+            )}
           </CardContent>
         </Card>
         <Card className="min-w-0 overflow-hidden">
@@ -427,12 +440,24 @@ function CompanyMail() {
                 folder={folder}
                 text={text}
                 canReply={query.data?.selected?.permission !== "read"}
+                canDelete={query.data?.selected?.permission === "manage"}
                 retrying={retryOutbox.isPending}
                 onReply={() => reply(selected)}
                 onRetry={() => retryOutbox.mutate(selected.id)}
-          onArchive={() =>
+                onArchive={() =>
                   void messageAction(selected.id, folder === "archive" ? "restore" : "archive")
                 }
+                onDelete={async () => {
+                  if (!window.confirm(text("Dit bericht en de bijlagen definitief verwijderen? Dit kan niet ongedaan worden gemaakt.", "Permanently delete this message and its attachments? This cannot be undone."))) return;
+                  try {
+                    await deleteCorporateMailMessage({ data: { mailboxId: activeId, messageId: selected.id } });
+                    setSelected(undefined);
+                    await refresh();
+                    toast.success(text("Bericht definitief verwijderd.", "Message permanently deleted."));
+                  } catch {
+                    toast.error(text("Bericht kon niet worden verwijderd.", "Message could not be deleted."));
+                  }
+                }}
                 onDownload={async (attachment: any) => {
                   const result = await getCorporateMailAttachmentUrl({
                     data: { mailboxId: activeId, attachmentId: attachment.id },
@@ -556,7 +581,7 @@ function Composer({
           <Button
             type="button"
             variant="outline"
-            disabled={translating || compose.body.trim().length < 2 || compose.body.length > 5000}
+            disabled={translating || compose.body.trim().length < 2 || compose.body.length > 30000}
             onClick={() => onTranslate("nl-en")}
           >
             <Languages className="size-4" />
@@ -565,7 +590,7 @@ function Composer({
           <Button
             type="button"
             variant="outline"
-            disabled={translating || compose.body.trim().length < 2 || compose.body.length > 5000}
+            disabled={translating || compose.body.trim().length < 2 || compose.body.length > 30000}
             onClick={() => onTranslate("en-nl")}
           >
             <Languages className="size-4" />
@@ -631,10 +656,12 @@ function MessageDetail({
   folder,
   text,
   canReply,
+  canDelete,
   retrying,
   onReply,
   onRetry,
   onArchive,
+  onDelete,
   onDownload,
 }: {
   item: any;
@@ -643,10 +670,12 @@ function MessageDetail({
   folder: Folder;
   text: (nl: string, en: string) => string;
   canReply: boolean;
+  canDelete: boolean;
   retrying: boolean;
   onReply: () => void;
   onRetry: () => void;
   onArchive: () => void;
+  onDelete: () => void;
   onDownload: (attachment: any) => Promise<void>;
 }) {
   const messages = thread.length ? thread : [item];
@@ -656,7 +685,7 @@ function MessageDetail({
   const [translating, setTranslating] = useState("");
   async function translateMessage(message: any, target: "nl" | "en") {
     const value = String(message.body_text || message.preview_text || "").trim();
-    if (value.length < 2 || value.length > 5000) return;
+    if (value.length < 2 || value.length > 30000) return;
     setTranslating(`${message.id}:${target}`);
     try {
       const result = await translateCorporateMailDraft({ data: {
@@ -711,11 +740,11 @@ function MessageDetail({
             {(message.recipient_addresses || []).join(", ")}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 5000} onClick={() => void translateMessage(message, "nl")}>
+            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 30000} onClick={() => void translateMessage(message, "nl")}>
               {translating === `${message.id}:nl` ? <Loader2 className="size-4 animate-spin" /> : <Languages className="size-4" />}
               {text("Lees in Nederlands", "Read in Dutch")}
             </Button>
-            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 5000} onClick={() => void translateMessage(message, "en")}>
+            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 30000} onClick={() => void translateMessage(message, "en")}>
               {translating === `${message.id}:en` ? <Loader2 className="size-4 animate-spin" /> : <Languages className="size-4" />}
               {text("Lees in Engels", "Read in English")}
             </Button>
@@ -773,6 +802,12 @@ function MessageDetail({
             {folder === "archive" ? text("Herstellen", "Restore") : text("Archiveren", "Archive")}
           </Button>
         )}
+        {folder === "archive" && canDelete && (
+          <Button variant="destructive" onClick={onDelete}>
+            <Trash2 className="size-4" />
+            {text("Definitief verwijderen", "Delete permanently")}
+          </Button>
+        )}
       </div>
     </article>
   );
@@ -787,6 +822,14 @@ function HtmlMailFrame({ message, mailboxId, index, text, remoteImages, expanded
   onLoadRemote: () => void;
   onToggleSize: () => void;
 }) {
+  useEffect(() => {
+    if (!expanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") onToggleSize(); };
+    window.addEventListener("keydown", close);
+    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", close); };
+  }, [expanded, onToggleSize]);
   const hasCid = /<img\b[^>]*\bsrc\s*=\s*["']cid:/i.test(message.body_html);
   const inline = useQuery({
     queryKey: ["corporate-mail-inline-images", mailboxId, message.id],
@@ -801,7 +844,7 @@ function HtmlMailFrame({ message, mailboxId, index, text, remoteImages, expanded
     try { const url = new URL(image.url); return url.protocol === "https:" ? url.origin : ""; } catch { return ""; }
   }).filter(Boolean))].join(" ");
   const hasExternal = /<img\b[^>]*\bsrc\s*=\s*["']https?:/i.test(message.body_html);
-  return <div className="mt-4 space-y-2">
+  return <div className={expanded ? "fixed inset-2 z-50 flex min-h-0 flex-col gap-2 rounded-xl border bg-background p-3 shadow-2xl sm:inset-6" : "mt-4 space-y-2"}>
     <div className="flex flex-wrap items-center gap-2">
       {hasExternal && !remoteImages && <Button type="button" size="sm" variant="outline" onClick={onLoadRemote}>
         {text("Externe afbeeldingen laden", "Load external images")}
@@ -816,7 +859,7 @@ function HtmlMailFrame({ message, mailboxId, index, text, remoteImages, expanded
       title={`${text("HTML-bericht", "HTML message")} ${index + 1}`}
       sandbox=""
       referrerPolicy="no-referrer"
-      className={`block w-full max-w-full rounded-lg border bg-white ${expanded ? "h-[75vh] min-h-[32rem]" : "h-[55vh] min-h-[24rem]"}`}
+      className={`block w-full max-w-full rounded-lg border bg-white ${expanded ? "min-h-0 flex-1" : "h-[55vh] min-h-[24rem]"}`}
       srcDoc={`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data: ${imageOrigins}${remoteImages ? " https:" : ""}; base-uri 'none'; form-action 'none'"><style>html,body{max-width:100%;overflow-wrap:anywhere}img{max-width:100%;height:auto}table{max-width:100%}</style>${html}`}
     />
   </div>;

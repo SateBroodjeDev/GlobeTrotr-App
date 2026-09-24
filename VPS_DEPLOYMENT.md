@@ -1,5 +1,7 @@
 # GlobeTrotr op twee kale Ubuntu 22.04-servers
 
+> Deze handleiding is alleen voor de eerste installatie van lege servers. Gebruik voor updates, herstarts, logs en rollback uitsluitend `SERVER_OPERATIONS.md`. De actuele releasevolgorde staat in `IMPLEMENTATION_PENDING.md`.
+
 > Deze handleiding is voor de eerste installatie van kale servers. Gebruik voor
 > de huidige uitrol vanaf migratie 1180 de actuele stappenlijst in
 > [`IMPLEMENTATION_PENDING.md`](IMPLEMENTATION_PENDING.md).
@@ -244,7 +246,7 @@ curl --fail http://10.0.0.3:9091/health
 
 ClamAV is verplicht voor bedrijfsmailbijlagen en blijft alleen binnen het Compose-netwerk bereikbaar. Open TCP 3310 niet in UFW of de providerfirewall. Wacht bij de eerste start totdat `clamav` healthy is; het downloaden en laden van virusdefinities kan enkele minuten duren. Bij scanneruitval blokkeert GlobeTrotr bijlagen bewust.
 
-Voor gratis NL/EN-vertaalconcepten draait optioneel LibreTranslate op Node-02. Vul daar `TRANSLATION_BIND_ADDRESS=10.0.0.3` in en start `docker compose --env-file .env.production -f deploy/worker.compose.yml --profile translation up -d`. Zet op Node-01 `TRANSLATION_API_URL=http://10.0.0.3:5000/translate`, laat `TRANSLATION_API_KEY` leeg en bouw de webcontainer opnieuw. Sta TCP 5000 uitsluitend toe tussen de private adressen van Node-01 en Node-02. De actuele commando's en acceptatietest staan in [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md).
+Voor gratis NL/EN-vertaalconcepten draait optioneel LibreTranslate op Node-02. Vul daar `TRANSLATION_BIND_ADDRESS=10.0.0.3` in. Zet op Node-01 `TRANSLATION_API_URL=http://10.0.0.3:5000/translate`, laat `TRANSLATION_API_KEY` leeg en sta TCP 5000 uitsluitend toe tussen de private adressen van Node-01 en Node-02. Het actuele startcommando staat in [SERVER_OPERATIONS.md](SERVER_OPERATIONS.md).
 
 De eerste healthcheck kan kort `503` geven. Voer op Node-01 daarna uit:
 
@@ -358,23 +360,4 @@ login, wachtwoordherstel, serverfuncties, uploads, Corporate Admin en workerstat
 
 ## 7. Updates en rollback
 
-Update Node-01 met:
-
-```bash
-cd /opt/globetrotr
-git pull --ff-only origin lovable
-docker compose --env-file .env.production -f deploy/web.compose.yml build
-docker compose --env-file .env.production -f deploy/web.compose.yml up -d
-```
-
-Gebruik op Node-02 dezelfde opdrachten met `deploy/worker.compose.yml`. Noteer
-voor een update `git rev-parse HEAD`. Herstel bij problemen met:
-
-```bash
-git checkout <VORIGE_COMMIT>
-docker compose --env-file .env.production -f deploy/web.compose.yml build
-docker compose --env-file .env.production -f deploy/web.compose.yml up -d
-```
-
-Draai productiemigraties niet blind terug; maak databasecorrecties als een
-nieuwe voorwaartse migratie.
+De actuele en veilige opdrachten staan centraal in `SERVER_OPERATIONS.md`. Databasecorrecties worden altijd als nieuwe voorwaartse migratie uitgevoerd; herschrijf geen gepubliceerde Git-geschiedenis.

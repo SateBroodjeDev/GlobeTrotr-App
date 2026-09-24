@@ -8,13 +8,16 @@ test("live agenda bewaart activiteitstijden en een boeking zonder tijd blijft he
     itinerary: [{ id: "day", day: "2026-07-10", title: "Dagplan" }],
     bookings: [
       { id: "museum", start_date: "2026-07-10", title: "Museum", details: { startTime: "13:30" }, location: { name: "Centrum" } },
-      { id: "hotel", start_date: "2026-07-11", end_date: "2026-07-12", title: "Hotel" },
+      { id: "hotel", item_type: "lodging", start_date: "2026-07-11", end_date: "2026-07-12", title: "Hotel", details: { startTime: "15:00" } },
+      { id: "car", item_type: "car_rental", start_date: "2026-07-10", end_date: "2026-07-11", title: "Rental car", details: { startTime: "10:00" } },
     ],
   }, new Date("2026-07-01T12:00:00Z"));
   assert.match(body, /UID:booking-museum@globetrotr.nl\r\nDTSTAMP:20260701T120000Z\r\nDTSTART:20260710T133000\r\nDTEND:20260710T143000/);
   assert.match(body, /LOCATION:Centrum/);
   assert.match(body, /UID:booking-hotel@globetrotr.nl[\s\S]*?DTSTART;VALUE=DATE:20260711\r\nDTEND;VALUE=DATE:20260713/);
-  assert.equal((body.match(/BEGIN:VEVENT/g) ?? []).length, 3);
+  assert.match(body, /UID:booking-car@globetrotr.nl[\s\S]*?DTSTART;VALUE=DATE:20260710\r\nDTEND;VALUE=DATE:20260712[\s\S]*?TRANSP:TRANSPARENT/);
+  assert.match(body, /X-PUBLISHED-TTL:PT5M\r\nREFRESH-INTERVAL;VALUE=DURATION:PT5M/);
+  assert.equal((body.match(/BEGIN:VEVENT/g) ?? []).length, 4);
 });
 
 test("live agenda ontsnapt invoer en weigert ongeldige datums", () => {

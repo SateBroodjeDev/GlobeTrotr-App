@@ -1,4 +1,4 @@
-const SHELL_CACHE="globetrotr-offline-shell-v1";
+﻿const SHELL_CACHE="globetrotr-offline-shell-v2";
 const SHELL_ASSETS=["/offline.html","/favicon.png","/assets/email/logo.png"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(SHELL_CACHE).then(cache=>cache.addAll(SHELL_ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("globetrotr-offline-shell-")&&key!==SHELL_CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});

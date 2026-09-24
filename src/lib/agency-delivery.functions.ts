@@ -12,6 +12,7 @@ export type AgencyDeliverySettings = {
   mailStatus: "unconfigured" | "pending" | "verified" | "failed";
   smtpConfigured: boolean;
 };
+const hostnamePattern = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 async function db() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as any;
@@ -59,6 +60,20 @@ export const getAgencyDeliverySettings = createServerFn({ method: "GET" })
       mailStatus: m?.verification_status ?? "unconfigured",
       smtpConfigured: Boolean(m?.smtp_secret_ref),
     } as AgencyDeliverySettings;
+  });
+export const getAgencyHostWorkspace = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((hostname: string) => hostname.trim().toLowerCase().replace(/\.$/, ""))
+  .handler(async ({ data: hostname }) => {
+    if (!hostnamePattern.test(hostname)) throw new Error("INVALID_AGENCY_HOST");
+    if (["globetrotr.nl", "www.globetrotr.nl", "portal.globetrotr.nl", "dashboard.globetrotr.nl"].includes(hostname)) return null;
+    const client = await db();
+    const subdomain = hostname.endsWith(".globetrotr.nl") ? hostname.slice(0, -".globetrotr.nl".length) : "";
+    const filter = subdomain ? `subdomain.eq.${subdomain},custom_domain.eq.${hostname}` : `custom_domain.eq.${hostname}`;
+    const { data, error } = await client.from("agency_domains").select("workspace_uuid")
+      .eq("verification_status", "verified").or(filter).limit(1).maybeSingle();
+    if (error) throw new Error("AGENCY_DOMAIN_LOOKUP_FAILED");
+    return { workspaceId: data?.workspace_uuid ? String(data.workspace_uuid) : null };
   });
 export const saveAgencyDeliverySettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

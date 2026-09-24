@@ -1,5 +1,7 @@
 # Eigen GlobeTrotr-mailserver installeren
 
+> Afzonderlijk toekomstig infrastructuurproject. Dit hoort niet bij release 1.0. ZXCS blijft actief totdat Hetzner TCP 25 vrijgeeft en deze volledige handleiding inclusief terugvaltest is afgerond. Voor gewone serverupdates gebruik je `SERVER_OPERATIONS.md`.
+
 Deze handleiding verplaatst `@globetrotr.nl` later van ZXCS naar Stalwart op Node-02. Werk van boven naar beneden en sla geen controle over.
 
 ## Wat doe je nu?

@@ -1,62 +1,44 @@
-# GlobeTrotr-mailstatus
+# GlobeTrotr mailstatus
 
-**Stand: 23 september 2026**
+**Stand: 24 september 2026**
 
-Dit document maakt onderscheid tussen productie, lokaal gereed en nog te accepteren werk. De concrete uitrolvolgorde staat in [IMPLEMENTATION_PENDING.md](IMPLEMENTATION_PENDING.md). De installatie van de eigen server staat in [MAIL_SERVER_DEPLOYMENT.md](MAIL_SERVER_DEPLOYMENT.md).
+Dit bestand beschrijft alleen de actuele toestand. Serverbeheer staat in `SERVER_OPERATIONS.md`; de latere mailmigratie in `MAIL_SERVER_DEPLOYMENT.md`.
 
-## Werkt nu in de productie-beta
+## Productie
 
-De huidige productie gebruikt de bestaande ZXCS-postvakken via SMTP en IMAP. De volgende onderdelen zijn door de eigenaar werkend bevestigd of al uitgerold:
+ZXCS is de actieve mailprovider voor SMTP en IMAP. Bevestigd of in gebruik:
 
-- transactionele mail via de beveiligde SMTP-relay;
-- registratie-, bevestigings-, herstel-, magic-link-, uitnodigings-, beveiligings- en betaalmail;
-- Supabase Auth-links via het GlobeTrotr-portaal;
-- Nederlandse of Engelse servicemail op basis van de opgeslagen accounttaal;
-- nette HTML-opmaak voor servicemail, uitnodigingen en kritieke storingen;
-- bedrijfsmail lezen en verzenden vanuit het portaal;
-- HTML-editor en centraal beheerde HTML-handtekening;
-- gekoppelde persoonlijke en gedeelde IMAP/SMTP-postvakken;
-- gesprekken, bijlagen, veilige inline afbeeldingen en bewuste toestemming voor externe afbeeldingen;
-- ClamAV-controle van bijlagen, bezorgwachtrij, opnieuw proberen en beperkte foutdiagnose;
-- meldingen voor nieuwe bedrijfsmail en communicatiegebeurtenissen.
+- registratie, bevestiging, herstel, magic link, uitnodigingen en betaalmail;
+- NL/EN-servicemail op basis van accounttaal;
+- HTML-opmaak voor service-, uitnodigings- en kritieke storingsmail;
+- bedrijfsmail lezen en versturen via gekoppelde ZXCS-postvakken;
+- HTML-editor, centraal beheerde handtekening, gesprekken en bijlagen;
+- veilige inline afbeeldingen en toestemming voor externe afbeeldingen;
+- ClamAV, bezorgwachtrij, opnieuw proberen en beperkte diagnose.
 
-Deze productiefunctionaliteit blijft via ZXCS werken totdat de gecontroleerde MX-overgang naar Stalwart is voltooid.
+## Gebouwd maar uitgeschakeld
 
-## Uitgerold, productieacceptatie nog afronden
+- zelf gehoste Stalwart-server;
+- automatische provisioning van `@globetrotr.nl`-postvakken;
+- Agency-SMTP;
+- unieke `trip.*@globetrotr.nl`-adressen en boekingsmailconcepten.
 
-Deze onderdelen zijn met releasecommit `9a67ef0` op Node-01 en Node-02 uitgerold. De SQL-migraties en tests zijn uitgevoerd; de genoemde praktijktests en de afzonderlijke mailserverinrichting zijn nog nodig:
+`TRIP_BOOKING_MAIL_ENABLED` blijft `false`. Deze functies horen niet bij release 1.0.
 
-| Onderdeel | Code gereed | Nog nodig |
-| --- | --- | --- |
-| Agency-klantformulieren | Ja | Echte NL/EN-formulieren testen |
-| Zelf gehoste Stalwart-mailserver | Ja | Node-02 configureren, DNS/mailauthenticatie en back-up/herstel testen |
-| Mailserverstatus en provisioningherstel | Ja | Health-URL en fout/herstelproef controleren |
-| Boekingsmail per reis | Ja | Echte hotel-/vluchtmail testen |
+## Blokkades voor eigen mailhosting
 
-Na uitrol kan Corporate Admin persoonlijke, gedeelde en automatische postvakken op de eigen server laten maken. Een reisplanner kan dan een uniek `trip.*@globetrotr.nl`-adres aanmaken, afzenders en bewaartermijn instellen, herkende gegevens corrigeren en het concept bewust als boeking toevoegen of afwijzen. Dubbele berichten, wijzigingen en annuleringen worden voor controle gemarkeerd. Intrekken stopt verdere verwerking.
+- Hetzner moet uitgaand TCP 25 vrijgeven;
+- PTR/rDNS, MX, SPF, DKIM, DMARC, MTA-STS en TLS-RPT moeten kloppen;
+- IMAPS, submission en server-to-server SMTP moeten praktisch werken;
+- bestaande ZXCS-mail moet gecontroleerd worden gemigreerd;
+- aflevering naar meerdere providers, spamreputatie, back-up en herstel moeten slagen;
+- terugval naar ZXCS moet getest zijn.
 
-## Vereist vóór de MX-overgang
+Tot die tijd worden MX-records niet gewijzigd en blijft ZXCS actief.
 
-- Hetzner heeft uitgaand TCP 25 en 465 schriftelijk vrijgegeven; door de accountleeftijd kan de aanvraag naar verwachting pas rond half oktober 2026 worden ingediend;
-- PTR/rDNS van Node-02 naar `mail.globetrotr.nl`;
-- geldige A/AAAA-keuze, MX, SPF, DKIM, DMARC, MTA-STS en TLS-RPT;
-- Stalwart-beheerder met MFA en een beperkt provisioningtoken;
-- werkende IMAPS, SMTP submission en server-to-server SMTP;
-- migratie en telling van bestaande ZXCS-mappen en berichten;
-- afleverproeven naar meerdere externe providers en controle van spam/reputatie;
-- versleutelde externe back-up en een geslaagde herstelproef;
-- terugval naar het bestaande ZXCS-MX-record getest en gedocumenteerd.
+## Productgrenzen
 
-Zolang deze punten niet zijn afgerond, blijft ZXCS de actieve mailprovider en mag de bestaande MX-configuratie niet worden verwijderd.
-
-## Bewuste grenzen
-
-- GlobeTrotr scant geen volledige persoonlijke Gmail-, Google Workspace- of andere externe mailbox om boekingen te zoeken.
-- Boekingsmail verwerkt alleen berichten die bewust naar het unieke reisadres worden gestuurd.
-- Een herkend bericht wordt nooit zonder bevestiging als boeking opgeslagen.
-- Corp Admin maakt binnen GlobeTrotr een postvakaccount aan; DNS, PTR en reputatiebeheer blijven infrastructuurhandelingen.
-- De applicatie is geen algemene spamfilter- of mailarchiefdienst voor externe domeinen.
-
-## Definitie van klaar
-
-Mail is volledig overgezet wanneer beide nodes dezelfde commit draaien, alle mailchecks in [TEST_CHECKLIST.md](TEST_CHECKLIST.md) praktisch zijn uitgevoerd, de eigen server minimaal enkele dagen stabiel ontvangt en verzendt en de terugvalproef is geslaagd. De SQL-set 1550–1580 is al uitgevoerd.
+- Geen stille scan van volledige externe mailboxen.
+- Alleen bewust doorgestuurde boekingsmail mag later worden verwerkt.
+- Een herkend bericht wordt nooit zonder menselijke bevestiging een boeking.
+- DNS, PTR, reputatie en externe back-ups blijven infrastructuurbeheer.

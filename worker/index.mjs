@@ -723,10 +723,17 @@ createServer(async (request, response) => {
         return;
       }
       const body = buildLiveCalendar(calendar);
+      const etag = `"${createHash("sha256").update(body).digest("base64url")}"`;
+      if (request.headers["if-none-match"] === etag) {
+        response.writeHead(304, { ETag: etag, "Cache-Control": "private, max-age=300, must-revalidate" }).end();
+        return;
+      }
       response
         .writeHead(200, {
           "Content-Type": "text/calendar; charset=utf-8",
-          "Cache-Control": "no-store",
+          "Cache-Control": "private, max-age=300, must-revalidate",
+          ETag: etag,
+          "Last-Modified": new Date(calendar.updated_at ?? Date.now()).toUTCString(),
           "Content-Disposition": `inline; filename="${String(calendar.name).replace(/[^a-z0-9_-]/gi, "-")}.ics"`,
         })
         .end(request.method === "HEAD" ? undefined : body);
@@ -765,7 +772,7 @@ createServer(async (request, response) => {
         return;
       }
       response.writeHead(302, {
-        Location: `https://portal.globetrotr.nl/agency-admin?workspace=${encodeURIComponent(workspaceId)}`,
+        Location: `/agency-admin?workspace=${encodeURIComponent(workspaceId)}`,
         "Cache-Control": "no-store",
         "Referrer-Policy": "no-referrer",
       }).end();

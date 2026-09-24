@@ -16,6 +16,8 @@ test("marketing paths leave the portal while contact and status stay available",
   assert.equal(canonicalSiteLocation("portal.globetrotr.nl", "/status"), null);
   assert.equal(canonicalSiteLocation("localhost", "/auth"), null);
   assert.equal(portalUrl("/dashboard"), "https://portal.globetrotr.nl/dashboard");
+  assert.equal(canonicalSiteLocation("agency.globetrotr.nl", "/"), "https://agency.globetrotr.nl/agency-admin");
+  assert.equal(canonicalSiteLocation("test.example.nl", "/"), "https://test.example.nl/agency-admin");
   assert.equal(publicSiteUrl("/"), "https://globetrotr.nl/");
   assert.equal(publicSiteUrl("/roadmap"), "https://globetrotr.nl/roadmap");
   assert.throws(() => portalUrl("//evil.test"));

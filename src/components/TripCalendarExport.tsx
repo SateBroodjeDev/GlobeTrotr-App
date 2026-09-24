@@ -125,8 +125,8 @@ export function TripCalendarExport({ trip, paid }: { trip: Trip; paid: boolean }
             </p>
             <p className="mb-3 text-sm text-muted-foreground">
               {text(
-                "Je kalender haalt wijzigingen automatisch via een persoonlijke, alleen-lezen link op.",
-                "Your calendar automatically retrieves updates through a personal read-only link.",
+                "Je agenda-app haalt wijzigingen automatisch op via een persoonlijke, alleen-lezen link. GlobeTrotr publiceert wijzigingen direct; je agenda-app bepaalt hoe vaak hij controleert.",
+                "Your calendar app automatically retrieves changes through a personal read-only link. GlobeTrotr publishes changes immediately; your calendar app decides how often it checks.",
               )}
             </p>
             {!paid ? (

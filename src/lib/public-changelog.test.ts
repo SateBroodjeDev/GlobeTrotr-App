@@ -23,6 +23,13 @@ test("public releases have unique IDs and versions", () => {
   );
 });
 
+test("public beta history runs consecutively from 0.9 back to 0.1", () => {
+  assert.deepEqual(PUBLIC_RELEASES.map((release) => release.version), [
+    "Beta 0.9", "Beta 0.8", "Beta 0.7", "Beta 0.6", "Beta 0.5",
+    "Beta 0.4", "Beta 0.3", "Beta 0.2", "Beta 0.1",
+  ]);
+});
+
 test("public releases use explicit timestamps and newest-first order", () => {
   const timestamps = PUBLIC_RELEASES.map((release) => {
     assert.match(release.publishedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})$/);

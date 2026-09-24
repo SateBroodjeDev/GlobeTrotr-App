@@ -7,9 +7,10 @@ type AuthCtx = {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 };
 
-const Ctx = createContext<AuthCtx>({ session: null, user: null, loading: true });
+const Ctx = createContext<AuthCtx>({ session: null, user: null, loading: true, refreshUser: async () => undefined });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -28,8 +29,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  async function refreshUser() {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    setSession((current) => current ? { ...current, user: data.user } : current);
+  }
+
   return (
-    <Ctx.Provider value={{ session, user: session?.user ?? null, loading }}>
+    <Ctx.Provider value={{ session, user: session?.user ?? null, loading, refreshUser }}>
       {children}
     </Ctx.Provider>
   );

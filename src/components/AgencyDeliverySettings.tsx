@@ -12,6 +12,7 @@ import { useLocale } from "@/lib/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 export function AgencyDeliverySettings() {
   const { text } = useLocale(),
     q = useQuery({
@@ -21,7 +22,8 @@ export function AgencyDeliverySettings() {
     }),
     [form, setForm] = useState<Values | null>(null),
     [busy, setBusy] = useState(false),
-    [verifying, setVerifying] = useState(false);
+    [verifying, setVerifying] = useState(false),
+    [dnsOpen, setDnsOpen] = useState(false);
   useEffect(() => {
     if (q.data) setForm(q.data);
   }, [q.data]);
@@ -110,7 +112,9 @@ export function AgencyDeliverySettings() {
             {form.domainStatus}
           </p>
           {form.customDomain && form.verificationToken && (
-            <div className="space-y-2 rounded-lg bg-muted p-3 text-xs">
+            <>
+            <Button type="button" variant="secondary" onClick={() => setDnsOpen(true)}>{text("DNS-instellingen bekijken", "View DNS settings")}</Button>
+            <Dialog open={dnsOpen} onOpenChange={setDnsOpen}><DialogContent><DialogHeader><DialogTitle>{text("DNS voor je Agency-domein", "DNS for your Agency domain")}</DialogTitle></DialogHeader><div className="space-y-2 rounded-lg bg-muted p-4 text-sm">
               <p>
                 CNAME <strong>{form.customDomain || text("jouw domein", "your domain")}</strong> →{" "}
                 <strong>portal.globetrotr.nl</strong>
@@ -121,7 +125,9 @@ export function AgencyDeliverySettings() {
               <code className="block break-all">
                 globetrotr-verification={form.verificationToken}
               </code>
-            </div>
+              <p className="text-xs text-muted-foreground">{text("Laat een eventuele proxy uit tijdens de eerste controle. DNS-wijzigingen kunnen enige tijd nodig hebben.", "Disable any proxy during the first check. DNS changes may take some time.")}</p>
+            </div></DialogContent></Dialog>
+            </>
           )}
           <Button
             type="button"

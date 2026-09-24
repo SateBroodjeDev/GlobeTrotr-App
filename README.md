@@ -2,11 +2,11 @@
 
 De gecontroleerde uitrol van de eigen SMTP/IMAP-server en automatische mailboxprovisioning staat in [MAIL_SERVER_DEPLOYMENT.md](MAIL_SERVER_DEPLOYMENT.md). Wijzig MX-records pas nadat de volledige acceptatietest daarin is geslaagd.
 
-Voor de bestaande productie-beta gebruik je [de actuele uitrol](IMPLEMENTATION_PENDING.md) en [de publieke vrijgavecontrole](PRE_RELEASE.md). [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md) is alleen voor een volledig nieuw, leeg Supabase-project.
+Voor de eerstvolgende uitrol gebruik je [het actuele uitrolhandboek](IMPLEMENTATION_PENDING.md). Dagelijks serverbeheer staat in [SERVER_OPERATIONS.md](SERVER_OPERATIONS.md). [SUPABASE_PRODUCTION_MIGRATION.md](SUPABASE_PRODUCTION_MIGRATION.md) is alleen voor een volledig nieuw, leeg Supabase-project.
 
 GlobeTrotr is een meertalige reisplanner voor individuen, groepen en reisorganisaties. De applicatie combineert routes, planning, boekingen, uitgaven, kostenverdeling, paklijsten, openbare reisverhalen en samenwerking in één workspace.
 
-De huidige versie draait als internationale beta op eigen GlobeTrotr-infrastructuur. E-mail/wachtwoord, passkey, Google en Discord zijn aangesloten. Transactionele e-mail loopt via de afgeschermde mailrelay. Paddle is live gekoppeld, maar betaalverwerking en de overige [open beta-incidenten](IMPLEMENTATION_PENDING.md#fase-7--vrijgavebesluit) worden nog met echte accounts gecontroleerd.
+Beta 0.9 draait op eigen GlobeTrotr-infrastructuur. E-mail/wachtwoord, passkey, Google en Discord zijn aangesloten. Transactionele en bedrijfsmail lopen via ZXCS en de afgeschermde relay. Paddle is live gekoppeld. Release 1.0 staat gepland voor 1 oktober 2026 en volgt alleen na de vrijgavecontrole uit het uitrolhandboek.
 
 ## Wat de applicatie bevat
 
@@ -19,6 +19,7 @@ De huidige versie draait als internationale beta op eigen GlobeTrotr-infrastruct
 - Openbare reispagina's met kaart, planning, optioneel gedeelde boekingen, PIN-bescherming en weer.
 - JSON-back-up per reis, volledige workspaceback-up, veilige import en AVG-gegevensexport.
 - Agenda-export van dagplanning en boekingen naar gangbare agenda-apps.
+- Reisdatums gezamenlijk verschuiven met een impactpreview voor stops, dagplanning, boekingen en kandidaten, zonder historische uitgaven te wijzigen.
 - Reisstatistieken met reisduur, bestemmingen, overnachtingen, uitgavenverdeling, daggemiddelde en budgetprognose.
 - Veilige reisduplicatie voor een private routevariant zonder deelnemers, uitgaven, boekingsreferenties of deelinstellingen over te nemen.
 - GPX-export van de route en gecontroleerd omkeren van de bestemmingsvolgorde.
@@ -63,7 +64,7 @@ npm run build
 npm run check
 ```
 
-`npm run verify` voert ESLint, 100 regressietests, de volledige TypeScript-controle, de beveiligingsaudit, de release-preflight en syntaxiscontroles van de workers uit. De beveiligingsaudit blokkeert onbeveiligd service-rolegebruik, browserreferenties naar servergeheimen, nieuwe niet-beoordeelde HTML-sinks, onveilige externe links, gevoelige logging en nieuwe `SECURITY DEFINER`-functies zonder vastgezet zoekpad. De preflight controleert onder meer de migratie/testvolgorde, verwijderde handleidingen en kapotte UTF-8-tekst. `npm run check` voert daarna ook de productiebuild uit. De lockfile is `package-lock.json`. De Nitro-build kan lokaal op Windows tijdens de laatste bestandstrace door bestandstoegang (`EPERM`) stranden; de Linux-build in CI en op Node-01 is daarom de beslissende productiecontrole.
+`npm run verify` voert ESLint, regressietests, TypeScript, de beveiligingsaudit, release-preflight en workersyntaxis uit. `npm run check` voegt de productiebuild toe. De lockfile is `package-lock.json`. Een lokale Windows-build kan bij Nitro-bestandstracing door `EPERM` stranden; CI en de Linux-build op Node-01 blijven daarom beslissend.
 
 Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Sommige zijn alleen-lezen, andere draaien in een transactie met `ROLLBACK`; controleer de kop van ieder bestand.
 
@@ -73,7 +74,7 @@ Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`T
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-Volgens de eigenaar zijn de SQL-migraties en tests tot en met **1630** uitgevoerd. Agency-klantformulieren, eigen mailhosting, maildiagnose, boekingsmailconcepten, Agency-content, webpush, automatische vluchtcontrole en het expliciete offline dagoverzicht zijn voorbereid als update 1.1; web-, worker- en productieacceptatie staan nog open. Zie [de actuele uitrol](IMPLEMENTATION_PENDING.md), de [portalomschakeling](PORTAL_DOMAIN_MIGRATION.md), de [publieke vrijgavecontrole](PRE_RELEASE.md), de [productcontrole](PRODUCT_REVIEW_2026-09-22.md), de [functie-gapanalyse](FEATURE_GAP_AND_EXPANSION.md) en het concrete [bouwplan](BUILD_PLAN.md).
+Volgens de eigenaar zijn migraties en tests tot en met **1650** uitgevoerd. Voor release 1.0 staan 1660, 1670, 1680 en 1690 met hun tests open. Zie [het uitrolhandboek](IMPLEMENTATION_PENDING.md), de [interne roadmap](roadmap.md), het [bouwplan](BUILD_PLAN.md) en de [functie-gapanalyse](FEATURE_GAP_AND_EXPANSION.md).
 
 De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag in Central EU (Frankfurt, `eu-central-1`). [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
 
@@ -81,9 +82,7 @@ De productiecontainers gebruiken `Dockerfile`, `deploy/web.compose.yml` en `depl
 
 De bestaande productie-beta verstuurt en ontvangt mail via ZXCS. Eigen Stalwart-hosting en boekingsmail per reis zijn lokaal gebouwd en wachten op migraties 1560–1580, Node-02-configuratie en productieacceptatie. [MAIL_STATUS.md](MAIL_STATUS.md) geeft per onderdeel exact aan wat nu werkt en wat nog moet gebeuren.
 
-De concrete installatie voor `GBT-Node-01` en `GBT-Node-02`, inclusief Caddy,
-HTTPS, omgevingsvariabelen, healthchecks en rollback, staat in
-[`VPS_DEPLOYMENT.md`](VPS_DEPLOYMENT.md).
+De eerste installatie staat in [`VPS_DEPLOYMENT.md`](VPS_DEPLOYMENT.md). Updates, herstarts, logs, healthchecks en rollback staan uitsluitend in [`SERVER_OPERATIONS.md`](SERVER_OPERATIONS.md).
 
 De bijbehorende SQL-tests staan in `supabase/tests` en noemen bovenaan welke migratie eerst vereist is.
 
@@ -114,8 +113,11 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 ## Projectdocumentatie
 
 - `IMPLEMENTATION_PENDING.md`: enige actuele uitrolroute voor de bestaande beta.
+- `SERVER_OPERATIONS.md`: dagelijkse serverupdates, herstarts, logs en rollback.
 - `MAIL_STATUS.md`: actuele scheiding tussen werkende productie-mail, lokaal gebouwde mailfuncties en resterende infrastructuur.
-- `roadmap.md`: interne technische roadmap en migratiestatus.
+- `roadmap.md`: interne productstatus en volgorde.
+- `BUILD_PLAN.md`: technische bouwvolgorde.
+- `FEATURE_GAP_AND_EXPANSION.md`: concurrentiegaps en mogelijke uitbreidingen.
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.
 - `/changelog`: publieke release notes.
@@ -124,4 +126,4 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 
 ## Productie
 
-De TanStack Start-app draait als Node/Nitro-container op Node-01. Achtergrondtaken en de SMTP-relay draaien afgescheiden op Node-02. Supabase verzorgt de Europese database, authenticatie en objectopslag. Zie `VPS_DEPLOYMENT.md` voor beheer, updates en herstel.
+De TanStack Start-app draait als Node/Nitro-container op Node-01. Achtergrondtaken en de SMTP-relay draaien afgescheiden op Node-02. Supabase verzorgt database, authenticatie en objectopslag in Central EU (Frankfurt). Zie `SERVER_OPERATIONS.md` voor beheer, updates en herstel.

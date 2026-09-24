@@ -65,7 +65,7 @@ https:// {
     reverse_proxy 10.0.0.3:9091
   }
   handle {
-    respond "Not found" 404
+    reverse_proxy web:3000
   }
   header {
     X-Robots-Tag "noindex, nofollow"

@@ -915,11 +915,11 @@ export function TripBookings({
               return (
                 <div
                   key={item.id}
-                  className="flex items-start justify-between gap-3 rounded-xl border border-border p-3 text-sm"
+                  className="grid min-w-0 gap-3 rounded-xl border border-border p-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"
                 >
                   <div className="min-w-0">
-                    <p className="flex flex-wrap items-center gap-2 font-medium">
-                      <ItemIcon className="size-4 shrink-0" /> {item.title}{" "}
+                    <p className="flex min-w-0 flex-wrap items-center gap-2 font-medium">
+                      <ItemIcon className="size-4 shrink-0" /><span className="min-w-0 break-words">{item.title}</span>{" "}
                       <Badge variant="secondary">
                         {itemType ? travelTypeLabel(itemType.id, itemType.label, text) : ""}
                       </Badge>
@@ -929,7 +929,7 @@ export function TripBookings({
                         </Badge>
                       )}
                     </p>
-                    <p className="mt-1 text-muted-foreground">
+                    <p className="mt-1 break-words text-muted-foreground">
                       {item.date}
                       {item.endDate ? ` ${text("t/m", "to")} ${item.endDate}` : ""}
                       {item.bookingReference

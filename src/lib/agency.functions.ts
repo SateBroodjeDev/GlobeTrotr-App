@@ -96,6 +96,7 @@ export type AgencyAuditEntry = {
   createdAt: string;
   actorId: string;
   actorName: string;
+  actorEmail: string;
 };
 export type AgencyNotificationPreferences = {
   workspaceId: string;
@@ -618,11 +619,12 @@ export const getAgencyAudit = createServerFn({ method: "GET" })
       ...new Set((data ?? []).map((row: any) => row.actor_user_id).filter(Boolean)),
     ] as string[];
     const { data: profiles } = actorIds.length
-      ? await db.from("profiles").select("id,display_name").in("id", actorIds)
+      ? await db.from("profiles").select("id,display_name,email").in("id", actorIds)
       : { data: [] };
     const names = new Map(
       (profiles ?? []).map((profile: any) => [profile.id, profile.display_name]),
     );
+    const emails = new Map((profiles ?? []).map((profile: any) => [profile.id, profile.email]));
     return (data ?? []).map((row: any) => ({
       id: row.id,
       action: row.action,
@@ -632,6 +634,7 @@ export const getAgencyAudit = createServerFn({ method: "GET" })
       createdAt: row.created_at,
       actorId: row.actor_user_id ?? "",
       actorName: names.get(row.actor_user_id) || "",
+      actorEmail: emails.get(row.actor_user_id) || "",
     })) as AgencyAuditEntry[];
   });
 
