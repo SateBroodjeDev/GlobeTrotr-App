@@ -7,6 +7,7 @@ Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor
 - Een Paddle-checkout die alleen is geopend maakt geen betaalbevestiging meer; de melding en transactionele mail volgen pas na het bevestigde `transaction.completed`-event.
 - Webpush heeft een afzonderlijke configuratie-healthcheck voor Node-02, zodat ontbrekende VAPID-instellingen zichtbaar zijn zonder sleutels te tonen.
 - Het meldingenpaneel toont de echte apparaatstatus en kan een volledige testpush klaarzetten; nieuwe privacyverzoeken en ingevulde Agency-klantformulieren waarschuwen de juiste beheerders.
+- Accountinstellingen bieden aparte pushkeuzes voor uitnodigingen, reizen en Agency-werk, betalingen, vluchtwijzigingen en account- of serviceberichten; uitzetten annuleert ook nog niet verzonden pushes in die categorie.
 - Herkende boekingsmail maakt weer een geldige boekingsmelding aan en webpush gebruikt precies één profieltaal zonder gevoelige inhoud.
 - Vertaalde HTML-mail blijft na vertalen een opgemaakte, afgeschermde e-mail in plaats van zichtbare HTML-code.
 - De hotelcontrole gebruikt de routepositie als standaard slaapplaats, toont de lange keuzelijst alleen bij wijzigen en zoekt met een tweede providerfallback tot 15 km.

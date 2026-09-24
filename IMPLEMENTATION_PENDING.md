@@ -14,7 +14,7 @@ De ondertekende checkoutkoppeling staat alleen in het URL-fragment en wordt daar
 
 **Stand: 24 september 2026 · geplande release: 1 oktober 2026**
 
-Dit is de enige handleiding voor deze uitrol. Algemeen serverbeheer staat in `SERVER_OPERATIONS.md`; herhaal die commando’s hier niet vanuit andere documenten. Migraties en tests tot en met **1720** zijn volgens de eigenaar uitgevoerd.
+Dit is de enige handleiding voor deze uitrol. Algemeen serverbeheer staat in `SERVER_OPERATIONS.md`; herhaal die commando’s hier niet vanuit andere documenten. Migraties en tests tot en met **1720** zijn volgens de eigenaar uitgevoerd. Migratie en test **1730** voor pushcategorieën moeten nog worden uitgevoerd.
 
 <!-- release-preflight: confirmed-through=20260908169000_trip_date_shift_acceptance.sql -->
 
@@ -46,7 +46,12 @@ De volgende migraties en tests zijn op 24 september 2026 uitgevoerd:
 5. `supabase/migrations/20260908172000_notification_link_compatibility.sql`
 6. `supabase/tests/notification_link_compatibility.sql`
 
-Migratie 1710 zet de publieke verkoop nadrukkelijk **niet** aan. Zij bereidt alleen de afgeschermde licentiedatabase en Corporate Admin voor. Herhaal deze SQL-bestanden tijdens deze uitrol niet. De volgende stap is de code committen en daarna Node-01 en Node-02 bijwerken.
+Voer voor de nieuwe pushvoorkeuren daarna eenmalig uit:
+
+7. `supabase/migrations/20260908173000_web_push_preferences.sql`
+8. `supabase/tests/web_push_preferences.sql`
+
+Migratie 1710 zet de publieke verkoop nadrukkelijk **niet** aan. Zij bereidt alleen de afgeschermde licentiedatabase en Corporate Admin voor. Herhaal de reeds uitgevoerde SQL-bestanden tijdens deze uitrol niet. Voer alleen 1730 plus de bijbehorende test uit en werk daarna Node-01 bij.
 
 ## 3. Node-01 configuratie
 
@@ -167,6 +172,8 @@ GlobeTrotr geeft vijf minuten als verversingsvoorkeur mee. Google, Apple en Outl
 
 ### Push
 
+- kies in Accountinstellingen afzonderlijk de vijf pushcategorieën en sla deze op;
+- controleer dat het uitschakelen van een categorie de in-appmelding bewaart maar geen browserpush bezorgt;
 - open rechtsboven **Meldingen** en kies **Push op dit apparaat aanzetten**;
 - controleer dat daarna **Testmelding versturen** verschijnt;
 - sluit het GlobeTrotr-tabblad en verstuur de testmelding;
@@ -203,7 +210,7 @@ Webpush bevat altijd alleen een algemene zin in één profieltaal. Onderwerp, re
 
 Release 1.0 mag alleen worden gepubliceerd wanneer:
 
-- alle drie nieuwe SQL-tests en de opnieuw uitgevoerde test van migratie 1700 slagen;
+- alle vier nieuwe SQL-tests en de opnieuw uitgevoerde test van migratie 1700 slagen;
 - alle vereiste containers gezond blijven;
 - geen kritieke of hoge beveiligingsbevinding openstaat;
 - de praktijktests hierboven slagen of een niet-kritieke afwijking zichtbaar is vastgelegd;

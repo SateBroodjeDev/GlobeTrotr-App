@@ -39,9 +39,9 @@ export const PUBLIC_IN_PROGRESS = {
   title: "Op weg naar 1.0 · gepland voor 1 oktober",
   titleEn: "On the way to 1.0 · planned for 1 October",
   description:
-    "We testen dagelijks de Reisvergelijker, live agenda, vertrekcheck, offline gebruik, het verschuiven van reisdatums, Agency-domeinen, pushmeldingen en verbeterd bedrijfsmailbeheer. Release 1.0 volgt alleen als de productiechecks slagen. ZXCS blijft de actieve mailvoorziening; de eigen mailserver hoort niet bij deze release.",
+    "We testen dagelijks de Reisvergelijker, live agenda, vertrekcheck, offline gebruik, het verschuiven van reisdatums, Agency-domeinen, pushmeldingen met keuzes per categorie en verbeterd bedrijfsmailbeheer. Release 1.0 volgt alleen als de productiechecks slagen. ZXCS blijft de actieve mailvoorziening; de eigen mailserver hoort niet bij deze release.",
   descriptionEn:
-    "We are testing Trip Comparison, live calendars, departure checks, offline use, trip date shifting, Agency domains, push notifications and improved company mail management every day. Release 1.0 will only follow when production checks pass. ZXCS remains the active email service; the self-hosted mail server is outside this release.",
+    "We are testing Trip Comparison, live calendars, departure checks, offline use, trip date shifting, Agency domains, push notifications with category controls and improved company mail management every day. Release 1.0 will only follow when production checks pass. ZXCS remains the active email service; the self-hosted mail server is outside this release.",
 } as const;
 
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */

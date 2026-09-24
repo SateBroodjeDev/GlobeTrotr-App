@@ -52,6 +52,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PushNotificationControl } from "@/components/PushNotificationControl";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({ meta: [{ title: "Accountinstellingen - GlobeTrotr" }] }),
@@ -75,6 +76,11 @@ const DEFAULT_COMMUNICATION = {
   payments: true,
   flightAlerts: true,
   productUpdates: false,
+  pushInvitations: true,
+  pushTripUpdates: true,
+  pushPayments: true,
+  pushFlightAlerts: true,
+  pushAccountService: true,
 };
 
 type ThemePreference = "system" | "light" | "dark";
@@ -1215,6 +1221,7 @@ function AccountPage() {
               "Choose which optional messages you receive by email. Security and account messages always remain enabled.",
             )}
           </p>
+          <h3 className="font-medium">{text("E-mail", "Email")}</h3>
           <div className="grid gap-2 sm:grid-cols-2">
             {(
               [
@@ -1223,6 +1230,40 @@ function AccountPage() {
                 ["payments", text("Betalingen en verrekeningen", "Payments and settlements")],
                 ["flightAlerts", text("Vluchtmeldingen", "Flight alerts")],
                 ["productUpdates", text("Productnieuws", "Product news")],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="flex min-h-11 items-center gap-3 rounded-xl border p-3">
+                <input
+                  type="checkbox"
+                  checked={communication[key]}
+                  onChange={(event) =>
+                    setCommunication((current) => ({ ...current, [key]: event.target.checked }))
+                  }
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+          <div className="border-t pt-4">
+            <h3 className="font-medium">{text("Pushmeldingen", "Push notifications")}</h3>
+            <p className="mt-1 text-muted-foreground">
+              {text(
+                "Push is per apparaat optioneel. Kies welke soorten naar aangemelde apparaten mogen worden gestuurd. Meldingen in GlobeTrotr blijven beschikbaar.",
+                "Push is optional per device. Choose which categories may be sent to registered devices. Notifications in GlobeTrotr remain available.",
+              )}
+            </p>
+            <div className="mt-3 overflow-hidden rounded-xl border">
+              <PushNotificationControl />
+            </div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(
+              [
+                ["pushInvitations", text("Push: uitnodigingen en toegang", "Push: invitations and access")],
+                ["pushTripUpdates", text("Push: reizen en Agency-werk", "Push: trips and Agency work")],
+                ["pushPayments", text("Push: betalingen en verrekeningen", "Push: payments and settlements")],
+                ["pushFlightAlerts", text("Push: vluchtwijzigingen", "Push: flight changes")],
+                ["pushAccountService", text("Push: account en belangrijke serviceberichten", "Push: account and important service notices")],
               ] as const
             ).map(([key, label]) => (
               <label key={key} className="flex min-h-11 items-center gap-3 rounded-xl border p-3">

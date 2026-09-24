@@ -97,8 +97,8 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
-                  "Browserpush is optioneel en per apparaat: na jouw toestemming bewaren we het push-endpoint, technische versleutelingssleutels, beperkte apparaatinfo en bezorgstatus. De zichtbare push bevat alleen dat er een nieuwe melding klaarstaat; inhoud blijft achter de GlobeTrotr-login. Je kunt het apparaat vanuit het meldingenpaneel intrekken.",
-                  "Browser push is optional and device-specific: after your consent, we store the push endpoint, technical encryption keys, limited device information and delivery status. The visible push only says that a new notification is ready; its content remains behind your GlobeTrotr sign-in. You can revoke the device from the notifications panel.",
+                  "Browserpush is optioneel en per apparaat: na jouw toestemming bewaren we het push-endpoint, technische versleutelingssleutels, beperkte apparaatinfo en bezorgstatus. De zichtbare push bevat alleen dat er een nieuwe melding klaarstaat; inhoud blijft achter de GlobeTrotr-login. In Accountinstellingen kies je afzonderlijk voor uitnodigingen, reizen en Agency-werk, betalingen, vluchtwijzigingen en account- of serviceberichten. Je kunt ieder apparaat ook volledig intrekken.",
+                  "Browser push is optional and device-specific: after your consent, we store the push endpoint, technical encryption keys, limited device information and delivery status. The visible push only says that a new notification is ready; its content remains behind your GlobeTrotr sign-in. In Account settings you can separately choose invitations, trips and Agency work, payments, flight changes, and account or service notices. You can also revoke each device completely.",
                 )}
               </li>
               <li>
@@ -257,6 +257,12 @@ function PrivacyPage() {
                 {text(
                   "Transactionele e-mail en bezorgmetadata: deze kunnen in de verzendwachtrij en het log blijven voor bezorging, opnieuw proberen, foutonderzoek en ondersteuning. Neem contact op voor verwijdering waar mogelijk; wettelijke bewaarplichten en back-ups kunnen een uitzondering vormen.",
                   "Transactional email and delivery metadata: these may remain in the sending queue and log for delivery, retries, troubleshooting and support. Contact us to request deletion where possible; statutory retention duties and backups may be exceptions.",
+                )}
+              </li>
+              <li>
+                {text(
+                  "Browserpush: een actieve apparaatinschrijving blijft bestaan totdat je die intrekt, de browser haar ongeldig maakt of het account wordt verwijderd. Afgeronde of geannuleerde wachtrijregels worden na 30 dagen verwijderd; mislukte regels na maximaal 90 dagen en ingetrokken apparaten na 90 dagen. Een uitgeschakelde categorie annuleert nog niet verzonden pushes voor die categorie.",
+                  "Browser push: an active device subscription remains until you revoke it, the browser invalidates it or the account is deleted. Completed or cancelled queue records are removed after 30 days; failed records after at most 90 days and revoked devices after 90 days. Disabling a category cancels push messages for that category that have not yet been sent.",
                 )}
               </li>
               <li>
