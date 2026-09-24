@@ -49,6 +49,21 @@ export function plainTextToMailHtml(input: string) {
     .join("");
 }
 
+/** Restores HTML that an IMAP provider returned as one fully escaped document. */
+export function mailHtmlForDisplay(bodyHtml?: string | null, bodyText?: string | null) {
+  const html = String(bodyHtml || "").trim();
+  if (/<(?:!doctype|html|body|head|table|div|p|br|style)\b/i.test(html)) return html;
+  if (/&lt;(?:!doctype|html|body|head|table|div|p|br|style)\b/i.test(html)) {
+    return html
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#(?:39|x27);/gi, "'")
+      .replace(/&amp;/gi, "&");
+  }
+  return plainTextToMailHtml(html || String(bodyText || ""));
+}
+
 const signatureBoilerplate = [
   /^globetrotr$/i,
   /^plan every trip\. track every euro\.$/i,

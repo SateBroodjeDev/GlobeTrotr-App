@@ -5,13 +5,15 @@ Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor
 ## Release 1.0 — in voorbereiding, 24 september 2026
 
 - Bedrijfsmail heeft een gepagineerd archief, een echt schermvullend leesvenster en definitief verwijderen voor beheerders na archivering.
-- NL/EN-vertaalconcepten verwerken ook langere berichten en tonen nu zichtbaar succes- of configuratiefouten.
+- HTML-bedrijfsmail blijft als opgemaakte mail zichtbaar, ook wanneer een provider de HTML volledig gecodeerd aanlevert.
+- NL/EN-vertaalconcepten verwerken ook langere berichten, detecteren de brontaal automatisch en tonen zichtbaar succes- of configuratiefouten.
 - Reisdatums kunnen met een impactpreview gezamenlijk worden verschoven; historische uitgaven en controledata blijven staan.
 - De privacyverklaring en browseropslaginventaris zijn bijgewerkt; bezoekers krijgen de vernieuwde privacykeuze opnieuw te zien en offline opslag en push blijven aparte, bewuste handelingen.
 
 - Reisvergelijker-kandidaten worden duurzaam opgeslagen zodat reacties en peilingen naar echte records verwijzen; migratie/test 1660 staan klaar.
 - Live agenda-abonnementen krijgen een wijzigingsdatum, ETag en verversingshint; verblijf en huurauto worden compacte hele-dagactiviteiten; migratie/test 1670 staan klaar.
 - Vandaag toont een vertrekcheck voor route, dagplanning, overnachtingen en paklijst.
+- De vertrekcheck telt route-, boekings- en dagplanningsdatums samen en gebruikt dezelfde definitie voor ingestelde overnachtingen als de hotelzoeker.
 - Het offline pakket toont grootte, inhoud, verbinding, synchronisatiestatus en bescherming tegen browseropschoning.
 - Reisacties zijn vereenvoudigd; lange boekingsteksten blijven leesbaar op mobiel.
 - Vandaag toont vóór of na de reis geen willekeurige bestemming.

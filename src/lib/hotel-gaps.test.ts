@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { findHotelGaps } from "./hotel-gaps.ts";
+import { configuredRouteNights, findHotelGaps } from "./hotel-gaps.ts";
 
 test("groups missing hotel nights per destination", () => {
   const gaps = findHotelGaps([
@@ -16,4 +16,9 @@ test("a lodging without checkout covers one night", () => {
     [{ id: "x", name: "X", country: "Y", lat: 1, lon: 2, arrive: "2026-10-01", nights: 1 }],
     [{ id: "h", type: "lodging", title: "H", date: "2026-10-01" }],
   ).length, 0);
+});
+
+test("configured nights require both an arrival date and a positive duration", () => {
+  assert.equal(configuredRouteNights([{ id: "x", name: "X", country: "Y", lat: 1, lon: 2, nights: 4 }]), 0);
+  assert.equal(configuredRouteNights([{ id: "x", name: "X", country: "Y", lat: 1, lon: 2, arrive: "2026-10-01", nights: 4 }]), 4);
 });

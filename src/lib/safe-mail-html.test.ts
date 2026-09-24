@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { corporateSignatureHtml, corporateSignatureText, plainTextToMailHtml, sanitizeMailHtml } from "./safe-mail-html.ts";
+import { corporateSignatureHtml, corporateSignatureText, mailHtmlForDisplay, plainTextToMailHtml, sanitizeMailHtml } from "./safe-mail-html.ts";
 
 test("keeps supported company-mail formatting", () => {
   assert.equal(
@@ -45,4 +45,10 @@ test("builds a branded signature without duplicating legacy boilerplate", () => 
     corporateSignatureText(input),
     "Domenico <Founder>\nFounder\nGlobeTrotr\nPlan every trip. Track every euro.\ninfo@globetrotr.nl\nhttps://globetrotr.nl\nContact: https://globetrotr.nl/contact",
   );
+});
+
+test("mail viewer preserves real HTML and restores a fully escaped document", () => {
+  assert.equal(mailHtmlForDisplay("<table><tr><td>Styled</td></tr></table>", "fallback"), "<table><tr><td>Styled</td></tr></table>");
+  assert.equal(mailHtmlForDisplay("&lt;p style=&quot;color:red&quot;&gt;Styled&lt;/p&gt;", "fallback"), '<p style="color:red">Styled</p>');
+  assert.equal(mailHtmlForDisplay(null, "Hello\nworld"), "<p>Hello<br>world</p>");
 });

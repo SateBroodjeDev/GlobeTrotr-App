@@ -37,7 +37,7 @@ import {
   retryCorporateMailDelivery,
 } from "@/lib/corporate-business.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { plainTextToMailHtml } from "@/lib/safe-mail-html";
+import { mailHtmlForDisplay, plainTextToMailHtml } from "@/lib/safe-mail-html";
 import { groupMailThreads, messagesInThread } from "@/lib/mail-threads";
 import { inferMailAttachmentType } from "@/lib/mail-attachments";
 import { resolveInlineMailImages } from "@/lib/mail-inline-images";
@@ -691,7 +691,7 @@ function MessageDetail({
       const result = await translateCorporateMailDraft({ data: {
         mailboxId,
         text: value,
-        source: target === "nl" ? "en" : "nl",
+        source: "auto",
         target,
       } });
       setTranslations((current) => ({ ...current, [message.id]: { language: target, body: result.translated } }));
@@ -753,7 +753,7 @@ function MessageDetail({
             <div className="flex items-center gap-2"><Badge variant="secondary">{translations[message.id].language.toUpperCase()} {text("concept", "draft")}</Badge><Button size="sm" variant="ghost" onClick={() => setTranslations((current) => { const next = { ...current }; delete next[message.id]; return next; })}>{text("Sluiten", "Close")}</Button></div>
             <p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{translations[message.id].body}</p>
           </div>}
-          {message.body_html ? (
+          {message.body_html || message.body_text ? (
             <HtmlMailFrame
               message={message}
               mailboxId={mailboxId}
@@ -830,7 +830,8 @@ function HtmlMailFrame({ message, mailboxId, index, text, remoteImages, expanded
     window.addEventListener("keydown", close);
     return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", close); };
   }, [expanded, onToggleSize]);
-  const hasCid = /<img\b[^>]*\bsrc\s*=\s*["']cid:/i.test(message.body_html);
+  const displayHtml = mailHtmlForDisplay(message.body_html, message.body_text);
+  const hasCid = /<img\b[^>]*\bsrc\s*=\s*["']cid:/i.test(displayHtml);
   const inline = useQuery({
     queryKey: ["corporate-mail-inline-images", mailboxId, message.id],
     queryFn: () => getCorporateMailInlineImages({ data: { mailboxId, messageId: message.id } }),
@@ -839,11 +840,11 @@ function HtmlMailFrame({ message, mailboxId, index, text, remoteImages, expanded
     gcTime: 60_000,
   });
   const images = inline.data?.images ?? [];
-  const html = resolveInlineMailImages(message.body_html, images);
+  const html = resolveInlineMailImages(displayHtml, images);
   const imageOrigins = [...new Set(images.map((image) => {
     try { const url = new URL(image.url); return url.protocol === "https:" ? url.origin : ""; } catch { return ""; }
   }).filter(Boolean))].join(" ");
-  const hasExternal = /<img\b[^>]*\bsrc\s*=\s*["']https?:/i.test(message.body_html);
+  const hasExternal = /<img\b[^>]*\bsrc\s*=\s*["']https?:/i.test(displayHtml);
   return <div className={expanded ? "fixed inset-2 z-50 flex min-h-0 flex-col gap-2 rounded-xl border bg-background p-3 shadow-2xl sm:inset-6" : "mt-4 space-y-2"}>
     <div className="flex flex-wrap items-center gap-2">
       {hasExternal && !remoteImages && <Button type="button" size="sm" variant="outline" onClick={onLoadRemote}>

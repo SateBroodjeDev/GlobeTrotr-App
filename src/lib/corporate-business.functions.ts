@@ -781,7 +781,7 @@ export const deleteCorporateMailDraft = createServerFn({ method: "POST" })
 export const translateCorporateMailDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(
-    (input: { mailboxId: string; text: string; source: "nl" | "en"; target: "nl" | "en" }) => input,
+    (input: { mailboxId: string; text: string; source: "auto" | "nl" | "en"; target: "nl" | "en" }) => input,
   )
   .handler(async ({ data, context }) => {
     const value = data.text.trim();

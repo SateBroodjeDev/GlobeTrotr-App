@@ -12,6 +12,14 @@ export type HotelGap = {
   nights: number;
 };
 
+export function configuredRouteNights(stops: Stop[]) {
+  return stops.reduce((total, stop) => total + (
+    DATE.test(stop.arrive ?? "") && Number.isFinite(stop.nights) && Number(stop.nights) > 0
+      ? Math.min(366, Math.floor(Number(stop.nights)))
+      : 0
+  ), 0);
+}
+
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const day = (value: string, amount: number) => {
   const date = new Date(`${value}T00:00:00Z`);

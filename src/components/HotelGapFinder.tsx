@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { findHotelGaps, type HotelGap } from "@/lib/hotel-gaps";
+import { configuredRouteNights, findHotelGaps, type HotelGap } from "@/lib/hotel-gaps";
 import { searchNearbyHotels, type HotelSearchResult } from "@/lib/hotel-search.functions";
 import { normalizeTravelOption } from "@/lib/trip-options";
 import type { Trip } from "@/lib/types";
@@ -13,7 +13,7 @@ import { uid } from "@/lib/workspace";
 type Text = (nl: string, en: string) => string;
 export function HotelGapFinder({ trip, editable, save, text }: { trip: Trip; editable: boolean; save: (fn: (trip: Trip) => Trip) => Promise<void>; text: Text }) {
   const gaps = useMemo(() => findHotelGaps(trip.stops, trip.travelItems), [trip.stops, trip.travelItems]);
-  const configuredNights = useMemo(() => trip.stops.reduce((total, stop) => total + (stop.arrive && Number(stop.nights) > 0 ? Math.floor(Number(stop.nights)) : 0), 0), [trip.stops]);
+  const configuredNights = useMemo(() => configuredRouteNights(trip.stops), [trip.stops]);
   const [gap, setGap] = useState<HotelGap>(); const [results, setResults] = useState<HotelSearchResult[]>([]); const [loading, setLoading] = useState(false); const [saving, setSaving] = useState<string>();
   async function search(item: HotelGap) { setGap(item); setResults([]); setLoading(true); try { const found = await searchNearbyHotels({ data: { tripId: trip.id, lat: item.lat, lon: item.lon } }); setResults(found.results); } catch (error) { toast.error(error instanceof Error && error.message === "HOTEL_SEARCH_RATE_LIMIT" ? text("Je zoekt te snel. Probeer het over een minuut opnieuw.", "You are searching too quickly. Try again in a minute.") : text("Hotels zoeken is tijdelijk niet beschikbaar.", "Hotel search is temporarily unavailable.")); } finally { setLoading(false); } }
   async function add(result: HotelSearchResult) { if (!gap) return; setSaving(result.id); try { const option = normalizeTravelOption({ id: uid(), type: "lodging", title: result.name, startDate: gap.startDate, endDate: gap.endDate, provider: "OpenStreetMap", distanceKm: result.distanceKm, sourceUrl: result.website ?? result.osmUrl, notes: text("Zoekresultaat; controleer prijs en beschikbaarheid bij de aanbieder.", "Search result; verify price and availability with the provider."), details: { locationName: `${gap.stopName}, ${gap.country}` }, status: "candidate", checkedAt: new Date().toISOString(), createdAt: new Date().toISOString() }); await save((current) => ({ ...current, travelOptions: [...(current.travelOptions ?? []), option] })); toast.success(text("Hotel toegevoegd aan de Vergelijker.", "Hotel added to Comparison.")); } catch { toast.error(text("Hotel kon niet worden toegevoegd.", "Hotel could not be added.")); } finally { setSaving(undefined); } }
