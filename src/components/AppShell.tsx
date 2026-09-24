@@ -53,6 +53,7 @@ import { getMyAgencyAccess } from "@/lib/agency.functions";
 import {getMaintenanceState} from "@/lib/maintenance.functions";
 import { portalUrl, publicSiteUrl } from "@/lib/site-routing";
 import {MaintenanceScreen} from "@/components/MaintenanceScreen";
+import { usePortalSessionSummary } from "@/lib/public-session";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
 const AGENCY_NAV = [
@@ -93,6 +94,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const { state, cloud, refreshWorkspace } = useWorkspace();
   const plan = planOf(state.plan);
   const { user, loading: authLoading } = useAuth();
+  const { publicHost, summary: portalSession, checked: portalSessionChecked } = usePortalSessionSummary();
   const { locale, setLocale, text } = useLocale();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (routerState) => routerState.location.pathname });
@@ -101,6 +103,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const [guestTheme, setGuestTheme] = useState<ThemePreference>(cachedTheme);
   const [dark, setDark] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>();
+  const [avatarResolved, setAvatarResolved] = useState(false);
   const [agencyLogoUrl, setAgencyLogoUrl] = useState<string>();
   const maintenance=useQuery({queryKey:["public-maintenance"],queryFn:()=>getMaintenanceState(),refetchInterval:60_000});
   const agencyRefreshPending = useRef(false);
@@ -141,7 +144,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const navItems = authLoading ? [] : user
     ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : []), ...SUPPORT_NAV.slice().reverse()]
     : PUBLIC_NAV;
-  const displayName =
+  const displayName = portalSession?.displayName ||
     profileQuery.data?.display_name ||
     String(user?.user_metadata.full_name ?? user?.email?.split("@")[0] ?? "Account");
   const initials =
@@ -151,6 +154,10 @@ function AppShellContent({ children }: { children: ReactNode }) {
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase())
       .join("") || "G";
+  const sessionAuthenticated = Boolean(user || portalSession?.authenticated);
+  const sessionLoading = authLoading || !portalSessionChecked;
+  const profileAvatarLoading = Boolean(user && (profileQuery.isLoading || !avatarResolved));
+  const visibleAvatarUrl = avatarUrl ?? portalSession?.avatarUrl;
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
@@ -183,12 +190,17 @@ function AppShellContent({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!profileQuery.data?.avatar_path) {
       setAvatarUrl(undefined);
+      setAvatarResolved(true);
       return;
     }
+    let active = true;
+    setAvatarResolved(false);
     supabase.storage
       .from("avatars")
       .createSignedUrl(profileQuery.data.avatar_path, 60 * 60)
-      .then(({ data }) => setAvatarUrl(data?.signedUrl));
+      .then(({ data }) => { if (active) setAvatarUrl(data?.signedUrl); })
+      .finally(() => { if (active) setAvatarResolved(true); });
+    return () => { active = false; };
   }, [profileQuery.data?.avatar_path]);
   useEffect(() => {
     if (user && profileQuery.data !== undefined) {
@@ -242,6 +254,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
   }
   return (
     <div className="min-h-screen bg-background">
+      {publicHost && <iframe src="https://portal.globetrotr.nl/session-bridge" title="" aria-hidden="true" tabIndex={-1} className="hidden" />}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:gap-x-6 sm:gap-y-3 sm:px-4 sm:py-3">
           <a href={publicSiteUrl("/")} className="flex min-w-0 flex-1 items-center gap-2 md:flex-none" aria-label={text("Naar de publieke website", "Go to public website")}>
@@ -259,7 +272,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
               </span>
             </span>
           </a>
-          {!authLoading && !user && <div className="order-2 flex w-full gap-2 lg:hidden">
+          {!sessionLoading && !sessionAuthenticated && <div className="order-2 flex w-full gap-2 lg:hidden">
             <Button asChild variant="outline" size="sm" className="min-h-10 flex-1"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
             <Button asChild size="sm" className="min-h-10 flex-1"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
           </div>}
@@ -280,7 +293,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
             {user && <NotificationPanel key={user.id} userId={user.id} />}
-            {!authLoading && !user && <div className="hidden items-center gap-2 lg:flex">
+            {!sessionLoading && !sessionAuthenticated && <div className="hidden items-center gap-2 lg:flex">
               <Button asChild variant="ghost" size="sm"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
               <Button asChild size="sm"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
             </div>}
@@ -289,7 +302,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 {text("Opslaan…", "Saving…")}
               </span>
             )}
-            {!authLoading && !user && (
+            {!sessionLoading && !sessionAuthenticated && (
               <Button
                 type="button"
                 variant="ghost"
@@ -313,7 +326,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
             >
               {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
-            {authLoading ? (
+            {sessionLoading || profileAvatarLoading ? (
               <Button type="button" variant="ghost" size="icon" disabled aria-label={text("Sessie laden", "Loading session")}>
                 <UserRound className="size-5 animate-pulse" />
               </Button>
@@ -328,7 +341,7 @@ function AppShellContent({ children }: { children: ReactNode }) {
                     aria-label="Accountmenu"
                   >
                     <Avatar className="size-8">
-                      <AvatarImage src={avatarUrl} />
+                      <AvatarImage src={visibleAvatarUrl} />
                       <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                   </Button>
@@ -356,6 +369,11 @@ function AppShellContent({ children }: { children: ReactNode }) {
                     <LogOut className="size-4" /> {text("Uitloggen", "Sign out")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
+              </DropdownMenu>
+            ) : portalSession ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="rounded-full" aria-label={text("Accountmenu", "Account menu")}><Avatar className="size-8"><AvatarImage src={visibleAvatarUrl} /><AvatarFallback>{initials}</AvatarFallback></Avatar></Button></DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52"><DropdownMenuLabel>{displayName}</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem asChild><a href={portalUrl("/dashboard")}><LayoutDashboard className="size-4" />{text("Naar mijn reizen", "Go to my trips")}</a></DropdownMenuItem><DropdownMenuItem asChild><a href={portalUrl("/account")}><UserRound className="size-4" />{text("Accountinstellingen", "Account settings")}</a></DropdownMenuItem></DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <DropdownMenu>

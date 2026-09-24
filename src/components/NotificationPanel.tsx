@@ -139,19 +139,33 @@ export function NotificationPanel({ userId }: { userId: string }) {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
         (event) => {
-          const item = event.new as { kind?: string; title?: string; body?: string };
-          const preview = notificationPreview(item, locale === "en-GB" ? "en" : "nl");
+          const item = event.new as {
+            kind?: string;
+            title?: string;
+            body?: string;
+            dismissed_at?: string | null;
+            created_at?: string;
+          };
+          const previous = event.old as { dismissed_at?: string | null; created_at?: string };
           void queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
-          toast(preview.title, {
-            description: preview.description,
-            action: { label: text("Bekijken", "View"), onClick: () => setOpen(true) },
-          });
+          const shouldToast =
+            event.eventType === "INSERT" ||
+            (event.eventType === "UPDATE" &&
+              !item.dismissed_at &&
+              (Boolean(previous.dismissed_at) || previous.created_at !== item.created_at));
+          if (shouldToast) {
+            const preview = notificationPreview(item, locale === "en-GB" ? "en" : "nl");
+            toast(preview.title, {
+              description: preview.description,
+              action: { label: text("Bekijken", "View"), onClick: () => setOpen(true) },
+            });
+          }
         },
       )
       .subscribe();
@@ -309,6 +323,14 @@ export function NotificationPanel({ userId }: { userId: string }) {
           )}
           {notifications.data?.items.map((notification) => {
             const style = styles[notification.kind as keyof typeof styles] ?? styles.account;
+            const storedLink = (notification as typeof notification & { link?: string | null })
+              .link;
+            const notificationLink =
+              typeof storedLink === "string" &&
+              storedLink.startsWith("/") &&
+              !storedLink.startsWith("//")
+                ? storedLink
+                : null;
             const localizedPreview = notificationPreview(
               notification,
               locale === "en-GB" ? "en" : "nl",
@@ -800,7 +822,16 @@ export function NotificationPanel({ userId }: { userId: string }) {
                         minute: "2-digit",
                       })}
                     </time>
-                    {notification.kind === "account" && (
+                    {notificationLink && (
+                      <a
+                        href={notificationLink}
+                        className="mt-2 inline-block text-xs font-medium underline"
+                        onClick={() => setOpen(false)}
+                      >
+                        {text("Open bestemming", "Open destination")}
+                      </a>
+                    )}
+                    {!notificationLink && notification.kind === "account" && (
                       <Link
                         to="/account"
                         className="mt-2 inline-block text-xs font-medium underline"
@@ -809,11 +840,13 @@ export function NotificationPanel({ userId }: { userId: string }) {
                         {text("Naar account", "View account")}
                       </Link>
                     )}
-                    {(notification.kind === "trip_change" ||
-                      notification.kind === "trip_booking" ||
-                      notification.kind === "trip_expense" ||
-                      notification.kind === "trip_settlement" ||
-                      (notification.kind === "trip_access" && tripAccessParts[0] !== "revoked")) &&
+                    {!notificationLink &&
+                      (notification.kind === "trip_change" ||
+                        notification.kind === "trip_booking" ||
+                        notification.kind === "trip_expense" ||
+                        notification.kind === "trip_settlement" ||
+                        (notification.kind === "trip_access" &&
+                          tripAccessParts[0] !== "revoked")) &&
                       notification.trip_uuid && (
                         <Link
                           to="/trips/$tripId"
@@ -824,7 +857,7 @@ export function NotificationPanel({ userId }: { userId: string }) {
                           {text("Bekijk reis", "View trip")}
                         </Link>
                       )}
-                    {responseMatch && notification.trip_uuid && (
+                    {!notificationLink && responseMatch && notification.trip_uuid && (
                       <Link
                         to="/trips/$tripId"
                         params={{ tripId: notification.trip_uuid }}

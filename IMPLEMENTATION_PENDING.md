@@ -14,9 +14,9 @@ De ondertekende checkoutkoppeling staat alleen in het URL-fragment en wordt daar
 
 **Stand: 24 september 2026 · geplande release: 1 oktober 2026**
 
-Dit is de enige handleiding voor deze uitrol. Algemeen serverbeheer staat in `SERVER_OPERATIONS.md`; herhaal die commando’s hier niet vanuit andere documenten. Migraties en tests tot en met **1650** zijn volgens de eigenaar uitgevoerd.
+Dit is de enige handleiding voor deze uitrol. Algemeen serverbeheer staat in `SERVER_OPERATIONS.md`; herhaal die commando’s hier niet vanuit andere documenten. Migraties en tests tot en met **1720** zijn volgens de eigenaar uitgevoerd.
 
-<!-- release-preflight: confirmed-through=20260908165000_hotel_gap_discovery_acceptance.sql -->
+<!-- release-preflight: confirmed-through=20260908169000_trip_date_shift_acceptance.sql -->
 
 ## 1. Vooraf op je eigen pc
 
@@ -27,28 +27,26 @@ npm run verify
 npm run build
 ```
 
-Maak voor webpush eenmalig sleutels wanneer die nog niet bestaan:
+Maak voor webpush eenmalig één sleutelpaar wanneer dat nog niet bestaat:
 
 ```powershell
 npx web-push generate-vapid-keys
 ```
 
-Bewaar beide sleutels in je wachtwoordmanager. Commit ze nooit.
+Bewaar beide sleutels in je wachtwoordmanager. Commit ze nooit en genereer later geen nieuw paar zonder alle apparaten opnieuw aan te melden.
 
-## 2. Supabase SQL Editor
+## 2. Supabase SQL Editor — afgerond
 
-Voer exact in deze volgorde uit:
+De volgende migraties en tests zijn op 24 september 2026 uitgevoerd:
 
-1. `supabase/migrations/20260908166000_trip_comparison_persistence.sql`
-2. `supabase/tests/trip_comparison_persistence.sql`
-3. `supabase/migrations/20260908167000_live_calendar_refresh.sql`
-4. `supabase/tests/live_calendar_refresh.sql`
-5. `supabase/migrations/20260908168000_corporate_mail_management_acceptance.sql`
-6. `supabase/tests/corporate_mail_management_acceptance.sql`
-7. `supabase/migrations/20260908169000_trip_date_shift_acceptance.sql`
-8. `supabase/tests/trip_date_shift_acceptance.sql`
+1. `supabase/migrations/20260908170000_confirmed_payment_notifications.sql`
+2. `supabase/tests/confirmed_payment_notifications.sql`
+3. `supabase/migrations/20260908171000_self_hosted_agency_licensing.sql`
+4. `supabase/tests/self_hosted_agency_licensing.sql`
+5. `supabase/migrations/20260908172000_notification_link_compatibility.sql`
+6. `supabase/tests/notification_link_compatibility.sql`
 
-Iedere test moet zonder fout eindigen. Stop bij een fout en ga dan niet naar de servers.
+Migratie 1710 zet de publieke verkoop nadrukkelijk **niet** aan. Zij bereidt alleen de afgeschermde licentiedatabase en Corporate Admin voor. Herhaal deze SQL-bestanden tijdens deze uitrol niet. De volgende stap is de code committen en daarna Node-01 en Node-02 bijwerken.
 
 ## 3. Node-01 configuratie
 
@@ -64,6 +62,14 @@ TRANSLATION_API_KEY=
 
 Werk Node-01 daarna bij met de opdrachten onder **Node-01 bijwerken** in `SERVER_OPERATIONS.md`.
 
+Controleer vervolgens zonder de sleutel af te drukken:
+
+```bash
+docker compose --env-file .env.production -f deploy/web.compose.yml exec web node -e "console.log({subject:Boolean(process.env.VAPID_SUBJECT),publicKey:Boolean(process.env.VAPID_PUBLIC_KEY)})"
+```
+
+Beide waarden moeten `true` zijn.
+
 ## 4. Node-02 configuratie
 
 Controleer in `/opt/globetrotr/.env.production`:
@@ -77,6 +83,15 @@ TRANSLATION_BIND_ADDRESS=10.0.0.3
 ```
 
 Werk Node-02 daarna bij met de opdrachten onder **Node-02 bijwerken** in `SERVER_OPERATIONS.md`.
+
+Controleer daarna de pushworker vanuit de container, zodat dit ook werkt als poort 9091 alleen aan het private adres is gekoppeld:
+
+```bash
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec worker node -e "fetch('http://127.0.0.1:9091/health/push').then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)})"
+docker compose --env-file .env.production -f deploy/worker.compose.yml logs --tail=100 worker
+```
+
+De healthcheck moet `"status":"configured"` tonen. Een firewallwijziging is niet nodig: de worker maakt zelf uitgaande HTTPS-verbindingen met de pushdienst van de browser.
 
 Start of actualiseer daarna de interne vertaalservice op Node-02:
 
@@ -147,9 +162,28 @@ GlobeTrotr geeft vijf minuten als verversingsvoorkeur mee. Google, Apple en Outl
 
 ### Push
 
-- registreer een browserapparaat;
-- ontvang een melding met gesloten tabblad;
+- open rechtsboven **Meldingen** en kies **Push op dit apparaat aanzetten**;
+- controleer dat daarna **Testmelding versturen** verschijnt;
+- sluit het GlobeTrotr-tabblad en verstuur de testmelding;
+- ontvang de algemene push en open via die push opnieuw GlobeTrotr;
+- controleer op Node-02 dat de worker geen `WEB_PUSH_*`-fout logt;
 - trek toestemming in en controleer dat een verlopen endpoint wordt ingetrokken.
+
+## Meldingenaudit voor deze release
+
+| Bron                                               |                       In-app | Webpush |                             E-mail | Uitkomst van de controle                                                                                     |
+| -------------------------------------------------- | ---------------------------: | ------: | ---------------------------------: | ------------------------------------------------------------------------------------------------------------ |
+| Account, plan en Paddle                            |                           ja |      ja | belangrijke account- en betaalmail | Checkout openen meldt geen betaling meer; alleen afgerond, mislukt en achterstallig zijn definitief.         |
+| Reiswijzigingen, boekingen, uitgaven en documenten |                           ja |      ja |    volgens voorkeur en gebeurtenis | Reisvoorkeuren worden vóór het aanmaken toegepast. Boekingsmail gebruikt nu het geldige type `trip_booking`. |
+| Uitnodigingen en toegang                           |                           ja |      ja |      ja, eenmalig per geldige link | De in-appmelding maakt geen tweede uitnodigingsmail.                                                         |
+| Peilingen en deadlines                             |                           ja |      ja |              volgens `tripUpdates` | Alleen niet-stemmers krijgen één deadlineherinnering.                                                        |
+| Vluchtwijzigingen                                  |                           ja |      ja |                                nee | Alleen status, tijd, gate en terminal worden begrensd gemeld; voorkeur per reis wordt gerespecteerd.         |
+| Platformstatus en kritieke storing                 |                           ja |      ja |                                 ja | NL/EN wordt op profieltaal gekozen; push toont bewust geen incidentdetails.                                  |
+| Contact en nieuwe bedrijfsmail                     | ja voor beheerders/eigenaren |      ja |                                nee | Ontvangers worden direct via realtime en push gewaarschuwd.                                                  |
+| Privacyverzoek en antwoord                         |                           ja |      ja |           antwoord als accountmail | Nieuw verzoek waarschuwt Corporate Admin; antwoord waarschuwt de aanvrager.                                  |
+| Agency-taak, offerte, toegang en klant             |                           ja |      ja |    alleen waar functioneel vereist | Een ingevuld klantformulier waarschuwt nu eigenaar en bevoegde teamleden.                                    |
+
+Webpush bevat altijd alleen een algemene zin in één profieltaal. Onderwerp, reisnaam, e-mailadres en andere inhoud blijven achter de login in het meldingenpaneel. Iedere actieve browserinschrijving krijgt één outboxregel; mislukte bezorging probeert begrensd opnieuw en een verlopen browserendpoint wordt ingetrokken.
 
 ### Beheer en export
 
@@ -164,7 +198,7 @@ GlobeTrotr geeft vijf minuten als verversingsvoorkeur mee. Google, Apple en Outl
 
 Release 1.0 mag alleen worden gepubliceerd wanneer:
 
-- alle vier SQL-tests slagen;
+- alle drie nieuwe SQL-tests en de opnieuw uitgevoerde test van migratie 1700 slagen;
 - alle vereiste containers gezond blijven;
 - geen kritieke of hoge beveiligingsbevinding openstaat;
 - de praktijktests hierboven slagen of een niet-kritieke afwijking zichtbaar is vastgelegd;

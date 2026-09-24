@@ -679,12 +679,14 @@ function MessageDetail({
   onDownload: (attachment: any) => Promise<void>;
 }) {
   const messages = thread.length ? thread : [item];
-  const [translations, setTranslations] = useState<Record<string, { language: "nl" | "en"; body: string }>>({});
+  const [translations, setTranslations] = useState<Record<string, { language: "nl" | "en"; body: string; html: boolean }>>({});
   const [remoteImages, setRemoteImages] = useState<Record<string, boolean>>({});
   const [expandedMessages, setExpandedMessages] = useState<Record<string, boolean>>({});
   const [translating, setTranslating] = useState("");
+  const translationLength = (message: any) => String(message.body_html || message.body_text || message.preview_text || "").trim().length;
   async function translateMessage(message: any, target: "nl" | "en") {
-    const value = String(message.body_text || message.preview_text || "").trim();
+    const html = String(message.body_html || "").trim();
+    const value = (html ? mailHtmlForDisplay(html, message.body_text) : String(message.body_text || message.preview_text || "")).trim();
     if (value.length < 2 || value.length > 30000) return;
     setTranslating(`${message.id}:${target}`);
     try {
@@ -693,8 +695,9 @@ function MessageDetail({
         text: value,
         source: "auto",
         target,
+        format: html ? "html" : "text",
       } });
-      setTranslations((current) => ({ ...current, [message.id]: { language: target, body: result.translated } }));
+      setTranslations((current) => ({ ...current, [message.id]: { language: target, body: result.translated, html: Boolean(html) } }));
     } catch (error) {
       toast.error(String(error).includes("TRANSLATION_NOT_CONFIGURED")
         ? text("De vertaalprovider is nog niet ingesteld.", "The translation provider is not configured yet.")
@@ -740,18 +743,18 @@ function MessageDetail({
             {(message.recipient_addresses || []).join(", ")}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 30000} onClick={() => void translateMessage(message, "nl")}>
+            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || translationLength(message) < 2 || translationLength(message) > 30000} onClick={() => void translateMessage(message, "nl")}>
               {translating === `${message.id}:nl` ? <Loader2 className="size-4 animate-spin" /> : <Languages className="size-4" />}
               {text("Lees in Nederlands", "Read in Dutch")}
             </Button>
-            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || String(message.body_text || message.preview_text || "").trim().length < 2 || String(message.body_text || message.preview_text || "").length > 30000} onClick={() => void translateMessage(message, "en")}>
+            <Button type="button" size="sm" variant="outline" disabled={Boolean(translating) || translationLength(message) < 2 || translationLength(message) > 30000} onClick={() => void translateMessage(message, "en")}>
               {translating === `${message.id}:en` ? <Loader2 className="size-4 animate-spin" /> : <Languages className="size-4" />}
               {text("Lees in Engels", "Read in English")}
             </Button>
           </div>
           {translations[message.id] && <div className="mt-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
             <div className="flex items-center gap-2"><Badge variant="secondary">{translations[message.id].language.toUpperCase()} {text("concept", "draft")}</Badge><Button size="sm" variant="ghost" onClick={() => setTranslations((current) => { const next = { ...current }; delete next[message.id]; return next; })}>{text("Sluiten", "Close")}</Button></div>
-            <p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{translations[message.id].body}</p>
+            {translations[message.id].html ? <iframe title={text("Vertaalde HTML-mail", "Translated HTML email")} sandbox="" referrerPolicy="no-referrer" className="mt-2 h-[45vh] min-h-[20rem] w-full rounded-lg border bg-white" srcDoc={`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'"><style>html,body{max-width:100%;overflow-wrap:anywhere}img{max-width:100%;height:auto}table{max-width:100%}</style>${translations[message.id].body}`} /> : <p className="mt-2 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{translations[message.id].body}</p>}
           </div>}
           {message.body_html || message.body_text ? (
             <HtmlMailFrame

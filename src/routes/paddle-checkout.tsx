@@ -9,7 +9,7 @@ export const Route = createFileRoute("/paddle-checkout")({
 });
 
 function PaddleCheckoutBridge() {
-  const [failed, setFailed] = useState(false);
+  const [status, setStatus] = useState<"opening" | "closed" | "failed">("opening");
   useEffect(() => {
     if (window.location.hostname !== "globetrotr.nl") {
       window.location.replace(`https://globetrotr.nl/paddle-checkout${window.location.hash}`);
@@ -26,10 +26,15 @@ function PaddleCheckoutBridge() {
         const token = values.get("clientToken") ?? "";
         const environment = values.get("environment") === "sandbox" ? "sandbox" : "production";
         if (!binding || binding.length > 4096 || !["pro", "agency"].includes(plan ?? "") || !["recurring", "oneTime"].includes(mode ?? "") || !/^pri_[A-Za-z0-9_]+$/.test(priceId) || token.length < 8 || token.length > 500) throw new Error("INVALID_CHECKOUT");
-        const paddle = await loadPaddle(token, environment);
+        const paddle = await loadPaddle(token, environment, (event) => {
+          if (event.name === "checkout.closed") setStatus("closed");
+        });
         paddle.Checkout.open({ items: [{ priceId, quantity: 1 }], customData: { checkout_binding: binding }, settings: { displayMode: "overlay", theme: "light", locale, successUrl: "https://portal.globetrotr.nl/billing?checkout=success" } });
-      } catch { setFailed(true); }
+      } catch { setStatus("failed"); }
     })();
   }, []);
-  return <main className="grid min-h-screen place-items-center p-6"><div className="max-w-md text-center">{failed ? <><h1 className="font-display text-xl font-semibold">Checkout kon niet worden geopend</h1><p className="mt-2 text-sm text-muted-foreground">Ga terug naar je abonnement en probeer het opnieuw.</p><a href="https://portal.globetrotr.nl/billing" className="mt-4 inline-block text-primary underline">Terug naar abonnement</a></> : <><Loader2 className="mx-auto size-7 animate-spin text-primary"/><p className="mt-3 text-sm text-muted-foreground">Beveiligde checkout openen…</p></>}</div></main>;
+  return <main className="grid min-h-screen place-items-center p-6"><div className="max-w-md text-center">
+    {status === "failed" ? <><h1 className="font-display text-xl font-semibold">Checkout kon niet worden geopend</h1><p className="mt-2 text-sm text-muted-foreground">Ga terug naar je abonnement en probeer het opnieuw.</p></> : status === "closed" ? <><h1 className="font-display text-xl font-semibold">Checkout gesloten</h1><p className="mt-2 text-sm text-muted-foreground">Er is niets gewijzigd. Je kunt teruggaan naar je abonnement of de checkout opnieuw openen.</p></> : <><Loader2 className="mx-auto size-7 animate-spin text-primary"/><p className="mt-3 text-sm text-muted-foreground">Beveiligde checkout openen…</p></>}
+    {status !== "opening" && <a href="https://portal.globetrotr.nl/billing" className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Terug naar abonnement</a>}
+  </div></main>;
 }

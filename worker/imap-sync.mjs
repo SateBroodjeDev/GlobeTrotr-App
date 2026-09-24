@@ -213,7 +213,7 @@ async function sync() {
                       if (bookingDraft?.length) {
                         const trips = await rest(`trips?trip_uuid=eq.${bookingAddress.trip_uuid}&select=id,workspace_user_id`);
                         if (trips?.[0]?.workspace_user_id) await rest("notifications", { method: "POST", headers: { Prefer: "resolution=ignore-duplicates,return=minimal" }, body: JSON.stringify({
-                          user_id: trips[0].workspace_user_id, kind: "trip", title: "Boekingsmail ontvangen / Booking email received",
+                          user_id: trips[0].workspace_user_id, kind: "trip_booking", title: "Boekingsmail ontvangen / Booking email received",
                           body: `booking-mail|${recognized.bookingType}|${String(parsed.subject || "").slice(0,160)}`,
                           event_key: `trip-booking-mail:${bookingDraft[0].id}`, link: `/trips/${trips[0].id}`,
                         }) });

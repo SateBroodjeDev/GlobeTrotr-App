@@ -33,6 +33,10 @@ Dit document beschrijft alleen de technische bouwvolgorde. Productstatus staat i
 
 ## Bouwvolgorde na 1.0
 
+### 0. Besluit over Self-Hosted Agency
+
+Voordat hiervoor code wordt toegevoegd, moeten licentiemodel, merkgebruik, jaarlijkse en eenmalige rechten, installatielimiet, updateperiode en support juridisch en commercieel worden vastgesteld. De volledige architectuur en bouwfasen staan in [`SELF_HOSTED_AGENCY.md`](SELF_HOSTED_AGENCY.md). Dit traject begint pas nadat release 1.0 en de bestaande productie stabiel zijn.
+
 ### 1. Kleine verbeteringen zonder externe provider
 
 - veilige reisvariant maken;

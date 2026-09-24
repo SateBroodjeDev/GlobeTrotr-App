@@ -1,7 +1,7 @@
 export const PUBLIC_SITE_ORIGIN = "https://globetrotr.nl";
 export const PORTAL_ORIGIN = "https://portal.globetrotr.nl";
 
-const portalPaths = /^\/(?:auth|register|oauth-callback|complete-profile|token|dashboard|trips|account|billing|agency-admin|corporate-admin|company-mail|branding|team|analytics|client-portal|invite|uitnodiging|agency-invite|agency-uitnodiging)(?:\/|$)/;
+const portalPaths = /^\/(?:auth|register|oauth-callback|complete-profile|session-bridge|token|dashboard|trips|account|billing|agency-admin|corporate-admin|company-mail|branding|team|analytics|client-portal|invite|uitnodiging|agency-invite|agency-uitnodiging)(?:\/|$)/;
 const websitePaths = /^\/(?:demo|features|mogelijkheden|prijzen|pricing|about|for-groups|for-travelers|for-agencies|roadmap|updates|changelog|privacy|algemene-voorwaarden|terms|beta-voorwaarden|terugbetalingsbeleid|refund-policy|beta|known-issues|bekende-problemen|trip|reis|quote)(?:\/|$)/;
 
 /** Keep application entry points on the portal without moving public links or secrets in the URL. */

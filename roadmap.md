@@ -6,7 +6,7 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 
 ## Nu: release 1.0 bewijzen
 
-- [ ] Migraties en tests 1660, 1670, 1680 en 1690 uitvoeren.
+- [x] Migraties en SQL-tests tot en met 1720 uitgevoerd, inclusief betaalmeldingen, Self-Hosted-voorbereiding en notificatielinks.
 - [ ] Reisvergelijker: bewaren, reageren, peiling, stemmen en definitief kiezen met twee echte reisleden testen.
 - [ ] Live agenda: bestaande link na een wijziging laten verversen; verblijf en huurauto als hele dag controleren.
 - [ ] Offline pakket en vertrekcheck op Android en iOS testen.
@@ -33,6 +33,7 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 
 ## Daarna
 
+- Self-Hosted Agency besluit en proeftraject: commerciële broncode-/merklicentie, centrale License API, organisatiebranding, officiële images, updates en support. Eerst het model uit `SELF_HOSTED_AGENCY.md` juridisch en commercieel vaststellen.
 - Eén officiële hotelprovider voor beschikbaarheid, totaalprijzen en doorsturen.
 - Prijsalerts en flexibele data voor bewaarde kandidaten.
 - Vlucht-, autohuur- en activiteitenzoekfuncties.

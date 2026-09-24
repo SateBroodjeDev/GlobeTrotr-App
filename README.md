@@ -118,6 +118,7 @@ Agency-klanten zijn geen interne workspaceleden. Zij zien uitsluitend reizen waa
 - `roadmap.md`: interne productstatus en volgorde.
 - `BUILD_PLAN.md`: technische bouwvolgorde.
 - `FEATURE_GAP_AND_EXPANSION.md`: concurrentiegaps en mogelijke uitbreidingen.
+- `SELF_HOSTED_AGENCY.md`: concept voor een jaarlijks of eenmalig gelicentieerde GlobeTrotr-installatie op infrastructuur van een Agency.
 - `CHANGELOG.md`: technisch changelog voor GitHub en reviewers.
 - `/roadmap`: publieke productroadmap.
 - `/changelog`: publieke release notes.

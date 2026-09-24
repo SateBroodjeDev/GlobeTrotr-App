@@ -290,6 +290,14 @@ async function pollWebPush() {
   }
 }
 
+function webPushConfiguration() {
+  return {
+    publicKey: Boolean(env.VAPID_PUBLIC_KEY?.trim()),
+    privateKey: Boolean(env.VAPID_PRIVATE_KEY?.trim()),
+    subject: Boolean(env.VAPID_SUBJECT?.trim()),
+  };
+}
+
 function flightState(payload){
   const clean=value=>typeof value==="string"?value.trim().slice(0,120)||null:null;
   const point=value=>value&&typeof value==="object"?{scheduled:clean(value.scheduled_time),actual:clean(value.actual_time),estimated:clean(value.estimated_time),terminal:clean(value.terminal),gate:clean(value.gate)}:{};
@@ -788,6 +796,15 @@ createServer(async (request, response) => {
     catch(error){log("error","mail_server.health_failed",{errorCode:String(error?.code||"MAIL_SERVER_UNAVAILABLE").slice(0,80)});response.writeHead(503,{"Content-Type":"application/json","Cache-Control":"no-store"}).end(JSON.stringify({status:"unavailable"}))}
     return;
   }
+  if (requestUrl.pathname === "/health/push") {
+    const configuration = webPushConfiguration();
+    const configured = Object.values(configuration).every(Boolean);
+    response.writeHead(configured ? 200 : 503, {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+    }).end(JSON.stringify({ status: configured ? "configured" : "not_configured", configuration }));
+    return;
+  }
   if (request.url !== "/health") {
     response.writeHead(404).end();
     return;
@@ -805,6 +822,7 @@ createServer(async (request, response) => {
       lastPollAt,
       lastSuccessAt,
       lastErrorCode,
+      webPush: Object.values(webPushConfiguration()).every(Boolean) ? "configured" : "not_configured",
     }),
   );
 }).listen(healthPort, "0.0.0.0", () =>

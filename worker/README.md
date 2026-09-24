@@ -1,5 +1,15 @@
 # GlobeTrotr worker
 
+## Webpush controleren
+
+De worker verstuurt browserpush alleen wanneer `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY` en `VAPID_PRIVATE_KEY` zijn ingesteld. Controleer dit zonder geheimen af te drukken via:
+
+```bash
+docker compose --env-file .env.production -f deploy/worker.compose.yml exec worker node -e "fetch('http://127.0.0.1:9091/health/push').then(async r=>{console.log(r.status,await r.text());process.exit(r.ok?0:1)})"
+```
+
+Een antwoord met `"status":"configured"` bevestigt de serverconfiguratie. Meld daarna een browser aan en kies in het meldingenpaneel **Testmelding versturen**. Die test maakt één in-app- en pushmelding zonder testmail en controleert zo database-outbox, worker, browserpushdienst en service worker samen.
+
 Deze Node 24-service draait op VPS 2. De worker claimt databasejobs exclusief, voert uitsluitend bekende jobtypen uit en schrijft alleen technische IDs en foutcodes naar stdout. Het health-endpoint staat standaard op poort `9091`.
 
 Verplicht: `SUPABASE_URL` en `SUPABASE_SERVICE_ROLE_KEY`. Optioneel: `WORKER_POLL_MS`, `WORKER_BATCH_SIZE` en `WORKER_HEALTH_PORT`. `provider.healthcheck` accepteert uitsluitend HTTPS-hostnamen uit de kommagescheiden allowlist `WORKER_HEALTHCHECK_HOSTS`; zonder allowlist worden deze opdrachten veilig geweigerd.

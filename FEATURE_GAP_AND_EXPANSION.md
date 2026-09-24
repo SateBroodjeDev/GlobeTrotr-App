@@ -8,6 +8,8 @@ Dit document vergelijkt GlobeTrotr met bestaande reisproducten en bevat mogelijk
 
 GlobeTrotr combineert route, dagplanning, boekingen, uitgaven, verrekening, taken, documenten, delen, live agenda, offline dagoverzicht, Agency-beheer, klantportaal, Paddle en governance. De huidige onderscheidende combinatie is groepsbesluitvorming, financiële samenwerking en Agency-functionaliteit binnen één Europese accountomgeving.
 
+Een mogelijke latere productlijn is **Self-Hosted Agency**: een officieel gelicentieerde GlobeTrotr-installatie op infrastructuur van een reisorganisatie, met centrale licentie- en updatecontrole maar zonder centrale verwerking van reisinhoud. Het uitgewerkte licentie-, API-, branding-, distributie- en supportmodel staat in [`SELF_HOSTED_AGENCY.md`](SELF_HOSTED_AGENCY.md). Dit is een traject na release 1.0 en nog geen toegezegde publieke functie.
+
 De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker, live agenda, offline gebruik, Agency-domeinen en webpush. De eigen mailserver is technisch voorbereid maar blijft buiten productie; ZXCS blijft actief.
 
 ## Concurrentievergelijking

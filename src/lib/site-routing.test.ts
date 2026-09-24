@@ -6,6 +6,7 @@ test("account paths leave the marketing host without losing parameters", () => {
   assert.equal(canonicalSiteLocation("globetrotr.nl", "/auth", "?redirect=%2Fbilling"), "https://portal.globetrotr.nl/auth?redirect=%2Fbilling");
   assert.equal(canonicalSiteLocation("globetrotr.nl", "/trips/123"), "https://portal.globetrotr.nl/trips/123");
   assert.equal(canonicalSiteLocation("globetrotr.nl", "/token/abc", "?type=recovery"), "https://portal.globetrotr.nl/token/abc?type=recovery");
+  assert.equal(canonicalSiteLocation("globetrotr.nl", "/session-bridge"), "https://portal.globetrotr.nl/session-bridge");
   assert.equal(canonicalSiteLocation("globetrotr.nl", "/trip/public/123"), null);
 });
 

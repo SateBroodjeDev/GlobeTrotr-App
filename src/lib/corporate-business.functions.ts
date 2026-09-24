@@ -781,7 +781,7 @@ export const deleteCorporateMailDraft = createServerFn({ method: "POST" })
 export const translateCorporateMailDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(
-    (input: { mailboxId: string; text: string; source: "auto" | "nl" | "en"; target: "nl" | "en" }) => input,
+    (input: { mailboxId: string; text: string; source: "auto" | "nl" | "en"; target: "nl" | "en"; format?: "text" | "html" }) => input,
   )
   .handler(async ({ data, context }) => {
     const value = data.text.trim();
@@ -796,7 +796,9 @@ export const translateCorporateMailDraft = createServerFn({ method: "POST" })
     const timer = setTimeout(() => controller.abort(), 30000);
     try {
       const apiKey = process.env["TRANSLATION_API_KEY"]?.trim();
-      const chunks = value.match(/[\s\S]{1,4500}(?:\n\n|\n|\s|$)/g) ?? [value];
+      // Splitting HTML at an arbitrary character can cut a tag in half and
+      // makes the translated result impossible to render as an email.
+      const chunks = data.format === "html" ? [value] : value.match(/[\s\S]{1,4500}(?:\n\n|\n|\s|$)/g) ?? [value];
       const translated: string[] = [];
       for (const chunk of chunks) {
         const translate = (source: "auto" | "nl" | "en") => fetch(endpoint, {
@@ -809,7 +811,7 @@ export const translateCorporateMailDraft = createServerFn({ method: "POST" })
             q: chunk,
             source,
             target: data.target,
-            format: "text",
+            format: data.format === "html" ? "html" : "text",
             api_key: apiKey || undefined,
           }),
           signal: controller.signal,

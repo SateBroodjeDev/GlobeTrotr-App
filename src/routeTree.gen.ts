@@ -35,6 +35,8 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as SelfHostedRouteImport } from './routes/self-hosted'
+import { Route as SessionBridgeRouteImport } from './routes/session-bridge'
 import { Route as StatusRouteImport } from './routes/status'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -81,6 +83,7 @@ import { Route as AuthenticatedCorporateAdminFinanceRouteImport } from './routes
 import { Route as AuthenticatedCorporateAdminGovernanceRouteImport } from './routes/_authenticated/corporate-admin.governance'
 import { Route as AuthenticatedCorporateAdminInfrastructureRouteImport } from './routes/_authenticated/corporate-admin.infrastructure'
 import { Route as AuthenticatedCorporateAdminIssuesRouteImport } from './routes/_authenticated/corporate-admin.issues'
+import { Route as AuthenticatedCorporateAdminLicensesRouteImport } from './routes/_authenticated/corporate-admin.licenses'
 import { Route as AuthenticatedCorporateAdminMailRouteImport } from './routes/_authenticated/corporate-admin.mail'
 import { Route as AuthenticatedCorporateAdminNotificationsRouteImport } from './routes/_authenticated/corporate-admin.notifications'
 import { Route as AuthenticatedCorporateAdminPublicTripsRouteImport } from './routes/_authenticated/corporate-admin.public-trips'
@@ -89,10 +92,15 @@ import { Route as AuthenticatedCorporateAdminStaffRouteImport } from './routes/_
 import { Route as AuthenticatedCorporateAdminStatusRouteImport } from './routes/_authenticated/corporate-admin.status'
 import { Route as AuthenticatedCorporateAdminTestimonialsRouteImport } from './routes/_authenticated/corporate-admin.testimonials'
 import { Route as AuthenticatedCorporateAdminUsersRouteImport } from './routes/_authenticated/corporate-admin.users'
+import { Route as AuthenticatedSelfHostedManageRouteImport } from './routes/_authenticated/self-hosted.manage'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
 import { Route as ReisTokenTripIdRouteImport } from './routes/reis.$token.$tripId'
 import { Route as TripTokenTripIdRouteImport } from './routes/trip.$token.$tripId'
 import { Route as AuthenticatedCorporateAdminUserUserIdRouteImport } from './routes/_authenticated/corporate-admin.user.$userId'
+import { Route as ApiLicensingV1ActivateRouteImport } from './routes/api/licensing/v1/activate'
+import { Route as ApiLicensingV1DeactivateRouteImport } from './routes/api/licensing/v1/deactivate'
+import { Route as ApiLicensingV1EntitlementsRouteImport } from './routes/api/licensing/v1/entitlements'
+import { Route as ApiLicensingV1LeaseRouteImport } from './routes/api/licensing/v1/lease'
 import { Route as AuthenticatedAgencyAdminQuotesQuoteIdConvertRouteImport } from './routes/_authenticated/agency-admin.quotes.$quoteId.convert'
 
 const IndexRoute = IndexRouteImport.update({
@@ -222,6 +230,16 @@ const RegisterRoute = RegisterRouteImport.update({
 const RoadmapRoute = RoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SelfHostedRoute = SelfHostedRouteImport.update({
+  id: '/self-hosted',
+  path: '/self-hosted',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessionBridgeRoute = SessionBridgeRouteImport.update({
+  id: '/session-bridge',
+  path: '/session-bridge',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatusRoute = StatusRouteImport.update({
@@ -482,6 +500,12 @@ const AuthenticatedCorporateAdminIssuesRoute =
     path: '/issues',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
+const AuthenticatedCorporateAdminLicensesRoute =
+  AuthenticatedCorporateAdminLicensesRouteImport.update({
+    id: '/licenses',
+    path: '/licenses',
+    getParentRoute: () => AuthenticatedCorporateAdminRoute,
+  } as any)
 const AuthenticatedCorporateAdminMailRoute =
   AuthenticatedCorporateAdminMailRouteImport.update({
     id: '/mail',
@@ -530,6 +554,12 @@ const AuthenticatedCorporateAdminUsersRoute =
     path: '/users',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
+const AuthenticatedSelfHostedManageRoute =
+  AuthenticatedSelfHostedManageRouteImport.update({
+    id: '/self-hosted/manage',
+    path: '/self-hosted/manage',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTripsTripIdRoute =
   AuthenticatedTripsTripIdRouteImport.update({
     id: '/trips/$tripId',
@@ -552,6 +582,28 @@ const AuthenticatedCorporateAdminUserUserIdRoute =
     path: '/user/$userId',
     getParentRoute: () => AuthenticatedCorporateAdminRoute,
   } as any)
+const ApiLicensingV1ActivateRoute = ApiLicensingV1ActivateRouteImport.update({
+  id: '/api/licensing/v1/activate',
+  path: '/api/licensing/v1/activate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLicensingV1DeactivateRoute =
+  ApiLicensingV1DeactivateRouteImport.update({
+    id: '/api/licensing/v1/deactivate',
+    path: '/api/licensing/v1/deactivate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiLicensingV1EntitlementsRoute =
+  ApiLicensingV1EntitlementsRouteImport.update({
+    id: '/api/licensing/v1/entitlements',
+    path: '/api/licensing/v1/entitlements',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiLicensingV1LeaseRoute = ApiLicensingV1LeaseRouteImport.update({
+  id: '/api/licensing/v1/lease',
+  path: '/api/licensing/v1/lease',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute =
   AuthenticatedAgencyAdminQuotesQuoteIdConvertRouteImport.update({
     id: '/$quoteId/convert',
@@ -585,6 +637,8 @@ export interface FileRoutesByFullPath {
   '/refund-policy': typeof RefundPolicyRoute
   '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
+  '/self-hosted': typeof SelfHostedRoute
+  '/session-bridge': typeof SessionBridgeRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -629,6 +683,7 @@ export interface FileRoutesByFullPath {
   '/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
   '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/licenses': typeof AuthenticatedCorporateAdminLicensesRoute
   '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
   '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
   '/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
@@ -637,12 +692,17 @@ export interface FileRoutesByFullPath {
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
   '/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
+  '/self-hosted/manage': typeof AuthenticatedSelfHostedManageRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
   '/trip/$token/$tripId': typeof TripTokenTripIdRoute
   '/agency-admin/': typeof AuthenticatedAgencyAdminIndexRoute
   '/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
   '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
+  '/api/licensing/v1/activate': typeof ApiLicensingV1ActivateRoute
+  '/api/licensing/v1/deactivate': typeof ApiLicensingV1DeactivateRoute
+  '/api/licensing/v1/entitlements': typeof ApiLicensingV1EntitlementsRoute
+  '/api/licensing/v1/lease': typeof ApiLicensingV1LeaseRoute
   '/agency-admin/quotes/$quoteId/convert': typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute
 }
 export interface FileRoutesByTo {
@@ -671,6 +731,8 @@ export interface FileRoutesByTo {
   '/refund-policy': typeof RefundPolicyRoute
   '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
+  '/self-hosted': typeof SelfHostedRoute
+  '/session-bridge': typeof SessionBridgeRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -713,6 +775,7 @@ export interface FileRoutesByTo {
   '/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
   '/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
   '/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/corporate-admin/licenses': typeof AuthenticatedCorporateAdminLicensesRoute
   '/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
   '/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
   '/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
@@ -721,12 +784,17 @@ export interface FileRoutesByTo {
   '/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
   '/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
   '/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
+  '/self-hosted/manage': typeof AuthenticatedSelfHostedManageRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
   '/trip/$token/$tripId': typeof TripTokenTripIdRoute
   '/agency-admin': typeof AuthenticatedAgencyAdminIndexRoute
   '/corporate-admin': typeof AuthenticatedCorporateAdminIndexRoute
   '/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
+  '/api/licensing/v1/activate': typeof ApiLicensingV1ActivateRoute
+  '/api/licensing/v1/deactivate': typeof ApiLicensingV1DeactivateRoute
+  '/api/licensing/v1/entitlements': typeof ApiLicensingV1EntitlementsRoute
+  '/api/licensing/v1/lease': typeof ApiLicensingV1LeaseRoute
   '/agency-admin/quotes/$quoteId/convert': typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute
 }
 export interface FileRoutesById {
@@ -757,6 +825,8 @@ export interface FileRoutesById {
   '/refund-policy': typeof RefundPolicyRoute
   '/register': typeof RegisterRoute
   '/roadmap': typeof RoadmapRoute
+  '/self-hosted': typeof SelfHostedRoute
+  '/session-bridge': typeof SessionBridgeRoute
   '/status': typeof StatusRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
@@ -801,6 +871,7 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin/governance': typeof AuthenticatedCorporateAdminGovernanceRoute
   '/_authenticated/corporate-admin/infrastructure': typeof AuthenticatedCorporateAdminInfrastructureRoute
   '/_authenticated/corporate-admin/issues': typeof AuthenticatedCorporateAdminIssuesRoute
+  '/_authenticated/corporate-admin/licenses': typeof AuthenticatedCorporateAdminLicensesRoute
   '/_authenticated/corporate-admin/mail': typeof AuthenticatedCorporateAdminMailRoute
   '/_authenticated/corporate-admin/notifications': typeof AuthenticatedCorporateAdminNotificationsRoute
   '/_authenticated/corporate-admin/public-trips': typeof AuthenticatedCorporateAdminPublicTripsRoute
@@ -809,12 +880,17 @@ export interface FileRoutesById {
   '/_authenticated/corporate-admin/status': typeof AuthenticatedCorporateAdminStatusRoute
   '/_authenticated/corporate-admin/testimonials': typeof AuthenticatedCorporateAdminTestimonialsRoute
   '/_authenticated/corporate-admin/users': typeof AuthenticatedCorporateAdminUsersRoute
+  '/_authenticated/self-hosted/manage': typeof AuthenticatedSelfHostedManageRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/reis/$token/$tripId': typeof ReisTokenTripIdRoute
   '/trip/$token/$tripId': typeof TripTokenTripIdRoute
   '/_authenticated/agency-admin/': typeof AuthenticatedAgencyAdminIndexRoute
   '/_authenticated/corporate-admin/': typeof AuthenticatedCorporateAdminIndexRoute
   '/_authenticated/corporate-admin/user/$userId': typeof AuthenticatedCorporateAdminUserUserIdRoute
+  '/api/licensing/v1/activate': typeof ApiLicensingV1ActivateRoute
+  '/api/licensing/v1/deactivate': typeof ApiLicensingV1DeactivateRoute
+  '/api/licensing/v1/entitlements': typeof ApiLicensingV1EntitlementsRoute
+  '/api/licensing/v1/lease': typeof ApiLicensingV1LeaseRoute
   '/_authenticated/agency-admin/quotes/$quoteId/convert': typeof AuthenticatedAgencyAdminQuotesQuoteIdConvertRoute
 }
 export interface FileRouteTypes {
@@ -845,6 +921,8 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/register'
     | '/roadmap'
+    | '/self-hosted'
+    | '/session-bridge'
     | '/status'
     | '/support'
     | '/terms'
@@ -889,6 +967,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/governance'
     | '/corporate-admin/infrastructure'
     | '/corporate-admin/issues'
+    | '/corporate-admin/licenses'
     | '/corporate-admin/mail'
     | '/corporate-admin/notifications'
     | '/corporate-admin/public-trips'
@@ -897,12 +976,17 @@ export interface FileRouteTypes {
     | '/corporate-admin/status'
     | '/corporate-admin/testimonials'
     | '/corporate-admin/users'
+    | '/self-hosted/manage'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
     | '/trip/$token/$tripId'
     | '/agency-admin/'
     | '/corporate-admin/'
     | '/corporate-admin/user/$userId'
+    | '/api/licensing/v1/activate'
+    | '/api/licensing/v1/deactivate'
+    | '/api/licensing/v1/entitlements'
+    | '/api/licensing/v1/lease'
     | '/agency-admin/quotes/$quoteId/convert'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -931,6 +1015,8 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/register'
     | '/roadmap'
+    | '/self-hosted'
+    | '/session-bridge'
     | '/status'
     | '/support'
     | '/terms'
@@ -973,6 +1059,7 @@ export interface FileRouteTypes {
     | '/corporate-admin/governance'
     | '/corporate-admin/infrastructure'
     | '/corporate-admin/issues'
+    | '/corporate-admin/licenses'
     | '/corporate-admin/mail'
     | '/corporate-admin/notifications'
     | '/corporate-admin/public-trips'
@@ -981,12 +1068,17 @@ export interface FileRouteTypes {
     | '/corporate-admin/status'
     | '/corporate-admin/testimonials'
     | '/corporate-admin/users'
+    | '/self-hosted/manage'
     | '/trips/$tripId'
     | '/reis/$token/$tripId'
     | '/trip/$token/$tripId'
     | '/agency-admin'
     | '/corporate-admin'
     | '/corporate-admin/user/$userId'
+    | '/api/licensing/v1/activate'
+    | '/api/licensing/v1/deactivate'
+    | '/api/licensing/v1/entitlements'
+    | '/api/licensing/v1/lease'
     | '/agency-admin/quotes/$quoteId/convert'
   id:
     | '__root__'
@@ -1016,6 +1108,8 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/register'
     | '/roadmap'
+    | '/self-hosted'
+    | '/session-bridge'
     | '/status'
     | '/support'
     | '/terms'
@@ -1060,6 +1154,7 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin/governance'
     | '/_authenticated/corporate-admin/infrastructure'
     | '/_authenticated/corporate-admin/issues'
+    | '/_authenticated/corporate-admin/licenses'
     | '/_authenticated/corporate-admin/mail'
     | '/_authenticated/corporate-admin/notifications'
     | '/_authenticated/corporate-admin/public-trips'
@@ -1068,12 +1163,17 @@ export interface FileRouteTypes {
     | '/_authenticated/corporate-admin/status'
     | '/_authenticated/corporate-admin/testimonials'
     | '/_authenticated/corporate-admin/users'
+    | '/_authenticated/self-hosted/manage'
     | '/_authenticated/trips/$tripId'
     | '/reis/$token/$tripId'
     | '/trip/$token/$tripId'
     | '/_authenticated/agency-admin/'
     | '/_authenticated/corporate-admin/'
     | '/_authenticated/corporate-admin/user/$userId'
+    | '/api/licensing/v1/activate'
+    | '/api/licensing/v1/deactivate'
+    | '/api/licensing/v1/entitlements'
+    | '/api/licensing/v1/lease'
     | '/_authenticated/agency-admin/quotes/$quoteId/convert'
   fileRoutesById: FileRoutesById
 }
@@ -1104,6 +1204,8 @@ export interface RootRouteChildren {
   RefundPolicyRoute: typeof RefundPolicyRoute
   RegisterRoute: typeof RegisterRoute
   RoadmapRoute: typeof RoadmapRoute
+  SelfHostedRoute: typeof SelfHostedRoute
+  SessionBridgeRoute: typeof SessionBridgeRoute
   StatusRoute: typeof StatusRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
@@ -1118,6 +1220,10 @@ export interface RootRouteChildren {
   UitnodigingTokenRoute: typeof UitnodigingTokenRoute
   ReisTokenTripIdRoute: typeof ReisTokenTripIdRoute
   TripTokenTripIdRoute: typeof TripTokenTripIdRoute
+  ApiLicensingV1ActivateRoute: typeof ApiLicensingV1ActivateRoute
+  ApiLicensingV1DeactivateRoute: typeof ApiLicensingV1DeactivateRoute
+  ApiLicensingV1EntitlementsRoute: typeof ApiLicensingV1EntitlementsRoute
+  ApiLicensingV1LeaseRoute: typeof ApiLicensingV1LeaseRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1302,6 +1408,20 @@ declare module '@tanstack/react-router' {
       path: '/roadmap'
       fullPath: '/roadmap'
       preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/self-hosted': {
+      id: '/self-hosted'
+      path: '/self-hosted'
+      fullPath: '/self-hosted'
+      preLoaderRoute: typeof SelfHostedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/session-bridge': {
+      id: '/session-bridge'
+      path: '/session-bridge'
+      fullPath: '/session-bridge'
+      preLoaderRoute: typeof SessionBridgeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/status': {
@@ -1626,6 +1746,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCorporateAdminIssuesRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
+    '/_authenticated/corporate-admin/licenses': {
+      id: '/_authenticated/corporate-admin/licenses'
+      path: '/licenses'
+      fullPath: '/corporate-admin/licenses'
+      preLoaderRoute: typeof AuthenticatedCorporateAdminLicensesRouteImport
+      parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
     '/_authenticated/corporate-admin/mail': {
       id: '/_authenticated/corporate-admin/mail'
       path: '/mail'
@@ -1682,6 +1809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCorporateAdminUsersRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
     }
+    '/_authenticated/self-hosted/manage': {
+      id: '/_authenticated/self-hosted/manage'
+      path: '/self-hosted/manage'
+      fullPath: '/self-hosted/manage'
+      preLoaderRoute: typeof AuthenticatedSelfHostedManageRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/trips/$tripId': {
       id: '/_authenticated/trips/$tripId'
       path: '/trips/$tripId'
@@ -1709,6 +1843,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/corporate-admin/user/$userId'
       preLoaderRoute: typeof AuthenticatedCorporateAdminUserUserIdRouteImport
       parentRoute: typeof AuthenticatedCorporateAdminRoute
+    }
+    '/api/licensing/v1/activate': {
+      id: '/api/licensing/v1/activate'
+      path: '/api/licensing/v1/activate'
+      fullPath: '/api/licensing/v1/activate'
+      preLoaderRoute: typeof ApiLicensingV1ActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/licensing/v1/deactivate': {
+      id: '/api/licensing/v1/deactivate'
+      path: '/api/licensing/v1/deactivate'
+      fullPath: '/api/licensing/v1/deactivate'
+      preLoaderRoute: typeof ApiLicensingV1DeactivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/licensing/v1/entitlements': {
+      id: '/api/licensing/v1/entitlements'
+      path: '/api/licensing/v1/entitlements'
+      fullPath: '/api/licensing/v1/entitlements'
+      preLoaderRoute: typeof ApiLicensingV1EntitlementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/licensing/v1/lease': {
+      id: '/api/licensing/v1/lease'
+      path: '/api/licensing/v1/lease'
+      fullPath: '/api/licensing/v1/lease'
+      preLoaderRoute: typeof ApiLicensingV1LeaseRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/agency-admin/quotes/$quoteId/convert': {
       id: '/_authenticated/agency-admin/quotes/$quoteId/convert'
@@ -1795,6 +1957,7 @@ interface AuthenticatedCorporateAdminRouteChildren {
   AuthenticatedCorporateAdminGovernanceRoute: typeof AuthenticatedCorporateAdminGovernanceRoute
   AuthenticatedCorporateAdminInfrastructureRoute: typeof AuthenticatedCorporateAdminInfrastructureRoute
   AuthenticatedCorporateAdminIssuesRoute: typeof AuthenticatedCorporateAdminIssuesRoute
+  AuthenticatedCorporateAdminLicensesRoute: typeof AuthenticatedCorporateAdminLicensesRoute
   AuthenticatedCorporateAdminMailRoute: typeof AuthenticatedCorporateAdminMailRoute
   AuthenticatedCorporateAdminNotificationsRoute: typeof AuthenticatedCorporateAdminNotificationsRoute
   AuthenticatedCorporateAdminPublicTripsRoute: typeof AuthenticatedCorporateAdminPublicTripsRoute
@@ -1825,6 +1988,8 @@ const AuthenticatedCorporateAdminRouteChildren: AuthenticatedCorporateAdminRoute
       AuthenticatedCorporateAdminInfrastructureRoute,
     AuthenticatedCorporateAdminIssuesRoute:
       AuthenticatedCorporateAdminIssuesRoute,
+    AuthenticatedCorporateAdminLicensesRoute:
+      AuthenticatedCorporateAdminLicensesRoute,
     AuthenticatedCorporateAdminMailRoute: AuthenticatedCorporateAdminMailRoute,
     AuthenticatedCorporateAdminNotificationsRoute:
       AuthenticatedCorporateAdminNotificationsRoute,
@@ -1862,6 +2027,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCorporateAdminRoute: typeof AuthenticatedCorporateAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
+  AuthenticatedSelfHostedManageRoute: typeof AuthenticatedSelfHostedManageRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
 }
 
@@ -1877,6 +2043,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedCorporateAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
+  AuthenticatedSelfHostedManageRoute: AuthenticatedSelfHostedManageRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
 }
 
@@ -1910,6 +2077,8 @@ const rootRouteChildren: RootRouteChildren = {
   RefundPolicyRoute: RefundPolicyRoute,
   RegisterRoute: RegisterRoute,
   RoadmapRoute: RoadmapRoute,
+  SelfHostedRoute: SelfHostedRoute,
+  SessionBridgeRoute: SessionBridgeRoute,
   StatusRoute: StatusRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
@@ -1924,6 +2093,10 @@ const rootRouteChildren: RootRouteChildren = {
   UitnodigingTokenRoute: UitnodigingTokenRoute,
   ReisTokenTripIdRoute: ReisTokenTripIdRoute,
   TripTokenTripIdRoute: TripTokenTripIdRoute,
+  ApiLicensingV1ActivateRoute: ApiLicensingV1ActivateRoute,
+  ApiLicensingV1DeactivateRoute: ApiLicensingV1DeactivateRoute,
+  ApiLicensingV1EntitlementsRoute: ApiLicensingV1EntitlementsRoute,
+  ApiLicensingV1LeaseRoute: ApiLicensingV1LeaseRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -130,6 +130,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const sessionBridge = pathname === "/session-bridge";
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -137,12 +139,12 @@ function RootComponent() {
         <LocaleProvider>
           <WorkspaceProvider>
             <CanonicalOrigin>
-              <AppShell>
-                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-                <Outlet />
-              </AppShell>
-              <PrivacyChoices />
-              <BetaFeedbackButton />
+              {sessionBridge ? <Outlet /> : <AppShell>
+                  {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                  <Outlet />
+                </AppShell>}
+              {!sessionBridge && <PrivacyChoices />}
+              {!sessionBridge && <BetaFeedbackButton />}
             </CanonicalOrigin>
           </WorkspaceProvider>
         </LocaleProvider>

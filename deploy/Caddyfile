@@ -6,7 +6,7 @@
 
 globetrotr.nl {
   encode zstd gzip
-  @portalRoutes path /auth /register /oauth-callback /complete-profile /token/* /dashboard /trips/* /account /billing /agency-admin /agency-admin/* /corporate-admin /corporate-admin/* /company-mail /branding /team /analytics /client-portal /invite/* /uitnodiging/* /agency-invite/* /agency-uitnodiging/*
+  @portalRoutes path /auth /register /oauth-callback /complete-profile /session-bridge /token/* /dashboard /trips/* /account /billing /agency-admin /agency-admin/* /corporate-admin /corporate-admin/* /company-mail /branding /team /analytics /client-portal /invite/* /uitnodiging/* /agency-invite/* /agency-uitnodiging/*
   redir @portalRoutes https://portal.globetrotr.nl{uri} 302
   handle /api/paddle/webhook {
     reverse_proxy 10.0.0.3:9091
@@ -36,6 +36,8 @@ dashboard.globetrotr.nl {
 
 portal.globetrotr.nl {
   encode zstd gzip
+  @sessionBridge path /session-bridge
+  header @sessionBridge Content-Security-Policy "frame-ancestors https://globetrotr.nl https://www.globetrotr.nl"
   @portalRoot path /
   redir @portalRoot /dashboard 302
   @publicRoutes path /demo /features /mogelijkheden /prijzen /pricing /about /for-groups /for-travelers /for-agencies /roadmap /updates /changelog /privacy /terms /algemene-voorwaarden /refund-policy /terugbetalingsbeleid /known-issues /bekende-problemen /beta /beta-voorwaarden /trip/* /reis/* /quote/*

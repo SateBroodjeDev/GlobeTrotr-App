@@ -13,15 +13,17 @@ declare global {
 }
 
 let paddlePromise: Promise<PaddleInstance> | null = null;
+let paddleEventCallback: ((event: { name?: string }) => void) | undefined;
 
-export function loadPaddle(token: string, environment: "sandbox" | "production") {
+export function loadPaddle(token: string, environment: "sandbox" | "production", eventCallback?: (event: { name?: string }) => void) {
   if (!token) return Promise.reject(new Error("PADDLE_NOT_CONFIGURED"));
+  paddleEventCallback = eventCallback;
   if (paddlePromise) return paddlePromise;
   paddlePromise = new Promise((resolve, reject) => {
     const initialize = () => {
       if (!window.Paddle) return reject(new Error("PADDLE_LOAD_FAILED"));
       if (environment === "sandbox") window.Paddle.Environment.set("sandbox");
-      window.Paddle.Initialize({ token });
+      window.Paddle.Initialize({ token, eventCallback: (event: { name?: string }) => paddleEventCallback?.(event) });
       resolve(window.Paddle);
     };
     if (window.Paddle) return initialize();
