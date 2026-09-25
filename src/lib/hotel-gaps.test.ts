@@ -42,3 +42,24 @@ test("checks all trip nights and suggests the latest known route location", () =
 test("asks for a location when a missing night has no dated route point", () => {
   assert.equal(findTripHotelGaps({ start: "2026-10-01", end: "2026-10-02", stops: [], travelItems: [] })[0]?.confidence, "unknown");
 });
+
+test("uses a dated booking arrival before asking for an overnight location", () => {
+  const location = { name: "Rovaniemi", country: "Finland", lat: 66.5039, lon: 25.7294 };
+  const gaps = findTripHotelGaps({
+    start: "2026-12-01",
+    end: "2026-12-03",
+    stops: [{ id: "airport", name: "Schiphol", country: "Nederland", lat: 52.31, lon: 4.76 }],
+    travelItems: [{
+      id: "flight",
+      type: "flight",
+      title: "Flight to Rovaniemi",
+      date: "2026-12-01",
+      arrival: location,
+    }],
+  });
+
+  assert.equal(gaps.length, 1);
+  assert.equal(gaps[0].confidence, "booking");
+  assert.deepEqual(gaps[0].suggestedLocation, location);
+  assert.equal(gaps[0].nights, 2);
+});

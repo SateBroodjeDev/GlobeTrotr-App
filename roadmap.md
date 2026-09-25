@@ -6,13 +6,12 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 
 ## Nu: release 1.0 bewijzen
 
-- [x] Migraties en SQL-tests tot en met 1720 uitgevoerd, inclusief betaalmeldingen, Self-Hosted-voorbereiding en notificatielinks.
+- [x] Migraties en SQL-tests tot en met 1780 uitgevoerd, inclusief favoriete plaatsen en algemene checklists.
+- [ ] Favoriete plaatsen praktisch controleren: opslaan, herladen, hergebruiken, verwijderen en gebruikersisolatie.
+- [ ] Algemene checklists praktisch controleren met een bewerkend en alleen-lezen reislid.
 - [ ] Reisvergelijker: bewaren, reageren, peiling, stemmen en definitief kiezen met twee echte reisleden testen.
 - [ ] Live agenda: bestaande link na een wijziging laten verversen; verblijf en huurauto als hele dag controleren.
 - [ ] Offline pakket en vertrekcheck op Android en iOS testen.
-- [ ] Agency-subdomein en eigen domein met HTTPS, behouden hostnaam en juiste tenant testen.
-- [ ] White-label host vóór en na inloggen testen: naam, logo, kleur en tagline; publieke marketingroutes blijven binnen het Agency-portaal.
-- [ ] Eigen Agency-SMTP met echte bezorging testen; uitnodiging en klantformulier controleren op uitsluitend eigen branding, contactadres en portalhost.
 - [ ] Automatische boekingsherinneringen testen met NL/EN-profielen, verschillende boekingstypen, boekingsvoorkeur uit en een herhaalde worker-run zonder dubbele melding.
 - [ ] Webpush op Node-01 en Node-02 configureren en met gesloten browser ontvangen.
 - [ ] Registratie, Google/Discord, passkeys, TOTP, Paddle, privacyverzoeken en ZXCS-mail end-to-end controleren.
@@ -22,6 +21,7 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 
 ## Bewust buiten release 1.0
 
+- Agency- en white-labelacceptatie: de techniek blijft beschikbaar, maar domeinen, volledige eigen branding en Agency-SMTP krijgen later één afzonderlijke testronde.
 - Eigen Stalwart-mailserver: wachten op vrijgave van TCP 25 en volledige aflever-, ontvangst- en herstelproef. Externe Agency-SMTP is gebouwd en wacht op productieacceptatie.
 - Live hotelprijzen: wachten op keuze en goedkeuring van een officiële provider.
 - Geselecteerde documenten offline: eerst het huidige beperkte offline pakket accepteren.
@@ -29,7 +29,7 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 ## Na 1.0: kleine productuitbreidingen
 
 1. Een veilige reisvariant maken zonder leden, toegang of boekingsgeheimen.
-2. Favoriete plaatsen en algemene checklijsten.
+2. Favoriete plaatsen en algemene checklists zijn voor 1.0 gebouwd en wachten op acceptatie en gebruiksfeedback.
 3. Apotheken, supermarkten, stations en bezienswaardigheden rond een stop.
 4. Check-in- en vertrekmeldingen uit bestaande boekingen verder verfijnen na productieacceptatie van de eerste 24-uursherinnering.
 5. Agency-klantportaal, formulieren en contentbibliotheek verfijnen op basis van gebruik.

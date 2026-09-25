@@ -10,6 +10,8 @@ export type TripTask = {
   assigneeName: string;
   dueDate: string | null;
   completed: boolean;
+  category: "task" | "departure" | "shopping" | "custom";
+  listName: string;
   createdAt: string;
 };
 
@@ -48,7 +50,7 @@ export const listTripTasks = createServerFn({ method: "GET" })
     const client = await db();
     await requireTaskAccess(client, context.userId, data.tripId, false);
     const { data: rows, error } = await client.from("trip_tasks")
-      .select("id,title,assignee_name,due_date,completed,created_at")
+      .select("id,title,assignee_name,due_date,completed,category,list_name,created_at")
       .eq("trip_uuid", data.tripId)
       .order("completed")
       .order("due_date", { ascending: true, nullsFirst: false })
@@ -60,17 +62,21 @@ export const listTripTasks = createServerFn({ method: "GET" })
       assigneeName: row.assignee_name ?? "",
       dueDate: row.due_date,
       completed: Boolean(row.completed),
+      category: row.category ?? "task",
+      listName: row.list_name ?? "",
       createdAt: row.created_at,
     })) as TripTask[];
   });
 
 export const saveTripTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((input: { tripId: string; id?: string; title: string; assigneeName: string; dueDate: string | null; completed: boolean }) => input)
+  .validator((input: { tripId: string; id?: string; title: string; assigneeName: string; dueDate: string | null; completed: boolean; category?: "task" | "departure" | "shopping" | "custom"; listName?: string }) => input)
   .handler(async ({ data, context }) => {
     const title = data.title.trim();
     const assigneeName = data.assigneeName.trim();
-    if (title.length < 2 || title.length > 160 || assigneeName.length > 100 || (data.id && !UUID.test(data.id))) {
+    const category = data.category ?? "task";
+    const listName = (data.listName ?? "").trim();
+    if (title.length < 2 || title.length > 160 || assigneeName.length > 100 || !["task", "departure", "shopping", "custom"].includes(category) || (category === "custom" && (listName.length < 2 || listName.length > 80)) || (data.id && !UUID.test(data.id))) {
       throw new Error("INVALID_TASK");
     }
     const client = await db();
@@ -81,6 +87,8 @@ export const saveTripTask = createServerFn({ method: "POST" })
       assignee_name: assigneeName || null,
       due_date: data.dueDate || null,
       completed: data.completed,
+      category,
+      list_name: category === "custom" ? listName : null,
       updated_by: context.userId,
       updated_at: new Date().toISOString(),
     };

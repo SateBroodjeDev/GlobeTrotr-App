@@ -45,6 +45,7 @@ import {
   resolveParticipantId,
 } from "@/lib/settle";
 import { PlaceSearch } from "@/components/PlaceSearch";
+import { FavoritePlaces } from "@/components/FavoritePlaces";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { CurrencyConverter, FuelCalculator } from "@/components/TripTools";
 import { Settlement } from "@/components/Settlement";
@@ -576,12 +577,14 @@ function TripDetail() {
       setActiveStopId(stopId);
       setPendingStop(undefined);
       toast.success(text(`${location.name} toegevoegd.`, `${location.name} added.`));
+      return true;
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
           : text("Bestemming kon niet worden opgeslagen.", "Destination could not be saved."),
       );
+      return false;
     } finally {
       setPendingStopSaving(false);
     }
@@ -1423,6 +1426,12 @@ function TripDetail() {
                     setPendingStopArrival("");
                     setPendingStopNights("1");
                   }} />
+                  <FavoritePlaces
+                    stops={trip.stops}
+                    editable={editable}
+                    text={text}
+                    onAdd={(place) => addStop(place, false, "", 0)}
+                  />
                   <Dialog open={Boolean(pendingStop)} onOpenChange={(open) => { if (!open && !pendingStopSaving) setPendingStop(undefined); }}>
                     <DialogContent className="sm:max-w-lg">
                       <DialogHeader><DialogTitle>{pendingStop?.name} {text("toevoegen", "add")}</DialogTitle></DialogHeader>

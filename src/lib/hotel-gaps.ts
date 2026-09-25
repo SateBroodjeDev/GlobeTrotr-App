@@ -1,4 +1,4 @@
-import type { Stop, TravelItem, Trip } from "./types";
+import type { Stop, TravelItem, TravelLocation, Trip } from "./types";
 
 export type HotelGap = {
   id: string;
@@ -18,7 +18,8 @@ export type TripHotelGap = {
   endDate: string;
   nights: number;
   suggestedStopId?: string;
-  confidence: "overnight" | "route" | "unknown";
+  suggestedLocation?: TravelLocation;
+  confidence: "overnight" | "booking" | "route" | "unknown";
 };
 
 export function configuredRouteNights(stops: Stop[]) {
@@ -81,25 +82,40 @@ export function findTripHotelGaps(trip: Pick<Trip, "start" | "end" | "stops" | "
   const datedStops = [...trip.stops]
     .filter((stop) => DATE.test(stop.arrive ?? ""))
     .sort((a, b) => String(a.arrive).localeCompare(String(b.arrive)));
-  const missing: Array<{ date: string; stopId?: string; confidence: TripHotelGap["confidence"] }> = [];
+  const datedLocations = (trip.travelItems ?? [])
+    .filter((item) => item.type !== "lodging" && DATE.test(item.date))
+    .flatMap((item) => {
+      const location = item.arrival ?? item.location ?? item.departure;
+      return location ? [{ date: item.date, location }] : [];
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const missing: Array<{ date: string; stopId?: string; location?: TravelLocation; confidence: TripHotelGap["confidence"] }> = [];
   for (let date = trip.start, guard = 0; date < trip.end && guard < 366; date = day(date, 1), guard += 1) {
     if (covered.has(date)) continue;
     const overnight = datedStops.find((stop) => {
       const nights = Math.max(0, Math.floor(Number(stop.nights) || 0));
       return nights > 0 && String(stop.arrive) <= date && date < day(String(stop.arrive), nights);
     });
+    const latestLocation = [...datedLocations].reverse().find((item) => item.date <= date)?.location;
     const latest = [...datedStops].reverse().find((stop) => String(stop.arrive) <= date);
-    missing.push({ date, stopId: overnight?.id ?? latest?.id, confidence: overnight ? "overnight" : latest ? "route" : "unknown" });
+    missing.push(overnight
+      ? { date, stopId: overnight.id, confidence: "overnight" }
+      : latestLocation
+        ? { date, location: latestLocation, confidence: "booking" }
+        : { date, stopId: latest?.id, confidence: latest ? "route" : "unknown" });
   }
 
   const groups: TripHotelGap[] = [];
   for (const night of missing) {
     const previous = groups.at(-1);
-    if (previous && previous.endDate === night.date && previous.suggestedStopId === night.stopId && previous.confidence === night.confidence) {
+    const locationKey = night.location ? `${night.location.name}:${night.location.lat}:${night.location.lon}` : "";
+    const previousLocationKey = previous?.suggestedLocation
+      ? `${previous.suggestedLocation.name}:${previous.suggestedLocation.lat}:${previous.suggestedLocation.lon}` : "";
+    if (previous && previous.endDate === night.date && previous.suggestedStopId === night.stopId && previousLocationKey === locationKey && previous.confidence === night.confidence) {
       previous.endDate = day(night.date, 1);
       previous.nights += 1;
     } else {
-      groups.push({ id: `${night.date}:${night.stopId ?? "unknown"}`, startDate: night.date, endDate: day(night.date, 1), nights: 1, suggestedStopId: night.stopId, confidence: night.confidence });
+      groups.push({ id: `${night.date}:${night.stopId ?? (locationKey || "unknown")}`, startDate: night.date, endDate: day(night.date, 1), nights: 1, ...(night.stopId ? { suggestedStopId: night.stopId } : {}), ...(night.location ? { suggestedLocation: night.location } : {}), confidence: night.confidence });
     }
   }
   return groups;

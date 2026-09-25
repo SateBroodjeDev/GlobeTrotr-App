@@ -4,6 +4,9 @@ Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor
 
 ## Release 1.0 — in voorbereiding, 25 september 2026
 
+- Reizigers kunnen persoonlijke favoriete plaatsen bewaren, later aan een andere reis toevoegen en weer verwijderen; deze gegevens zijn opgenomen in de accountexport en privacyverklaring.
+- Reistaken zijn uitgebreid met gedeelde vertrek-, boodschappen- en zelf benoemde checklists, met dezelfde reisrechten, verantwoordelijke en deadline.
+- Corporate Admin begint met een lege lijst actieve implementatiechecks; oude onafgeronde controles blijven als alleen-lezen historie beschikbaar onder Archief en Agency blijft apart voor later.
 - Een Paddle-checkout die alleen is geopend maakt geen betaalbevestiging meer; de melding en transactionele mail volgen pas na het bevestigde `transaction.completed`-event.
 - Webpush heeft een afzonderlijke configuratie-healthcheck voor Node-02, zodat ontbrekende VAPID-instellingen zichtbaar zijn zonder sleutels te tonen.
 - Het meldingenpaneel toont de echte apparaatstatus en kan een volledige testpush klaarzetten; nieuwe privacyverzoeken en ingevulde Agency-klantformulieren waarschuwen de juiste beheerders.
@@ -14,6 +17,7 @@ Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor
 - Herkende boekingsmail maakt weer een geldige boekingsmelding aan en webpush gebruikt precies één profieltaal zonder gevoelige inhoud.
 - Vertaalde HTML-mail blijft na vertalen een opgemaakte, afgeschermde e-mail in plaats van zichtbare HTML-code.
 - De hotelcontrole gebruikt de routepositie als standaard slaapplaats, toont de lange keuzelijst alleen bij wijzigen en zoekt met een tweede providerfallback tot 15 km.
+- Bij ontbrekende nachten gebruikt de hotelcontrole nu eerst de datumgebonden aankomst of activiteit uit vluchten, vervoer en andere boekingen; alleen zonder bruikbare locatie vraagt hij nog om een routeplaats.
 - De publieke website toont na een afgeschermde portalcontrole direct de juiste accountavatar; tokens blijven uitsluitend op het portaal.
 - Een gesloten Paddle-overlay blijft niet meer op ‘checkout openen…’ staan en biedt een duidelijke terugweg naar Abonnement.
 

@@ -2,31 +2,28 @@
 
 **Gepland: 1 oktober 2026**
 
-Dit document bevat alleen het uiteindelijke go/no-go-besluit. De uitvoering en praktijktests staan in `IMPLEMENTATION_PENDING.md`; servercommando’s in `SERVER_OPERATIONS.md`.
+Dit document bevat alleen het uiteindelijke go/no-go-besluit. De uitrol staat in `IMPLEMENTATION_PENDING.md`, de lege acceptatieronde in `TEST_CHECKLIST.md` en serverbeheer in `SERVER_OPERATIONS.md`.
 
 ## Go wanneer
 
-- migraties en tests 1660, 1670, 1680 en 1690 slagen;
-- `npm run verify`, `npm run build` en `git diff --check` slagen;
-- Node-01 en Node-02 gezond zijn en dezelfde releasecommit draaien;
-- registratie, login, Paddle, ZXCS-mail en privacyverzoeken werken;
-- Reisvergelijker, live agenda, offline gebruik, reisdatumverschuiving, bedrijfsmail, mobiel en Agency-domeinen praktisch zijn getest;
-- webpush werkelijk met een gesloten tabblad is ontvangen;
+- alle regels in `TEST_CHECKLIST.md` een actuele status hebben;
+- iedere kritieke controle op **Geslaagd** staat;
 - geen kritisch of hoog beveiligingsprobleem openstaat;
+- iedere lagere afwijking een incidentnummer, eigenaar en besluit heeft;
 - publieke homepage, prijzen, roadmap, updates en juridische teksten overeenkomen met productie.
 
 ## No-go wanneer
 
 - een betaling geen recht activeert of een dubbele factuur veroorzaakt;
 - registratie of herstelmail structureel faalt;
-- tenantisolatie, RLS of Agency-domeinbinding twijfelachtig is;
+- tenantisolatie of RLS voor de functies binnen deze release twijfelachtig is;
 - een geheime sleutel of mailboxwachtwoord in Git staat;
 - migratie, build, healthcheck of kernpraktijktest faalt;
 - privacytekst een actieve leverancier of gegevensstroom mist.
 
 ## Buiten release 1.0
 
-De eigen Stalwart-mailserver, Agency-SMTP en MX-omschakeling zijn geen blokkade voor 1.0. ZXCS blijft actief. Live hotelprijzen en verdere providerzoekfuncties volgen pas na partner- en privacybeoordeling.
+Agency- en white-labelacceptatie, de eigen Stalwart-mailserver en MX-omschakeling zijn geen blokkade voor 1.0. ZXCS blijft actief als centrale route en fallback. Live hotelprijzen en verdere providerzoekfuncties volgen pas na partner- en privacybeoordeling.
 
 ## Vastleggen
 

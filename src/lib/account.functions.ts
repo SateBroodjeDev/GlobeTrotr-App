@@ -19,15 +19,22 @@ const EXPORT_TABLES = [
   "trip_members",
   "trip_documents",
   "trip_invitations",
+  "trip_tasks",
+  "favorite_places",
   "notifications",
 ] as const;
 
 async function selectAccountRows(db: AdminClient, table: string, userId: string, email?: string) {
   if (table === "profiles") return db.from(table).select("*").eq("id", userId);
-  if (table === "workspaces" || table === "notifications") {
+  if (table === "workspaces" || table === "notifications" || table === "favorite_places") {
     return db.from(table).select("*").eq("user_id", userId);
   }
   if (table === "trips" || table.startsWith("trip_")) {
+    if (table === "trip_tasks") {
+      const ownedTrips = await db.from("trips").select("trip_uuid").eq("workspace_user_id", userId);
+      if (ownedTrips.error || !ownedTrips.data?.length) return ownedTrips.error ? ownedTrips : { data: [], error: null };
+      return db.from(table).select("*").in("trip_uuid", ownedTrips.data.map((trip: any) => trip.trip_uuid));
+    }
     if (table === "trip_members") {
       return db.from(table).select("*").or(`workspace_user_id.eq.${userId},user_id.eq.${userId}`);
     }

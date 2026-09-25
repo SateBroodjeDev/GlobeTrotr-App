@@ -28,8 +28,8 @@ De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker
 Deze functies hergebruiken bestaande gegevens en vragen geen grote providerintegratie:
 
 1. **Reisvariant maken** zonder leden, toegang, codes, documenten of betalingen over te nemen.
-2. **Favoriete plaatsen** bewaren en later toevoegen aan reis of vergelijker.
-3. **Algemene checklijsten** voor vertrek, boodschappen en vrije taken.
+2. **Favoriete plaatsen** bewaren en later aan een reis toevoegen is gebouwd en wacht op productieacceptatie; een directe koppeling met de vergelijker blijft een mogelijke verfijning.
+3. **Algemene checklijsten** voor vertrek, boodschappen en vrije taken zijn gebouwd en wachten op productieacceptatie.
 4. **Nabij deze stop** voor apotheken, supermarkten, stations en bezienswaardigheden via OpenStreetMap.
 5. **Check-inherinneringen** uit bestaande vlucht-, verblijf-, vervoer- en huurautogegevens zijn gebouwd als begrensde 24-uursmelding en wachten op productieacceptatie.
 

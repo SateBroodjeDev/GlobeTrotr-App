@@ -39,9 +39,9 @@ export const PUBLIC_IN_PROGRESS = {
   title: "Op weg naar 1.0 · gepland voor 1 oktober",
   titleEn: "On the way to 1.0 · planned for 1 October",
   description:
-    "We testen dagelijks de Reisvergelijker, live agenda, vertrekcheck, automatische boekingsherinneringen, offline gebruik, het verschuiven van reisdatums, white-label Agency-domeinen en volledig eigen Agency-mailbranding en SMTP, pushmeldingen met keuzes per categorie en verbeterd bedrijfsmailbeheer. Release 1.0 volgt alleen als de productiechecks slagen. ZXCS blijft de centrale terugval; de eigen mailserver hoort niet bij deze release.",
+    "We testen dagelijks favoriete plaatsen, gedeelde reischecklists, slimmere hotelcontrole op basis van aankomsten en activiteiten, de Reisvergelijker, live agenda, vertrekcheck, automatische boekingsherinneringen, offline gebruik, het verschuiven van reisdatums, white-label Agency-domeinen en volledig eigen Agency-mailbranding en SMTP, pushmeldingen met keuzes per categorie en verbeterd bedrijfsmailbeheer. Release 1.0 volgt alleen als de productiechecks slagen. ZXCS blijft de centrale terugval; de eigen mailserver hoort niet bij deze release.",
   descriptionEn:
-    "We are testing Trip Comparison, live calendars, departure checks, automatic booking reminders, offline use, trip date shifting, white-label Agency domains and fully branded Agency email and SMTP, push notifications with category controls and improved company mail management every day. Release 1.0 will only follow when production checks pass. ZXCS remains the central fallback; the self-hosted mail server is outside this release.",
+    "We are testing favourite places, shared trip checklists, smarter accommodation checks based on arrivals and activities, Trip Comparison, live calendars, departure checks, automatic booking reminders, offline use, trip date shifting, white-label Agency domains and fully branded Agency email and SMTP, push notifications with category controls and improved company mail management every day. Release 1.0 will only follow when production checks pass. ZXCS remains the central fallback; the self-hosted mail server is outside this release.",
 } as const;
 
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */

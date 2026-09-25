@@ -68,19 +68,19 @@ npm run check
 
 Database-regressietests staan in `supabase/tests`. Voer ze in de Supabase SQL Editor uit nadat de genoemde migratie is toegepast. Sommige zijn alleen-lezen, andere draaien in een transactie met `ROLLBACK`; controleer de kop van ieder bestand.
 
-Voor een volledige handmatige betacontrole staat een compacte afvinklijst in [`TEST_CHECKLIST.md`](TEST_CHECKLIST.md).
+Voor iedere uitrol wordt de lege acceptatieronde in [`TEST_CHECKLIST.md`](TEST_CHECKLIST.md) opnieuw ingevuld. Uitrolstappen staan uitsluitend in [`IMPLEMENTATION_PENDING.md`](IMPLEMENTATION_PENDING.md).
 
 ## Databasewijzigingen
 
 Migraties staan chronologisch in `supabase/migrations` en worden in bestandsvolgorde uitgevoerd. Recente onderdelen omvatten versiegestuurde reisopslag, financiële privacy, publieke reis-RPC's, uitnodigingsbeheer, meldingen, Agency-workspaces, klantprofielen en gescheiden auditregistratie voor Corporate en Agency Admin.
 
-Volgens de eigenaar zijn migraties en tests tot en met **1650** uitgevoerd. Voor release 1.0 staan 1660, 1670, 1680 en 1690 met hun tests open. Zie [het uitrolhandboek](IMPLEMENTATION_PENDING.md), de [interne roadmap](roadmap.md), het [bouwplan](BUILD_PLAN.md) en de [functie-gapanalyse](FEATURE_GAP_AND_EXPANSION.md).
+Volgens de eigenaar zijn migraties en tests tot en met **1780** uitgevoerd. Zie [het uitrolhandboek](IMPLEMENTATION_PENDING.md), de [interne roadmap](roadmap.md), het [bouwplan](BUILD_PLAN.md) en de [functie-gapanalyse](FEATURE_GAP_AND_EXPANSION.md).
 
 De productie-beta gebruikt één Hetzner-VPS voor webapp en Caddy en een tweede voor worker, mailrelay en IMAP-sync. Supabase is de beheerde database-, Auth- en Storage-laag in Central EU (Frankfurt, `eu-central-1`). [`STORAGE_ARCHITECTURE.md`](STORAGE_ARCHITECTURE.md) beschrijft een mogelijke latere verplaatsing naar Hetzner Object Storage.
 
 De productiecontainers gebruiken `Dockerfile`, `deploy/web.compose.yml` en `deploy/worker.compose.yml`. De worker en mailrelay draaien op Node-02. De actuele e-mailmodus staat in Supabase `email_delivery_config`; ga niet uit van testmodus. Zie [`worker/README.md`](worker/README.md).
 
-De bestaande productie-beta verstuurt en ontvangt mail via ZXCS. Eigen Stalwart-hosting en boekingsmail per reis zijn lokaal gebouwd en wachten op migraties 1560–1580, Node-02-configuratie en productieacceptatie. [MAIL_STATUS.md](MAIL_STATUS.md) geeft per onderdeel exact aan wat nu werkt en wat nog moet gebeuren.
+De bestaande productie-beta verstuurt en ontvangt mail via ZXCS. Eigen Agency-SMTP is gebouwd en onderdeel van de productieacceptatie; ZXCS blijft de fallback. De eigen Stalwart-mailserver wacht op vrijgave van TCP 25 en een afzonderlijke volledige mailproef. [MAIL_STATUS.md](MAIL_STATUS.md) geeft de actuele grens aan.
 
 De eerste installatie staat in [`VPS_DEPLOYMENT.md`](VPS_DEPLOYMENT.md). Updates, herstarts, logs, healthchecks en rollback staan uitsluitend in [`SERVER_OPERATIONS.md`](SERVER_OPERATIONS.md).
 

@@ -21,17 +21,15 @@ Dit document beschrijft alleen de technische bouwvolgorde. Productstatus staat i
 - privacyverklaring, cookie-/opslagkeuze en browseropslaginventaris afgestemd op de actuele offline-, push-, mail- en vertaalfuncties.
 - white-label Agency-hosts vóór inloggen en eigen Agency-SMTP met volledig eigen HTML-mailbranding.
 - eenmalige boekingsherinneringen binnen 24 uur via de bestaande in-app- en webpushlaag.
+- persoonlijke favoriete plaatsen bewaren en vanuit iedere reis hergebruiken, inclusief accountexport en gebruikersisolatie.
+- gedeelde taken-, vertrek-, boodschappen- en eigen checklists op de bestaande beveiligde reistakenlaag.
 
 ### Nog uitvoeren
 
-1. migratie/test 1730 voor pushvoorkeuren uitvoeren wanneer die nog niet is afgerond;
-2. migratie/test 1740 voor publieke Agency-hostbranding uitvoeren;
-3. migratie/test 1750 voor Agency-SMTP uitvoeren;
-4. migratie/test 1760 voor boekingsherinneringen uitvoeren;
-5. Node-01 en Node-02 uitrollen;
-6. praktijktests uit `IMPLEMENTATION_PENDING.md`, inclusief eigen SMTP, white-label mail en boekingsherinneringen, uitvoeren;
-7. bevindingen oplossen en `npm run verify`, `npm run build` en `git diff --check` herhalen;
-8. alleen bij een geslaagde vrijgavecontrole versie 1.0 publiceren.
+1. Node-01 uitrollen; Node-02 hoeft voor deze twee functies niet opnieuw gebouwd te worden;
+2. de lege acceptatieronde uit `TEST_CHECKLIST.md` uitvoeren, standaard zonder Agency;
+3. bevindingen oplossen en `npm run verify`, `npm run build` en `git diff --check` herhalen;
+4. alleen bij een geslaagde vrijgavecontrole versie 1.0 publiceren.
 
 ## Bouwvolgorde na 1.0
 
@@ -42,8 +40,8 @@ Voordat hiervoor code wordt toegevoegd, moeten licentiemodel, merkgebruik, jaarl
 ### 1. Kleine verbeteringen zonder externe provider
 
 - veilige reisvariant maken;
-- favoriete plaatsen;
-- algemene checklijsten naast de paklijst;
+- favoriete plaatsen zijn gebouwd; alleen uitbreiden met koppeling aan de vergelijker wanneer gebruik daar aanleiding toe geeft;
+- algemene checklijsten zijn gebouwd; verfijn de standaardsjablonen op basis van gebruik;
 - praktische plaatsen rond een stop via de bestaande OpenStreetMap-laag;
 - check-in- en vertrekmeldingen via de bestaande meldingslaag.
 
