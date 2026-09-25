@@ -121,6 +121,10 @@ export function TripOptions({
       );
       return;
     }
+    if (draft.type === "lodging" && (!draft.endDate || !draft.details.locationName?.trim() || !draft.details.guests || !draft.details.rooms)) {
+      toast.error(text("Vul voor een verblijf bestemming, uitcheckdatum, gasten en kamers in.", "For accommodation, enter the destination, check-out date, guests and rooms."));
+      return;
+    }
     if (draft.amount && (!Number.isFinite(Number(draft.amount)) || Number(draft.amount) < 0)) {
       toast.error(text("Vul een geldig bedrag in.", "Enter a valid amount."));
       return;
@@ -382,6 +386,7 @@ export function TripOptions({
             <DialogTitle>{text("Kandidaat toevoegen", "Add candidate")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
+            {draft.type === "lodging" && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm sm:col-span-2"><strong>{text("Vergelijk dezelfde zoekvraag", "Compare the same search brief")}</strong><p className="mt-1 text-muted-foreground">{text("Gebruik voor alle kandidaten dezelfde bestemming, datums, gasten en kamers. Vul de volledige verblijfsprijs in en noteer belastingen en voorwaarden afzonderlijk.", "Use the same destination, dates, guests and rooms for every candidate. Enter the complete stay price and record taxes and terms separately.")}</p></div>}
             <Field label={text("Soort", "Type")}>
               <select
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm"
@@ -623,6 +628,9 @@ function TypeSpecificFields({
       )}
       {draft.type === "lodging" && (
         <>
+          <Field label={text("Bestemming", "Destination")}>
+            <Input maxLength={160} value={draft.details.locationName ?? ""} onChange={(event) => detail("locationName", event.target.value)} />
+          </Field>
           <Field label={text("Kamertype", "Room type")}>
             <Input
               maxLength={120}
@@ -636,6 +644,8 @@ function TypeSpecificFields({
             onChange={(value) => detail("guests", value)}
             min={1}
           />
+          <NumberField label={text("Aantal kamers", "Number of rooms")} value={draft.details.rooms} onChange={(value) => detail("rooms", value)} min={1} />
+          <NumberField label={text("Belastingen en toeslagen", "Taxes and fees")} value={draft.details.taxesAndFees} onChange={(value) => detail("taxesAndFees", value)} min={0} />
           <CheckField
             checked={Boolean(draft.details.breakfastIncluded)}
             onChange={(checked) => detail("breakfastIncluded", checked)}
@@ -1057,6 +1067,8 @@ function OptionDetails({ option, text }: { option: TravelOption; text: Text }) {
     [text("Locatie", "Location"), details.locationName],
     [text("Kamertype", "Room type"), details.roomType],
     [text("Gasten", "Guests"), details.guests?.toString()],
+    [text("Kamers", "Rooms"), details.rooms?.toString()],
+    [text("Belastingen en toeslagen", "Taxes and fees"), details.taxesAndFees == null ? undefined : `${option.currency ?? ""} ${details.taxesAndFees.toFixed(2)}`.trim()],
     [
       text("Ontbijt", "Breakfast"),
       details.breakfastIncluded === undefined

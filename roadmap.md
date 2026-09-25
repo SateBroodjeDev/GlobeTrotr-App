@@ -1,6 +1,6 @@
 # GlobeTrotr interne roadmap
 
-**Stand: 25 september 2026 · beta 0.9 · release 1.0 gepland voor 1 oktober 2026**
+**Stand: 25 september 2026 · beta 0.9.1 · release 1.0 gepland voor 1 oktober 2026**
 
 De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staan uitsluitend in `IMPLEMENTATION_PENDING.md` en `SERVER_OPERATIONS.md`.
 
@@ -9,6 +9,9 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 - [x] Migraties en SQL-tests tot en met 1780 uitgevoerd, inclusief favoriete plaatsen en algemene checklists.
 - [ ] Favoriete plaatsen praktisch controleren: opslaan, herladen, hergebruiken, verwijderen en gebruikersisolatie.
 - [ ] Algemene checklists praktisch controleren met een bewerkend en alleen-lezen reislid.
+- [ ] Hotelcontrole praktisch testen met meerdere opeenvolgende ontbrekende nachten op dezelfde plaats en met een echte verblijfsboeking die een deel van de periode dekt.
+- [ ] GPX-import testen met ongeldige XML, meer dan 500 punten, dubbelen, routepreview en een selectie op mobiel.
+- [ ] Offline uitgaven afzonderlijk selecteren, verwijderen en synchroniseren; een kunstmatig ID-conflict moet lokaal blijven staan.
 - [ ] Reisvergelijker: bewaren, reageren, peiling, stemmen en definitief kiezen met twee echte reisleden testen.
 - [ ] Live agenda: bestaande link na een wijziging laten verversen; verblijf en huurauto als hele dag controleren.
 - [ ] Offline pakket en vertrekcheck op Android en iOS testen.
@@ -33,6 +36,8 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 3. Apotheken, supermarkten, stations en bezienswaardigheden rond een stop.
 4. Check-in- en vertrekmeldingen uit bestaande boekingen verder verfijnen na productieacceptatie van de eerste 24-uursherinnering.
 5. Agency-klantportaal, formulieren en contentbibliotheek verfijnen op basis van gebruik.
+6. Meerdere reizigers tegelijk uitnodigen, rollen in bulk wijzigen en vooraf de resulterende toegang tonen.
+7. Restaurants, activiteiten en bezienswaardigheden langs de route zoeken met afstand, openingstijden en bronvermelding.
 
 ## Daarna
 
@@ -40,8 +45,9 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 - Eén officiële hotelprovider voor beschikbaarheid, totaalprijzen en doorsturen.
 - Prijsalerts en flexibele data voor bewaarde kandidaten.
 - Vlucht-, autohuur- en activiteitenzoekfuncties.
-- Routeoptimalisatie met verplichte preview en bevestiging.
-- Optioneel privé reisdagboek met selectief delen.
+- Routeoptimalisatie met verplichte preview en bevestiging is gebouwd; een routeprovider voor echte wegafstanden en verkeer blijft een latere uitbreiding.
+- Automatische routetracking en een optioneel gedrukt reisboek pas na een afzonderlijke privacy- en leverancierskeuze; het privé reisdagboek zelf staat voor 1.0 klaar.
+- Geselecteerde documenten versleuteld en bewust offline bewaren, inclusief intrekken en opslaglimieten.
 - Zakelijke goedkeuringen en CO₂-inzicht alleen bij aantoonbare vraag.
 
 ## Releasegrens

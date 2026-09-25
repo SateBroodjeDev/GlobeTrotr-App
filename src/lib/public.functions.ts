@@ -22,6 +22,7 @@ export type PublicTravelItem = {
   arrival?: PublicTravelLocation;
   location?: PublicTravelLocation;
 };
+export type PublicJournalEntry = { id: string; date: string; title: string; body: string; location?: string; rating?: number; photos: Array<{ url: string; caption?: string }> };
 
 export type PublicTripCard = {
   token: string;
@@ -40,6 +41,7 @@ export type PublicTripCard = {
 export type PublicTripDetail = PublicTripCard & {
   itinerary: PublicDay[];
   travelItems: PublicTravelItem[];
+  journal: PublicJournalEntry[];
   weatherEnabled: boolean;
   budget?: number;
   currency?: string;
@@ -162,6 +164,18 @@ export async function createPublicDatabaseClient() {
   });
 }
 
+async function attachPublicJournal(trip: PublicTripDetail, tripId: string) {
+  if (!process.env["SUPABASE_SERVICE_ROLE_KEY"] || !/^[0-9a-f-]{36}$/i.test(tripId)) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const admin = supabaseAdmin as any;
+  const { data } = await admin.from("trip_journal_entries").select("id,entry_date,title,body,location_name,rating,photo_paths,photo_captions").eq("trip_uuid", tripId).eq("visibility", "public").order("entry_date");
+  trip.journal = await Promise.all((data ?? []).map(async (entry: any) => {
+    const paths = (entry.photo_paths ?? []).slice(0, 8) as string[];
+    const signed = paths.length ? await admin.storage.from("trip-journal").createSignedUrls(paths, 900) : { data: [] };
+    return { id: entry.id, date: entry.entry_date, title: entry.title, body: entry.body, ...(entry.location_name ? { location: entry.location_name } : {}), ...(entry.rating ? { rating: entry.rating } : {}), photos: paths.flatMap((path, index) => signed.data?.[index]?.signedUrl ? [{ url: signed.data[index]!.signedUrl!, ...(entry.photo_captions?.[path] ? { caption: String(entry.photo_captions[path]) } : {}) }] : []) } satisfies PublicJournalEntry;
+  }));
+}
+
 function tripsOf(row: Row, includePinProtected = true): AnyTrip[] {
   const data = row.data as { trips?: AnyTrip[] } | null;
   if (!data || !Array.isArray(data.trips)) return [];
@@ -243,6 +257,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
         result.trip.stops = Array.isArray(result.trip.stops) ? result.trip.stops : [];
         result.trip.itinerary = Array.isArray(result.trip.itinerary) ? result.trip.itinerary : [];
         result.trip.travelItems = Array.isArray(result.trip.travelItems) ? result.trip.travelItems : [];
+        result.trip.journal = [];
         result.trip.weatherEnabled = Boolean(result.trip.weatherEnabled);
         const { data: branding } = await publicDb.rpc("get_public_trip_branding" as never, { p_token: input.token, p_trip_id: input.tripId } as never);
         if (branding && typeof branding === "object") {
@@ -256,6 +271,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
             const { data: signed } = await supabaseAdmin.storage.from("trip-covers").createSignedUrl(coveredTrip.cover_path, 900);
             if (signed?.signedUrl) result.trip.coverUrl = signed.signedUrl;
           }
+          await attachPublicJournal(result.trip, input.tripId);
         }
       }
       return result;
@@ -338,8 +354,10 @@ export const getPublicTrip = createServerFn({ method: "GET" })
         travelItems: ((travelItems ?? []) as RelationalTravelItem[])
           .map(relationalPublicTravelItem)
           .filter((item): item is PublicTravelItem => Boolean(item)),
+        journal: [],
         weatherEnabled: workspace.plan === "pro" || workspace.plan === "agency",
       };
+      await attachPublicJournal(detail, normalizedTrip.trip_uuid);
       if (normalizedTrip.share_financials) {
         detail.budget = Number(normalizedTrip.budget ?? 0);
         detail.currency = "EUR";
@@ -366,6 +384,7 @@ export const getPublicTrip = createServerFn({ method: "GET" })
       travelItems: (Array.isArray(trip["travelItems"]) ? (trip["travelItems"] as AnyTrip[]) : [])
         .map(publicTravelItem)
         .filter((item): item is PublicTravelItem => Boolean(item)),
+      journal: [],
       weatherEnabled:
         (row.data as AnyTrip | null)?.["plan"] === "pro" ||
         (row.data as AnyTrip | null)?.["plan"] === "agency",

@@ -1,9 +1,26 @@
 # GlobeTrotr technisch changelog
 
-Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor 1 oktober 2026 en wordt pas gepubliceerd na een geslaagde productieacceptatie. Detailwijzigingen blijven in Git beschikbaar.
+Publieke releases lopen van beta 0.1 tot en met 0.9.1. Release 1.0 is gepland voor 1 oktober 2026 en wordt pas gepubliceerd na een geslaagde productieacceptatie. Detailwijzigingen blijven in Git beschikbaar.
+
+## Beta 0.9.1 — 25 september 2026, 17:10 CEST
+
+- Persoonlijke favoriete plaatsen kunnen tussen reizen worden hergebruikt.
+- Reistaken ondersteunen een vertrekcheck, boodschappenlijst en eigen gedeelde lijsten.
+- Opeenvolgende ontbrekende hotelnachten op dezelfde plaats verschijnen als één volledige verblijfsperiode.
+- GPX-import toont vóór het toevoegen een lokale routepreview met routevolgorde, selectie en herkenbare bestaande punten.
+- Offline uitgaven zijn afzonderlijk selecteerbaar en verwijderbaar; conflicterende regels worden niet stil overschreven.
+- Meerdere reizigers kunnen in één gecontroleerde invoer worden uitgenodigd; GlobeTrotr toont vooraf hun rol en toegang en kan bestaande rollen in bulk wijzigen.
+- Een reisvariant toont vooraf wat wordt gekopieerd en laat reisgenoten, documenten, uitgaven, betalingen, deelinstellingen en reserveringscodes veilig achter.
+- Vanuit een routeplaats kunnen reizigers restaurants, bezienswaardigheden, activiteiten en praktische voorzieningen binnen 5 km zoeken, de bron controleren en een resultaat na bevestiging aan de dagplanning toevoegen.
+- Verblijfskandidaten gebruiken nu één vergelijkbare zoekvraag met bestemming, datums, gasten, kamers, volledige prijs, belastingen en voorwaarden.
+- Het reisdagboek heeft een eigen tabblad met visuele tijdlijn, fotogalerij en routekaart. Iedere herinnering ondersteunt een bestemming, waardering, uitgebreid verhaal en maximaal acht afgeschermde foto's met een schermvullende fotoviewer. Per herinnering bepaal je of alleen jij, reisgenoten of de gedeelde reisgids deze mag zien.
 
 ## Release 1.0 — in voorbereiding, 25 september 2026
 
+- Het nieuwe reisdagboek staat als volwaardige 1.0-functie klaar in een eigen tabblad, met een visuele tijdlijn, fotogalerij, routekaart, groepsauteurschap, meerdere afgeschermde foto's, volgorde en omslagfoto, bijschriften, schermvullende viewer, waardering, selectieve zichtbaarheid en rijkere reisgids-export.
+- Dagboekfoto's zijn nu ook versleepbaar, afzonderlijk vervangbaar en voorzien van een status per upload. Tekst wordt lokaal als offline concept bewaard met zichtbaar opslaggebruik.
+- De openbare reisterugblik toont uitsluitend bewust openbare herinneringen met kort geldige fotolinks en behoudt de Agency-branding van de gedeelde reis.
+- Routeoptimalisatie vergelijkt de bestaande volgorde met een korter voorstel, toont geschatte afstand en reistijd en past nooit iets toe zonder bevestiging.
 - Reizigers kunnen persoonlijke favoriete plaatsen bewaren, later aan een andere reis toevoegen en weer verwijderen; deze gegevens zijn opgenomen in de accountexport en privacyverklaring.
 - Reistaken zijn uitgebreid met gedeelde vertrek-, boodschappen- en zelf benoemde checklists, met dezelfde reisrechten, verantwoordelijke en deadline.
 - Corporate Admin begint met een lege lijst actieve implementatiechecks; oude onafgeronde controles blijven als alleen-lezen historie beschikbaar onder Archief en Agency blijft apart voor later.
@@ -18,6 +35,7 @@ Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor
 - Vertaalde HTML-mail blijft na vertalen een opgemaakte, afgeschermde e-mail in plaats van zichtbare HTML-code.
 - De hotelcontrole gebruikt de routepositie als standaard slaapplaats, toont de lange keuzelijst alleen bij wijzigen en zoekt met een tweede providerfallback tot 15 km.
 - Bij ontbrekende nachten gebruikt de hotelcontrole nu eerst de datumgebonden aankomst of activiteit uit vluchten, vervoer en andere boekingen; alleen zonder bruikbare locatie vraagt hij nog om een routeplaats.
+- Opeenvolgende ontbrekende nachten met dezelfde voorgestelde slaapplaats worden als één periode gegroepeerd, ook als de onderbouwing onderweg wisselt van expliciete overnachting naar routepositie.
 - De publieke website toont na een afgeschermde portalcontrole direct de juiste accountavatar; tokens blijven uitsluitend op het portaal.
 - Een gesloten Paddle-overlay blijft niet meer op ‘checkout openen…’ staan en biedt een duidelijke terugweg naar Abonnement.
 

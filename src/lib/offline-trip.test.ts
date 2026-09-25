@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createOfflineTripPack, mergeOfflineExpenses, summarizeOfflineTripPack } from "./offline-trip.ts";
-import type { Trip } from "./types.ts";
+import { createOfflineTripPack, findOfflineExpenseConflicts, mergeOfflineExpenses, summarizeOfflineTripPack } from "./offline-trip.ts";
+import type { Expense, Trip } from "./types.ts";
+import type { OfflineExpense } from "./offline-trip.ts";
 
 test("offline packs retain practical details and exclude booking secrets and money", () => {
   const trip = {
@@ -27,4 +28,15 @@ test("offline expenses merge once without replacing current server data", () => 
   const merged = mergeOfflineExpenses([existing], [queued, existing]);
   assert.deepEqual(merged.map((expense) => expense.id), ["existing", "queued"]);
   assert.equal(merged[0]?.title, "Train");
+});
+
+test("offline expense conflicts only flag changed records with the same id", () => {
+  const base: OfflineExpense = { id: "same", date: "2026-10-01", title: "Lunch", amount: 20, currency: "EUR", paidBy: "a", category: "food", billable: false, queuedAt: "2026-10-01T12:00:00Z" };
+  const { queuedAt: _queuedAt, ...serverExpense } = base;
+  const current: Expense[] = [serverExpense];
+  const queued: OfflineExpense[] = [
+    { ...base, amount: 25 },
+    { ...base, id: "new" },
+  ];
+  assert.deepEqual(findOfflineExpenseConflicts(current, queued), ["same"]);
 });

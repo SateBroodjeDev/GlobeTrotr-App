@@ -20,6 +20,8 @@ Alle controles beginnen bewust leeg. Gebruik **Geslaagd**, **Mislukt** of
 | Migratie en test 1770 slagen |  |  |
 | Migratie en test 1780 slagen |  |  |
 | Migratie en test 1790 archiveren oude open checks zonder ze als geslaagd te markeren |  |  |
+| Migratie en test 1800 maken het afgeschermde reisdagboek beschikbaar |  |  |
+| Migratie en test 1810 leggen opslagmetadata vast zonder externe opslag te activeren |  |  |
 | `npm run verify` en productiebuild slagen |  |  |
 | Node-01 webcontainer is gezond |  |  |
 | Hoofddomein en portaal openen via HTTPS |  |  |
@@ -75,7 +77,19 @@ Alle controles beginnen bewust leeg. Gebruik **Geslaagd**, **Mislukt** of
 | Offline dagoverzicht opent in vliegtuigmodus |  |  |
 | Offline uitgave synchroniseert precies één keer |  |  |
 
-## F. Betaling en meldingen
+## F. Reisdagboek en routevoorstel
+
+| Controle | Status | Resultaat/opmerking |
+| --- | --- | --- |
+| Herinnering met datum, locatie, waardering en meerdere foto's opslaan |  |  |
+| Foto's ordenen, vervangen en verwijderen; bijschriften en omslag blijven na herladen behouden |  |  |
+| Tekstconcept blijft zonder internet lokaal beschikbaar en wordt alleen bewust opgeslagen |  |  |
+| Privé-, reisleden- en openbare zichtbaarheid werken met een tweede account |  |  |
+| Publieke reisterugblik toont alleen openbare herinneringen en geen gevoelige reisgegevens |  |  |
+| Routevoorstel toont huidige en voorgestelde volgorde met geschatte afstand en tijd |  |  |
+| Route blijft ongewijzigd na annuleren en verandert alleen na expliciet toepassen |  |  |
+
+## G. Betaling en meldingen
 
 | Controle | Status | Resultaat/opmerking |
 | --- | --- | --- |
@@ -88,7 +102,7 @@ Alle controles beginnen bewust leeg. Gebruik **Geslaagd**, **Mislukt** of
 | Testpush komt aan met gesloten tabblad |  |  |
 | Boekingsherinnering wordt maximaal één keer verstuurd |  |  |
 
-## G. Mail en Corporate Admin
+## H. Mail en Corporate Admin
 
 | Controle | Status | Resultaat/opmerking |
 | --- | --- | --- |
@@ -100,7 +114,7 @@ Alle controles beginnen bewust leeg. Gebruik **Geslaagd**, **Mislukt** of
 | Mailboxwachtwoord toont gemaskeerde status |  |  |
 | Governance-, incident- en auditdetails zijn beheerbaar |  |  |
 
-## H. Taal, privacy en mobiel
+## I. Taal, privacy en mobiel
 
 | Controle | Status | Resultaat/opmerking |
 | --- | --- | --- |

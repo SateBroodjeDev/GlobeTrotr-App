@@ -307,6 +307,7 @@ export function openGuide(
   brand: { brandName: string; domain: string },
   locale: AppLocale,
   coverUrl?: string | null,
+  journal: { entry_date: string; title: string; body: string; location_name?: string | null; rating?: number | null; photo_urls?: string[]; photo_captions?: string[] }[] = [],
 ) {
   const en = locale === "en-GB";
   const total = trip.expenses.reduce((s, e) => s + convert(e.amount, e.currency, base, rates), 0);
@@ -326,6 +327,7 @@ export function openGuide(
  .day{margin-bottom:10px} .day b{font-size:13px}
  .grid{display:flex;flex-wrap:wrap;gap:8px}
  .chip{border:1px solid #d8e5e2;border-radius:8px;padding:6px 10px;font-size:12px}
+ .journal-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.journal-photos figure{margin:0}.journal-photos img{width:100%;height:140px;object-fit:cover;border-radius:8px}.journal-photos figcaption{font-size:10px;color:#68807c;margin-top:2px}
  a{color:#0f9b8e}
  @media print{@page{margin:14mm} a{text-decoration:none}}
 </style></head><body>
@@ -365,6 +367,8 @@ ${
         .join("")}</ul>`
     : ""
 }
+
+${journal.length ? `<h2>${en ? "Travel journal" : "Reisdagboek"}</h2>${journal.map((entry)=>`<div class="day"><b>${escapeHtml(entry.entry_date)} · ${escapeHtml(entry.title)}</b>${entry.location_name ? `<p class="muted">${escapeHtml(entry.location_name)}${entry.rating ? ` · ${"★".repeat(entry.rating)}${"☆".repeat(5-entry.rating)}` : ""}</p>` : entry.rating ? `<p class="muted">${"★".repeat(entry.rating)}${"☆".repeat(5-entry.rating)}</p>` : ""}${entry.photo_urls?.length ? `<div class="journal-photos">${entry.photo_urls.slice(0,6).map((url,index)=>`<figure><img src="${escapeHtml(url)}" alt="">${entry.photo_captions?.[index] ? `<figcaption>${escapeHtml(entry.photo_captions[index])}</figcaption>` : ""}</figure>`).join("")}</div>` : ""}${entry.body?`<p class="muted">${escapeHtml(entry.body).replaceAll("\n","<br>")}</p>`:""}</div>`).join("")}` : ""}
 
 <h2>Budget</h2>
 <p class="muted">${en ? "Spent" : "Uitgegeven"} ${formatMoney(total, base)} ${en ? "of" : "van"} ${formatMoney(trip.budget, base)} · ${en ? "remaining" : "restant"} ${formatMoney(

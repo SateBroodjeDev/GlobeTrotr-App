@@ -36,16 +36,104 @@ export const PUBLIC_BETA_STATUS = {
 
 /** Zichtbaar werk in ontwikkeling; verschijnt bewust niet als gepubliceerde release. */
 export const PUBLIC_IN_PROGRESS = {
-  title: "Op weg naar 1.0 · gepland voor 1 oktober",
-  titleEn: "On the way to 1.0 · planned for 1 October",
+  title: "Beta 0.9.1 naar productie · release 1.0 gepland voor 1 oktober",
+  titleEn: "Taking Beta 0.9.1 to production · release 1.0 planned for 1 October",
   description:
-    "We testen dagelijks favoriete plaatsen, gedeelde reischecklists, slimmere hotelcontrole op basis van aankomsten en activiteiten, de Reisvergelijker, live agenda, vertrekcheck, automatische boekingsherinneringen, offline gebruik, het verschuiven van reisdatums, white-label Agency-domeinen en volledig eigen Agency-mailbranding en SMTP, pushmeldingen met keuzes per categorie en verbeterd bedrijfsmailbeheer. Release 1.0 volgt alleen als de productiechecks slagen. ZXCS blijft de centrale terugval; de eigen mailserver hoort niet bij deze release.",
+    "De gebouwde 0.9.1-ronde wordt nu gecontroleerd uitgerold en getest: GPX-preview, groepsbeheer, offline uitgaven, plaatsen langs de route, verblijfvergelijking, het uitgebreide reisdagboek met bewuste openbare reisterugblik en een controleerbaar routevoorstel. Release 1.0 volgt alleen als registratie, betaling, privacy, agenda, push, ZXCS-mail, mobiel gebruik en deze nieuwe reisfuncties de productiechecks doorstaan.",
   descriptionEn:
-    "We are testing favourite places, shared trip checklists, smarter accommodation checks based on arrivals and activities, Trip Comparison, live calendars, departure checks, automatic booking reminders, offline use, trip date shifting, white-label Agency domains and fully branded Agency email and SMTP, push notifications with category controls and improved company mail management every day. Release 1.0 will only follow when production checks pass. ZXCS remains the central fallback; the self-hosted mail server is outside this release.",
+    "The completed 0.9.1 round is now being rolled out and tested in a controlled way: GPX previews, group management, offline expenses, places along the route, accommodation comparison, the expanded travel journal with an intentional public travel story, and a reviewable route proposal. Release 1.0 will only follow when registration, payments, privacy, calendars, push, ZXCS email, mobile use and these new travel features pass production checks.",
 } as const;
 
 /** Public-safe, grouped release notes. Unreleased or unverified fixes stay out of this list. */
 export const PUBLIC_RELEASES: PublicRelease[] = [
+  {
+    id: "2026-09-25-beta-0-9-1",
+    version: "Beta 0.9.1",
+    publishedAt: "2026-09-25T17:10:00+02:00",
+    title: "Persoonlijker plannen en duidelijker voorbereiden",
+    titleEn: "More personal planning and clearer preparation",
+    summary: "Een brede beta-update voor route-import, samenwerken, offline gebruik, verblijfcontrole, het reisdagboek en een controleerbaar routevoorstel.",
+    summaryEn: "A broad beta update for route imports, collaboration, offline use, accommodation checks, the travel journal and a reviewable route proposal.",
+    changes: [
+      {
+        kind: "new",
+        title: "Favoriete plaatsen",
+        titleEn: "Favourite places",
+        description: "Bewaar persoonlijke plaatsen en voeg ze later snel aan een andere reis toe.",
+        descriptionEn: "Save personal places and quickly add them to another trip later.",
+      },
+      {
+        kind: "new",
+        title: "Gedeelde reislijsten",
+        titleEn: "Shared trip lists",
+        description: "Taken zijn te ordenen als vertrekcheck, boodschappenlijst of een eigen lijst, met verantwoordelijke en deadline.",
+        descriptionEn: "Tasks can be organised as departure, shopping or custom lists, with an assignee and deadline.",
+      },
+      {
+        kind: "new",
+        title: "Groepen uitnodigen",
+        titleEn: "Group invitations",
+        description: "Nodig meerdere reizigers tegelijk uit, bekijk vooraf hun toegang en wijzig bestaande rollen in bulk.",
+        descriptionEn: "Invite multiple travellers at once, preview their access and update existing roles in bulk.",
+      },
+      {
+        kind: "improved",
+        title: "Veilige reisvariant",
+        titleEn: "Safe trip variant",
+        description: "Bekijk vooraf wat wordt gekopieerd; toegang, documenten, betalingen en reserveringscodes blijven achter.",
+        descriptionEn: "Preview what will be copied; access, documents, payments and reservation codes stay behind.",
+      },
+      {
+        kind: "new",
+        title: "Plaatsen langs de route",
+        titleEn: "Places along the route",
+        description: "Zoek rond een routeplaats naar horeca, activiteiten, bezienswaardigheden en praktische voorzieningen en voeg ze pas na controle toe.",
+        descriptionEn: "Find food, activities, sights and practical services near a route stop and add them only after reviewing the result.",
+      },
+      {
+        kind: "improved",
+        title: "Eerlijke hotelvergelijking",
+        titleEn: "Fair hotel comparison",
+        description: "Vergelijk verblijfskandidaten met dezelfde bestemming, data, gasten en kamers, inclusief prijs, belastingen en voorwaarden.",
+        descriptionEn: "Compare accommodation candidates using the same destination, dates, guests and rooms, including price, taxes and terms.",
+      },
+      {
+        kind: "new",
+        title: "Reisdagboek",
+        titleEn: "Travel journal",
+        description: "Herbeleef je reis via een tijdlijn, galerij en kaart. Orden, vervang en beschrijf foto's, bewaar tekst offline en deel alleen bewust gekozen herinneringen in de openbare reisterugblik.",
+        descriptionEn: "Relive your trip through a timeline, gallery and map. Order, replace and caption photos, save text offline and share only deliberately selected memories in the public travel story.",
+      },
+      {
+        kind: "new",
+        title: "Routevoorstel met controle",
+        titleEn: "Route proposal with review",
+        description: "Vergelijk de huidige stopvolgorde met een korter voorstel en een indicatie van afstand en reistijd. De route verandert pas na je bevestiging.",
+        descriptionEn: "Compare the current stop order with a shorter proposal and estimated distance and travel time. The route only changes after your confirmation.",
+      },
+      {
+        kind: "improved",
+        title: "Ontbrekende verblijven per periode",
+        titleEn: "Missing stays grouped by period",
+        description: "Opeenvolgende ontbrekende nachten op dezelfde plaats worden als één duidelijke verblijfsperiode getoond.",
+        descriptionEn: "Consecutive missing nights in the same place are shown as one clear accommodation period.",
+      },
+      {
+        kind: "improved",
+        title: "GPX-route vooraf controleren",
+        titleEn: "Review a GPX route before import",
+        description: "Een lokaal routevoorbeeld toont volgorde, selectie en bestaande punten voordat bestemmingen worden toegevoegd.",
+        descriptionEn: "A local route preview shows order, selection and existing points before destinations are added.",
+      },
+      {
+        kind: "improved",
+        title: "Offline uitgaven beheren",
+        titleEn: "Manage offline expenses",
+        description: "Kies uitgaven afzonderlijk voor synchronisatie, verwijder een lokale regel en herken conflicten voordat servergegevens worden geraakt.",
+        descriptionEn: "Select expenses individually for synchronisation, remove a local entry and identify conflicts before server data is affected.",
+      },
+    ],
+  },
   {
     id: "2026-09-23-beta-0-9",
     version: "Beta 0.9",

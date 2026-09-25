@@ -75,6 +75,8 @@ function normalizeOptionDetails(details?: TravelOptionDetails): TravelOptionDeta
     luggageIncluded: details.luggageIncluded,
     roomType: text(details.roomType, 120),
     guests: positiveInteger(details.guests),
+    rooms: positiveInteger(details.rooms),
+    taxesAndFees: nonNegative(details.taxesAndFees),
     breakfastIncluded: details.breakfastIncluded,
     vehicle: text(details.vehicle, 120),
     vehicleCategory: text(details.vehicleCategory, 80),

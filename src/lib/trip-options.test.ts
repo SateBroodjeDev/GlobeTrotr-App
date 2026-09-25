@@ -30,6 +30,18 @@ test("travel options keep valid comparison fields and reject unsafe links", () =
   assert.equal(safeOptionUrl("https://example.com/hotel"), "https://example.com/hotel");
 });
 
+test("accommodation briefs retain bounded rooms, guests and taxes", () => {
+  const normalized = normalizeTravelOption({
+    ...option,
+    details: { locationName: " Utrecht ", guests: 2, rooms: 1, taxesAndFees: 18.5 },
+  });
+  assert.equal(normalized.details?.locationName, "Utrecht");
+  assert.equal(normalized.details?.guests, 2);
+  assert.equal(normalized.details?.rooms, 1);
+  assert.equal(normalized.details?.taxesAndFees, 18.5);
+  assert.equal(normalizeTravelOption({ ...option, details: { rooms: -1, taxesAndFees: -4 } }).details, undefined);
+});
+
 test("converting an option creates exactly one booking", () => {
   const first = convertOptionToBooking([option], [], option.id, () => "booking-1");
   assert.equal(first.changed, true);

@@ -3,7 +3,7 @@ import type { Stop } from "@/lib/types";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 
-export type TripMapPoint = { id: string; lat: number; lon: number; title: string; detail?: string; kind: "booking" | "expense" };
+export type TripMapPoint = { id: string; lat: number; lon: number; title: string; detail?: string; kind: "booking" | "expense" | "journal" };
 const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]!);
 
 export default function TripMap({
@@ -72,8 +72,8 @@ export default function TripMap({
       points.forEach((point) => {
         L.circleMarker([point.lat, point.lon], {
           radius: 7,
-          color: point.kind === "expense" ? "#f59e0b" : "#2563eb",
-          fillColor: point.kind === "expense" ? "#f59e0b" : "#2563eb",
+          color: point.kind === "expense" ? "#f59e0b" : point.kind === "journal" ? "#db2777" : "#2563eb",
+          fillColor: point.kind === "expense" ? "#f59e0b" : point.kind === "journal" ? "#db2777" : "#2563eb",
           fillOpacity: 0.85,
           weight: 2,
         }).addTo(map).bindPopup(`<b>${escapeHtml(point.title)}</b>${point.detail ? `<br/>${escapeHtml(point.detail)}` : ""}`);

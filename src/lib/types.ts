@@ -111,6 +111,8 @@ export type TravelOptionDetails = {
   luggageIncluded?: boolean;
   roomType?: string;
   guests?: number;
+  rooms?: number;
+  taxesAndFees?: number;
   breakfastIncluded?: boolean;
   vehicle?: string;
   vehicleCategory?: string;

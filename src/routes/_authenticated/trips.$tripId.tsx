@@ -54,6 +54,7 @@ import { Countdown } from "@/components/Countdown";
 import { TripBookings } from "@/components/TripBookings";
 import { TripMembers } from "@/components/TripMembers";
 import { TripTimeline } from "@/components/TripTimeline";
+import { TripJournal } from "@/components/TripJournal";
 import { TripBrandingSettings } from "@/components/TripBrandingSettings";
 import { TripNotificationPreferences } from "@/components/TripNotificationPreferences";
 import { TripDocuments } from "@/components/TripDocuments";
@@ -65,9 +66,11 @@ import { mergeOfflineExpenses } from "@/lib/offline-trip";
 import { TripCover } from "@/components/TripCover";
 import { TripOptions } from "@/components/TripOptions";
 import { HotelGapFinder } from "@/components/HotelGapFinder";
+import { NearbyPlaces } from "@/components/NearbyPlaces";
 import { TripBookingMail } from "@/components/TripBookingMail";
 import { TripGpxImport } from "@/components/TripGpxImport";
 import { TripDateShift } from "@/components/TripDateShift";
+import { TripRouteOptimizer } from "@/components/TripRouteOptimizer";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -79,7 +82,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocale } from "@/lib/locale";
 import { localizeCountry } from "@/lib/localized-values";
 import { TRIP_DESCRIPTION_MAX_LENGTH, TRIP_NAME_MAX_LENGTH } from "@/lib/trip-limits";
@@ -269,6 +272,9 @@ function TripDetail() {
   const [sharingSaving, setSharingSaving] = useState(false);
   const [settings, setSettings] = useState<TripSettingsDraft>(() => settingsFromTrip(trip));
   const [settingsSaving, setSettingsSaving] = useState(false);
+  const [variantOpen, setVariantOpen] = useState(false);
+  const [variantName, setVariantName] = useState("");
+  const [variantSaving, setVariantSaving] = useState(false);
   const [showAllStops, setShowAllStops] = useState(false);
   const [pendingStop, setPendingStop] = useState<GeoResult>();
   const [pendingStopOvernight, setPendingStopOvernight] = useState(false);
@@ -643,6 +649,36 @@ function TripDetail() {
     }
   }
 
+  function openVariantDialog() {
+    setVariantName(duplicateTripName(trip.name, text("variant", "variant"), TRIP_NAME_MAX_LENGTH));
+    setVariantOpen(true);
+  }
+
+  async function createTripVariant() {
+    const name = variantName.trim();
+    if (!name || name.length > TRIP_NAME_MAX_LENGTH) {
+      toast.error(text(`Gebruik een naam van maximaal ${TRIP_NAME_MAX_LENGTH} tekens.`, `Use a name of no more than ${TRIP_NAME_MAX_LENGTH} characters.`));
+      return;
+    }
+    let newId: string | undefined;
+    setVariantSaving(true);
+    try {
+      newId = await addTrip(name, trip.template);
+      await saveTripNow(newId, (created) => ({
+        ...buildTripDuplicate(trip, created, () => crypto.randomUUID()),
+        name,
+      }));
+      toast.success(text("Veilige reisvariant aangemaakt.", "Safe trip variant created."));
+      setVariantOpen(false);
+      navigate({ to: "/trips/$tripId", params: { tripId: newId } });
+    } catch (error) {
+      if (newId) await removeTrip(newId).catch(() => undefined);
+      toast.error(error instanceof Error ? error.message : text("De reisvariant kon niet worden gemaakt.", "The trip variant could not be created."));
+    } finally {
+      setVariantSaving(false);
+    }
+  }
+
   async function removeExpense(expenseId: string) {
     if (
       !window.confirm(
@@ -832,6 +868,7 @@ function TripDetail() {
               <option value="today">{text("Vandaag", "Today")}</option>
               <option value="route">{text("Routekaart", "Route map")}</option>
               <option value="plan">{text("Reisschema", "Itinerary")}</option>
+              <option value="journal">{text("Reisdagboek", "Travel journal")}</option>
             </optgroup>
             {editable && (
               <optgroup label={text("Plannen", "Planning")}>
@@ -860,6 +897,7 @@ function TripDetail() {
           <TabsTrigger value="today">{text("Vandaag", "Today")}</TabsTrigger>
           <TabsTrigger value="route">{text("Routekaart", "Route map")}</TabsTrigger>
           <TabsTrigger value="plan">{text("Reisschema", "Itinerary")}</TabsTrigger>
+          <TabsTrigger value="journal">{text("Dagboek", "Journal")}</TabsTrigger>
           {editable && (
             <TabsTrigger value="plan-edit">
               {text("Reisschema aanpassen", "Edit itinerary")}
@@ -896,6 +934,10 @@ function TripDetail() {
             save={(fn) => saveTripNow(trip.id, fn)}
             text={text}
           />
+        </TabsContent>
+
+        <TabsContent value="journal" className="space-y-4">
+          <TripJournal tripId={trip.id} start={trip.start} end={trip.end} editable={editable} stops={trip.stops} />
         </TabsContent>
 
         {editable && <TabsContent value="booking-mail" className="space-y-4">
@@ -1095,7 +1137,7 @@ function TripDetail() {
                   <Button variant="outline" disabled={!moneyEditable} onClick={() => { downloadCsv(trip, base, rates, locale); toast.success(text("CSV geëxporteerd", "CSV exported")); }}><FileDown className="size-4" />CSV</Button>
                   <Button variant="outline" onClick={() => { if (downloadTripGpx(trip)) toast.success(text("GPX-route gedownload", "GPX route downloaded")); else toast.error(text("Voeg eerst een bestemming met kaartcoördinaten toe.", "Add a destination with map coordinates first.")); }}><Download className="size-4" />GPX</Button>
                   {editable && <TripGpxImport stops={trip.stops} text={text} onImport={async(points) => { await saveTripNow(trip.id, (current) => ({ ...current, stops: [...current.stops, ...points.map((point) => ({ id: uid(), name: point.name, country: "", lat: point.lat, lon: point.lon, nights: 0 }))] })); }} />}
-                  <Button variant="outline" onClick={() => { openGuide(trip, base, rates, exportBranding, locale, coverUrl); toast.success(text("Reisgids gedownload", "Trip guide downloaded")); }}><BookOpen className="size-4" />{text("Reisgids", "Trip guide")}</Button>
+                  <Button variant="outline" onClick={() => void (async()=>{const{data}=await (supabase as any).from("trip_journal_entries").select("entry_date,title,body,location_name,rating,photo_path,photo_paths,photo_captions").eq("trip_uuid",trip.id).eq("visibility","public").order("entry_date");const journal=await Promise.all((data??[]).map(async(entry:any)=>{const paths=[...new Set([...(entry.photo_paths??[]),...(entry.photo_path?[entry.photo_path]:[])])] as string[];const signed=paths.length?await supabase.storage.from("trip-journal").createSignedUrls(paths,3600):{data:[]};return{...entry,photo_urls:(signed.data??[]).flatMap(item=>item.signedUrl?[item.signedUrl]:[]),photo_captions:paths.map(path=>entry.photo_captions?.[path]??"")}}));openGuide(trip,base,rates,exportBranding,locale,coverUrl,journal);toast.success(text("Reisgids gedownload","Trip guide downloaded"))})()}><BookOpen className="size-4" />{text("Reisgids", "Trip guide")}</Button>
                   <Button disabled={!moneyEditable} onClick={() => { if (!hasFeature(state.plan, "pdf_export")) { toast.error(text("PDF-declaraties zitten in Pro en hoger.", "PDF expense reports are available on Pro and above.")); return; } if (!openPdf(trip, base, rates, exportBranding, locale)) toast.error(text("Sta pop-ups toe om de PDF te genereren.", "Allow pop-ups to generate the PDF.")); }}><FileText className="size-4" />PDF {text("declaratie", "expense report")}</Button>
                 </CardContent>
               </Card>
@@ -1279,35 +1321,9 @@ function TripDetail() {
                     <Button
                       variant="outline"
                       disabled={!tripOwner}
-                      onClick={async () => {
-                        let newId: string | undefined;
-                        try {
-                          const name = duplicateTripName(
-                            trip.name,
-                            text("kopie", "copy"),
-                            TRIP_NAME_MAX_LENGTH,
-                          );
-                          newId = await addTrip(name, trip.template);
-                          await saveTripNow(newId, (created) => ({
-                            ...buildTripDuplicate(trip, created, () => crypto.randomUUID()),
-                            name,
-                          }));
-                          toast.success(text("Reisvariant aangemaakt", "Trip variant created"));
-                          navigate({ to: "/trips/$tripId", params: { tripId: newId } });
-                        } catch (error) {
-                          if (newId) await removeTrip(newId).catch(() => undefined);
-                          toast.error(
-                            error instanceof Error
-                              ? error.message
-                              : text(
-                                  "De reis kon niet worden gekopieerd.",
-                                  "The trip could not be copied.",
-                                ),
-                          );
-                        }
-                      }}
+                      onClick={openVariantDialog}
                     >
-                      <Copy className="size-4" /> {text("Reis dupliceren", "Duplicate trip")}
+                      <Copy className="size-4" /> {text("Reisvariant maken", "Create trip variant")}
                     </Button>
                     <Button
                       variant="destructive"
@@ -1341,6 +1357,27 @@ function TripDetail() {
                       <Trash2 className="size-4" /> {text("Verwijderen", "Delete")}
                     </Button>
                   </div>
+                  <Dialog open={variantOpen} onOpenChange={(open) => { if (!variantSaving) setVariantOpen(open); }}>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{text("Veilige reisvariant maken", "Create a safe trip variant")}</DialogTitle>
+                        <DialogDescription>{text("De route, planning, boekingen zonder reserveringscodes en paklijst worden gekopieerd. Reisgenoten, uitnodigingen, uitgaven, documenten, betalingen, deelinstellingen en vergelijkingsprijzen blijven achter.", "The route, itinerary, bookings without reservation codes and packing list are copied. Travellers, invitations, expenses, documents, payments, sharing settings and comparison prices stay behind.")}</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-2">
+                        <Label htmlFor="variant-name">{text("Naam van de variant", "Variant name")}</Label>
+                        <Input id="variant-name" value={variantName} maxLength={TRIP_NAME_MAX_LENGTH} disabled={variantSaving} onChange={(event) => setVariantName(event.target.value)} />
+                        <p className="text-xs text-muted-foreground">{variantName.length}/{TRIP_NAME_MAX_LENGTH}</p>
+                      </div>
+                      <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                        <p className="font-medium">{text("Wordt meegenomen", "Included")}</p>
+                        <p className="mt-1 text-muted-foreground">{text(`${trip.stops.length} routeplaatsen · ${trip.itinerary.length} planningsregels · ${(trip.travelItems ?? []).length} boekingen · ${(trip.packing ?? []).length} paklijstitems`, `${trip.stops.length} route stops · ${trip.itinerary.length} itinerary items · ${(trip.travelItems ?? []).length} bookings · ${(trip.packing ?? []).length} packing items`)}</p>
+                      </div>
+                      <DialogFooter>
+                        <Button type="button" variant="outline" disabled={variantSaving} onClick={() => setVariantOpen(false)}>{text("Annuleren", "Cancel")}</Button>
+                        <Button type="button" disabled={variantSaving || !variantName.trim()} onClick={() => void createTripVariant()}>{text("Variant maken", "Create variant")}</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -1515,7 +1552,8 @@ function TripDetail() {
                     </Button>
                   )}
                   {trip.stops.length > 0 && (
-                    <div>
+                    <div className="flex flex-wrap gap-2">
+                      <TripRouteOptimizer stops={trip.stops} text={text} save={(update) => saveTripNow(trip.id, update)} />
                       <Button
                         type="button"
                         variant="outline"
@@ -1615,6 +1653,16 @@ function TripDetail() {
                 />
               </TabsContent>
               <TabsContent value="days" className="mt-4">
+                <NearbyPlaces
+                  trip={trip}
+                  editable={editable}
+                  onAdd={async (next) => {
+                    await saveTripNow(trip.id, (current) => ({
+                      ...current,
+                      itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) => a.day.localeCompare(b.day)),
+                    }));
+                  }}
+                />
                 <TripTimeline
                   trip={trip}
                   baseCurrency={base}

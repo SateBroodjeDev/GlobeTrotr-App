@@ -14,6 +14,7 @@ import {
   Ticket,
   TrainFront,
   Wallet,
+  BookHeart,
 } from "lucide-react";
 import { getPublicTrip } from "@/lib/public.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -336,6 +337,8 @@ export function PublicTrip() {
           </div>
         )}
       </section>
+
+      {trip.journal.length > 0 && <section className="space-y-4"><div><p className="text-xs font-semibold uppercase tracking-widest text-primary">{text("Herinneringen", "Memories")}</p><h2 className="mt-1 font-display text-2xl font-semibold">{text("Reisterugblik", "Travel story")}</h2><p className="mt-1 text-sm text-muted-foreground">{text("Alleen herinneringen die bewust voor de gedeelde reisgids zijn gekozen.", "Only memories deliberately selected for the shared trip guide.")}</p></div><div className="grid gap-5 md:grid-cols-2">{trip.journal.map((entry) => <article key={entry.id} className="overflow-hidden rounded-2xl border bg-card shadow-sm">{entry.photos[0] && <img src={entry.photos[0].url} alt={entry.photos[0].caption ?? ""} className="aspect-[16/10] w-full object-cover" loading="lazy" />}<div className="p-5"><p className="text-xs text-muted-foreground">{formatDate(entry.date, locale)}{entry.location ? ` · ${entry.location}` : ""}</p><h3 className="mt-1 flex items-center gap-2 text-xl font-semibold"><BookHeart className="size-5 text-primary"/>{entry.title}</h3>{entry.rating && <p className="mt-2 text-amber-600">{"★".repeat(entry.rating)}</p>}<p className="mt-3 whitespace-pre-wrap text-sm leading-6">{entry.body}</p>{entry.photos.length > 1 && <div className="mt-4 grid grid-cols-3 gap-2">{entry.photos.slice(1, 4).map((photo) => <img key={photo.url} src={photo.url} alt={photo.caption ?? ""} loading="lazy" className="aspect-square w-full rounded-lg object-cover"/>)}</div>}</div></article>)}</div></section>}
 
       {typeof trip.budget === "number" && (
         <Card className="surface overflow-hidden border-primary/20 bg-primary/5">

@@ -1,38 +1,49 @@
 export const PUBLIC_TODAY = {
   date: ["25 september 2026", "25 September 2026"],
-  title: ["Dagelijks werken aan release 1.0", "Working towards release 1.0 every day"],
+  title: ["Beta 0.9.1 gereedmaken voor release 1.0", "Preparing Beta 0.9.1 for release 1.0"],
   description: [
-    "De beta loopt van 0.1 tot en met 0.9. We gebruiken deze laatste week voor praktijktests, herstel van bekende problemen en een gecontroleerde productie-uitrol. Release 1.0 staat gepland voor 1 oktober en gaat alleen door wanneer de vrijgavecontrole slaagt.",
-    "The beta runs from 0.1 through 0.9. We are using this final week for practical tests, resolving known issues and a controlled production rollout. Release 1.0 is planned for 1 October and will only proceed when release checks pass.",
+    "Beta 0.9.1 bundelt de laatste productronde voor route-import, samenwerken, offline gebruik, verblijfcontrole, reisdagboek en routeverbetering. De functies zijn gebouwd; deze laatste week gebruiken we voor een gecontroleerde productie-uitrol en praktijktests. Release 1.0 staat gepland voor 1 oktober en gaat alleen door wanneer de vrijgavecontrole slaagt.",
+    "Beta 0.9.1 bundles the final product round for route imports, collaboration, offline use, accommodation checks, the travel journal and route improvements. The features are built; we are using this final week for a controlled production rollout and practical testing. Release 1.0 is planned for 1 October and will only proceed when release checks pass.",
   ],
   completed: [
     ["Reisplanning, samenwerking, boekingen, uitgaven en delen", "Trip planning, collaboration, bookings, expenses and sharing"],
-    ["Paddle-betalingen, facturen en abonnementsrechten", "Paddle payments, invoices and subscription entitlements"],
-    ["Agency- en Corporate Admin, klantportaal en governance", "Agency and Corporate Admin, client portal and governance"],
-    ["Veilige exports, GPX, live agenda en begrensd offline gebruik", "Safe exports, GPX, live calendar and bounded offline use"],
+    ["Reisdagboek met afgeschermde foto's en bewuste publieke reisterugblik", "Travel journal with protected photos and an intentional public travel story"],
+    ["Routevoorstel, GPX-preview, plaatsen langs de route en verblijfvergelijking", "Route proposals, GPX previews, places along the route and accommodation comparison"],
+    ["Paddle, veilige exports, live agenda, meldingen en begrensd offline gebruik", "Paddle, safe exports, live calendars, notifications and bounded offline use"],
   ],
 } as const;
 
 export const PUBLIC_ROADMAP = [
-  { status: "now", title: ["Deze week", "This week"], description: ["Release 1.0 bewijzen op echte productiegegevens en apparaten.", "Prove release 1.0 with real production data and devices."], items: [
-    ["Reisvergelijker, reacties en peilingen na herladen controleren", "Verify Trip Comparison, comments and polls after reloading"],
-    ["Live agenda, offline dagoverzicht en mobiele reisbediening testen", "Test live calendars, the offline daily view and mobile trip controls"],
-    ["Pushmeldingen configureren en end-to-end ontvangen", "Configure and receive push notifications end to end"],
-    ["Registratie, betalingen, privacy en ZXCS-mail opnieuw accepteren", "Re-verify registration, payments, privacy and ZXCS email"],
-    ["Reisdatums met impactpreview en verbeterd bedrijfsmailbeheer testen", "Test trip date shifting with an impact preview and improved company mail management"],
-    ["Persoonlijke favoriete plaatsen opslaan en tussen reizen hergebruiken", "Save personal favourite places and reuse them across trips"],
-    ["Gedeelde vertrek-, boodschappen- en eigen checklists controleren", "Verify shared departure, shopping and custom checklists"],
-  ] },
-  { status: "next", title: ["Na 1.0", "After 1.0"], description: ["Kleine uitbreidingen die voortbouwen op bestaande reisgegevens.", "Small extensions that build on existing trip data."], items: [
-    ["Veilige reisvarianten en praktische plaatsen rond een stop", "Safe trip variants and practical places near a stop"],
-    ["Praktische plaatsen rond een reisstop en check-inherinneringen", "Practical places near a trip stop and check-in reminders"],
-    ["Een officiële hotelprovider voor live prijzen en beschikbaarheid selecteren", "Select an official hotel provider for live prices and availability"],
-  ] },
-  { status: "later", title: ["Later", "Later"], description: ["Uitbreidingen die providers, extra privacywerk of operationeel beheer vragen.", "Extensions that require providers, additional privacy work or operational support."], items: [
-    ["Agency-domeinen, white-label branding en eigen SMTP in een afzonderlijke acceptatieronde", "Agency domains, white-label branding and custom SMTP in a separate acceptance round"],
-    ["Prijsalerts, vlucht-, autohuur- en activiteitenzoekfuncties", "Price alerts and flight, car rental and activity search"],
-    ["Routeoptimalisatie met handmatige bevestiging", "Route optimisation with manual confirmation"],
-    ["Geselecteerde documenten veilig offline beschikbaar maken", "Make selected documents safely available offline"],
-    ["Eigen mailserver pas na poortvrijgave en volledige aflever- en herstelproef", "Self-hosted email only after port access and complete delivery and recovery trials"],
-  ] },
+  {
+    status: "now",
+    title: ["Nu: productieacceptatie", "Now: production acceptance"],
+    description: ["De gebouwde 0.9.1-functies bewijzen met echte reizen, apparaten en rollen.", "Prove the completed 0.9.1 features with real trips, devices and roles."],
+    items: [
+      ["Reisdagboek testen: fotobeheer, offline tekstconcept, zichtbaarheid en openbare reisterugblik", "Test the travel journal: photo management, offline text drafts, visibility and the public travel story"],
+      ["Routevoorstel, GPX-preview, plaatsen rond de route en verblijfcontrole praktisch controleren", "Practically verify route proposals, GPX previews, places near the route and accommodation checks"],
+      ["Groepsuitnodigingen, gedeelde lijsten, Reisvergelijker en veilige reisvarianten controleren", "Verify group invitations, shared lists, Trip Comparison and safe trip variants"],
+      ["Mobiel, offline uitgaven, live agenda, registratie, betaling, privacy, push en ZXCS-mail accepteren", "Accept mobile use, offline expenses, live calendars, registration, payments, privacy, push and ZXCS email"],
+    ],
+  },
+  {
+    status: "next",
+    title: ["Na 1.0", "After 1.0"],
+    description: ["Uitbreidingen die aansluiten op de nu beschikbare reisgegevens.", "Extensions that build on the travel data now available."],
+    items: [
+      ["Een officiële hotelprovider selecteren voor live prijzen en beschikbaarheid", "Select an official hotel provider for live prices and availability"],
+      ["Routevoorstellen uitbreiden met echte wegafstanden en verkeer via een routeprovider", "Extend route proposals with real road distances and traffic through a routing provider"],
+      ["Geselecteerde documenten en dagboekfoto's veilig offline beschikbaar maken", "Make selected documents and journal photos safely available offline"],
+      ["Prijsalerts en zoekfuncties voor vlucht, autohuur en activiteiten onderzoeken", "Explore price alerts and search for flights, rental cars and activities"],
+    ],
+  },
+  {
+    status: "later",
+    title: ["Later", "Later"],
+    description: ["Werk dat extra infrastructuur, providers of een afzonderlijke acceptatieronde vraagt.", "Work that requires additional infrastructure, providers or a separate acceptance round."],
+    items: [
+      ["Agency-domeinen, white-label branding en eigen SMTP afzonderlijk accepteren", "Accept Agency domains, white-label branding and custom SMTP separately"],
+      ["Objectopslag via een verwisselbare opslaglaag inschakelen wanneer capaciteit dat nodig maakt", "Enable object storage through a replaceable storage layer when capacity requires it"],
+      ["De eigen mailserver pas vrijgeven na poortvrijgave en volledige aflever- en herstelproef", "Release the self-hosted mail server only after port access and complete delivery and recovery trials"],
+    ],
+  },
 ] as const;

@@ -22,6 +22,13 @@ export type TripHotelGap = {
   confidence: "overnight" | "booking" | "route" | "unknown";
 };
 
+const CONFIDENCE_RANK: Record<TripHotelGap["confidence"], number> = {
+  unknown: 0,
+  route: 1,
+  booking: 2,
+  overnight: 3,
+};
+
 export function configuredRouteNights(stops: Stop[]) {
   return stops.reduce((total, stop) => total + (
     DATE.test(stop.arrive ?? "") && Number.isFinite(stop.nights) && Number(stop.nights) > 0
@@ -111,12 +118,43 @@ export function findTripHotelGaps(trip: Pick<Trip, "start" | "end" | "stops" | "
     const locationKey = night.location ? `${night.location.name}:${night.location.lat}:${night.location.lon}` : "";
     const previousLocationKey = previous?.suggestedLocation
       ? `${previous.suggestedLocation.name}:${previous.suggestedLocation.lat}:${previous.suggestedLocation.lon}` : "";
-    if (previous && previous.endDate === night.date && previous.suggestedStopId === night.stopId && previousLocationKey === locationKey && previous.confidence === night.confidence) {
+    if (previous && previous.endDate === night.date && previous.suggestedStopId === night.stopId && previousLocationKey === locationKey) {
       previous.endDate = day(night.date, 1);
       previous.nights += 1;
+      if (CONFIDENCE_RANK[night.confidence] > CONFIDENCE_RANK[previous.confidence]) {
+        previous.confidence = night.confidence;
+      }
     } else {
       groups.push({ id: `${night.date}:${night.stopId ?? (locationKey || "unknown")}`, startDate: night.date, endDate: day(night.date, 1), nights: 1, ...(night.stopId ? { suggestedStopId: night.stopId } : {}), ...(night.location ? { suggestedLocation: night.location } : {}), confidence: night.confidence });
     }
   }
   return groups;
+}
+
+export function createHotelGapBooking(input: {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  location: TravelLocation;
+  provider?: string;
+  bookingReference?: string;
+  sourceUrl?: string;
+  note: string;
+}): TravelItem {
+  if (!DATE.test(input.startDate) || !DATE.test(input.endDate) || input.endDate <= input.startDate) {
+    throw new Error("INVALID_HOTEL_PERIOD");
+  }
+  const sourceUrl = input.sourceUrl?.trim().slice(0, 2048);
+  return {
+    id: input.id,
+    type: "lodging",
+    title: input.name.trim().slice(0, 160),
+    date: input.startDate,
+    endDate: input.endDate,
+    provider: input.provider?.trim().slice(0, 120) || undefined,
+    bookingReference: input.bookingReference?.trim().slice(0, 160) || undefined,
+    location: input.location,
+    notes: [input.note.trim(), sourceUrl && `Source: ${sourceUrl}`].filter(Boolean).join("\n"),
+  };
 }

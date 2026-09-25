@@ -7,8 +7,12 @@ import { uid } from "@/lib/workspace";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLocale } from "@/lib/locale";
+import { parseBulkTripInvites, tripRoleAccess } from "@/lib/trip-member-bulk";
 import {
   createTripInvitation,
   listPendingTripInvitations,
@@ -62,11 +66,20 @@ export function TripMembers({
   const [role, setRole] = useState<TripMemberRole>(roles[0]!.id);
   const [saving, setSaving] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkInput, setBulkInput] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([]);
+  const [bulkRole, setBulkRole] = useState<TripMemberRole>(roles[0]!.id);
   const invitationsQuery = useQuery({
     queryKey: ["pending-trip-invitations", tripId],
     queryFn: () => listPendingTripInvitations({ data: { tripId } }),
     enabled: editable,
   });
+  const bulkPreview = parseBulkTripInvites(
+    bulkInput,
+    roles.map((item) => item.id),
+    [...members.map((member) => member.email), ...(invitationsQuery.data ?? []).map((invitation) => invitation.email)],
+  );
 
   async function saveMembers(next: TripMember[], successMessage: string) {
     setSaving(true);
@@ -141,6 +154,31 @@ export function TripMembers({
     setEmail("");
   }
 
+  async function addBulkMembers() {
+    const available = Number.isFinite(maxMembers) ? Math.max(0, maxMembers - members.length) : bulkPreview.invites.length;
+    const chosen = bulkPreview.invites.slice(0, available);
+    if (!chosen.length || bulkPreview.issues.length || chosen.length !== bulkPreview.invites.length) {
+      toast.error(text("Los eerst de ongeldige, dubbele of te veel ingevoerde regels op.", "Resolve invalid, duplicate or excess rows first."));
+      return;
+    }
+    setSaving(true);
+    try {
+      const now = new Date().toISOString();
+      await onChange([...members, ...chosen.map((invite) => ({ id: uid(), ...invite, status: "invited" as const, invitedAt: now }))]);
+      let failed = 0;
+      for (const invite of chosen) {
+        try { await createTripInvitation({ data: { tripId, email: invite.email, role: invite.role } }); }
+        catch { failed += 1; }
+      }
+      await queryClient.invalidateQueries({ queryKey: ["pending-trip-invitations", tripId] });
+      setBulkInput(""); setBulkOpen(false);
+      if (failed) toast.warning(text(`${chosen.length - failed} uitnodigingen aangemaakt; ${failed} link(s) mislukten.`, `${chosen.length - failed} invitations created; ${failed} link(s) failed.`));
+      else toast.success(text(`${chosen.length} uitnodigingen aangemaakt.`, `${chosen.length} invitations created.`));
+    } catch {
+      toast.error(text("De groepsuitnodigingen konden niet worden opgeslagen.", "The group invitations could not be saved."));
+    } finally { setSaving(false); }
+  }
+
   async function manageInvitation(invitationId: string, invitationEmail: string, action: "revoke" | "renew") {
     if (action === "revoke" && !window.confirm(text(
       `Uitnodiging voor ${invitationEmail} intrekken? De huidige link werkt daarna niet meer.`,
@@ -165,6 +203,15 @@ export function TripMembers({
     } finally {
       setSaving(false);
     }
+  }
+
+  async function applyBulkRole() {
+    if (!selectedMemberIds.length) return;
+    const saved = await saveMembers(
+      members.map((member) => selectedMemberIds.includes(member.id) ? { ...member, role: bulkRole } : member),
+      text("Rollen bijgewerkt.", "Roles updated."),
+    );
+    if (saved) setSelectedMemberIds([]);
   }
 
   function updateMember(id: string, patch: Partial<Pick<TripMember, "role">>) {
@@ -242,6 +289,7 @@ export function TripMembers({
             <Plus className="size-4" /> {text("Toevoegen", "Add")}
           </Button>
         </div>
+        {editable && <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={saving} onClick={() => setBulkOpen(true)}><UserRoundPlus className="size-4" />{text("Meerdere uitnodigen", "Invite multiple")}</Button>}
         {inviteLink && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3"><p className="flex items-center gap-2 text-sm font-medium"><Link2 className="size-4" />{text("Uitnodigingslink", "Invitation link")}</p><p className="mt-1 text-xs text-muted-foreground">{text("Deze link wordt alleen nu volledig getoond en verloopt na zeven dagen.", "This link is shown in full only now and expires after seven days.")}</p><div className="mt-3 flex flex-col gap-2 sm:flex-row"><Input className="min-w-0" readOnly value={inviteLink} aria-label={text("Uitnodigingslink", "Invitation link")} /><Button type="button" variant="outline" onClick={async () => { try { await navigator.clipboard.writeText(inviteLink); toast.success(text("Link gekopieerd.", "Link copied.")); } catch { toast.error(text("Kopiëren lukte niet. Selecteer de link handmatig.", "Copying failed. Select the link manually.")); } }}><Copy className="size-4" />{text("Kopiëren", "Copy")}</Button></div></div>}
         {editable && (invitationsQuery.data?.length ?? 0) > 0 && (
           <section className="rounded-xl border border-border bg-muted/20 p-3">
@@ -278,12 +326,31 @@ export function TripMembers({
         )}
         <div className="space-y-2">
           <MemberRow name={ownerName} email={ownerEmail} role="owner" status="active" owner />
+          {editable && members.length > 0 && (
+            <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/20 p-3 sm:flex-row sm:items-center">
+              <label className="flex flex-1 items-center gap-2 text-sm">
+                <Checkbox
+                  checked={selectedMemberIds.length === members.length}
+                  onCheckedChange={(checked) => setSelectedMemberIds(checked ? members.map((member) => member.id) : [])}
+                />
+                {text("Alle reisgenoten selecteren", "Select all travellers")}
+              </label>
+              <select className="h-9 rounded-md border border-input bg-card px-3 text-sm" value={bulkRole} onChange={(event) => setBulkRole(event.target.value as TripMemberRole)}>
+                {roles.map((item) => <option key={item.id} value={item.id}>{roleLabel(item.id, item.label, text)}</option>)}
+              </select>
+              <Button type="button" size="sm" variant="outline" disabled={saving || !selectedMemberIds.length} onClick={() => void applyBulkRole()}>
+                {text(`Rol toepassen (${selectedMemberIds.length})`, `Apply role (${selectedMemberIds.length})`)}
+              </Button>
+            </div>
+          )}
           {members.map((member) => (
             <MemberRow
               key={member.id}
               {...member}
               roles={roles}
               editable={editable && !saving}
+              selected={selectedMemberIds.includes(member.id)}
+              onSelected={(checked) => setSelectedMemberIds((current) => checked ? [...new Set([...current, member.id])] : current.filter((id) => id !== member.id))}
               onChangeRole={(nextRole) => updateMember(member.id, { role: nextRole })}
               {...(editable ? { onRemove: () => void removeMember(member) } : {})}
             />
@@ -297,6 +364,31 @@ export function TripMembers({
             )}
           </p>
         )}
+        <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{text("Meerdere reisgenoten uitnodigen", "Invite multiple travellers")}</DialogTitle>
+              <DialogDescription>{text("Zet één persoon per regel: naam, e-mailadres, rol. Controleer de toegang voordat je verstuurt.", "Enter one person per line: name, email address, role. Review access before sending.")}</DialogDescription>
+            </DialogHeader>
+            <Textarea value={bulkInput} onChange={(event) => setBulkInput(event.target.value)} rows={7} placeholder={`Alex, alex@example.com, ${roles[0]!.id}\nSam, sam@example.com, ${roles.at(-1)!.id}`} />
+            <p className="text-xs text-muted-foreground">{text("Toegestane rollen", "Allowed roles")}: {roles.map((item) => item.id).join(", ")}</p>
+            {bulkPreview.invites.length > 0 && <div className="space-y-2">
+              <p className="text-sm font-semibold">{text("Voorbeeld van toegang", "Access preview")}</p>
+              {bulkPreview.invites.map((invite) => <div key={invite.email} className="rounded-lg border p-3 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-medium">{invite.name} · {invite.email}</span><Badge variant="secondary">{roleLabel(invite.role, labels[invite.role], text)}</Badge></div>
+                <p className="mt-1 text-xs text-muted-foreground">{tripRoleAccess(invite.role).map((access) => accessLabel(access, text)).join(" · ")}</p>
+              </div>)}
+            </div>}
+            {bulkPreview.issues.length > 0 && <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              {bulkPreview.issues.map((issue) => <p key={`${issue.line}-${issue.reason}`}>{text("Regel", "Line")} {issue.line}: {issueLabel(issue.reason, text)}</p>)}
+            </div>}
+            {Number.isFinite(maxMembers) && <p className="text-xs text-muted-foreground">{text(`Nog ${Math.max(0, maxMembers - members.length)} plaatsen beschikbaar in Free.`, `${Math.max(0, maxMembers - members.length)} places remain on Free.`)}</p>}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setBulkOpen(false)}>{text("Annuleren", "Cancel")}</Button>
+              <Button type="button" disabled={saving || !bulkPreview.invites.length || bulkPreview.issues.length > 0 || members.length + bulkPreview.invites.length > maxMembers} onClick={() => void addBulkMembers()}>{text(`Uitnodigen (${bulkPreview.invites.length})`, `Invite (${bulkPreview.invites.length})`)}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
@@ -314,16 +406,21 @@ function MemberRow({
   editable,
   onChangeRole,
   onRemove,
+  selected,
+  onSelected,
 }: Pick<TripMember, "name" | "email" | "role" | "status"> & {
   owner?: boolean;
   roles?: { id: TripMemberRole; label: string }[];
   editable?: boolean;
   onChangeRole?: (role: TripMemberRole) => void;
   onRemove?: () => void;
+  selected?: boolean;
+  onSelected?: (checked: boolean) => void;
 }) {
   const { text } = useLocale();
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-2 text-sm">
+      {onSelected && <Checkbox checked={selected} onCheckedChange={(checked) => onSelected(checked === true)} aria-label={text(`${name} selecteren`, `Select ${name}`)} />}
       <span className="min-w-0">
         <span className="block font-medium">{name}</span>
         <span className="block truncate text-xs text-muted-foreground">{email}</span>
@@ -364,6 +461,26 @@ function MemberRow({
       </span>
     </div>
   );
+}
+
+function accessLabel(access: string, text: (nl: string, en: string) => string) {
+  const labelsByAccess: Record<string, [string, string]> = {
+    view: ["Reis bekijken", "View trip"], plan: ["Planning wijzigen", "Edit planning"],
+    expenses: ["Uitgaven beheren", "Manage expenses"], members: ["Reisgenoten beheren", "Manage travellers"],
+  };
+  const label = labelsByAccess[access] ?? [access, access];
+  return text(label[0], label[1]);
+}
+
+function issueLabel(reason: string, text: (nl: string, en: string) => string) {
+  const issues: Record<string, [string, string]> = {
+    invalid: ["gebruik naam, geldig e-mailadres en rol", "use name, valid email address and role"],
+    role: ["de rol is niet toegestaan", "the role is not allowed"],
+    duplicate: ["dit e-mailadres staat meer dan één keer in de lijst", "this email address occurs more than once"],
+    existing: ["deze persoon is al lid of uitgenodigd", "this person is already a member or invited"],
+  };
+  const label = issues[reason] ?? [reason, reason];
+  return text(label[0], label[1]);
 }
 
 function roleLabel(

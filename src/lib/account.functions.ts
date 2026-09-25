@@ -18,6 +18,7 @@ const EXPORT_TABLES = [
   "trip_packing_items",
   "trip_members",
   "trip_documents",
+  "trip_journal_entries",
   "trip_invitations",
   "trip_tasks",
   "favorite_places",

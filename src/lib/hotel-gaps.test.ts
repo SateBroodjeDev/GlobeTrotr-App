@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { configuredRouteNights, findHotelGaps, findTripHotelGaps } from "./hotel-gaps.ts";
+import { configuredRouteNights, createHotelGapBooking, findHotelGaps, findTripHotelGaps } from "./hotel-gaps.ts";
 
 test("groups missing hotel nights per destination", () => {
   const gaps = findHotelGaps([
@@ -34,9 +34,26 @@ test("checks all trip nights and suggests the latest known route location", () =
   });
   assert.deepEqual(gaps, [
     { id: "2026-10-01:airport", startDate: "2026-10-01", endDate: "2026-10-02", nights: 1, suggestedStopId: "airport", confidence: "route" },
-    { id: "2026-10-03:paris", startDate: "2026-10-03", endDate: "2026-10-04", nights: 1, suggestedStopId: "paris", confidence: "overnight" },
-    { id: "2026-10-04:paris", startDate: "2026-10-04", endDate: "2026-10-05", nights: 1, suggestedStopId: "paris", confidence: "route" },
+    { id: "2026-10-03:paris", startDate: "2026-10-03", endDate: "2026-10-05", nights: 2, suggestedStopId: "paris", confidence: "overnight" },
   ]);
+});
+
+test("groups consecutive missing nights at the same inferred location", () => {
+  const gaps = findTripHotelGaps({
+    start: "2026-11-01",
+    end: "2026-11-05",
+    stops: [{ id: "rome", name: "Rome", country: "IT", lat: 41.9, lon: 12.5, arrive: "2026-11-01", nights: 2 }],
+    travelItems: [],
+  });
+
+  assert.deepEqual(gaps, [{
+    id: "2026-11-01:rome",
+    startDate: "2026-11-01",
+    endDate: "2026-11-05",
+    nights: 4,
+    suggestedStopId: "rome",
+    confidence: "overnight",
+  }]);
 });
 
 test("asks for a location when a missing night has no dated route point", () => {
@@ -62,4 +79,23 @@ test("uses a dated booking arrival before asking for an overnight location", () 
   assert.equal(gaps[0].confidence, "booking");
   assert.deepEqual(gaps[0].suggestedLocation, location);
   assert.equal(gaps[0].nights, 2);
+});
+
+test("turns a confirmed hotel result into a lodging that covers the complete gap", () => {
+  const booking = createHotelGapBooking({
+    id: "booking-1", name: "Hotel Roma", startDate: "2026-11-01", endDate: "2026-11-04",
+    location: { name: "Rome", country: "IT", lat: 41.9, lon: 12.5 }, provider: "Hotel Roma",
+    bookingReference: " ROMA-42 ", sourceUrl: "https://example.com/hotel",
+    note: "Extern geboekt; gegevens gecontroleerd.",
+  });
+  assert.equal(booking.type, "lodging");
+  assert.equal(booking.bookingReference, "ROMA-42");
+  assert.equal(findTripHotelGaps({ start: "2026-11-01", end: "2026-11-04", stops: [], travelItems: [booking] }).length, 0);
+});
+
+test("rejects a hotel booking without a valid stay period", () => {
+  assert.throws(() => createHotelGapBooking({
+    id: "booking-1", name: "Hotel", startDate: "2026-11-04", endDate: "2026-11-04",
+    location: { name: "Rome", country: "IT", lat: 41.9, lon: 12.5 }, note: "Checked",
+  }), /INVALID_HOTEL_PERIOD/);
 });

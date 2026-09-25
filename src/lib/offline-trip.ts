@@ -149,3 +149,11 @@ export function mergeOfflineExpenses(current: Expense[], queued: Expense[]) {
   const ids = new Set(current.map((expense) => expense.id));
   return [...current, ...queued.filter((expense) => !ids.has(expense.id))];
 }
+
+export function findOfflineExpenseConflicts(current: Expense[], queued: OfflineExpense[]) {
+  const existing = new Map(current.map((expense) => [expense.id, expense]));
+  return queued.filter((expense) => {
+    const server = existing.get(expense.id);
+    return server !== undefined && JSON.stringify({ date: server.date, title: server.title, amount: server.amount, currency: server.currency, paidBy: server.paidBy }) !== JSON.stringify({ date: expense.date, title: expense.title, amount: expense.amount, currency: expense.currency, paidBy: expense.paidBy });
+  }).map((expense) => expense.id);
+}

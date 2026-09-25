@@ -12,6 +12,18 @@ Een mogelijke latere productlijn is **Self-Hosted Agency**: een officieel gelice
 
 De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker, live agenda, offline gebruik, Agency-domeinen, eigen Agency-SMTP en webpush. White-label portal- en e-mailbranding zijn gebouwd. De eigen centrale mailserver is technisch voorbereid maar blijft buiten productie; ZXCS blijft actief als centrale route en terugval.
 
+## Status productuitbreidingen op 25 september 2026
+
+| Onderdeel | Status | Volgende concrete stap |
+| --- | --- | --- |
+| GPX-import | Gebouwd voor Beta 0.9.1 | Routepreview, validatie, dubbelen, selectie en omzetting praktisch testen |
+| Offline gebruik | Basis en uitgavenbeheer gebouwd | Geselecteerde documenten pas na ontwerp voor encryptie, intrekken en opslaglimieten |
+| Groepsbeheer | Bulkuitnodiging, bulkrollen en toegangsvoorbeeld gebouwd | Praktisch testen met Free, Pro en verschillende rollen |
+| Reisdagboek | Eigen tabblad met tijdlijn, galerij, routekaart, maximaal acht foto's per herinnering, fotoviewer, bestemming, waardering, afgeschermde opslag, zichtbaarheid, bewerken en reisgids-export gebouwd | Migratie 1800 uitvoeren en de drie weergaven, drie zichtbaarheidsstanden, groepsauteurschap en export praktisch testen |
+| Plaatsen rond de route | OpenStreetMap-zoekfunctie gebouwd | Resultaten, openingstijden, bronlinks en toevoegen aan planning praktisch testen |
+| Accommodaties vergelijken | Volledige provider-onafhankelijke zoekvraag en vergelijking gebouwd | Live prijzen en beschikbaarheid pas na providergoedkeuring koppelen |
+| Schaalbare bestandsopslag | Supabase Storage blijft veilig actief voor 1.0 | Private Hetzner S3 eerst voor herstelkopieën; daarna een servergateway en nieuwe dagboekfoto's volgens `STORAGE_ARCHITECTURE.md` |
+
 ## Concurrentievergelijking
 
 | Product                                                                                                                          | Sterke functies                                                                                             | Relevante GlobeTrotr-gap                                  |
@@ -19,7 +31,7 @@ De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker
 | [Wanderlog](https://wanderlog.com/)                                                                                              | Routeoptimalisatie, live samenwerking, boekingsimport, plaatsdetails, offline toegang en Google Maps-export | Routeoptimalisatie, uitgebreid ontdekken en kaart-export  |
 | [TripIt](https://www.tripit.com/en-uk/web/free)                                                                                  | Boekingsimport, agendasynchronisatie, documenten, luchthavenkaarten, nabij zoeken en reisstatistieken       | Luchthavenhulp, nabij zoeken en CO₂-inzicht               |
 | [Roadtrippers](https://roadtrippers.com/about/features/)                                                                         | Plaatsen langs de route, omwegfilter, favorieten, routevarianten, offline kaarten en live verkeer           | Favorieten, routevarianten en routegebonden ontdekking    |
-| [Polarsteps](https://www.polarsteps.com/news/polarsteps-launches-summer-2026-release-new-tools-for-planning-privacy-and-sharing) | Visuele tijdlijn, reisverhaal, ontdekking en reisboek                                                       | Privé reisdagboek en visuele terugblik                    |
+| [Polarsteps](https://www.polarsteps.com/news/polarsteps-launches-summer-2026-release-new-tools-for-planning-privacy-and-sharing) | Visuele tijdlijn, reisverhaal, ontdekking en reisboek                                                       | Automatische routetracking en een gedrukt reisboek blijven mogelijke latere uitbreidingen; tijdlijn, galerij, kaart en selectief delen zijn voor 1.0 gebouwd |
 | [Travefy](https://travefy.com/)                                                                                                  | CRM, formulieren, branded voorstellen, content en automatisering                                            | Verdere verfijning van Agency-workflows                   |
 | [TravelSpend](https://travel-spend.com/)                                                                                         | Eenvoudige offline uitgaven en budgetbewaking                                                               | Praktijkacceptatie en verdere offline conflictafhandeling |
 
@@ -27,10 +39,10 @@ De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker
 
 Deze functies hergebruiken bestaande gegevens en vragen geen grote providerintegratie:
 
-1. **Reisvariant maken** zonder leden, toegang, codes, documenten of betalingen over te nemen.
+1. **Reisvariant maken** zonder leden, toegang, codes, documenten of betalingen over te nemen is gebouwd, inclusief een impactvoorbeeld vóór bevestiging.
 2. **Favoriete plaatsen** bewaren en later aan een reis toevoegen is gebouwd en wacht op productieacceptatie; een directe koppeling met de vergelijker blijft een mogelijke verfijning.
 3. **Algemene checklijsten** voor vertrek, boodschappen en vrije taken zijn gebouwd en wachten op productieacceptatie.
-4. **Nabij deze stop** voor apotheken, supermarkten, stations en bezienswaardigheden via OpenStreetMap.
+4. **Nabij deze stop** voor horeca, praktische voorzieningen, activiteiten en bezienswaardigheden via OpenStreetMap is gebouwd en wacht op productieacceptatie.
 5. **Check-inherinneringen** uit bestaande vlucht-, verblijf-, vervoer- en huurautogegevens zijn gebouwd als begrensde 24-uursmelding en wachten op productieacceptatie.
 
 ## Uitbreidingen met provider of extra beheer
@@ -48,7 +60,7 @@ Kies één officiële provider en begin met zoeken en doorsturen. Toon altijd to
 - routeoptimalisatie met verplichte preview;
 - plaatsen langs de route met openingstijden en reistijd;
 - geselecteerde documenten offline;
-- privé reisdagboek met selectief delen;
+- automatische routetracking en een optioneel gedrukt reisboek na een afzonderlijke privacy- en leverancierskeuze;
 - luchthaven- en verstoringshulp.
 
 ## Privacy- en productgrenzen
