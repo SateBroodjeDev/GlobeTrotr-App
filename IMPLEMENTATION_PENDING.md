@@ -12,9 +12,9 @@
 
 De ondertekende checkoutkoppeling staat alleen in het URL-fragment en wordt daardoor niet naar de webserver of in de referrer meegestuurd. Laat de bestaande Paddle-webhook ongewijzigd.
 
-**Stand: 24 september 2026 · geplande release: 1 oktober 2026**
+**Stand: 25 september 2026 · geplande release: 1 oktober 2026**
 
-Dit is de enige handleiding voor deze uitrol. Algemeen serverbeheer staat in `SERVER_OPERATIONS.md`; herhaal die commando’s hier niet vanuit andere documenten. Migraties en tests tot en met **1720** zijn volgens de eigenaar uitgevoerd. Migratie en test **1730** voor pushcategorieën moeten nog worden uitgevoerd.
+Dit is de enige handleiding voor deze uitrol. Algemeen serverbeheer staat in `SERVER_OPERATIONS.md`; herhaal die commando’s hier niet vanuit andere documenten. Alle migraties en SQL-tests tot en met **1760** zijn volgens de eigenaar uitgevoerd. Voer tijdens deze uitrol geen SQL opnieuw uit.
 
 <!-- release-preflight: confirmed-through=20260908169000_trip_date_shift_acceptance.sql -->
 
@@ -35,7 +35,7 @@ npx web-push generate-vapid-keys
 
 Bewaar beide sleutels in je wachtwoordmanager. Commit ze nooit en genereer later geen nieuw paar zonder alle apparaten opnieuw aan te melden.
 
-## 2. Supabase SQL Editor — afgerond
+## 2. Supabase SQL Editor — volledig afgerond
 
 De volgende migraties en tests zijn op 24 september 2026 uitgevoerd:
 
@@ -46,12 +46,18 @@ De volgende migraties en tests zijn op 24 september 2026 uitgevoerd:
 5. `supabase/migrations/20260908172000_notification_link_compatibility.sql`
 6. `supabase/tests/notification_link_compatibility.sql`
 
-Voer voor de nieuwe pushvoorkeuren daarna eenmalig uit:
+De volgende aanvullende migraties en tests zijn op 25 september 2026 uitgevoerd:
 
 7. `supabase/migrations/20260908173000_web_push_preferences.sql`
 8. `supabase/tests/web_push_preferences.sql`
+9. `supabase/migrations/20260908174000_public_agency_host_branding.sql`
+10. `supabase/tests/public_agency_host_branding.sql`
+11. `supabase/migrations/20260908175000_agency_smtp_delivery.sql`
+12. `supabase/tests/agency_smtp_delivery.sql`
+13. `supabase/migrations/20260908176000_booking_departure_reminders.sql`
+14. `supabase/tests/booking_departure_reminders.sql`
 
-Migratie 1710 zet de publieke verkoop nadrukkelijk **niet** aan. Zij bereidt alleen de afgeschermde licentiedatabase en Corporate Admin voor. Herhaal de reeds uitgevoerde SQL-bestanden tijdens deze uitrol niet. Voer alleen 1730 plus de bijbehorende test uit en werk daarna Node-01 bij.
+Migratie 1710 zet de publieke verkoop nadrukkelijk **niet** aan. Zij bereidt alleen de afgeschermde licentiedatabase en Corporate Admin voor. Herhaal geen van deze SQL-bestanden. De volgende stap is de code committen en daarna beide nodes bijwerken. Node-01 bevat instellingen, verbindingstest en Caddy; Node-02 bevat de geteste Agency-SMTP-route, white-label mailopmaak en de uurlijkse boekingsherinneringen.
 
 ## 3. Node-01 configuratie
 
@@ -153,9 +159,23 @@ GlobeTrotr geeft vijf minuten als verversingsvoorkeur mee. Google, Apple en Outl
 ### Agency-domeinen
 
 - open `https://AGENCY.globetrotr.nl/` en een geverifieerd eigen domein;
+- controleer dat het geregistreerde GlobeTrotr-subdomein zonder externe TXT-verificatie aan de juiste Agency wordt gekoppeld;
 - controleer dat de hostnaam behouden blijft en alleen de juiste Agency zichtbaar is;
 - test een directe beheer-URL en een account van een andere Agency;
 - controleer de CNAME- en TXT-instructies in het DNS-venster.
+- open op het eigen domein ook rechtstreeks `/features`, `/pricing`, `/about`, `/updates`, `/contact` en `/status`; iedere route moet binnen hetzelfde domein naar `/agency-admin` gaan;
+- log uit en controleer op `/auth` de eigen Agency-naam, tagline, accentkleur en het eigen logo zonder GlobeTrotr-marketingnavigatie.
+
+### Agency-SMTP
+
+- controleer dat `MAILBOX_CREDENTIALS_KEY` op Node-01 en Node-02 exact dezelfde bestaande 32-byte base64sleutel bevat; druk de waarde niet af;
+- vul in Agency Admin onder Instellingen de SMTP-host, poort, TLS, gebruikersnaam en het wachtwoord in en sla op;
+- kies **SMTP-verbinding testen** en controleer dat de Agency-beheerder de echte testmail ontvangt;
+- verstuur daarna zowel een Agency-teamuitnodiging als een klantformulier en controleer afzender, reply-to en de eigen Agency-host in de knop;
+- controleer in beide HTML-mails de eigen naam, accentkleur, tagline, logo en het Agency-contactadres; GlobeTrotr-logo, slogan, contactlink en `powered by` mogen nergens voorkomen;
+- controleer dezelfde mails zonder ingesteld Agency-logo: de kop blijft netjes tekstueel en valt niet terug op het GlobeTrotr-logo;
+- controleer in de Node-02-workerlog `mail.sent`; wachtwoorden en SMTP-authenticatie mogen nergens in logs verschijnen;
+- verwijder of wijzig de credentials niet tijdens een lopende outboxbatch. Niet-ingestelde Agency-SMTP blijft via de centrale ZXCS-relay verzenden.
 
 ### Account, betaling en communicatie
 
@@ -169,6 +189,15 @@ GlobeTrotr geeft vijf minuten als verversingsvoorkeur mee. Google, Apple en Outl
 - open een HTML-mail schermvullend en sluit met de knop en met Escape;
 - maak van een korte en een lange mail een NL- en EN-vertaalconcept;
 - controleer dat alleen een beheerder een gearchiveerd bericht definitief kan verwijderen en dat herstel daarna onmogelijk is.
+
+### Boekingsherinneringen
+
+- maak een testvlucht, verblijf, vervoersboeking en huurauto met een begintijd binnen 24 uur;
+- wacht op de uurlijkse worker-run of voer in Supabase SQL Editor `select public.run_booking_departure_reminders(now());` uit;
+- controleer per type maximaal één passende NL/EN in-appmelding en browserpush;
+- voer dezelfde functie opnieuw uit en controleer dat het resultaat `0` is en niets wordt verdubbeld;
+- zet bij een tweede testgebruiker de reisvoorkeur **Boekingen** uit en controleer dat voor die gebruiker geen herinnering ontstaat;
+- controleer dat browserpush alleen de algemene melding toont en geen titel, boekingscode of reisnaam prijsgeeft.
 
 ### Push
 

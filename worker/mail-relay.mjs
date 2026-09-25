@@ -2,6 +2,8 @@ import { timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import nodemailer from "nodemailer";
 import { notificationCopy } from "./notification-copy.mjs";
+import { validateAgencySmtp } from "./agency-smtp.mjs";
+import { emailBranding } from "./email-branding.mjs";
 
 const env = process.env;
 const token = required("MAIL_RELAY_TOKEN");
@@ -61,10 +63,14 @@ function escapeHtml(value) {
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
   );
 }
-function safeFrom(input) {
+function safeFrom(input, exactAddress) {
   const address = input?.address ? String(input.address).trim().toLowerCase() : defaultAddress;
   const domain = address.split("@")[1];
-  if (!validEmail(address) || !allowedDomains.has(domain)) throw code("INVALID_SENDER");
+  if (
+    !validEmail(address) ||
+    (exactAddress ? address !== exactAddress : !allowedDomains.has(domain))
+  )
+    throw code("INVALID_SENDER");
   return {
     address,
     name: String(input?.name || defaultName)
@@ -77,6 +83,7 @@ function notificationMessage(body) {
   const copy = notificationCopy(body);
   const subject = copy.subject;
   const text = copy.body;
+  const brand = emailBranding(payload, body.locale);
   const formattedBody = text
     .split(/\n\s*\n/)
     .map(
@@ -84,10 +91,17 @@ function notificationMessage(body) {
         `<p style="margin:0 0 16px;font-size:16px;line-height:25px;color:#52606b">${escapeHtml(paragraph).replace(/\n/g, "<br>")}</p>`,
     )
     .join("");
-  const actionUrl =
-    typeof copy.actionUrl === "string" && /^https:\/\/(?:portal\.)?globetrotr\.nl\//.test(copy.actionUrl)
-      ? copy.actionUrl
-      : "https://portal.globetrotr.nl/dashboard";
+  const brandingHost = String(payload.branding?.portalHost || "").toLowerCase();
+  let actionUrl = "https://portal.globetrotr.nl/dashboard";
+  try {
+    const candidate = new URL(copy.actionUrl);
+    if (
+      candidate.protocol === "https:" &&
+      (["globetrotr.nl", "portal.globetrotr.nl"].includes(candidate.hostname) ||
+        candidate.hostname === brandingHost)
+    )
+      actionUrl = candidate.toString();
+  } catch {}
   const actionLabel =
     body.templateKey === "invitation"
       ? body.locale === "en"
@@ -97,23 +111,24 @@ function notificationMessage(body) {
         ? body.locale === "en"
           ? "View subscription and invoice"
           : "Abonnement en factuur bekijken"
-        : "Open GlobeTrotr";
-  const supportLabel = body.locale === "en" ? "Contact GlobeTrotr" : "Contact met GlobeTrotr";
-  const serviceNote =
-    body.locale === "en"
-      ? "This is a service message from GlobeTrotr."
-      : "Dit is een servicemelding van GlobeTrotr.";
-  const brandName = String(payload.branding?.brandName || "GlobeTrotr")
-    .trim()
-    .slice(0, 100);
-  const hue = Number(payload.branding?.accentHue);
-  const accent = Number.isFinite(hue)
-    ? `hsl(${Math.min(360, Math.max(0, hue))} 70% 34%)`
-    : "#168b78";
+        : body.locale === "en"
+          ? `Open ${brand.name}`
+          : `${brand.name} openen`;
+  const headerLogo = brand.logoUrl
+    ? `<img src="${escapeHtml(brand.logoUrl)}" width="56" height="56" alt="${escapeHtml(brand.name)}" style="display:block;max-width:180px;object-fit:contain">`
+    : "";
+  const tagline = brand.tagline
+    ? `<div style="margin-top:5px;font-size:13px;color:#748078">${escapeHtml(brand.tagline)}</div>`
+    : "";
+  const contact = brand.agency
+    ? brand.contactEmail
+      ? `<p style="margin:24px 0 0;font-size:13px;color:#77827c"><a href="mailto:${escapeHtml(brand.contactEmail)}" style="color:${brand.accent};text-decoration:none;font-weight:600">${escapeHtml(body.locale === "en" ? `Contact ${brand.name}` : `Contact met ${brand.name}`)}</a></p>`
+      : ""
+    : `<p style="margin:24px 0 0;font-size:13px;color:#77827c"><a href="https://globetrotr.nl/contact" style="color:${brand.accent};text-decoration:none;font-weight:600">${body.locale === "en" ? "Contact GlobeTrotr" : "Contact met GlobeTrotr"}</a></p>`;
   return {
     subject,
-    text: `${subject}\n\n${text}\n\n${actionUrl}\n\n${serviceNote}`,
-    html: `<!doctype html><html lang="${body.locale === "en" ? "en" : "nl"}"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:40px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td align="center" style="padding:36px 40px 24px"><img src="https://globetrotr.nl/assets/email/logo.png" width="56" height="56" alt="GlobeTrotr"><div style="margin-top:13px;font-size:22px;font-weight:700">${escapeHtml(brandName)}</div><div style="margin-top:5px;font-size:13px;color:#748078">Powered by GlobeTrotr · Plan every trip. Track every euro.</div></td></tr><tr><td style="padding:36px 40px 40px;border-top:1px solid #edf1ef">${copy.severity === "critical" ? `<p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#a12a2a">${body.locale === "en" ? "Critical service incident" : "Kritieke storing"}</p>` : ""}<h1 style="margin:0 0 18px;font-size:27px">${escapeHtml(subject)}</h1>${formattedBody}<table role="presentation" cellspacing="0" cellpadding="0"><tr><td bgcolor="${accent}" style="border-radius:10px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:15px 26px;color:#fff;text-decoration:none;font-weight:600">${escapeHtml(actionLabel)}</a></td></tr></table><p style="margin:24px 0 0;font-size:13px;color:#77827c"><a href="https://globetrotr.nl/contact" style="color:${accent};text-decoration:none;font-weight:600">${escapeHtml(supportLabel)}</a></p></td></tr><tr><td align="center" style="padding:24px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:11px;color:#99a39e">${escapeHtml(brandName)} · powered by GlobeTrotr</td></tr></table></td></tr></table></body></html>`,
+    text: `${subject}\n\n${text}\n\n${actionUrl}\n\n${brand.serviceNote}`,
+    html: `<!doctype html><html lang="${body.locale === "en" ? "en" : "nl"}"><body style="margin:0;padding:0;background:#f4f7f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#102039"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7f6"><tr><td align="center" style="padding:40px 16px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#fff;border:1px solid #e4ebe8;border-radius:18px;overflow:hidden"><tr><td align="center" style="padding:36px 40px 24px">${headerLogo}<div style="margin-top:${headerLogo ? "13px" : "0"};font-size:22px;font-weight:700">${escapeHtml(brand.name)}</div>${tagline}</td></tr><tr><td style="padding:36px 40px 40px;border-top:1px solid #edf1ef">${copy.severity === "critical" ? `<p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#a12a2a">${body.locale === "en" ? "Critical service incident" : "Kritieke storing"}</p>` : ""}<h1 style="margin:0 0 18px;font-size:27px">${escapeHtml(subject)}</h1>${formattedBody}<table role="presentation" cellspacing="0" cellpadding="0"><tr><td bgcolor="${brand.accent}" style="border-radius:10px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:15px 26px;color:#fff;text-decoration:none;font-weight:600">${escapeHtml(actionLabel)}</a></td></tr></table>${contact}</td></tr><tr><td align="center" style="padding:24px;background:#fafcfb;border-top:1px solid #edf1ef;font-size:11px;color:#99a39e">${escapeHtml(brand.name)}</td></tr></table></td></tr></table></body></html>`,
   };
 }
 function corporateMessage(body) {
@@ -168,13 +183,36 @@ async function send(body, idempotencyKey) {
       throw code("INVALID_ATTACHMENT");
     const content = Buffer.from(attachment.content, "base64");
     attachmentBytes += content.length;
-    if (content.length < 1 || content.length > 10 * 1024 * 1024 || attachmentBytes > 20 * 1024 * 1024)
+    if (
+      content.length < 1 ||
+      content.length > 10 * 1024 * 1024 ||
+      attachmentBytes > 20 * 1024 * 1024
+    )
       throw code("INVALID_ATTACHMENT");
     return { filename: attachment.filename, contentType: attachment.contentType, content };
   });
   if (safeAttachments.length > 5) throw code("INVALID_ATTACHMENT");
-  await transporter.sendMail({
-    from: safeFrom(corporate ? body.from : undefined),
+  const agencySmtp = validateAgencySmtp(body.smtp);
+  const selectedTransport = agencySmtp
+    ? nodemailer.createTransport({
+        host: agencySmtp.host,
+        port: agencySmtp.port,
+        secure: agencySmtp.secure,
+        requireTLS: !agencySmtp.secure,
+        auth: { user: agencySmtp.username, pass: agencySmtp.password },
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 20_000,
+        disableFileAccess: true,
+        disableUrlAccess: true,
+      })
+    : transporter;
+  const sender = agencySmtp
+    ? safeFrom({ address: agencySmtp.fromEmail, name: agencySmtp.fromName }, agencySmtp.fromEmail)
+    : safeFrom(corporate ? body.from : undefined);
+  await selectedTransport.sendMail({
+    from: sender,
+    replyTo: agencySmtp?.replyTo,
     to: addresses(body.to),
     cc: body.cc?.length ? addresses(body.cc) : undefined,
     subject: content.subject,
@@ -184,8 +222,10 @@ async function send(body, idempotencyKey) {
       corporate && typeof body.inReplyTo === "string" ? body.inReplyTo.slice(0, 500) : undefined,
     references:
       corporate && typeof body.references === "string" ? body.references.slice(0, 500) : undefined,
-    messageId: `<${body.id}@globetrotr.nl>`,
-    headers: { "X-GlobeTrotr-Message-ID": body.id },
+    messageId: `<${body.id}@${sender.address.split("@")[1]}>`,
+    headers: agencySmtp
+      ? { "X-Delivery-Message-ID": body.id }
+      : { "X-GlobeTrotr-Message-ID": body.id },
     attachments: safeAttachments,
   });
 }

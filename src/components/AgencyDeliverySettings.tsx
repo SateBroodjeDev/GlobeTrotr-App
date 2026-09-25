@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   getAgencyDeliverySettings,
   saveAgencyDeliverySettings,
+  testAgencySmtp,
   verifyAgencyDomain,
   type AgencyDeliverySettings as Values,
 } from "@/lib/agency-delivery.functions";
@@ -22,6 +23,8 @@ export function AgencyDeliverySettings() {
     }),
     [form, setForm] = useState<Values | null>(null),
     [busy, setBusy] = useState(false),
+    [smtpPassword, setSmtpPassword] = useState(""),
+    [testingSmtp, setTestingSmtp] = useState(false),
     [verifying, setVerifying] = useState(false),
     [dnsOpen, setDnsOpen] = useState(false);
   useEffect(() => {
@@ -41,9 +44,15 @@ export function AgencyDeliverySettings() {
           fromName: form.fromName,
           fromEmail: form.fromEmail,
           replyTo: form.replyTo,
+          smtpHost: form.smtpHost,
+          smtpPort: form.smtpPort,
+          smtpSecure: form.smtpSecure,
+          smtpUsername: form.smtpUsername,
+          smtpPassword,
         },
       });
       await q.refetch();
+      setSmtpPassword("");
       toast.success(
         text("Domein- en afzenderinstellingen opgeslagen.", "Domain and sender settings saved."),
       );
@@ -55,6 +64,24 @@ export function AgencyDeliverySettings() {
       );
     } finally {
       setBusy(false);
+    }
+  }
+  async function testSmtp() {
+    setTestingSmtp(true);
+    try {
+      await testAgencySmtp();
+      await q.refetch();
+      toast.success(text("SMTP-verbinding werkt.", "SMTP connection works."));
+    } catch {
+      await q.refetch();
+      toast.error(
+        text(
+          "SMTP-verbinding is mislukt. Controleer host, poort, TLS en inloggegevens.",
+          "SMTP connection failed. Check host, port, TLS and credentials.",
+        ),
+      );
+    } finally {
+      setTestingSmtp(false);
     }
   }
   async function verify() {
@@ -78,7 +105,12 @@ export function AgencyDeliverySettings() {
           ),
         );
     } catch {
-      toast.error(text("DNS-controle kon niet worden afgerond. Probeer het later opnieuw.", "DNS verification could not be completed. Try again later."));
+      toast.error(
+        text(
+          "DNS-controle kon niet worden afgerond. Probeer het later opnieuw.",
+          "DNS verification could not be completed. Try again later.",
+        ),
+      );
     } finally {
       setVerifying(false);
     }
@@ -106,27 +138,94 @@ export function AgencyDeliverySettings() {
           />
           <p className="text-xs text-muted-foreground">
             {text(
-              "DNS en HTTPS voor je GlobeTrotr-subdomein werken na registratie en verificatie. De koppeling met de juiste Agency-workspace wordt afzonderlijk gecontroleerd voordat het domein als portaal wordt vrijgegeven. Voor een eigen domein controleer je eerst CNAME en TXT. Status:",
-              "DNS and HTTPS for your GlobeTrotr subdomain work after registration and verification. We check the link to the correct Agency workspace separately before enabling the domain as a portal. For a custom domain, first verify CNAME and TXT. Status:",
+              "Je opgeslagen GlobeTrotr-subdomein werkt direct met je Agency-branding. Alleen voor een eigen extern domein controleer je eerst CNAME en TXT. Status:",
+              "Your saved GlobeTrotr subdomain works immediately with your Agency branding. Only an external custom domain requires CNAME and TXT verification first. Status:",
             )}{" "}
-            {form.domainStatus}
+            {form.subdomain && !form.customDomain ? text("actief", "active") : form.domainStatus}
           </p>
+          <Field label="SMTP host" value={form.smtpHost} onChange={(v) => set("smtpHost", v)} />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field
+              label={text("SMTP-poort", "SMTP port")}
+              type="number"
+              value={String(form.smtpPort)}
+              onChange={(v) =>
+                setForm((current) => (current ? { ...current, smtpPort: Number(v) } : current))
+              }
+            />
+            <label className="flex items-center gap-2 pt-6 text-sm">
+              <input
+                type="checkbox"
+                checked={form.smtpSecure}
+                onChange={(event) =>
+                  setForm((current) =>
+                    current ? { ...current, smtpSecure: event.target.checked } : current,
+                  )
+                }
+              />
+              {text("Direct TLS (meestal poort 465)", "Direct TLS (usually port 465)")}
+            </label>
+          </div>
+          <Field
+            label={text("SMTP-gebruikersnaam", "SMTP username")}
+            value={form.smtpUsername}
+            onChange={(v) => set("smtpUsername", v)}
+          />
+          <Field
+            label={text("SMTP-wachtwoord", "SMTP password")}
+            type="password"
+            value={smtpPassword}
+            placeholder={form.smtpPasswordSet ? "••••••••••••" : ""}
+            onChange={setSmtpPassword}
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={testingSmtp || !form.smtpConfigured}
+              onClick={() => void testSmtp()}
+            >
+              {testingSmtp
+                ? text("Testen…", "Testing…")
+                : text("SMTP-verbinding testen", "Test SMTP connection")}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {text("Status", "Status")}: {form.smtpTestStatus}
+            </span>
+          </div>
           {form.customDomain && form.verificationToken && (
             <>
-            <Button type="button" variant="secondary" onClick={() => setDnsOpen(true)}>{text("DNS-instellingen bekijken", "View DNS settings")}</Button>
-            <Dialog open={dnsOpen} onOpenChange={setDnsOpen}><DialogContent><DialogHeader><DialogTitle>{text("DNS voor je Agency-domein", "DNS for your Agency domain")}</DialogTitle></DialogHeader><div className="space-y-2 rounded-lg bg-muted p-4 text-sm">
-              <p>
-                CNAME <strong>{form.customDomain || text("jouw domein", "your domain")}</strong> →{" "}
-                <strong>portal.globetrotr.nl</strong>
-              </p>
-              <p>
-                TXT <strong>_globetrotr.{form.customDomain}</strong>
-              </p>
-              <code className="block break-all">
-                globetrotr-verification={form.verificationToken}
-              </code>
-              <p className="text-xs text-muted-foreground">{text("Laat een eventuele proxy uit tijdens de eerste controle. DNS-wijzigingen kunnen enige tijd nodig hebben.", "Disable any proxy during the first check. DNS changes may take some time.")}</p>
-            </div></DialogContent></Dialog>
+              <Button type="button" variant="secondary" onClick={() => setDnsOpen(true)}>
+                {text("DNS-instellingen bekijken", "View DNS settings")}
+              </Button>
+              <Dialog open={dnsOpen} onOpenChange={setDnsOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {text("DNS voor je Agency-domein", "DNS for your Agency domain")}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2 rounded-lg bg-muted p-4 text-sm">
+                    <p>
+                      CNAME{" "}
+                      <strong>{form.customDomain || text("jouw domein", "your domain")}</strong> →{" "}
+                      <strong>portal.globetrotr.nl</strong>
+                    </p>
+                    <p>
+                      TXT <strong>_globetrotr.{form.customDomain}</strong>
+                    </p>
+                    <code className="block break-all">
+                      globetrotr-verification={form.verificationToken}
+                    </code>
+                    <p className="text-xs text-muted-foreground">
+                      {text(
+                        "Laat een eventuele proxy uit tijdens de eerste controle. DNS-wijzigingen kunnen enige tijd nodig hebben.",
+                        "Disable any proxy during the first check. DNS changes may take some time.",
+                      )}
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </>
           )}
           <Button
@@ -168,8 +267,8 @@ export function AgencyDeliverySettings() {
           />
           <p className="text-xs text-muted-foreground">
             {text(
-              "SMTP-inloggegevens worden later uitsluitend in de versleutelde VPS secret store gekoppeld en nooit hier getoond.",
-              "SMTP credentials will later only be linked in the encrypted VPS secret store and never shown here.",
+              "De afzender wordt al opgeslagen voor Agency-communicatie. Eigen Agency-SMTP is nog niet actief; productie verzendt voorlopig via de centrale ZXCS-relay. SMTP-geheimen worden nooit in dit scherm getoond.",
+              "The sender is already stored for Agency communications. Custom Agency SMTP is not active yet; production currently sends through the central ZXCS relay. SMTP secrets are never shown on this screen.",
             )}
           </p>
         </CardContent>
@@ -193,12 +292,14 @@ function Field({
   onChange,
   type = "text",
   suffix,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
   suffix?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="space-y-1 text-sm">
@@ -209,6 +310,7 @@ function Field({
           type={type}
           value={value}
           maxLength={254}
+          placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)}
         />
         {suffix && (

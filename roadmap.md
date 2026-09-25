@@ -1,6 +1,6 @@
 # GlobeTrotr interne roadmap
 
-**Stand: 24 september 2026 · beta 0.9 · release 1.0 gepland voor 1 oktober 2026**
+**Stand: 25 september 2026 · beta 0.9 · release 1.0 gepland voor 1 oktober 2026**
 
 De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staan uitsluitend in `IMPLEMENTATION_PENDING.md` en `SERVER_OPERATIONS.md`.
 
@@ -11,6 +11,9 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 - [ ] Live agenda: bestaande link na een wijziging laten verversen; verblijf en huurauto als hele dag controleren.
 - [ ] Offline pakket en vertrekcheck op Android en iOS testen.
 - [ ] Agency-subdomein en eigen domein met HTTPS, behouden hostnaam en juiste tenant testen.
+- [ ] White-label host vóór en na inloggen testen: naam, logo, kleur en tagline; publieke marketingroutes blijven binnen het Agency-portaal.
+- [ ] Eigen Agency-SMTP met echte bezorging testen; uitnodiging en klantformulier controleren op uitsluitend eigen branding, contactadres en portalhost.
+- [ ] Automatische boekingsherinneringen testen met NL/EN-profielen, verschillende boekingstypen, boekingsvoorkeur uit en een herhaalde worker-run zonder dubbele melding.
 - [ ] Webpush op Node-01 en Node-02 configureren en met gesloten browser ontvangen.
 - [ ] Registratie, Google/Discord, passkeys, TOTP, Paddle, privacyverzoeken en ZXCS-mail end-to-end controleren.
 - [ ] Bedrijfsmail: archief laden, schermvullend lezen, NL/EN vertalen en definitief verwijderen met beheerrecht testen.
@@ -19,7 +22,7 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 
 ## Bewust buiten release 1.0
 
-- Eigen Stalwart-mailserver en Agency-SMTP: wachten op vrijgave van TCP 25 en volledige aflever-, ontvangst- en herstelproef.
+- Eigen Stalwart-mailserver: wachten op vrijgave van TCP 25 en volledige aflever-, ontvangst- en herstelproef. Externe Agency-SMTP is gebouwd en wacht op productieacceptatie.
 - Live hotelprijzen: wachten op keuze en goedkeuring van een officiële provider.
 - Geselecteerde documenten offline: eerst het huidige beperkte offline pakket accepteren.
 
@@ -28,7 +31,7 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 1. Een veilige reisvariant maken zonder leden, toegang of boekingsgeheimen.
 2. Favoriete plaatsen en algemene checklijsten.
 3. Apotheken, supermarkten, stations en bezienswaardigheden rond een stop.
-4. Check-in- en vertrekmeldingen uit bestaande boekingen.
+4. Check-in- en vertrekmeldingen uit bestaande boekingen verder verfijnen na productieacceptatie van de eerste 24-uursherinnering.
 5. Agency-klantportaal, formulieren en contentbibliotheek verfijnen op basis van gebruik.
 
 ## Daarna

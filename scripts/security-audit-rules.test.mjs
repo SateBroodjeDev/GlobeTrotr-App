@@ -57,3 +57,20 @@ test("requires a fixed search_path for every SECURITY DEFINER function", () => {
     [],
   );
 });
+
+test("only explicitly reviewed database functions may be public", () => {
+  assert.equal(
+    auditMigration(
+      "migration.sql",
+      "GRANT EXECUTE ON FUNCTION public.unsafe(text) TO anon;",
+    ).length,
+    1,
+  );
+  assert.deepEqual(
+    auditMigration(
+      "migration.sql",
+      "GRANT EXECUTE ON FUNCTION public.get_public_agency_host_branding(text) TO anon;",
+    ),
+    [],
+  );
+});

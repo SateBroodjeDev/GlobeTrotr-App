@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { agencyHostLookup } from "@/lib/agency-domain";
 export type AgencyDeliverySettings = {
   workspaceId: string;
   subdomain: string;
@@ -11,8 +12,14 @@ export type AgencyDeliverySettings = {
   replyTo: string;
   mailStatus: "unconfigured" | "pending" | "verified" | "failed";
   smtpConfigured: boolean;
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUsername: string;
+  smtpPasswordSet: boolean;
+  smtpTestStatus: "untested" | "ok" | "failed";
+  smtpTestedAt: string;
 };
-const hostnamePattern = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 async function db() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as any;
@@ -39,7 +46,9 @@ export const getAgencyDeliverySettings = createServerFn({ method: "GET" })
         .maybeSingle(),
       client
         .from("agency_mail_settings")
-        .select("from_name,from_email,reply_to,verification_status,smtp_secret_ref")
+        .select(
+          "from_name,from_email,reply_to,verification_status,smtp_secret_ref,smtp_host,smtp_port,smtp_secure,smtp_username,smtp_password_ciphertext,smtp_test_status,smtp_tested_at",
+        )
         .eq("workspace_uuid", id)
         .maybeSingle(),
       client
@@ -59,19 +68,27 @@ export const getAgencyDeliverySettings = createServerFn({ method: "GET" })
       replyTo: m?.reply_to ?? s?.contact_email ?? "",
       mailStatus: m?.verification_status ?? "unconfigured",
       smtpConfigured: Boolean(m?.smtp_secret_ref),
+      smtpHost: m?.smtp_host ?? "",
+      smtpPort: Number(m?.smtp_port ?? 587),
+      smtpSecure: Boolean(m?.smtp_secure),
+      smtpUsername: m?.smtp_username ?? "",
+      smtpPasswordSet: Boolean(m?.smtp_password_ciphertext),
+      smtpTestStatus: m?.smtp_test_status ?? "untested",
+      smtpTestedAt: m?.smtp_tested_at ?? "",
     } as AgencyDeliverySettings;
   });
 export const getAgencyHostWorkspace = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((hostname: string) => hostname.trim().toLowerCase().replace(/\.$/, ""))
   .handler(async ({ data: hostname }) => {
-    if (!hostnamePattern.test(hostname)) throw new Error("INVALID_AGENCY_HOST");
-    if (["globetrotr.nl", "www.globetrotr.nl", "portal.globetrotr.nl", "dashboard.globetrotr.nl"].includes(hostname)) return null;
+    const lookup = agencyHostLookup(hostname);
+    if (!lookup) return null;
     const client = await db();
-    const subdomain = hostname.endsWith(".globetrotr.nl") ? hostname.slice(0, -".globetrotr.nl".length) : "";
-    const filter = subdomain ? `subdomain.eq.${subdomain},custom_domain.eq.${hostname}` : `custom_domain.eq.${hostname}`;
-    const { data, error } = await client.from("agency_domains").select("workspace_uuid")
-      .eq("verification_status", "verified").or(filter).limit(1).maybeSingle();
+    let query = client.from("agency_domains").select("workspace_uuid");
+    query = lookup.subdomain
+      ? query.eq("subdomain", lookup.subdomain)
+      : query.eq("custom_domain", lookup.customDomain).eq("verification_status", "verified");
+    const { data, error } = await query.limit(1).maybeSingle();
     if (error) throw new Error("AGENCY_DOMAIN_LOOKUP_FAILED");
     return { workspaceId: data?.workspace_uuid ? String(data.workspace_uuid) : null };
   });
@@ -84,6 +101,11 @@ export const saveAgencyDeliverySettings = createServerFn({ method: "POST" })
       fromName: string;
       fromEmail: string;
       replyTo: string;
+      smtpHost?: string;
+      smtpPort?: number;
+      smtpSecure?: boolean;
+      smtpUsername?: string;
+      smtpPassword?: string;
     }) => x,
   )
   .handler(async ({ data, context }) => {
@@ -97,7 +119,110 @@ export const saveAgencyDeliverySettings = createServerFn({ method: "POST" })
     });
     if (error)
       throw new Error(error.code === "23505" ? "DOMAIN_ALREADY_USED" : "DELIVERY_SETTINGS_FAILED");
+    const smtpHost = data.smtpHost?.trim().toLowerCase() ?? "";
+    const smtpUsername = data.smtpUsername?.trim() ?? "";
+    const smtpPassword = data.smtpPassword?.trim() ?? "";
+    if (smtpHost || smtpUsername || smtpPassword) {
+      if (
+        !/^(?=.{1,253}$)[a-z0-9](?:[a-z0-9.-]*[a-z0-9])$/i.test(smtpHost) ||
+        /^(?:localhost|.*\.local)$/i.test(smtpHost)
+      )
+        throw new Error("INVALID_SMTP_HOST");
+      const port = Math.round(Number(data.smtpPort ?? 587));
+      if (port < 1 || port > 65535 || !smtpUsername) throw new Error("INVALID_SMTP_SETTINGS");
+      const update: Record<string, unknown> = {
+        smtp_host: smtpHost,
+        smtp_port: port,
+        smtp_secure: Boolean(data.smtpSecure),
+        smtp_username: smtpUsername,
+        smtp_secret_ref: `agency/${id}/smtp`,
+        smtp_test_status: null,
+        smtp_tested_at: null,
+        smtp_last_error_code: null,
+        updated_by: context.userId,
+        updated_at: new Date().toISOString(),
+      };
+      if (smtpPassword) {
+        const { encryptSecret } = await import("@/lib/secret-crypto.server");
+        update.smtp_password_ciphertext = encryptSecret(smtpPassword);
+      } else {
+        const current = await client
+          .from("agency_mail_settings")
+          .select("smtp_password_ciphertext")
+          .eq("workspace_uuid", id)
+          .single();
+        if (!current.data?.smtp_password_ciphertext) throw new Error("SMTP_PASSWORD_REQUIRED");
+      }
+      const saved = await client
+        .from("agency_mail_settings")
+        .update(update)
+        .eq("workspace_uuid", id);
+      if (saved.error) throw new Error("SMTP_SETTINGS_SAVE_FAILED");
+    }
     return r;
+  });
+
+export const testAgencySmtp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const client = await db(),
+      id = await workspace(client, context.userId);
+    const { data } = await client
+      .from("agency_mail_settings")
+      .select(
+        "from_name,from_email,reply_to,smtp_host,smtp_port,smtp_secure,smtp_username,smtp_password_ciphertext",
+      )
+      .eq("workspace_uuid", id)
+      .single();
+    if (!data?.smtp_host || !data.smtp_username || !data.smtp_password_ciphertext)
+      throw new Error("SMTP_NOT_CONFIGURED");
+    let status: "ok" | "failed" = "failed",
+      errorCode: string | null = null;
+    try {
+      const [{ decryptSecret }, nodemailer] = await Promise.all([
+        import("@/lib/secret-crypto.server"),
+        import("nodemailer"),
+      ]);
+      const transport = nodemailer.default.createTransport({
+        host: data.smtp_host,
+        port: Number(data.smtp_port),
+        secure: Boolean(data.smtp_secure),
+        requireTLS: !data.smtp_secure,
+        auth: { user: data.smtp_username, pass: decryptSecret(data.smtp_password_ciphertext) },
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 15_000,
+      });
+      await transport.verify();
+      const account = await client.auth.admin.getUserById(context.userId);
+      const recipient = account.data?.user?.email;
+      if (!recipient)
+        throw Object.assign(new Error("SMTP_TEST_RECIPIENT_MISSING"), {
+          code: "SMTP_TEST_RECIPIENT_MISSING",
+        });
+      await transport.sendMail({
+        from: { name: data.from_name, address: data.from_email },
+        replyTo: data.reply_to || undefined,
+        to: recipient,
+        subject: "Agency SMTP test / SMTP-test",
+        text: "Your Agency SMTP configuration works. / Je Agency-SMTP-configuratie werkt.",
+        html: '<div style="font-family:Arial,sans-serif;line-height:1.6"><h1>Agency SMTP test</h1><p>Your Agency SMTP configuration works.</p><p>Je Agency-SMTP-configuratie werkt.</p></div>',
+      });
+      status = "ok";
+    } catch (error) {
+      errorCode = String((error as { code?: string })?.code ?? "SMTP_VERIFY_FAILED").slice(0, 80);
+    }
+    await client
+      .from("agency_mail_settings")
+      .update({
+        smtp_test_status: status,
+        smtp_tested_at: new Date().toISOString(),
+        smtp_last_error_code: errorCode,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("workspace_uuid", id);
+    if (status !== "ok") throw new Error(errorCode ?? "SMTP_VERIFY_FAILED");
+    return { ok: true };
   });
 export const verifyAgencyDomain = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -121,10 +246,15 @@ export const verifyAgencyDomain = createServerFn({ method: "POST" })
     ]);
     if (cnameResult.status === "fulfilled") cname = cnameResult.value;
     if (txtResult.status === "fulfilled") txt = txtResult.value;
-    const cnameOk = cname.some((value) =>
-      ["globetrotr.nl", "dashboard.globetrotr.nl", "portal.globetrotr.nl"].includes(value.replace(/\.$/, "").toLowerCase()),
-    ) || (domainIpResult.status === "fulfilled" && platformIpResult.status === "fulfilled" &&
-      domainIpResult.value.some((ip) => platformIpResult.value.includes(ip)));
+    const cnameOk =
+      cname.some((value) =>
+        ["globetrotr.nl", "dashboard.globetrotr.nl", "portal.globetrotr.nl"].includes(
+          value.replace(/\.$/, "").toLowerCase(),
+        ),
+      ) ||
+      (domainIpResult.status === "fulfilled" &&
+        platformIpResult.status === "fulfilled" &&
+        domainIpResult.value.some((ip) => platformIpResult.value.includes(ip)));
     const txtOk = txt.some(
       (parts) => parts.join("") === `globetrotr-verification=${domain.verification_token}`,
     );

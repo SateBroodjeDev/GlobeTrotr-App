@@ -2,12 +2,15 @@
 
 Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor 1 oktober 2026 en wordt pas gepubliceerd na een geslaagde productieacceptatie. Detailwijzigingen blijven in Git beschikbaar.
 
-## Release 1.0 — in voorbereiding, 24 september 2026
+## Release 1.0 — in voorbereiding, 25 september 2026
 
 - Een Paddle-checkout die alleen is geopend maakt geen betaalbevestiging meer; de melding en transactionele mail volgen pas na het bevestigde `transaction.completed`-event.
 - Webpush heeft een afzonderlijke configuratie-healthcheck voor Node-02, zodat ontbrekende VAPID-instellingen zichtbaar zijn zonder sleutels te tonen.
 - Het meldingenpaneel toont de echte apparaatstatus en kan een volledige testpush klaarzetten; nieuwe privacyverzoeken en ingevulde Agency-klantformulieren waarschuwen de juiste beheerders.
 - Accountinstellingen bieden aparte pushkeuzes voor uitnodigingen, reizen en Agency-werk, betalingen, vluchtwijzigingen en account- of serviceberichten; uitzetten annuleert ook nog niet verzonden pushes in die categorie.
+- Geregistreerde `naam.globetrotr.nl`-Agencyportalen gebruiken direct de juiste tenant; eigen domeinen tonen naam, logo, kleur en tagline al voor het inloggen en bieden geen route terug naar de publieke GlobeTrotr-marketingpagina's. Alleen externe domeinen vereisen CNAME/TXT-verificatie.
+- Agencies kunnen een eigen SMTP-account versleuteld opslaan en met een echte testmail controleren; geteste Agency-uitnodigingen gebruiken die server, terwijl niet-ingestelde Agencies op de centrale ZXCS-relay blijven. Uitnodigingen en klantformulieren gebruiken daarbij volledig de eigen naam, kleur, tagline, logo, contactadres en Agency-host zonder GlobeTrotr-verwijzingen.
+- Vluchten, verblijven, vervoer en huurauto's kunnen maximaal één vertrek-, check-in- of ophaalherinnering krijgen in de laatste 24 uur; de bestaande boekingsvoorkeur en profieltaal worden gerespecteerd en webpush bevat geen boekingsdetails.
 - Herkende boekingsmail maakt weer een geldige boekingsmelding aan en webpush gebruikt precies één profieltaal zonder gevoelige inhoud.
 - Vertaalde HTML-mail blijft na vertalen een opgemaakte, afgeschermde e-mail in plaats van zichtbare HTML-code.
 - De hotelcontrole gebruikt de routepositie als standaard slaapplaats, toont de lange keuzelijst alleen bij wijzigen en zoekt met een tweede providerfallback tot 15 km.
@@ -33,7 +36,7 @@ Publieke releases lopen van beta 0.1 tot en met 0.9. Release 1.0 is gepland voor
 - Hotelcontrole onderscheidt ontbrekende nachten van een reis zonder ingestelde nachten.
 - Agency DNS-instructies openen in een dialoog en geverifieerde hosts behouden hun eigen domein.
 - Webpush wacht nog op VAPID-configuratie en een echte bezorgproef.
-- Stalwart en Agency-SMTP blijven buiten 1.0; ZXCS blijft actief totdat TCP 25 en alle mailproeven slagen.
+- De eigen Stalwart-mailserver blijft buiten 1.0; ZXCS blijft de centrale terugval totdat TCP 25 en alle mailproeven slagen.
 
 ## Beta 0.9 — 23 september 2026, 12:00 CEST
 

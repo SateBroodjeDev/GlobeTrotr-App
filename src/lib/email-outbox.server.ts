@@ -11,7 +11,15 @@ export async function queueInvitationEmail(
     preferenceUserId?: string;
     invitationType: "trip" | "agency" | "client_form";
     invitationId: string;
-    branding?: { brandName: string; accentHue: number };
+    branding?: {
+      brandName: string;
+      accentHue: number;
+      workspaceId?: string;
+      portalHost?: string;
+      tagline?: string;
+      logoPath?: string | null;
+      contactEmail?: string;
+    };
   },
 ): Promise<"queued" | "skipped" | "failed"> {
   if (input.preferenceUserId) {

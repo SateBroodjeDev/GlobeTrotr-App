@@ -1,6 +1,6 @@
 # GlobeTrotr technisch bouwplan
 
-**Stand: 24 september 2026**
+**Stand: 25 september 2026**
 
 Dit document beschrijft alleen de technische bouwvolgorde. Productstatus staat in `roadmap.md`, ideeën en concurrentiegaps in `FEATURE_GAP_AND_EXPANSION.md`, en uitrol in `IMPLEMENTATION_PENDING.md`.
 
@@ -19,15 +19,17 @@ Dit document beschrijft alleen de technische bouwvolgorde. Productstatus staat i
 - bedrijfsmail met meer laden in het archief, schermvullend lezen, langere vertalingen en gecontroleerd definitief verwijderen.
 - reisdatums in één gecontroleerde handeling verschuiven met impactpreview en behoud van historische administratie.
 - privacyverklaring, cookie-/opslagkeuze en browseropslaginventaris afgestemd op de actuele offline-, push-, mail- en vertaalfuncties.
+- white-label Agency-hosts vóór inloggen en eigen Agency-SMTP met volledig eigen HTML-mailbranding.
+- eenmalige boekingsherinneringen binnen 24 uur via de bestaande in-app- en webpushlaag.
 
 ### Nog uitvoeren
 
-1. migratie/test 1660;
-2. migratie/test 1670;
-3. migratie/test 1680;
-4. migratie/test 1690;
+1. migratie/test 1730 voor pushvoorkeuren uitvoeren wanneer die nog niet is afgerond;
+2. migratie/test 1740 voor publieke Agency-hostbranding uitvoeren;
+3. migratie/test 1750 voor Agency-SMTP uitvoeren;
+4. migratie/test 1760 voor boekingsherinneringen uitvoeren;
 5. Node-01 en Node-02 uitrollen;
-6. praktijktests uit `IMPLEMENTATION_PENDING.md`;
+6. praktijktests uit `IMPLEMENTATION_PENDING.md`, inclusief eigen SMTP, white-label mail en boekingsherinneringen, uitvoeren;
 7. bevindingen oplossen en `npm run verify`, `npm run build` en `git diff --check` herhalen;
 8. alleen bij een geslaagde vrijgavecontrole versie 1.0 publiceren.
 

@@ -50,16 +50,18 @@ import { useLocale } from "@/lib/locale";
 import { localizeTagline } from "@/lib/localized-values";
 import { openPrivacyChoices } from "@/lib/privacy-consent";
 import { getMyAgencyAccess } from "@/lib/agency.functions";
-import {getMaintenanceState} from "@/lib/maintenance.functions";
+import { getMaintenanceState } from "@/lib/maintenance.functions";
 import { portalUrl, publicSiteUrl } from "@/lib/site-routing";
-import {MaintenanceScreen} from "@/components/MaintenanceScreen";
+import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 import { usePortalSessionSummary } from "@/lib/public-session";
+import { agencyHostLookup } from "@/lib/agency-domain";
+import { getPublicAgencyHostBranding, publicAgencyLogoUrl } from "@/lib/agency-host-branding";
 
 const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
-const AGENCY_NAV = [
-  { to: "/agency-admin", label: "Agency Admin", icon: Building2 },
+const AGENCY_NAV = [{ to: "/agency-admin", label: "Agency Admin", icon: Building2 }] as const;
+const CLIENT_NAV = [
+  { to: "/client-portal", label: "Klantportaal", icon: BriefcaseBusiness },
 ] as const;
-const CLIENT_NAV = [{ to: "/client-portal", label: "Klantportaal", icon: BriefcaseBusiness }] as const;
 const SUPPORT_NAV = [
   { to: "/contact", label: "Contact", icon: Mail },
   { to: "/status", label: "Status", icon: Activity },
@@ -83,8 +85,23 @@ export function AppShell({ children }: { children: ReactNode }) {
   return <AppShellContent>{children}</AppShellContent>;
 }
 
-function FooterMenu({label,children}:{label:string;children:ReactNode}) {
-  return <DropdownMenu><DropdownMenuTrigger asChild><button type="button" className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:text-primary">{label}<ChevronDown className="size-3.5"/></button></DropdownMenuTrigger><DropdownMenuContent align="end" side="top" className="min-w-48">{children}</DropdownMenuContent></DropdownMenu>;
+function FooterMenu({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:text-primary"
+        >
+          {label}
+          <ChevronDown className="size-3.5" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" side="top" className="min-w-48">
+        {children}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
 // WorkspaceProvider staat in de root-layout, direct onder AuthProvider. Zo
@@ -94,7 +111,11 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const { state, cloud, refreshWorkspace } = useWorkspace();
   const plan = planOf(state.plan);
   const { user, loading: authLoading } = useAuth();
-  const { publicHost, summary: portalSession, checked: portalSessionChecked } = usePortalSessionSummary();
+  const {
+    publicHost,
+    summary: portalSession,
+    checked: portalSessionChecked,
+  } = usePortalSessionSummary();
   const { locale, setLocale, text } = useLocale();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (routerState) => routerState.location.pathname });
@@ -105,7 +126,41 @@ function AppShellContent({ children }: { children: ReactNode }) {
   const [avatarUrl, setAvatarUrl] = useState<string>();
   const [avatarResolved, setAvatarResolved] = useState(false);
   const [agencyLogoUrl, setAgencyLogoUrl] = useState<string>();
-  const maintenance=useQuery({queryKey:["public-maintenance"],queryFn:()=>getMaintenanceState(),refetchInterval:60_000});
+  const [hostname] = useState(() =>
+    typeof window === "undefined" ? "" : window.location.hostname.toLowerCase(),
+  );
+  const agencyHost = Boolean(hostname && agencyHostLookup(hostname));
+  const hostBranding = useQuery({
+    queryKey: ["public-agency-host-branding", hostname],
+    queryFn: () => getPublicAgencyHostBranding(hostname),
+    enabled: agencyHost,
+    retry: false,
+  });
+  const visibleBranding = hostBranding.data
+    ? {
+        brandName: hostBranding.data.brandName,
+        domain: hostBranding.data.domain,
+        accent: hostBranding.data.accent,
+        tagline: hostBranding.data.tagline,
+        logoPath: hostBranding.data.logoPath ?? undefined,
+      }
+    : agencyHost
+      ? {
+          brandName: "Agency portal",
+          domain: hostname,
+          accent: 172,
+          tagline: "",
+          logoPath: undefined,
+        }
+      : state.branding;
+  const visibleAgencyLogo = hostBranding.data
+    ? publicAgencyLogoUrl(hostBranding.data.logoPath)
+    : agencyLogoUrl;
+  const maintenance = useQuery({
+    queryKey: ["public-maintenance"],
+    queryFn: () => getMaintenanceState(),
+    refetchInterval: 60_000,
+  });
   const agencyRefreshPending = useRef(false);
   const profileQuery = useQuery({
     queryKey: ["profile-theme", user?.id],
@@ -139,12 +194,34 @@ function AppShellContent({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: "always",
   });
   const preference = user
-    ? profileQuery.data === undefined ? cachedTheme() : asTheme(profileQuery.data?.theme)
+    ? profileQuery.data === undefined
+      ? cachedTheme()
+      : asTheme(profileQuery.data?.theme)
     : guestTheme;
-  const navItems = authLoading ? [] : user
-    ? [...CORE_NAV, ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []), ...(state.plan === "agency" ? AGENCY_NAV : []), ...(user.app_metadata?.corporate_admin === true ? [{to:"/company-mail",label:text("Bedrijfsmail","Company mail"),icon:Mail} as const,{to:"/corporate-admin",label:"Corporate Admin",icon:Shield} as const] : []), ...SUPPORT_NAV.slice().reverse()]
-    : PUBLIC_NAV;
-  const displayName = portalSession?.displayName ||
+  const navItems = authLoading
+    ? []
+    : user
+      ? [
+          ...CORE_NAV,
+          ...(state.trips.some((trip) => trip.accessRole === "client") ? CLIENT_NAV : []),
+          ...(state.plan === "agency" ? AGENCY_NAV : []),
+          ...(user.app_metadata?.corporate_admin === true
+            ? [
+                {
+                  to: "/company-mail",
+                  label: text("Bedrijfsmail", "Company mail"),
+                  icon: Mail,
+                } as const,
+                { to: "/corporate-admin", label: "Corporate Admin", icon: Shield } as const,
+              ]
+            : []),
+          ...(agencyHost ? [] : SUPPORT_NAV.slice().reverse()),
+        ]
+      : agencyHost
+        ? []
+        : PUBLIC_NAV;
+  const displayName =
+    portalSession?.displayName ||
     profileQuery.data?.display_name ||
     String(user?.user_metadata.full_name ?? user?.email?.split("@")[0] ?? "Account");
   const initials =
@@ -165,8 +242,11 @@ function AppShellContent({ children }: { children: ReactNode }) {
     navigate({ to: "/auth", replace: true });
   }
   useEffect(() => {
-    document.documentElement.style.setProperty("--brand-hue", String(state.branding.accent));
-  }, [state.branding.accent]);
+    document.documentElement.style.setProperty("--brand-hue", String(visibleBranding.accent));
+  }, [visibleBranding.accent]);
+  useEffect(() => {
+    if (agencyHost) document.title = `${visibleBranding.brandName} — Agency portal`;
+  }, [agencyHost, pathname, visibleBranding.brandName]);
   useEffect(() => {
     if (agencyAccessQuery.data !== false || agencyRefreshPending.current) return;
     agencyRefreshPending.current = true;
@@ -182,11 +262,22 @@ function AppShellContent({ children }: { children: ReactNode }) {
       setAgencyLogoUrl(undefined);
       return;
     }
-    let active=true;
-    supabase.storage.from("agency-logos").createSignedUrl(state.branding.logoPath,60*60)
-      .then(({data})=>{if(active)setAgencyLogoUrl(data?.signedUrl?`${data.signedUrl}&v=${encodeURIComponent(state.branding.logoPath!)}`:undefined)});
-    return()=>{active=false};
-  }, [state.plan,state.branding.logoPath]);
+    let active = true;
+    supabase.storage
+      .from("agency-logos")
+      .createSignedUrl(state.branding.logoPath, 60 * 60)
+      .then(({ data }) => {
+        if (active)
+          setAgencyLogoUrl(
+            data?.signedUrl
+              ? `${data.signedUrl}&v=${encodeURIComponent(state.branding.logoPath!)}`
+              : undefined,
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [state.plan, state.branding.logoPath]);
   useEffect(() => {
     if (!profileQuery.data?.avatar_path) {
       setAvatarUrl(undefined);
@@ -198,9 +289,15 @@ function AppShellContent({ children }: { children: ReactNode }) {
     supabase.storage
       .from("avatars")
       .createSignedUrl(profileQuery.data.avatar_path, 60 * 60)
-      .then(({ data }) => { if (active) setAvatarUrl(data?.signedUrl); })
-      .finally(() => { if (active) setAvatarResolved(true); });
-    return () => { active = false; };
+      .then(({ data }) => {
+        if (active) setAvatarUrl(data?.signedUrl);
+      })
+      .finally(() => {
+        if (active) setAvatarResolved(true);
+      });
+    return () => {
+      active = false;
+    };
   }, [profileQuery.data?.avatar_path]);
   useEffect(() => {
     if (user && profileQuery.data !== undefined) {
@@ -230,73 +327,218 @@ function AppShellContent({ children }: { children: ReactNode }) {
     const { error } = await supabase.from("profiles").upsert({ id: user.id, theme: next });
     if (!error) await queryClient.invalidateQueries({ queryKey: ["profile-theme", user.id] });
   }
-  const isCorporateUser=user?.app_metadata?.corporate_admin===true;
-  if(maintenance.data?.active&&!isCorporateUser&&pathname!=="/auth")return <MaintenanceScreen state={maintenance.data}/>;
+  const isCorporateUser = user?.app_metadata?.corporate_admin === true;
+  if (maintenance.data?.active && !isCorporateUser && pathname !== "/auth")
+    return <MaintenanceScreen state={maintenance.data} />;
   if (corporateAdmin) {
-    return <div className="min-h-screen bg-muted/20">
-      <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1500px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
-          <a href={publicSiteUrl("/")} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3" aria-label={text("Naar de publieke website", "Go to public website")}>
-            <img src="/assets/brand/logo.png" alt="GlobeTrotr" className="size-9 shrink-0 rounded-xl object-contain" />
-            <span className="min-w-0"><strong className="block truncate font-display">GlobeTrotr</strong><span className="hidden truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:block">Corporate operations</span></span>
-          </a>
-          <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
-            <Button asChild variant="ghost" size="sm" className="min-h-11 px-3 sm:min-h-9"><a href={publicSiteUrl("/")}><Map className="size-4"/><span className="hidden sm:inline">{text("Website", "Website")}</span></a></Button>
-            <Button asChild variant="ghost" size="sm" className="min-h-11 px-3 sm:min-h-9"><Link to="/dashboard"><LayoutDashboard className="size-4" /><span className="hidden sm:inline">{text("Reisplatform", "Travel platform")}</span></Link></Button>
-            <Button type="button" variant="ghost" size="icon" aria-label={dark ? text("Lichte modus", "Light mode") : text("Donkere modus", "Dark mode")} onClick={() => void toggleTheme()}>{dark ? <Sun className="size-4" /> : <Moon className="size-4" />}</Button>
-            <DropdownMenu><DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="rounded-full" aria-label={text("Beheerdersmenu", "Administrator menu")}><Avatar className="size-8"><AvatarImage src={avatarUrl} /><AvatarFallback>{initials}</AvatarFallback></Avatar></Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="w-56"><DropdownMenuLabel>{displayName}<span className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">{user?.email}</span></DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem asChild><Link to="/account"><UserRound className="size-4" />{text("Accountinstellingen", "Account settings")}</Link></DropdownMenuItem><DropdownMenuItem onSelect={() => void signOut()}><LogOut className="size-4" />{text("Uitloggen", "Sign out")}</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
+    return (
+      <div className="min-h-screen bg-muted/20">
+        <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+          <div className="mx-auto flex max-w-[1500px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
+            <a
+              href={publicSiteUrl("/")}
+              className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3"
+              aria-label={text("Naar de publieke website", "Go to public website")}
+            >
+              <img
+                src="/assets/brand/logo.png"
+                alt="GlobeTrotr"
+                className="size-9 shrink-0 rounded-xl object-contain"
+              />
+              <span className="min-w-0">
+                <strong className="block truncate font-display">GlobeTrotr</strong>
+                <span className="hidden truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:block">
+                  Corporate operations
+                </span>
+              </span>
+            </a>
+            <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
+              <Button asChild variant="ghost" size="sm" className="min-h-11 px-3 sm:min-h-9">
+                <a href={publicSiteUrl("/")}>
+                  <Map className="size-4" />
+                  <span className="hidden sm:inline">{text("Website", "Website")}</span>
+                </a>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className="min-h-11 px-3 sm:min-h-9">
+                <Link to="/dashboard">
+                  <LayoutDashboard className="size-4" />
+                  <span className="hidden sm:inline">
+                    {text("Reisplatform", "Travel platform")}
+                  </span>
+                </Link>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={
+                  dark ? text("Lichte modus", "Light mode") : text("Donkere modus", "Dark mode")
+                }
+                onClick={() => void toggleTheme()}
+              >
+                {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full"
+                    aria-label={text("Beheerdersmenu", "Administrator menu")}
+                  >
+                    <Avatar className="size-8">
+                      <AvatarImage src={avatarUrl} />
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    {displayName}
+                    <span className="mt-0.5 block truncate text-xs font-normal text-muted-foreground">
+                      {user?.email}
+                    </span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/account">
+                      <UserRound className="size-4" />
+                      {text("Accountinstellingen", "Account settings")}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => void signOut()}>
+                    <LogOut className="size-4" />
+                    {text("Uitloggen", "Sign out")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </div>
-      </header>
-      {user && <PlatformStatusBanner userId={user.id} />}
-      <main className="mx-auto max-w-[1500px] px-4 py-6 lg:px-6 lg:py-8">{children}</main>
-    </div>;
+        </header>
+        {user && <PlatformStatusBanner userId={user.id} />}
+        <main className="mx-auto max-w-[1500px] px-4 py-6 lg:px-6 lg:py-8">{children}</main>
+      </div>
+    );
   }
   return (
     <div className="min-h-screen bg-background">
-      {publicHost && <iframe src="https://portal.globetrotr.nl/session-bridge" title="" aria-hidden="true" tabIndex={-1} className="hidden" />}
+      {publicHost && (
+        <iframe
+          src="https://portal.globetrotr.nl/session-bridge"
+          title=""
+          aria-hidden="true"
+          tabIndex={-1}
+          className="hidden"
+        />
+      )}
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:gap-x-6 sm:gap-y-3 sm:px-4 sm:py-3">
-          <a href={publicSiteUrl("/")} className="flex min-w-0 flex-1 items-center gap-2 md:flex-none" aria-label={text("Naar de publieke website", "Go to public website")}>
+          <a
+            href={agencyHost ? (user ? "/agency-admin" : "/auth") : publicSiteUrl("/")}
+            className="flex min-w-0 flex-1 items-center gap-2 md:flex-none"
+            aria-label={
+              agencyHost
+                ? visibleBranding.brandName
+                : text("Naar de publieke website", "Go to public website")
+            }
+          >
             <img
-              src={agencyLogoUrl ?? "/assets/brand/logo.png"}
-              alt={`${state.branding.brandName} logo`}
+              src={
+                visibleAgencyLogo ??
+                (agencyHost ? "/assets/brand/agency-placeholder.svg" : "/assets/brand/logo.png")
+              }
+              alt={`${visibleBranding.brandName} logo`}
               className="size-9 shrink-0 rounded-xl object-contain"
             />
             <span className="min-w-0 leading-tight">
               <span className="block truncate font-display text-base font-semibold">
-                {state.branding.brandName}
+                {visibleBranding.brandName}
               </span>
               <span className="block truncate text-[11px] text-muted-foreground">
-                {state.branding.domain}
+                {visibleBranding.domain}
               </span>
             </span>
           </a>
-          {!sessionLoading && !sessionAuthenticated && <div className="order-2 flex w-full gap-2 lg:hidden">
-            <Button asChild variant="outline" size="sm" className="min-h-10 flex-1"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
-            <Button asChild size="sm" className="min-h-10 flex-1"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
-          </div>}
-          <nav aria-label={text("Hoofdnavigatie", "Main navigation")} className="order-3 -mx-1 flex w-[calc(100%+0.5rem)] gap-1 overflow-x-auto px-1 pb-0.5 overscroll-x-contain [scrollbar-width:none] md:order-none md:mx-0 md:w-auto md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
-            {user && <a href={publicSiteUrl("/")} className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"><Map className="size-4"/>{text("Website", "Website")}</a>}
-            {navItems.map((item) => (
-              user || (item.to !== "/" && item.to !== "/features" && item.to !== "/pricing") ? <Link
-                key={item.to}
-                to={item.to}
-                activeOptions={{ exact: item.to === "/" }}
+          {!sessionLoading && !sessionAuthenticated && (
+            <div className="order-2 flex w-full gap-2 lg:hidden">
+              <Button asChild variant="outline" size="sm" className="min-h-10 flex-1">
+                <a href={agencyHost ? "/auth" : portalUrl("/auth")}>
+                  {text("Inloggen", "Sign in")}
+                </a>
+              </Button>
+              <Button asChild size="sm" className="min-h-10 flex-1">
+                <a href={agencyHost ? "/register" : portalUrl("/register")}>
+                  {text("Registreren", "Create account")}
+                </a>
+              </Button>
+            </div>
+          )}
+          <nav
+            aria-label={text("Hoofdnavigatie", "Main navigation")}
+            className="order-3 -mx-1 flex w-[calc(100%+0.5rem)] gap-1 overflow-x-auto px-1 pb-0.5 overscroll-x-contain [scrollbar-width:none] md:order-none md:mx-0 md:w-auto md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden"
+          >
+            {user && !agencyHost && (
+              <a
+                href={publicSiteUrl("/")}
                 className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"
-                activeProps={{ className: "bg-accent text-accent-foreground" }}
               >
-                <item.icon className="size-4" />
-                {item.to === "/dashboard" ? text("Reizen", "Trips") : item.to === "/client-portal" ? text("Klantportaal", "Client portal") : item.to === "/features" ? text("Mogelijkheden", "Features") : item.to === "/pricing" ? text("Prijzen", "Pricing") : item.label}
-              </Link> : <a key={item.to} href={publicSiteUrl(item.to)} className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"><item.icon className="size-4"/>{item.to === "/features" ? text("Mogelijkheden", "Features") : item.to === "/pricing" ? text("Prijzen", "Pricing") : item.label}</a>
-            ))}
+                <Map className="size-4" />
+                {text("Website", "Website")}
+              </a>
+            )}
+            {navItems.map((item) =>
+              user || (item.to !== "/" && item.to !== "/features" && item.to !== "/pricing") ? (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  activeOptions={{ exact: item.to === "/" }}
+                  className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"
+                  activeProps={{ className: "bg-accent text-accent-foreground" }}
+                >
+                  <item.icon className="size-4" />
+                  {item.to === "/dashboard"
+                    ? text("Reizen", "Trips")
+                    : item.to === "/client-portal"
+                      ? text("Klantportaal", "Client portal")
+                      : item.to === "/features"
+                        ? text("Mogelijkheden", "Features")
+                        : item.to === "/pricing"
+                          ? text("Prijzen", "Pricing")
+                          : item.label}
+                </Link>
+              ) : (
+                <a
+                  key={item.to}
+                  href={publicSiteUrl(item.to)}
+                  className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:min-h-9"
+                >
+                  <item.icon className="size-4" />
+                  {item.to === "/features"
+                    ? text("Mogelijkheden", "Features")
+                    : item.to === "/pricing"
+                      ? text("Prijzen", "Pricing")
+                      : item.label}
+                </a>
+              ),
+            )}
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
             {user && <NotificationPanel key={user.id} userId={user.id} />}
-            {!sessionLoading && !sessionAuthenticated && <div className="hidden items-center gap-2 lg:flex">
-              <Button asChild variant="ghost" size="sm"><a href={portalUrl("/auth")}>{text("Inloggen", "Sign in")}</a></Button>
-              <Button asChild size="sm"><a href={portalUrl("/register")}>{text("Gratis registreren", "Create free account")}</a></Button>
-            </div>}
+            {!sessionLoading && !sessionAuthenticated && (
+              <div className="hidden items-center gap-2 lg:flex">
+                <Button asChild variant="ghost" size="sm">
+                  <a href={agencyHost ? "/auth" : portalUrl("/auth")}>
+                    {text("Inloggen", "Sign in")}
+                  </a>
+                </Button>
+                <Button asChild size="sm">
+                  <a href={agencyHost ? "/register" : portalUrl("/register")}>
+                    {text("Registreren", "Create account")}
+                  </a>
+                </Button>
+              </div>
+            )}
             {user && cloud === "saving" && (
               <span className="mr-2 hidden text-xs text-muted-foreground sm:block">
                 {text("Opslaan…", "Saving…")}
@@ -327,7 +569,13 @@ function AppShellContent({ children }: { children: ReactNode }) {
               {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
             {sessionLoading || profileAvatarLoading ? (
-              <Button type="button" variant="ghost" size="icon" disabled aria-label={text("Sessie laden", "Loading session")}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled
+                aria-label={text("Sessie laden", "Loading session")}
+              >
                 <UserRound className="size-5 animate-pulse" />
               </Button>
             ) : user ? (
@@ -372,8 +620,36 @@ function AppShellContent({ children }: { children: ReactNode }) {
               </DropdownMenu>
             ) : portalSession ? (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="rounded-full" aria-label={text("Accountmenu", "Account menu")}><Avatar className="size-8"><AvatarImage src={visibleAvatarUrl} /><AvatarFallback>{initials}</AvatarFallback></Avatar></Button></DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52"><DropdownMenuLabel>{displayName}</DropdownMenuLabel><DropdownMenuSeparator /><DropdownMenuItem asChild><a href={portalUrl("/dashboard")}><LayoutDashboard className="size-4" />{text("Naar mijn reizen", "Go to my trips")}</a></DropdownMenuItem><DropdownMenuItem asChild><a href={portalUrl("/account")}><UserRound className="size-4" />{text("Accountinstellingen", "Account settings")}</a></DropdownMenuItem></DropdownMenuContent>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full"
+                    aria-label={text("Accountmenu", "Account menu")}
+                  >
+                    <Avatar className="size-8">
+                      <AvatarImage src={visibleAvatarUrl} />
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuLabel>{displayName}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <a href={portalUrl("/dashboard")}>
+                      <LayoutDashboard className="size-4" />
+                      {text("Naar mijn reizen", "Go to my trips")}
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href={portalUrl("/account")}>
+                      <UserRound className="size-4" />
+                      {text("Accountinstellingen", "Account settings")}
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <DropdownMenu>
@@ -384,12 +660,12 @@ function AppShellContent({ children }: { children: ReactNode }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <a href={portalUrl("/auth")}>
+                    <a href={agencyHost ? "/auth" : portalUrl("/auth")}>
                       <LogIn className="size-4" /> {text("Inloggen", "Sign in")}
                     </a>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <a href={portalUrl("/register")}>
+                    <a href={agencyHost ? "/register" : portalUrl("/register")}>
                       <UserRound className="size-4" /> {text("Registreren", "Create account")}
                     </a>
                   </DropdownMenuItem>
@@ -403,37 +679,122 @@ function AppShellContent({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-8">{children}</main>
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-4 pb-10 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>
-          {state.branding.brandName} — {localizeTagline(state.branding.tagline, locale)}
+          {visibleBranding.brandName} — {localizeTagline(visibleBranding.tagline, locale)}
         </p>
-        <nav
-          aria-label={text("Voetnavigatie", "Footer navigation")}
-          className="flex flex-wrap items-center gap-x-4 gap-y-2"
-        >
-          <a href={publicSiteUrl("/updates")} className="inline-flex items-center gap-1.5 font-medium text-foreground underline-offset-4 hover:underline"><BookOpenText className="size-4" />{text("Publieke changelog", "Public changelog")}</a>
-          <FooterMenu label={text("Ontdek", "Explore")}>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/features")}><Map className="size-4"/>{text("Mogelijkheden", "Features")}</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/demo")}><Sparkles className="size-4"/>Demo</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/pricing")}><Tags className="size-4"/>{text("Prijzen", "Pricing")}</a></DropdownMenuItem>
-          </FooterMenu>
-          <FooterMenu label={text("Bedrijf", "Company")}>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/about")}><HeartHandshake className="size-4"/>{text("Over GlobeTrotr", "About GlobeTrotr")}</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/contact")}><Mail className="size-4"/>{text("Contact", "Contact")}</a></DropdownMenuItem>
-          </FooterMenu>
-          <FooterMenu label={text("Transparantie", "Transparency")}>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/roadmap")}><Compass className="size-4"/>Roadmap</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/updates")}><BookOpenText className="size-4"/>{text("Wat is er nieuw?", "What's new?")}</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/known-issues")}><AlertTriangle className="size-4"/>{text("Bekende problemen", "Known issues")}</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/status")}><Activity className="size-4"/>Status</a></DropdownMenuItem>
-          </FooterMenu>
-          <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/privacy")}><Shield className="size-4"/>{text("Privacyverklaring", "Privacy notice")}</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/terms")}><Scale className="size-4"/>{text("Algemene voorwaarden", "Terms and conditions")}</a></DropdownMenuItem>
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/refund-policy")}><RotateCcw className="size-4"/>{text("Terugbetalingsbeleid", "Refund policy")}</a></DropdownMenuItem>
-            {!authLoading&&!user&&<DropdownMenuItem onSelect={event=>{event.preventDefault();openPrivacyChoices();}}><Palette className="size-4"/>{text("Privacykeuzes", "Privacy choices")}</DropdownMenuItem>}
-            <DropdownMenuItem asChild><a href={publicSiteUrl("/beta")}><Sparkles className="size-4"/>{text("Beta en voorwaarden", "Beta and terms")}</a></DropdownMenuItem>
-          </FooterMenu>
-          <span>{text("Data via", "Data by")} OpenStreetMap · Open-Meteo/MET Norway · Frankfurter/ECB</span>
-        </nav>
+        {!agencyHost && (
+          <nav
+            aria-label={text("Voetnavigatie", "Footer navigation")}
+            className="flex flex-wrap items-center gap-x-4 gap-y-2"
+          >
+            <a
+              href={publicSiteUrl("/updates")}
+              className="inline-flex items-center gap-1.5 font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              <BookOpenText className="size-4" />
+              {text("Publieke changelog", "Public changelog")}
+            </a>
+            <FooterMenu label={text("Ontdek", "Explore")}>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/features")}>
+                  <Map className="size-4" />
+                  {text("Mogelijkheden", "Features")}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/demo")}>
+                  <Sparkles className="size-4" />
+                  Demo
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/pricing")}>
+                  <Tags className="size-4" />
+                  {text("Prijzen", "Pricing")}
+                </a>
+              </DropdownMenuItem>
+            </FooterMenu>
+            <FooterMenu label={text("Bedrijf", "Company")}>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/about")}>
+                  <HeartHandshake className="size-4" />
+                  {text("Over GlobeTrotr", "About GlobeTrotr")}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/contact")}>
+                  <Mail className="size-4" />
+                  {text("Contact", "Contact")}
+                </a>
+              </DropdownMenuItem>
+            </FooterMenu>
+            <FooterMenu label={text("Transparantie", "Transparency")}>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/roadmap")}>
+                  <Compass className="size-4" />
+                  Roadmap
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/updates")}>
+                  <BookOpenText className="size-4" />
+                  {text("Wat is er nieuw?", "What's new?")}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/known-issues")}>
+                  <AlertTriangle className="size-4" />
+                  {text("Bekende problemen", "Known issues")}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/status")}>
+                  <Activity className="size-4" />
+                  Status
+                </a>
+              </DropdownMenuItem>
+            </FooterMenu>
+            <FooterMenu label={text("Privacy & voorwaarden", "Privacy & terms")}>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/privacy")}>
+                  <Shield className="size-4" />
+                  {text("Privacyverklaring", "Privacy notice")}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/terms")}>
+                  <Scale className="size-4" />
+                  {text("Algemene voorwaarden", "Terms and conditions")}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/refund-policy")}>
+                  <RotateCcw className="size-4" />
+                  {text("Terugbetalingsbeleid", "Refund policy")}
+                </a>
+              </DropdownMenuItem>
+              {!authLoading && !user && (
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    openPrivacyChoices();
+                  }}
+                >
+                  <Palette className="size-4" />
+                  {text("Privacykeuzes", "Privacy choices")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem asChild>
+                <a href={publicSiteUrl("/beta")}>
+                  <Sparkles className="size-4" />
+                  {text("Beta en voorwaarden", "Beta and terms")}
+                </a>
+              </DropdownMenuItem>
+            </FooterMenu>
+            <span>
+              {text("Data via", "Data by")} OpenStreetMap · Open-Meteo/MET Norway · Frankfurter/ECB
+            </span>
+          </nav>
+        )}
       </footer>
     </div>
   );

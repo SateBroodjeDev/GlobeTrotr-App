@@ -1,6 +1,6 @@
 # GlobeTrotr mailstatus
 
-**Stand: 24 september 2026**
+**Stand: 25 september 2026**
 
 Dit bestand beschrijft alleen de actuele toestand. Serverbeheer staat in `SERVER_OPERATIONS.md`; de latere mailmigratie in `MAIL_SERVER_DEPLOYMENT.md`.
 
@@ -16,11 +16,15 @@ ZXCS is de actieve mailprovider voor SMTP en IMAP. Bevestigd of in gebruik:
 - veilige inline afbeeldingen en toestemming voor externe afbeeldingen;
 - ClamAV, bezorgwachtrij, opnieuw proberen en beperkte diagnose.
 
+## Gebouwd, productieacceptatie vereist
+
+- Externe Agency-SMTP kan per Agency versleuteld worden opgeslagen en met een echte testmail worden geactiveerd. Alleen geteste configuraties worden door de worker gebruikt; zonder configuratie blijft ZXCS de centrale route.
+- Agency-uitnodigingen en klantformulieren nemen naam, kleur, tagline, logo, contactadres en de eigen portalhost over. Deze mails bevatten geen GlobeTrotr-logo, slogan, contactlink of `powered by`-tekst.
+
 ## Gebouwd maar uitgeschakeld
 
 - zelf gehoste Stalwart-server;
 - automatische provisioning van `@globetrotr.nl`-postvakken;
-- Agency-SMTP;
 - unieke `trip.*@globetrotr.nl`-adressen en boekingsmailconcepten.
 
 `TRIP_BOOKING_MAIL_ENABLED` blijft `false`. Deze functies horen niet bij release 1.0.

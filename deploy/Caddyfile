@@ -66,6 +66,8 @@ https:// {
     rewrite * /agency/entry?domain={host}
     reverse_proxy 10.0.0.3:9091
   }
+  @agencyPublic path /demo /features /mogelijkheden /prijzen /pricing /about /for-groups /for-travelers /for-agencies /roadmap /updates /changelog /privacy /terms /algemene-voorwaarden /refund-policy /terugbetalingsbeleid /known-issues /bekende-problemen /beta /beta-voorwaarden /contact /status
+  redir @agencyPublic /agency-admin 302
   handle {
     reverse_proxy web:3000
   }

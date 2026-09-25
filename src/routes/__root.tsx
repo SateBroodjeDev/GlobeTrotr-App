@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/AppShell";
@@ -19,6 +19,7 @@ import { PrivacyChoices } from "@/components/PrivacyChoices";
 import { BetaFeedbackButton } from "@/components/BetaFeedbackButton";
 import { canonicalSiteLocation, publicSiteUrl } from "@/lib/site-routing";
 import "leaflet/dist/leaflet.css";
+import { agencyHostLookup } from "@/lib/agency-domain";
 
 function NotFoundComponent() {
   return (
@@ -117,7 +118,11 @@ function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="nl">
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("globetrotr.theme");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})();` }} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("globetrotr.theme");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light"}catch(e){}})();`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>
@@ -132,6 +137,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const sessionBridge = pathname === "/session-bridge";
+  const [agencyHost, setAgencyHost] = useState(false);
+  useEffect(() => {
+    setAgencyHost(Boolean(agencyHostLookup(window.location.hostname)));
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -139,12 +148,16 @@ function RootComponent() {
         <LocaleProvider>
           <WorkspaceProvider>
             <CanonicalOrigin>
-              {sessionBridge ? <Outlet /> : <AppShell>
+              {sessionBridge ? (
+                <Outlet />
+              ) : (
+                <AppShell>
                   {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
                   <Outlet />
-                </AppShell>}
+                </AppShell>
+              )}
               {!sessionBridge && <PrivacyChoices />}
-              {!sessionBridge && <BetaFeedbackButton />}
+              {!sessionBridge && !agencyHost && <BetaFeedbackButton />}
             </CanonicalOrigin>
           </WorkspaceProvider>
         </LocaleProvider>

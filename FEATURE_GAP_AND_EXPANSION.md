@@ -1,6 +1,6 @@
 # GlobeTrotr functie-gapanalyse
 
-**Gecontroleerd: 24 september 2026**
+**Gecontroleerd: 25 september 2026**
 
 Dit document vergelijkt GlobeTrotr met bestaande reisproducten en bevat mogelijke uitbreidingen. Het is geen toezegging of uitrolhandleiding. Gekozen werk gaat naar `roadmap.md` en daarna naar `BUILD_PLAN.md`.
 
@@ -10,18 +10,18 @@ GlobeTrotr combineert route, dagplanning, boekingen, uitgaven, verrekening, take
 
 Een mogelijke latere productlijn is **Self-Hosted Agency**: een officieel gelicentieerde GlobeTrotr-installatie op infrastructuur van een reisorganisatie, met centrale licentie- en updatecontrole maar zonder centrale verwerking van reisinhoud. Het uitgewerkte licentie-, API-, branding-, distributie- en supportmodel staat in [`SELF_HOSTED_AGENCY.md`](SELF_HOSTED_AGENCY.md). Dit is een traject na release 1.0 en nog geen toegezegde publieke functie.
 
-De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker, live agenda, offline gebruik, Agency-domeinen en webpush. De eigen mailserver is technisch voorbereid maar blijft buiten productie; ZXCS blijft actief.
+De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker, live agenda, offline gebruik, Agency-domeinen, eigen Agency-SMTP en webpush. White-label portal- en e-mailbranding zijn gebouwd. De eigen centrale mailserver is technisch voorbereid maar blijft buiten productie; ZXCS blijft actief als centrale route en terugval.
 
 ## Concurrentievergelijking
 
-| Product | Sterke functies | Relevante GlobeTrotr-gap |
-| --- | --- | --- |
-| [Wanderlog](https://wanderlog.com/) | Routeoptimalisatie, live samenwerking, boekingsimport, plaatsdetails, offline toegang en Google Maps-export | Routeoptimalisatie, uitgebreid ontdekken en kaart-export |
-| [TripIt](https://www.tripit.com/en-uk/web/free) | Boekingsimport, agendasynchronisatie, documenten, luchthavenkaarten, nabij zoeken en reisstatistieken | Luchthavenhulp, nabij zoeken en CO₂-inzicht |
-| [Roadtrippers](https://roadtrippers.com/about/features/) | Plaatsen langs de route, omwegfilter, favorieten, routevarianten, offline kaarten en live verkeer | Favorieten, routevarianten en routegebonden ontdekking |
-| [Polarsteps](https://www.polarsteps.com/news/polarsteps-launches-summer-2026-release-new-tools-for-planning-privacy-and-sharing) | Visuele tijdlijn, reisverhaal, ontdekking en reisboek | Privé reisdagboek en visuele terugblik |
-| [Travefy](https://travefy.com/) | CRM, formulieren, branded voorstellen, content en automatisering | Verdere verfijning van Agency-workflows |
-| [TravelSpend](https://travel-spend.com/) | Eenvoudige offline uitgaven en budgetbewaking | Praktijkacceptatie en verdere offline conflictafhandeling |
+| Product                                                                                                                          | Sterke functies                                                                                             | Relevante GlobeTrotr-gap                                  |
+| -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [Wanderlog](https://wanderlog.com/)                                                                                              | Routeoptimalisatie, live samenwerking, boekingsimport, plaatsdetails, offline toegang en Google Maps-export | Routeoptimalisatie, uitgebreid ontdekken en kaart-export  |
+| [TripIt](https://www.tripit.com/en-uk/web/free)                                                                                  | Boekingsimport, agendasynchronisatie, documenten, luchthavenkaarten, nabij zoeken en reisstatistieken       | Luchthavenhulp, nabij zoeken en CO₂-inzicht               |
+| [Roadtrippers](https://roadtrippers.com/about/features/)                                                                         | Plaatsen langs de route, omwegfilter, favorieten, routevarianten, offline kaarten en live verkeer           | Favorieten, routevarianten en routegebonden ontdekking    |
+| [Polarsteps](https://www.polarsteps.com/news/polarsteps-launches-summer-2026-release-new-tools-for-planning-privacy-and-sharing) | Visuele tijdlijn, reisverhaal, ontdekking en reisboek                                                       | Privé reisdagboek en visuele terugblik                    |
+| [Travefy](https://travefy.com/)                                                                                                  | CRM, formulieren, branded voorstellen, content en automatisering                                            | Verdere verfijning van Agency-workflows                   |
+| [TravelSpend](https://travel-spend.com/)                                                                                         | Eenvoudige offline uitgaven en budgetbewaking                                                               | Praktijkacceptatie en verdere offline conflictafhandeling |
 
 ## Beste kleine uitbreidingen
 
@@ -31,7 +31,7 @@ Deze functies hergebruiken bestaande gegevens en vragen geen grote providerinteg
 2. **Favoriete plaatsen** bewaren en later toevoegen aan reis of vergelijker.
 3. **Algemene checklijsten** voor vertrek, boodschappen en vrije taken.
 4. **Nabij deze stop** voor apotheken, supermarkten, stations en bezienswaardigheden via OpenStreetMap.
-5. **Check-inherinneringen** afleiden uit bestaande vlucht-, verblijf- en huurautogegevens.
+5. **Check-inherinneringen** uit bestaande vlucht-, verblijf-, vervoer- en huurautogegevens zijn gebouwd als begrensde 24-uursmelding en wachten op productieacceptatie.
 
 ## Uitbreidingen met provider of extra beheer
 

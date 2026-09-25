@@ -19,6 +19,10 @@ export const reviewedRawHtmlFiles = new Set([
   "src/routes/prijzen.tsx",
 ]);
 
+// Public database functions are exceptional. Add a function here only after
+// checking that it returns bounded, non-secret data and has a fixed search_path.
+export const reviewedPublicDatabaseFunctions = new Set(["get_public_agency_host_branding"]);
+
 export function auditTypeScriptSource(path, source) {
   const findings = [];
   const declarations = [...source.matchAll(/export const\s+(\w+)\s*=\s*createServerFn\b/g)];
@@ -61,8 +65,14 @@ export function auditMigration(path, source) {
       `${path}: ${definerCount} SECURITY DEFINER-functie(s), maar slechts ${fixedSearchPathCount} vastgezette search_path(s)`,
     );
   }
-  if (/GRANT\s+EXECUTE\s+ON\s+FUNCTION[\s\S]{0,500}\sTO\s+(?:PUBLIC|anon|authenticated)\b/i.test(source)) {
-    findings.push(`${path}: nieuwe SECURITY DEFINER/RPC-grant aan PUBLIC, anon of authenticated vereist expliciete review`);
+  for (const grant of source.matchAll(
+    /GRANT\s+EXECUTE\s+ON\s+FUNCTION\s+(?:public\.)?([a-z0-9_]+)\s*\([^;]*?\)\s+TO\s+(?:PUBLIC|anon|authenticated)\b/gi,
+  )) {
+    if (!reviewedPublicDatabaseFunctions.has(grant[1].toLowerCase())) {
+      findings.push(
+        `${path}: publieke databasefunctie ${grant[1]} vereist expliciete securityreview`,
+      );
+    }
   }
   return findings;
 }

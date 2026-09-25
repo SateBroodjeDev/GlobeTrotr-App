@@ -13,6 +13,8 @@ import { getPublicFeatureFlags } from "@/lib/corporate-governance.functions";
 import { KeyRound } from "lucide-react";
 import type { Provider } from "@supabase/supabase-js";
 import { safeInternalRedirect } from "@/lib/safe-redirect";
+import { agencyHostLookup } from "@/lib/agency-domain";
+import { getPublicAgencyHostBranding, publicAgencyLogoUrl } from "@/lib/agency-host-branding";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -21,13 +23,13 @@ export const Route = createFileRoute("/auth")({
   },
   head: () => ({
     meta: [
-      { title: "Inloggen — GlobeTrotr workspace" },
+      { title: "Inloggen — beveiligde reisworkspace" },
       {
         name: "description",
         content:
           "Log in of maak een gratis account om je reizen, budgetten en bonnetjes in de cloud te bewaren.",
       },
-      { property: "og:title", content: "Inloggen — GlobeTrotr workspace" },
+      { property: "og:title", content: "Inloggen — beveiligde reisworkspace" },
       {
         property: "og:description",
         content: "Bewaar je reisplanning en uitgaven veilig in je eigen cloud-workspace.",
@@ -59,6 +61,18 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const { redirect } = useSearch({ strict: false }) as { redirect?: string };
   const { text, language } = useLocale();
   const navigate = useNavigate();
+  const [hostname] = useState(() =>
+    typeof window === "undefined" ? "" : window.location.hostname.toLowerCase(),
+  );
+  const agencyHost = Boolean(hostname && agencyHostLookup(hostname));
+  const hostBranding = useQuery({
+    queryKey: ["public-agency-host-branding", hostname],
+    queryFn: () => getPublicAgencyHostBranding(hostname),
+    enabled: agencyHost,
+    retry: false,
+  });
+  const brandName = hostBranding.data?.brandName ?? (agencyHost ? "Agency portal" : "GlobeTrotr");
+  const brandLogo = publicAgencyLogoUrl(hostBranding.data?.logoPath);
   const flags = useQuery({
     queryKey: ["public-feature-flags"],
     queryFn: () => getPublicFeatureFlags(),
@@ -135,7 +149,9 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
         });
         const { data, error } = await Promise.race([
           signup,
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("SIGNUP_TIMEOUT")), 25000)),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("SIGNUP_TIMEOUT")), 25000),
+          ),
         ]);
         if (error) throw error;
         if (!data.session) {
@@ -155,21 +171,27 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
-      setFormError(message === "SIGNUP_TIMEOUT"
-        ? text("De registratie duurt te lang. Controleer eerst je e-mail; mogelijk is je account al aangemaakt. Probeer daarna in te loggen of een inloglink aan te vragen.", "Registration is taking too long. Check your email first; your account may already exist. Then try signing in or request a sign-in link.")
-        : message || text("Registreren is mislukt.", "Registration failed."));
+      setFormError(
+        message === "SIGNUP_TIMEOUT"
+          ? text(
+              "De registratie duurt te lang. Controleer eerst je e-mail; mogelijk is je account al aangemaakt. Probeer daarna in te loggen of een inloglink aan te vragen.",
+              "Registration is taking too long. Check your email first; your account may already exist. Then try signing in or request a sign-in link.",
+            )
+          : message || text("Registreren is mislukt.", "Registration failed."),
+      );
       if (mode === "signup") {
         setCaptchaToken("");
         setCaptchaReset((value) => value + 1);
       }
-      if (message !== "SIGNUP_TIMEOUT") toast.error(
-        /user is banned/i.test(message)
-          ? text(
-              "Dit account is tijdelijk geblokkeerd. Neem contact op via info@globetrotr.nl als je denkt dat dit niet klopt.",
-              "This account is temporarily blocked. Contact info@globetrotr.nl if you believe this is incorrect.",
-            )
-          : message || text("Er ging iets mis", "Something went wrong"),
-      );
+      if (message !== "SIGNUP_TIMEOUT")
+        toast.error(
+          /user is banned/i.test(message)
+            ? text(
+                "Dit account is tijdelijk geblokkeerd. Neem contact op via info@globetrotr.nl als je denkt dat dit niet klopt.",
+                "This account is temporarily blocked. Contact info@globetrotr.nl if you believe this is incorrect.",
+              )
+            : message || text("Er ging iets mis", "Something went wrong"),
+        );
     } finally {
       setBusy(false);
     }
@@ -255,6 +277,23 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     <div className="mx-auto max-w-md py-8">
       <Card>
         <CardHeader>
+          {agencyHost && (
+            <div className="mb-3 flex items-center gap-3">
+              {brandLogo && (
+                <img
+                  src={brandLogo}
+                  alt={`${brandName} logo`}
+                  className="size-12 rounded-xl object-contain"
+                />
+              )}
+              <div>
+                <p className="font-display text-xl font-semibold">{brandName}</p>
+                {hostBranding.data?.tagline && (
+                  <p className="text-sm text-muted-foreground">{hostBranding.data.tagline}</p>
+                )}
+              </div>
+            </div>
+          )}
           <CardTitle className="font-display text-2xl">
             {mode === "signin"
               ? text("Inloggen", "Sign in")
@@ -324,14 +363,14 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                   sentKind === "recovery"
                     ? "Open de link om een nieuw wachtwoord te kiezen."
                     : sentKind === "magic"
-                      ? "De link kan een keer worden gebruikt en brengt je veilig terug naar GlobeTrotr."
+                      ? `De link kan een keer worden gebruikt en brengt je veilig terug naar ${brandName}.`
                       : redirect
                         ? "Klik op de link om je account te bevestigen. Daarna kom je terug bij de uitnodiging."
                         : "Klik op de link om je workspace te activeren.",
                   sentKind === "recovery"
                     ? "Open the link to choose a new password."
                     : sentKind === "magic"
-                      ? "The link can be used once and safely returns you to GlobeTrotr."
+                      ? `The link can be used once and safely returns you to ${brandName}.`
                       : redirect
                         ? "Follow the link to confirm your account. You will then return to the invitation."
                         : "Follow the link to activate your workspace.",
@@ -399,10 +438,30 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                   />
                 </div>
                 {mode === "signup" && (
-                  <AuthCaptcha onToken={setCaptchaToken} reset={captchaReset} onProblem={setCaptchaProblem} />
+                  <AuthCaptcha
+                    onToken={setCaptchaToken}
+                    reset={captchaReset}
+                    onProblem={setCaptchaProblem}
+                  />
                 )}
                 {mode === "signup" && captchaProblem && (
-                  <p role="alert" className="text-sm text-destructive">{text("De spamcontrole laadt niet. Controleer je verbinding of advertentieblokkering en probeer opnieuw.", "The spam check did not load. Check your connection or ad blocker and retry.")} <button type="button" className="underline" onClick={() => { if (!window.turnstile) document.querySelector("script[data-turnstile]")?.remove(); setCaptchaReset((value) => value + 1); }}>{text("Opnieuw laden", "Retry")}</button></p>
+                  <p role="alert" className="text-sm text-destructive">
+                    {text(
+                      "De spamcontrole laadt niet. Controleer je verbinding of advertentieblokkering en probeer opnieuw.",
+                      "The spam check did not load. Check your connection or ad blocker and retry.",
+                    )}{" "}
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => {
+                        if (!window.turnstile)
+                          document.querySelector("script[data-turnstile]")?.remove();
+                        setCaptchaReset((value) => value + 1);
+                      }}
+                    >
+                      {text("Opnieuw laden", "Retry")}
+                    </button>
+                  </p>
                 )}
                 {formError && (
                   <p
@@ -412,7 +471,14 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                     {formError}
                   </p>
                 )}
-                {mode === "signup" && <p className="text-xs text-muted-foreground">{text("Gebruik je dit e-mailadres al via Google of Discord? Log dan in met die aanbieder. Om te voorkomen dat anderen accounts kunnen opzoeken, bevestigen we hier niet of een adres al bestaat.", "Already using this email through Google or Discord? Sign in with that provider. To prevent account enumeration, we do not confirm here whether an address already exists.")}</p>}
+                {mode === "signup" && (
+                  <p className="text-xs text-muted-foreground">
+                    {text(
+                      "Gebruik je dit e-mailadres al via Google of Discord? Log dan in met die aanbieder. Om te voorkomen dat anderen accounts kunnen opzoeken, bevestigen we hier niet of een adres al bestaat.",
+                      "Already using this email through Google or Discord? Sign in with that provider. To prevent account enumeration, we do not confirm here whether an address already exists.",
+                    )}
+                  </p>
+                )}
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy
                     ? text("Bezig…", "Working…")
@@ -508,7 +574,15 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   );
 }
 
-function AuthCaptcha({ onToken, reset, onProblem }: { onToken: (token: string) => void; reset: number; onProblem: (problem: boolean) => void }) {
+function AuthCaptcha({
+  onToken,
+  reset,
+  onProblem,
+}: {
+  onToken: (token: string) => void;
+  reset: number;
+  onProblem: (problem: boolean) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const receive = useCallback((value: string) => onToken(value), [onToken]);
   useEffect(() => {
@@ -524,7 +598,10 @@ function AuthCaptcha({ onToken, reset, onProblem }: { onToken: (token: string) =
           theme: "auto",
           callback: receive,
           "expired-callback": () => receive(""),
-          "error-callback": () => { receive(""); onProblem(true); },
+          "error-callback": () => {
+            receive("");
+            onProblem(true);
+          },
         });
         onProblem(false);
       }
@@ -541,8 +618,13 @@ function AuthCaptcha({ onToken, reset, onProblem }: { onToken: (token: string) =
       document.head.appendChild(script);
     }
     const retry = window.setInterval(() => {
-      if (window.turnstile) { render(); window.clearInterval(retry); }
-      else if (++attempts >= 15) { onProblem(true); window.clearInterval(retry); }
+      if (window.turnstile) {
+        render();
+        window.clearInterval(retry);
+      } else if (++attempts >= 15) {
+        onProblem(true);
+        window.clearInterval(retry);
+      }
     }, 1000);
     return () => {
       cancelled = true;

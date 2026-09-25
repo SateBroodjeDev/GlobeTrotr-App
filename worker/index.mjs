@@ -5,7 +5,12 @@ import { scanBuffer } from "./clamav.mjs";
 import { buildLiveCalendar } from "./live-calendar.mjs";
 import { trustedPaddleCustomData } from "./paddle-binding.mjs";
 import { agencyDomainFilter } from "./agency-domain.mjs";
-import { checkStalwart, decryptMailboxPassword, provisionMailbox } from "./stalwart-provisioning.mjs";
+import { publicAgencyLogoUrl } from "./email-branding.mjs";
+import {
+  checkStalwart,
+  decryptMailboxPassword,
+  provisionMailbox,
+} from "./stalwart-provisioning.mjs";
 
 const env = process.env;
 const supabaseUrl = required("SUPABASE_URL").replace(/\/$/, "");
@@ -26,6 +31,7 @@ let lastErrorCode = null;
 let lastEntitlementExpiryAt = 0;
 let lastAttachmentCleanupAt = 0;
 let lastTripPollReminderAt = 0;
+let lastBookingReminderAt = 0;
 let lastAgencyFormCleanupAt = 0;
 let lastBookingMailCleanupAt = 0;
 let lastPushCleanupAt = 0;
@@ -238,6 +244,8 @@ async function pollMail() {
   const messages = await rpc("claim_email_outbox", { p_limit: batchSize });
   for (const message of messages ?? []) {
     try {
+      const smtp = await agencySmtpForMessage(message);
+      const payload = agencyMailPayload(message.payload);
       const response = await fetch(relayUrl, {
         method: "POST",
         headers: {
@@ -250,7 +258,8 @@ async function pollMail() {
           to: message.recipient_email,
           locale: message.locale,
           templateKey: message.template_key,
-          payload: message.payload,
+          payload,
+          ...(smtp ? { smtp } : {}),
         }),
         signal: AbortSignal.timeout(20_000),
       });
@@ -269,23 +278,87 @@ async function pollMail() {
   }
 }
 
+function agencyMailPayload(value) {
+  const payload = value && typeof value === "object" ? structuredClone(value) : {};
+  if (payload.branding?.logoPath) {
+    const logoUrl = publicAgencyLogoUrl(supabaseUrl, payload.branding.logoPath);
+    if (logoUrl) payload.branding.logoUrl = logoUrl;
+  }
+  if (payload.branding) delete payload.branding.logoPath;
+  return payload;
+}
+
+async function agencySmtpForMessage(message) {
+  const workspaceId = message?.payload?.branding?.workspaceId;
+  if (!/^[0-9a-f-]{36}$/i.test(String(workspaceId || ""))) return null;
+  const settings = await restSingle(
+    `agency_mail_settings?workspace_uuid=eq.${encodeURIComponent(workspaceId)}&smtp_test_status=eq.ok&select=from_name,from_email,reply_to,smtp_host,smtp_port,smtp_secure,smtp_username,smtp_password_ciphertext`,
+  );
+  if (!settings?.smtp_host || !settings.smtp_username || !settings.smtp_password_ciphertext)
+    return null;
+  return {
+    host: settings.smtp_host,
+    port: Number(settings.smtp_port),
+    secure: Boolean(settings.smtp_secure),
+    username: settings.smtp_username,
+    password: decryptMailboxPassword(
+      settings.smtp_password_ciphertext,
+      env.MAILBOX_CREDENTIALS_KEY,
+    ),
+    fromName: settings.from_name,
+    fromEmail: settings.from_email,
+    replyTo: settings.reply_to || undefined,
+  };
+}
+
 async function pollWebPush() {
-  const publicKey=env.VAPID_PUBLIC_KEY?.trim(),privateKey=env.VAPID_PRIVATE_KEY?.trim(),subject=env.VAPID_SUBJECT?.trim();
-  if(!publicKey||!privateKey||!subject)return;
-  webPush.setVapidDetails(subject,publicKey,privateKey);
-  const messages=await rpc("claim_web_push_outbox",{p_limit:Math.min(batchSize,50)});
-  for(const message of messages??[]){
-    let gone=false;
-    try{
-      const subscription=await restSingle(`web_push_subscriptions?id=eq.${encodeURIComponent(message.subscription_id)}&revoked_at=is.null&select=endpoint,p256dh,auth_secret`);
-      if(!subscription?.endpoint)throw Object.assign(new Error("PUSH_SUBSCRIPTION_GONE"),{code:"PUSH_SUBSCRIPTION_GONE",statusCode:410});
-      await webPush.sendNotification({endpoint:subscription.endpoint,keys:{p256dh:subscription.p256dh,auth:subscription.auth_secret}},JSON.stringify(message.payload),{TTL:3600,urgency:"normal"});
-      await rpc("complete_web_push_outbox",{p_id:message.id,p_succeeded:true,p_error_code:null,p_gone:false});
-      log("info","push.sent",{messageId:message.id});
-    }catch(error){
-      const status=Number(error?.statusCode||0);gone=status===404||status===410;const code=gone?"PUSH_SUBSCRIPTION_GONE":status?`PUSH_HTTP_${status}`:String(error?.code||"PUSH_DELIVERY_FAILED").slice(0,80);
-      await rpc("complete_web_push_outbox",{p_id:message.id,p_succeeded:false,p_error_code:code,p_gone:gone});
-      log("error","push.failed",{messageId:message.id,errorCode:code,gone});
+  const publicKey = env.VAPID_PUBLIC_KEY?.trim(),
+    privateKey = env.VAPID_PRIVATE_KEY?.trim(),
+    subject = env.VAPID_SUBJECT?.trim();
+  if (!publicKey || !privateKey || !subject) return;
+  webPush.setVapidDetails(subject, publicKey, privateKey);
+  const messages = await rpc("claim_web_push_outbox", { p_limit: Math.min(batchSize, 50) });
+  for (const message of messages ?? []) {
+    let gone = false;
+    try {
+      const subscription = await restSingle(
+        `web_push_subscriptions?id=eq.${encodeURIComponent(message.subscription_id)}&revoked_at=is.null&select=endpoint,p256dh,auth_secret`,
+      );
+      if (!subscription?.endpoint)
+        throw Object.assign(new Error("PUSH_SUBSCRIPTION_GONE"), {
+          code: "PUSH_SUBSCRIPTION_GONE",
+          statusCode: 410,
+        });
+      await webPush.sendNotification(
+        {
+          endpoint: subscription.endpoint,
+          keys: { p256dh: subscription.p256dh, auth: subscription.auth_secret },
+        },
+        JSON.stringify(message.payload),
+        { TTL: 3600, urgency: "normal" },
+      );
+      await rpc("complete_web_push_outbox", {
+        p_id: message.id,
+        p_succeeded: true,
+        p_error_code: null,
+        p_gone: false,
+      });
+      log("info", "push.sent", { messageId: message.id });
+    } catch (error) {
+      const status = Number(error?.statusCode || 0);
+      gone = status === 404 || status === 410;
+      const code = gone
+        ? "PUSH_SUBSCRIPTION_GONE"
+        : status
+          ? `PUSH_HTTP_${status}`
+          : String(error?.code || "PUSH_DELIVERY_FAILED").slice(0, 80);
+      await rpc("complete_web_push_outbox", {
+        p_id: message.id,
+        p_succeeded: false,
+        p_error_code: code,
+        p_gone: gone,
+      });
+      log("error", "push.failed", { messageId: message.id, errorCode: code, gone });
     }
   }
 }
@@ -298,46 +371,109 @@ function webPushConfiguration() {
   };
 }
 
-function flightState(payload){
-  const clean=value=>typeof value==="string"?value.trim().slice(0,120)||null:null;
-  const point=value=>value&&typeof value==="object"?{scheduled:clean(value.scheduled_time),actual:clean(value.actual_time),estimated:clean(value.estimated_time),terminal:clean(value.terminal),gate:clean(value.gate)}:{};
-  return{status:clean(payload?.status),departure:point(payload?.departure),arrival:point(payload?.arrival)};
+function flightState(payload) {
+  const clean = (value) => (typeof value === "string" ? value.trim().slice(0, 120) || null : null);
+  const point = (value) =>
+    value && typeof value === "object"
+      ? {
+          scheduled: clean(value.scheduled_time),
+          actual: clean(value.actual_time),
+          estimated: clean(value.estimated_time),
+          terminal: clean(value.terminal),
+          gate: clean(value.gate),
+        }
+      : {};
+  return {
+    status: clean(payload?.status),
+    departure: point(payload?.departure),
+    arrival: point(payload?.arrival),
+  };
 }
 
-async function pollFlightMonitors(){
-  const key=env.SKYLINK_API_KEY?.trim();if(!key)return;
-  const flights=await rpc("claim_due_flight_monitors",{p_limit:Math.min(batchSize,20)});
-  for(const flight of flights??[]){
-    try{
-      const response=await fetch(`https://data.skylinkapi.com/v3.1/flight_status/${encodeURIComponent(flight.flight_number)}`,{headers:{"x-api-key":key},signal:AbortSignal.timeout(15_000)});
-      if(!response.ok)throw Object.assign(new Error("FLIGHT_PROVIDER_FAILED"),{code:`FLIGHT_HTTP_${response.status}`});
-      const payload=await response.json();if(!payload?.flight_number)throw Object.assign(new Error("FLIGHT_RESPONSE_INVALID"),{code:"FLIGHT_RESPONSE_INVALID"});
-      const result=await rpc("record_flight_monitor_result",{p_trip:flight.trip_uuid,p_item:flight.travel_item_id,p_state:flightState(payload),p_error_code:null});
-      log("info","flight.checked",{tripId:flight.trip_uuid,itemId:flight.travel_item_id,result});
-    }catch(error){
-      const code=String(error?.name==="TimeoutError"?"FLIGHT_TIMEOUT":error?.code||"FLIGHT_PROVIDER_FAILED").slice(0,80);
-      await rpc("record_flight_monitor_result",{p_trip:flight.trip_uuid,p_item:flight.travel_item_id,p_state:{},p_error_code:code});
-      log("error","flight.check_failed",{tripId:flight.trip_uuid,itemId:flight.travel_item_id,errorCode:code});
+async function pollFlightMonitors() {
+  const key = env.SKYLINK_API_KEY?.trim();
+  if (!key) return;
+  const flights = await rpc("claim_due_flight_monitors", { p_limit: Math.min(batchSize, 20) });
+  for (const flight of flights ?? []) {
+    try {
+      const response = await fetch(
+        `https://data.skylinkapi.com/v3.1/flight_status/${encodeURIComponent(flight.flight_number)}`,
+        { headers: { "x-api-key": key }, signal: AbortSignal.timeout(15_000) },
+      );
+      if (!response.ok)
+        throw Object.assign(new Error("FLIGHT_PROVIDER_FAILED"), {
+          code: `FLIGHT_HTTP_${response.status}`,
+        });
+      const payload = await response.json();
+      if (!payload?.flight_number)
+        throw Object.assign(new Error("FLIGHT_RESPONSE_INVALID"), {
+          code: "FLIGHT_RESPONSE_INVALID",
+        });
+      const result = await rpc("record_flight_monitor_result", {
+        p_trip: flight.trip_uuid,
+        p_item: flight.travel_item_id,
+        p_state: flightState(payload),
+        p_error_code: null,
+      });
+      log("info", "flight.checked", {
+        tripId: flight.trip_uuid,
+        itemId: flight.travel_item_id,
+        result,
+      });
+    } catch (error) {
+      const code = String(
+        error?.name === "TimeoutError" ? "FLIGHT_TIMEOUT" : error?.code || "FLIGHT_PROVIDER_FAILED",
+      ).slice(0, 80);
+      await rpc("record_flight_monitor_result", {
+        p_trip: flight.trip_uuid,
+        p_item: flight.travel_item_id,
+        p_state: {},
+        p_error_code: code,
+      });
+      log("error", "flight.check_failed", {
+        tripId: flight.trip_uuid,
+        itemId: flight.travel_item_id,
+        errorCode: code,
+      });
     }
   }
 }
 
 async function pollMailboxProvisioning() {
-  const url = env.STALWART_URL?.trim(), token = env.STALWART_API_TOKEN?.trim(),
+  const url = env.STALWART_URL?.trim(),
+    token = env.STALWART_API_TOKEN?.trim(),
     domainId = env.STALWART_DOMAIN_ID?.trim();
   if (!url || !token || !domainId) return;
   const mailboxes = await rpc("claim_mailbox_provisioning", { p_limit: Math.min(batchSize, 20) });
   for (const mailbox of mailboxes ?? []) {
     try {
       if (!mailbox.imap_password_ciphertext)
-        throw Object.assign(new Error("MAILBOX_PASSWORD_MISSING"), { code: "MAILBOX_PASSWORD_MISSING" });
-      const password = decryptMailboxPassword(mailbox.imap_password_ciphertext, env.MAILBOX_CREDENTIALS_KEY);
+        throw Object.assign(new Error("MAILBOX_PASSWORD_MISSING"), {
+          code: "MAILBOX_PASSWORD_MISSING",
+        });
+      const password = decryptMailboxPassword(
+        mailbox.imap_password_ciphertext,
+        env.MAILBOX_CREDENTIALS_KEY,
+      );
       const accountId = await provisionMailbox({ url, token, domainId }, mailbox, password);
-      await rpc("complete_mailbox_provisioning", { p_mailbox_id: mailbox.id, p_succeeded: true, p_account_id: accountId, p_error_code: null });
-      log("info", "mailbox.provisioned", { mailboxId: mailbox.id, mailboxType: mailbox.mailbox_type });
+      await rpc("complete_mailbox_provisioning", {
+        p_mailbox_id: mailbox.id,
+        p_succeeded: true,
+        p_account_id: accountId,
+        p_error_code: null,
+      });
+      log("info", "mailbox.provisioned", {
+        mailboxId: mailbox.id,
+        mailboxType: mailbox.mailbox_type,
+      });
     } catch (error) {
       const code = String(error?.code || "MAIL_PROVISIONING_FAILED").slice(0, 80);
-      await rpc("complete_mailbox_provisioning", { p_mailbox_id: mailbox.id, p_succeeded: false, p_account_id: null, p_error_code: code });
+      await rpc("complete_mailbox_provisioning", {
+        p_mailbox_id: mailbox.id,
+        p_succeeded: false,
+        p_account_id: null,
+        p_error_code: code,
+      });
       log("error", "mailbox.provisioning_failed", { mailboxId: mailbox.id, errorCode: code });
     }
   }
@@ -368,20 +504,29 @@ async function pollCorporateMail() {
       for (const attachment of attachmentRows ?? []) {
         attachmentBytes += Number(attachment.size_bytes || 0);
         if (attachmentBytes > 20 * 1024 * 1024)
-          throw Object.assign(new Error("ATTACHMENTS_TOO_LARGE"), { code: "ATTACHMENTS_TOO_LARGE" });
-        const path = String(attachment.storage_key)
-          .split("/")
-          .map(encodeURIComponent)
-          .join("/");
-        const file = await fetch(`${supabaseUrl}/storage/v1/object/authenticated/corporate-mail/${path}`, {
-          headers: { ...serviceAuthHeaders },
-          signal: AbortSignal.timeout(20_000),
-        });
+          throw Object.assign(new Error("ATTACHMENTS_TOO_LARGE"), {
+            code: "ATTACHMENTS_TOO_LARGE",
+          });
+        const path = String(attachment.storage_key).split("/").map(encodeURIComponent).join("/");
+        const file = await fetch(
+          `${supabaseUrl}/storage/v1/object/authenticated/corporate-mail/${path}`,
+          {
+            headers: { ...serviceAuthHeaders },
+            signal: AbortSignal.timeout(20_000),
+          },
+        );
         if (!file.ok)
-          throw Object.assign(new Error("ATTACHMENT_READ_FAILED"), { code: `STORAGE_${file.status}` });
+          throw Object.assign(new Error("ATTACHMENT_READ_FAILED"), {
+            code: `STORAGE_${file.status}`,
+          });
         const content = Buffer.from(await file.arrayBuffer());
-        if (content.length !== Number(attachment.size_bytes) || createHash("sha256").update(content).digest("hex") !== attachment.sha256)
-          throw Object.assign(new Error("ATTACHMENT_INTEGRITY_FAILED"), { code: "ATTACHMENT_INTEGRITY_FAILED" });
+        if (
+          content.length !== Number(attachment.size_bytes) ||
+          createHash("sha256").update(content).digest("hex") !== attachment.sha256
+        )
+          throw Object.assign(new Error("ATTACHMENT_INTEGRITY_FAILED"), {
+            code: "ATTACHMENT_INTEGRITY_FAILED",
+          });
         await scanBuffer(content);
         attachments.push({
           filename: attachment.file_name,
@@ -474,7 +619,9 @@ async function cleanupExpiredCorporateMailUploads() {
     signal: AbortSignal.timeout(20_000),
   });
   if (!storage.ok)
-    throw Object.assign(new Error("ATTACHMENT_CLEANUP_FAILED"), { code: `STORAGE_${storage.status}` });
+    throw Object.assign(new Error("ATTACHMENT_CLEANUP_FAILED"), {
+      code: `STORAGE_${storage.status}`,
+    });
   const removed = await fetch(
     `${supabaseUrl}/rest/v1/corporate_mail_uploads?id=in.(${expired.map((row) => row.id).join(",")})`,
     {
@@ -487,7 +634,9 @@ async function cleanupExpiredCorporateMailUploads() {
     },
   );
   if (!removed.ok)
-    throw Object.assign(new Error("ATTACHMENT_CLEANUP_RECORD_FAILED"), { code: `REST_${removed.status}` });
+    throw Object.assign(new Error("ATTACHMENT_CLEANUP_RECORD_FAILED"), {
+      code: `REST_${removed.status}`,
+    });
   log("info", "corporate_mail.uploads_cleaned", { count: expired.length });
 }
 
@@ -563,7 +712,9 @@ async function updateCorporateOutbox(message, senderAddress, status, errorCode, 
         },
       );
       if (!moved.ok)
-        throw Object.assign(new Error("SENT_ATTACHMENT_RECORD_FAILED"), { code: `REST_${moved.status}` });
+        throw Object.assign(new Error("SENT_ATTACHMENT_RECORD_FAILED"), {
+          code: `REST_${moved.status}`,
+        });
     }
   }
 }
@@ -612,6 +763,10 @@ async function cycle() {
       await rpc("run_trip_option_poll_reminders", { p_now: new Date().toISOString() });
       lastTripPollReminderAt = Date.now();
     }
+    if (Date.now() - lastBookingReminderAt > 3_600_000) {
+      await rpc("run_booking_departure_reminders", { p_now: new Date().toISOString() });
+      lastBookingReminderAt = Date.now();
+    }
     if (Date.now() - lastAgencyFormCleanupAt > 3_600_000) {
       await rpc("cleanup_expired_agency_form_data", { p_now: new Date().toISOString() });
       lastAgencyFormCleanupAt = Date.now();
@@ -658,27 +813,33 @@ createServer(async (request, response) => {
         return;
       }
       const event = await enrichPaddleEvent(JSON.parse(rawBody));
-      if (event.event_type === "transaction.completed" &&
-          event.data?.custom_data?.checkout_binding &&
-          !event.data?.globetrotr_plan) {
+      if (
+        event.event_type === "transaction.completed" &&
+        event.data?.custom_data?.checkout_binding &&
+        !event.data?.globetrotr_plan
+      ) {
         log("error", "paddle.price_unrecognized", {
           eventId: event.event_id,
           transactionId: event.data?.id,
         });
-        response.writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+        response
+          .writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
           .end('{"error":"PADDLE_PRICE_NOT_ALLOWED"}');
         return;
       }
-      if (event.event_type === "transaction.completed" &&
-          event.data?.globetrotr_billing_mode === "one_time" &&
-          !event.data?.custom_data?.workspace_uuid) {
+      if (
+        event.event_type === "transaction.completed" &&
+        event.data?.globetrotr_billing_mode === "one_time" &&
+        !event.data?.custom_data?.workspace_uuid
+      ) {
         log("error", "paddle.checkout_binding_unverified", {
           eventId: event.event_id,
           transactionId: event.data?.id,
           priceMatched: Boolean(event.data?.globetrotr_plan),
           bindingPresent: Boolean(event.data?.custom_data?.checkout_binding),
         });
-        response.writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+        response
+          .writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
           .end('{"error":"CHECKOUT_BINDING_UNVERIFIED"}');
         return;
       }
@@ -733,7 +894,9 @@ createServer(async (request, response) => {
       const body = buildLiveCalendar(calendar);
       const etag = `"${createHash("sha256").update(body).digest("base64url")}"`;
       if (request.headers["if-none-match"] === etag) {
-        response.writeHead(304, { ETag: etag, "Cache-Control": "private, max-age=300, must-revalidate" }).end();
+        response
+          .writeHead(304, { ETag: etag, "Cache-Control": "private, max-age=300, must-revalidate" })
+          .end();
         return;
       }
       response
@@ -764,8 +927,8 @@ createServer(async (request, response) => {
       return;
     }
     try {
-        const workspaceId = await activeAgencyWorkspaceForDomain(domain);
-        response.writeHead(workspaceId ? 204 : 403, { "Cache-Control": "no-store" }).end();
+      const workspaceId = await activeAgencyWorkspaceForDomain(domain);
+      response.writeHead(workspaceId ? 204 : 403, { "Cache-Control": "no-store" }).end();
     } catch {
       response.writeHead(503, { "Cache-Control": "no-store" }).end();
     }
@@ -779,30 +942,54 @@ createServer(async (request, response) => {
         response.writeHead(404, { "Cache-Control": "no-store" }).end();
         return;
       }
-      response.writeHead(302, {
-        Location: `/agency-admin?workspace=${encodeURIComponent(workspaceId)}`,
-        "Cache-Control": "no-store",
-        "Referrer-Policy": "no-referrer",
-      }).end();
+      response
+        .writeHead(302, {
+          Location: `/agency-admin?workspace=${encodeURIComponent(workspaceId)}`,
+          "Cache-Control": "no-store",
+          "Referrer-Policy": "no-referrer",
+        })
+        .end();
     } catch {
       response.writeHead(503, { "Cache-Control": "no-store" }).end();
     }
     return;
   }
   if (requestUrl.pathname === "/health/mail") {
-    const config={url:env.STALWART_URL?.trim(),token:env.STALWART_API_TOKEN?.trim(),domainId:env.STALWART_DOMAIN_ID?.trim()};
-    if(!config.url||!config.token||!config.domainId){response.writeHead(503,{"Content-Type":"application/json","Cache-Control":"no-store"}).end(JSON.stringify({status:"not_configured"}));return}
-    try{await checkStalwart(config);response.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"}).end(JSON.stringify({status:"operational"}))}
-    catch(error){log("error","mail_server.health_failed",{errorCode:String(error?.code||"MAIL_SERVER_UNAVAILABLE").slice(0,80)});response.writeHead(503,{"Content-Type":"application/json","Cache-Control":"no-store"}).end(JSON.stringify({status:"unavailable"}))}
+    const config = {
+      url: env.STALWART_URL?.trim(),
+      token: env.STALWART_API_TOKEN?.trim(),
+      domainId: env.STALWART_DOMAIN_ID?.trim(),
+    };
+    if (!config.url || !config.token || !config.domainId) {
+      response
+        .writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+        .end(JSON.stringify({ status: "not_configured" }));
+      return;
+    }
+    try {
+      await checkStalwart(config);
+      response
+        .writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+        .end(JSON.stringify({ status: "operational" }));
+    } catch (error) {
+      log("error", "mail_server.health_failed", {
+        errorCode: String(error?.code || "MAIL_SERVER_UNAVAILABLE").slice(0, 80),
+      });
+      response
+        .writeHead(503, { "Content-Type": "application/json", "Cache-Control": "no-store" })
+        .end(JSON.stringify({ status: "unavailable" }));
+    }
     return;
   }
   if (requestUrl.pathname === "/health/push") {
     const configuration = webPushConfiguration();
     const configured = Object.values(configuration).every(Boolean);
-    response.writeHead(configured ? 200 : 503, {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-    }).end(JSON.stringify({ status: configured ? "configured" : "not_configured", configuration }));
+    response
+      .writeHead(configured ? 200 : 503, {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      })
+      .end(JSON.stringify({ status: configured ? "configured" : "not_configured", configuration }));
     return;
   }
   if (request.url !== "/health") {
@@ -822,7 +1009,9 @@ createServer(async (request, response) => {
       lastPollAt,
       lastSuccessAt,
       lastErrorCode,
-      webPush: Object.values(webPushConfiguration()).every(Boolean) ? "configured" : "not_configured",
+      webPush: Object.values(webPushConfiguration()).every(Boolean)
+        ? "configured"
+        : "not_configured",
     }),
   );
 }).listen(healthPort, "0.0.0.0", () =>
