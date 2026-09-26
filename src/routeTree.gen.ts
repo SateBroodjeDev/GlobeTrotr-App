@@ -51,6 +51,7 @@ import { Route as AuthenticatedClientPortalRouteImport } from './routes/_authent
 import { Route as AuthenticatedCompanyMailRouteImport } from './routes/_authenticated/company-mail'
 import { Route as AuthenticatedCorporateAdminRouteImport } from './routes/_authenticated/corporate-admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedJournalRouteImport } from './routes/_authenticated/journal'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AgencyInviteTokenRouteImport } from './routes/agency-invite.$token'
 import { Route as AgencyUitnodigingTokenRouteImport } from './routes/agency-uitnodiging.$token'
@@ -314,6 +315,11 @@ const AuthenticatedCorporateAdminRoute =
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedJournalRoute = AuthenticatedJournalRouteImport.update({
+  id: '/journal',
+  path: '/journal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
@@ -653,6 +659,7 @@ export interface FileRoutesByFullPath {
   '/company-mail': typeof AuthenticatedCompanyMailRoute
   '/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/journal': typeof AuthenticatedJournalRoute
   '/team': typeof AuthenticatedTeamRoute
   '/agency-invite/$token': typeof AgencyInviteTokenRoute
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
@@ -745,6 +752,7 @@ export interface FileRoutesByTo {
   '/client-portal': typeof AuthenticatedClientPortalRoute
   '/company-mail': typeof AuthenticatedCompanyMailRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/journal': typeof AuthenticatedJournalRoute
   '/team': typeof AuthenticatedTeamRoute
   '/agency-invite/$token': typeof AgencyInviteTokenRoute
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
@@ -841,6 +849,7 @@ export interface FileRoutesById {
   '/_authenticated/company-mail': typeof AuthenticatedCompanyMailRoute
   '/_authenticated/corporate-admin': typeof AuthenticatedCorporateAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/journal': typeof AuthenticatedJournalRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/agency-invite/$token': typeof AgencyInviteTokenRoute
   '/agency-uitnodiging/$token': typeof AgencyUitnodigingTokenRoute
@@ -937,6 +946,7 @@ export interface FileRouteTypes {
     | '/company-mail'
     | '/corporate-admin'
     | '/dashboard'
+    | '/journal'
     | '/team'
     | '/agency-invite/$token'
     | '/agency-uitnodiging/$token'
@@ -1029,6 +1039,7 @@ export interface FileRouteTypes {
     | '/client-portal'
     | '/company-mail'
     | '/dashboard'
+    | '/journal'
     | '/team'
     | '/agency-invite/$token'
     | '/agency-uitnodiging/$token'
@@ -1124,6 +1135,7 @@ export interface FileRouteTypes {
     | '/_authenticated/company-mail'
     | '/_authenticated/corporate-admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/journal'
     | '/_authenticated/team'
     | '/agency-invite/$token'
     | '/agency-uitnodiging/$token'
@@ -1520,6 +1532,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/journal': {
+      id: '/_authenticated/journal'
+      path: '/journal'
+      fullPath: '/journal'
+      preLoaderRoute: typeof AuthenticatedJournalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/team': {
@@ -2026,6 +2045,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCompanyMailRoute: typeof AuthenticatedCompanyMailRoute
   AuthenticatedCorporateAdminRoute: typeof AuthenticatedCorporateAdminRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedJournalRoute: typeof AuthenticatedJournalRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedSelfHostedManageRoute: typeof AuthenticatedSelfHostedManageRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
@@ -2042,6 +2062,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCorporateAdminRoute:
     AuthenticatedCorporateAdminRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedJournalRoute: AuthenticatedJournalRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedSelfHostedManageRoute: AuthenticatedSelfHostedManageRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,

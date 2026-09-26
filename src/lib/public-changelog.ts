@@ -26,12 +26,7 @@ export const PUBLIC_BETA_STATUS = {
     "GlobeTrotr wordt met een beperkte groep reizigers en reisorganisaties getest. Alleen praktisch bevestigde en uitgerolde verbeteringen verschijnen hieronder; werk in verificatie staat op de roadmap.",
   descriptionEn:
     "GlobeTrotr is being tested with a limited group of travellers and travel organisations. Only practically confirmed and deployed improvements appear below; work under verification is listed on the roadmap.",
-  unavailable: [
-    {
-      nl: "Eigen Agency-domeinen zonder CNAME- en TXT-instelling bij je domeinprovider",
-      en: "Custom Agency domains without CNAME and TXT setup at your domain provider",
-    },
-  ],
+  unavailable: [] as Array<{ nl: string; en: string }>,
 } as const;
 
 /** Zichtbaar werk in ontwikkeling; verschijnt bewust niet als gepubliceerde release. */
@@ -101,8 +96,15 @@ export const PUBLIC_RELEASES: PublicRelease[] = [
         kind: "new",
         title: "Reisdagboek",
         titleEn: "Travel journal",
-        description: "Herbeleef je reis via een tijdlijn, galerij en kaart. Orden, vervang en beschrijf foto's, bewaar tekst offline en deel alleen bewust gekozen herinneringen in de openbare reisterugblik.",
-        descriptionEn: "Relive your trip through a timeline, gallery and map. Order, replace and caption photos, save text offline and share only deliberately selected memories in the public travel story.",
+        description: "Herbeleef je reis via een tijdlijn, galerij en kaart. Bewaar herinneringen en gekozen foto's offline, synchroniseer via een zichtbare wachtrij en maak uit geselecteerde verhalen bewust een samenvatting of eigen PDF.",
+        descriptionEn: "Relive your trip through a timeline, gallery and map. Keep memories and selected photos offline, sync through a visible queue and deliberately create a summary or personal PDF from selected stories.",
+      },
+      {
+        kind: "improved",
+        title: "Rustigere reisnavigatie",
+        titleEn: "Clearer trip navigation",
+        description: "Het dagboek heeft een eigen pagina, ontbrekende hotelnachten staan direct bij de reis en plaatsen rond de route zijn vindbaar onder Ontdekken.",
+        descriptionEn: "The journal has its own page, missing hotel nights appear directly with the trip and places near the route are easy to find under Discover.",
       },
       {
         kind: "new",

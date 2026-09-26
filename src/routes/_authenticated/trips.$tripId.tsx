@@ -7,6 +7,7 @@ import {
   Archive,
   ArrowDownUp,
   BookOpen,
+  BookHeart,
   Copy,
   FileDown,
   Download,
@@ -54,7 +55,6 @@ import { Countdown } from "@/components/Countdown";
 import { TripBookings } from "@/components/TripBookings";
 import { TripMembers } from "@/components/TripMembers";
 import { TripTimeline } from "@/components/TripTimeline";
-import { TripJournal } from "@/components/TripJournal";
 import { TripBrandingSettings } from "@/components/TripBrandingSettings";
 import { TripNotificationPreferences } from "@/components/TripNotificationPreferences";
 import { TripDocuments } from "@/components/TripDocuments";
@@ -819,6 +819,11 @@ function TripDetail() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link to="/journal" search={{ trip: trip.id }}>
+              <BookHeart className="size-4" /> {text("Dagboek", "Journal")}
+            </Link>
+          </Button>
           <Button variant="outline" onClick={() => setActiveTab("today")}>
             <Download className="size-4" /> {text("Offline", "Offline")}
           </Button>
@@ -838,6 +843,8 @@ function TripDetail() {
           </CardContent>
         </Card>
       )}
+
+      <HotelGapFinder trip={trip} editable={editable} save={(fn) => saveTripNow(trip.id, fn)} text={text} />
 
       <div
         className={`grid gap-4 ${canMarkBillable || estimatedFuel > 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}
@@ -868,7 +875,7 @@ function TripDetail() {
               <option value="today">{text("Vandaag", "Today")}</option>
               <option value="route">{text("Routekaart", "Route map")}</option>
               <option value="plan">{text("Reisschema", "Itinerary")}</option>
-              <option value="journal">{text("Reisdagboek", "Travel journal")}</option>
+              <option value="discover">{text("Ontdekken", "Discover")}</option>
             </optgroup>
             {editable && (
               <optgroup label={text("Plannen", "Planning")}>
@@ -897,7 +904,7 @@ function TripDetail() {
           <TabsTrigger value="today">{text("Vandaag", "Today")}</TabsTrigger>
           <TabsTrigger value="route">{text("Routekaart", "Route map")}</TabsTrigger>
           <TabsTrigger value="plan">{text("Reisschema", "Itinerary")}</TabsTrigger>
-          <TabsTrigger value="journal">{text("Dagboek", "Journal")}</TabsTrigger>
+          <TabsTrigger value="discover">{text("Ontdekken", "Discover")}</TabsTrigger>
           {editable && (
             <TabsTrigger value="plan-edit">
               {text("Reisschema aanpassen", "Edit itinerary")}
@@ -925,7 +932,6 @@ function TripDetail() {
         </TabsContent>
 
         <TabsContent value="options" className="space-y-4">
-          <HotelGapFinder trip={trip} editable={editable} save={(fn) => saveTripNow(trip.id, fn)} text={text} />
           <TripOptions
             trip={trip}
             editable={editable}
@@ -936,9 +942,6 @@ function TripDetail() {
           />
         </TabsContent>
 
-        <TabsContent value="journal" className="space-y-4">
-          <TripJournal tripId={trip.id} start={trip.start} end={trip.end} editable={editable} stops={trip.stops} />
-        </TabsContent>
 
         {editable && <TabsContent value="booking-mail" className="space-y-4">
           <TripBookingMail tripId={trip.id} text={text} acceptDraft={async (draft) => {
@@ -1615,6 +1618,19 @@ function TripDetail() {
           />
         </TabsContent>
 
+        <TabsContent value="discover" className="space-y-4">
+          <NearbyPlaces
+            trip={trip}
+            editable={editable}
+            onAdd={async (next) => {
+              await saveTripNow(trip.id, (current) => ({
+                ...current,
+                itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) => a.day.localeCompare(b.day)),
+              }));
+            }}
+          />
+        </TabsContent>
+
         {editable && editingBooking && (
           <TripBookings
             key={editingBooking.id}
@@ -1653,16 +1669,6 @@ function TripDetail() {
                 />
               </TabsContent>
               <TabsContent value="days" className="mt-4">
-                <NearbyPlaces
-                  trip={trip}
-                  editable={editable}
-                  onAdd={async (next) => {
-                    await saveTripNow(trip.id, (current) => ({
-                      ...current,
-                      itinerary: [...current.itinerary, { id: uid(), ...next }].sort((a, b) => a.day.localeCompare(b.day)),
-                    }));
-                  }}
-                />
                 <TripTimeline
                   trip={trip}
                   baseCurrency={base}

@@ -2,12 +2,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { PUBLIC_BETA_STATUS, PUBLIC_RELEASES } from "./public-changelog.ts";
 
-test("beta status clearly lists intentionally unavailable features", () => {
+test("beta status contains complete and unique unavailable features when present", () => {
   assert.ok(PUBLIC_BETA_STATUS.label.trim());
   assert.ok(PUBLIC_BETA_STATUS.labelEn.trim());
   assert.ok(PUBLIC_BETA_STATUS.description.trim());
   assert.ok(PUBLIC_BETA_STATUS.descriptionEn.trim());
-  assert.ok(PUBLIC_BETA_STATUS.unavailable.length > 0);
   for (const item of PUBLIC_BETA_STATUS.unavailable) {
     assert.ok(item.nl.trim());
     assert.ok(item.en.trim());

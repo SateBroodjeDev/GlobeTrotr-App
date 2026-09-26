@@ -30,8 +30,8 @@ const copy = {
     icon: Plane,
     nl: "Voor wie af en toe een eigen reis plant",
     en: "For anyone planning an occasional personal trip",
-    bodyNl: "Probeer de complete basis zonder betaalgegevens. Ideaal voor één komende reis.",
-    bodyEn: "Try the essentials without payment details. Ideal for one upcoming trip.",
+    bodyNl: "Probeer de complete basis zonder betaalgegevens, inclusief reisdagboek. Ideaal voor je eerste reizen.",
+    bodyEn: "Try the essentials without payment details, including the travel journal. Ideal for your first trips.",
   },
   pro: {
     icon: Users,
@@ -58,6 +58,8 @@ const matrix = [
     "✓",
   ],
   ["Samenwerken en slim verrekenen", "Collaboration and smart settlement", "✓", "✓", "✓"],
+  ["Reisdagboek, terugblik en PDF", "Travel journal, story and PDF", "✓", "✓", "✓"],
+  ["Ontbrekende nachten en Ontdekken", "Missing nights and Discover", "✓", "✓", "✓"],
   ["Live weer en valutakoersen", "Live weather and exchange rates", "—", "✓", "✓"],
   ["PDF-, CSV- en JSON-export", "PDF, CSV and JSON export", "CSV", "✓", "✓"],
   [

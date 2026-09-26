@@ -28,6 +28,7 @@ import {
   Activity,
   HeartHandshake,
   Mail,
+  BookHeart,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { planOf } from "@/lib/plans";
@@ -57,7 +58,10 @@ import { usePortalSessionSummary } from "@/lib/public-session";
 import { agencyHostLookup } from "@/lib/agency-domain";
 import { getPublicAgencyHostBranding, publicAgencyLogoUrl } from "@/lib/agency-host-branding";
 
-const CORE_NAV = [{ to: "/dashboard", label: "Reizen", icon: Map }] as const;
+const CORE_NAV = [
+  { to: "/dashboard", label: "Reizen", icon: Map },
+  { to: "/journal", label: "Dagboek", icon: BookHeart },
+] as const;
 const AGENCY_NAV = [{ to: "/agency-admin", label: "Agency Admin", icon: Building2 }] as const;
 const CLIENT_NAV = [
   { to: "/client-portal", label: "Klantportaal", icon: BriefcaseBusiness },
@@ -499,6 +503,8 @@ function AppShellContent({ children }: { children: ReactNode }) {
                   <item.icon className="size-4" />
                   {item.to === "/dashboard"
                     ? text("Reizen", "Trips")
+                    : item.to === "/journal"
+                      ? text("Dagboek", "Journal")
                     : item.to === "/client-portal"
                       ? text("Klantportaal", "Client portal")
                       : item.to === "/features"

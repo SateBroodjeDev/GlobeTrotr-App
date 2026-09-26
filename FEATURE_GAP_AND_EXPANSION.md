@@ -19,7 +19,7 @@ De belangrijkste open productiepunten zijn praktijktests voor de Reisvergelijker
 | GPX-import | Gebouwd voor Beta 0.9.1 | Routepreview, validatie, dubbelen, selectie en omzetting praktisch testen |
 | Offline gebruik | Basis en uitgavenbeheer gebouwd | Geselecteerde documenten pas na ontwerp voor encryptie, intrekken en opslaglimieten |
 | Groepsbeheer | Bulkuitnodiging, bulkrollen en toegangsvoorbeeld gebouwd | Praktisch testen met Free, Pro en verschillende rollen |
-| Reisdagboek | Eigen tabblad met tijdlijn, galerij, routekaart, maximaal acht foto's per herinnering, fotoviewer, bestemming, waardering, afgeschermde opslag, zichtbaarheid, bewerken en reisgids-export gebouwd | Migratie 1800 uitvoeren en de drie weergaven, drie zichtbaarheidsstanden, groepsauteurschap en export praktisch testen |
+| Reisdagboek | Tijdlijn, galerij, kaart, fotobeheer, offline herinneringen en gekozen foto's, synchronisatiewachtrij, bewuste samenvatting, publieke terugblik, eigen PDF en opslaginzicht gebouwd | Migratie 1820 uitvoeren en offline gedrag, zichtbaarheid, samenvatting, PDF en openbare weergaven praktisch testen |
 | Plaatsen rond de route | OpenStreetMap-zoekfunctie gebouwd | Resultaten, openingstijden, bronlinks en toevoegen aan planning praktisch testen |
 | Accommodaties vergelijken | Volledige provider-onafhankelijke zoekvraag en vergelijking gebouwd | Live prijzen en beschikbaarheid pas na providergoedkeuring koppelen |
 | Schaalbare bestandsopslag | Supabase Storage blijft veilig actief voor 1.0 | Private Hetzner S3 eerst voor herstelkopieën; daarna een servergateway en nieuwe dagboekfoto's volgens `STORAGE_ARCHITECTURE.md` |

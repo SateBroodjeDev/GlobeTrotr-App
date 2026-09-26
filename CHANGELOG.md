@@ -14,9 +14,15 @@ Publieke releases lopen van beta 0.1 tot en met 0.9.1. Release 1.0 is gepland vo
 - Vanuit een routeplaats kunnen reizigers restaurants, bezienswaardigheden, activiteiten en praktische voorzieningen binnen 5 km zoeken, de bron controleren en een resultaat na bevestiging aan de dagplanning toevoegen.
 - Verblijfskandidaten gebruiken nu één vergelijkbare zoekvraag met bestemming, datums, gasten, kamers, volledige prijs, belastingen en voorwaarden.
 - Het reisdagboek heeft een eigen tabblad met visuele tijdlijn, fotogalerij en routekaart. Iedere herinnering ondersteunt een bestemming, waardering, uitgebreid verhaal en maximaal acht afgeschermde foto's met een schermvullende fotoviewer. Per herinnering bepaal je of alleen jij, reisgenoten of de gedeelde reisgids deze mag zien.
+- Volledige herinneringen en bewust gekozen foto's kunnen offline worden bewaard. Offline toevoegingen, wijzigingen en verwijderingen blijven in een zichtbare wachtrij tot synchronisatie.
+- Een terugblik kan handmatig of als controleerbaar concept uit gekozen herinneringen worden gemaakt. Opslaan en openbaar delen vereisen altijd bevestiging; de eigen PDF bevat verhalen, foto's en bijschriften.
+- Opslaggebruik is zichtbaar per reis, account en offline apparaat.
+- Het reisdagboek heeft een eigen portaalpagina en hoofdnavigatie-item. Vanuit een reis opent de Dagboek-knop direct de juiste reis.
+- De controle op ontbrekende hotelnachten staat direct op de reispagina. Plaatsen rond de route heeft een eigen tab **Ontdekken** en zit niet meer verstopt onder dagplanning bewerken.
 
 ## Release 1.0 — in voorbereiding, 25 september 2026
 
+- De publieke demo is een begeleide oefenreis geworden met acht interactieve opdrachten, zichtbare voortgang en aanpasbare voorbeelden voor route, boekingen, vergelijken, dagplanning, ontdekken, kosten, dagboek en offline gebruik.
 - Het nieuwe reisdagboek staat als volwaardige 1.0-functie klaar in een eigen tabblad, met een visuele tijdlijn, fotogalerij, routekaart, groepsauteurschap, meerdere afgeschermde foto's, volgorde en omslagfoto, bijschriften, schermvullende viewer, waardering, selectieve zichtbaarheid en rijkere reisgids-export.
 - Dagboekfoto's zijn nu ook versleepbaar, afzonderlijk vervangbaar en voorzien van een status per upload. Tekst wordt lokaal als offline concept bewaard met zichtbaar opslaggebruik.
 - De openbare reisterugblik toont uitsluitend bewust openbare herinneringen met kort geldige fotolinks en behoudt de Agency-branding van de gedeelde reis.
@@ -29,6 +35,7 @@ Publieke releases lopen van beta 0.1 tot en met 0.9.1. Release 1.0 is gepland vo
 - Het meldingenpaneel toont de echte apparaatstatus en kan een volledige testpush klaarzetten; nieuwe privacyverzoeken en ingevulde Agency-klantformulieren waarschuwen de juiste beheerders.
 - Accountinstellingen bieden aparte pushkeuzes voor uitnodigingen, reizen en Agency-werk, betalingen, vluchtwijzigingen en account- of serviceberichten; uitzetten annuleert ook nog niet verzonden pushes in die categorie.
 - Geregistreerde `naam.globetrotr.nl`-Agencyportalen gebruiken direct de juiste tenant; eigen domeinen tonen naam, logo, kleur en tagline al voor het inloggen en bieden geen route terug naar de publieke GlobeTrotr-marketingpagina's. Alleen externe domeinen vereisen CNAME/TXT-verificatie.
+- Externe Agency-domeinen tonen geen passkeyknoppen omdat de GlobeTrotr RP-ID daar technisch niet geldig is. Registreren via e-mail, Google of Discord vraagt eerst een merkgebonden bevestiging dat de Agency GlobeTrotr gebruikt en dat de voorwaarden en privacyverklaring van toepassing zijn.
 - Agencies kunnen een eigen SMTP-account versleuteld opslaan en met een echte testmail controleren; geteste Agency-uitnodigingen gebruiken die server, terwijl niet-ingestelde Agencies op de centrale ZXCS-relay blijven. Uitnodigingen en klantformulieren gebruiken daarbij volledig de eigen naam, kleur, tagline, logo, contactadres en Agency-host zonder GlobeTrotr-verwijzingen.
 - Vluchten, verblijven, vervoer en huurauto's kunnen maximaal één vertrek-, check-in- of ophaalherinnering krijgen in de laatste 24 uur; de bestaande boekingsvoorkeur en profieltaal worden gerespecteerd en webpush bevat geen boekingsdetails.
 - Herkende boekingsmail maakt weer een geldige boekingsmelding aan en webpush gebruikt precies één profieltaal zonder gevoelige inhoud.

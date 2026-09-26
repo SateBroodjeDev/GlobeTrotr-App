@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PushNotificationControl } from "@/components/PushNotificationControl";
+import { agencyHostLookup } from "@/lib/agency-domain";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({ meta: [{ title: "Accountinstellingen - GlobeTrotr" }] }),
@@ -119,6 +120,10 @@ function AccountPage() {
   const plan = planOf(state.plan);
   const activeTripCount = state.trips.filter((trip) => !trip.archived).length;
   const queryClient = useQueryClient();
+  const [customAgencyDomain] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(agencyHostLookup(window.location.hostname)?.customDomain);
+  });
   const profileQuery = useQuery({
     queryKey: ["profile", user?.id],
     enabled: Boolean(user),
@@ -168,6 +173,7 @@ function AccountPage() {
   const [savingCommunication, setSavingCommunication] = useState(false);
   const passkeys = useQuery({
     queryKey: ["account-passkeys", user.id],
+    enabled: !customAgencyDomain,
     queryFn: async () => {
       const { data, error } = await supabase.auth.passkey.list();
       if (error) throw error;
@@ -947,7 +953,7 @@ function AccountPage() {
                 </Button>
               ))}
             </div>
-            <Dialog>
+            {!customAgencyDomain && <Dialog>
               <DialogTrigger asChild>
                 <Button type="button" variant="outline" className="w-full justify-between">
                   <span className="flex items-center gap-2"><KeyRound className="size-4" />Passkeys</span>
@@ -999,7 +1005,7 @@ function AccountPage() {
               ))}
             </div>
               </DialogContent>
-            </Dialog>
+            </Dialog>}
           </CardContent>
         </Card>
         <Card className="surface">

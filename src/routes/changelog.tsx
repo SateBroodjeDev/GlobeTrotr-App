@@ -94,7 +94,7 @@ export function ChangelogPage() {
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {text(PUBLIC_BETA_STATUS.description, PUBLIC_BETA_STATUS.descriptionEn)}
             </p>
-            <div className="mt-4 rounded-xl bg-muted/50 p-4">
+            {PUBLIC_BETA_STATUS.unavailable.length > 0 && <div className="mt-4 rounded-xl bg-muted/50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 {text("Bewust nog niet in deze test", "Intentionally unavailable in this test")}
               </p>
@@ -108,7 +108,7 @@ export function ChangelogPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div>}
           </div>
         </CardContent>
       </Card>

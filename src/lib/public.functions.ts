@@ -23,6 +23,7 @@ export type PublicTravelItem = {
   location?: PublicTravelLocation;
 };
 export type PublicJournalEntry = { id: string; date: string; title: string; body: string; location?: string; rating?: number; photos: Array<{ url: string; caption?: string }> };
+export type PublicJournalSummary = { title: string; body: string; selectedEntryIds: string[] };
 
 export type PublicTripCard = {
   token: string;
@@ -42,6 +43,7 @@ export type PublicTripDetail = PublicTripCard & {
   itinerary: PublicDay[];
   travelItems: PublicTravelItem[];
   journal: PublicJournalEntry[];
+  journalSummary?: PublicJournalSummary;
   weatherEnabled: boolean;
   budget?: number;
   currency?: string;
@@ -174,6 +176,8 @@ async function attachPublicJournal(trip: PublicTripDetail, tripId: string) {
     const signed = paths.length ? await admin.storage.from("trip-journal").createSignedUrls(paths, 900) : { data: [] };
     return { id: entry.id, date: entry.entry_date, title: entry.title, body: entry.body, ...(entry.location_name ? { location: entry.location_name } : {}), ...(entry.rating ? { rating: entry.rating } : {}), photos: paths.flatMap((path, index) => signed.data?.[index]?.signedUrl ? [{ url: signed.data[index]!.signedUrl!, ...(entry.photo_captions?.[path] ? { caption: String(entry.photo_captions[path]) } : {}) }] : []) } satisfies PublicJournalEntry;
   }));
+  const { data: summary } = await admin.from("trip_journal_summaries").select("title,body,selected_entry_ids").eq("trip_uuid",tripId).eq("visibility","public").maybeSingle();
+  if(summary) trip.journalSummary={title:summary.title,body:summary.body,selectedEntryIds:summary.selected_entry_ids??[]};
 }
 
 function tripsOf(row: Row, includePinProtected = true): AnyTrip[] {

@@ -85,6 +85,12 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
+                  "Je kunt volledige dagboekherinneringen en zelf gekozen dagboekfoto's bewust op je eigen apparaat bewaren voor offline gebruik. Offline wijzigingen blijven lokaal in een zichtbare wachtrij totdat je synchroniseert. Reissamenvattingen gebruiken alleen de herinneringen die je zelf selecteert; een concept wordt nooit zonder jouw afzonderlijke bevestiging opgeslagen of openbaar gemaakt. GlobeTrotr bewaart per foto ook de bestandsgrootte om opslaggebruik per reis en account te tonen.",
+                  "You can deliberately store complete journal memories and journal photos you select on your own device for offline use. Offline changes remain locally in a visible queue until you synchronise. Trip summaries use only the memories you select; a draft is never saved or made public without your separate confirmation. GlobeTrotr also stores each photo's file size to show storage use per trip and account.",
+                )}
+              </li>
+              <li>
+                {text(
                   "IP-adres, serverlogs, fout- en misbruikgegevens: beveiliging, foutonderzoek en fraudepreventie; gerechtvaardigd belang, afgewogen tegen jouw privacy.",
                   "IP address, server logs, error and abuse data: security, troubleshooting and fraud prevention; legitimate interests balanced against your privacy.",
                 )}
@@ -243,8 +249,8 @@ function PrivacyPage() {
               </li>
               <li>
                 {text(
-                  "Lokale reiscache en bewust opgeslagen offline dagoverzichten: totdat je uitlogt, het pakket verwijdert, je account verwijdert of browseropslag wist. Het reispakket bevat route, planning en praktische boekingsinformatie, maar geen bestaande bedragen, boekingscodes of documenten. Uitgaven die je zelf offline invoert bevatten omschrijving, datum, categorie, bedrag, valuta en betaler en blijven lokaal totdat je ze bewust synchroniseert.",
-                  "Local trip cache and explicitly saved offline day views: until you sign out, remove the pack, delete your account or clear browser storage. The trip pack contains the route, schedule and practical booking information, but excludes existing amounts, booking references and documents. Expenses you enter offline contain a description, date, category, amount, currency and payer and remain local until you explicitly sync them.",
+                  "Lokale reiscache, bewust opgeslagen offline dagoverzichten en offline dagboek: totdat je uitlogt, het pakket verwijdert, je account verwijdert of browseropslag wist. Het reispakket bevat route, planning en praktische boekingsinformatie, maar geen bestaande bedragen, boekingscodes of documenten. Volledige dagboekherinneringen, zelf gekozen foto's en nog niet gesynchroniseerde wijzigingen blijven alleen lokaal totdat je ze verwijdert of bewust synchroniseert. Uitgaven die je zelf offline invoert bevatten omschrijving, datum, categorie, bedrag, valuta en betaler.",
+                  "Local trip cache, explicitly saved offline day views and offline journal: until you sign out, remove the pack, delete your account or clear browser storage. The trip pack contains the route, schedule and practical booking information, but excludes existing amounts, booking references and documents. Complete journal memories, selected photos and unsynchronised changes remain local only until you remove or explicitly sync them. Expenses you enter offline contain a description, date, category, amount, currency and payer.",
                 )}
               </li>
               <li>
@@ -293,8 +299,8 @@ function PrivacyPage() {
           </Policy>
           <Policy title={text("6. Openbare reizen", "6. Public trips")}>
             {text(
-              "Reizen zijn standaard privé. Publiceer alleen gegevens die je mag delen. Een openbare link kan worden doorgestuurd en informatie kan worden gekopieerd. Boekingsnummers, prijzen, notities en live vluchtgegevens worden niet via de publieke reis-API vrijgegeven. Schakel delen uit zodra het niet meer nodig is.",
-              "Trips are private by default. Publish only data you are allowed to share. A public link can be forwarded and information can be copied. Booking references, prices, notes and live flight data are not released through the public trip API. Disable sharing when no longer needed.",
+              "Reizen zijn standaard privé. Publiceer alleen gegevens die je mag delen. Een openbare link kan worden doorgestuurd en informatie kan worden gekopieerd. De publieke terugblik toont alleen dagboekherinneringen die je bewust openbaar maakt en respecteert de ingestelde Agency-huisstijl. Boekingsnummers, prijzen, financiële gegevens, privénotities en live vluchtgegevens worden niet via de publieke reis-API vrijgegeven. Schakel delen uit zodra het niet meer nodig is.",
+              "Trips are private by default. Publish only data you are allowed to share. A public link can be forwarded and information can be copied. The public story only shows journal memories you deliberately make public and respects the configured Agency branding. Booking references, prices, financial data, private notes and live flight data are not released through the public trip API. Disable sharing when no longer needed.",
             )}
           </Policy>
           <Policy title={text("7. Jouw AVG-rechten", "7. Your GDPR rights")}>
@@ -344,6 +350,18 @@ function PrivacyPage() {
                     purpose={text(
                       "Een door jou gekozen reis zonder netwerk als alleen-lezen dagoverzicht openen",
                       "Open a trip you selected as a read-only day view without a network",
+                    )}
+                    category={text("Functionele voorkeur", "Functional preference")}
+                    retention={text(
+                      "Tot uitloggen, handmatig verwijderen, account verwijderen of browser wissen",
+                      "Until sign-out, manual removal, account deletion or browser clearing",
+                    )}
+                  />
+                  <StorageRow
+                    name="IndexedDB: globetrotr-journal-v1"
+                    purpose={text(
+                      "Volledige dagboekherinneringen, zelf gekozen foto's en een lokale synchronisatiewachtrij bewaren",
+                      "Store complete journal memories, selected photos and a local synchronisation queue",
                     )}
                     category={text("Functionele voorkeur", "Functional preference")}
                     retention={text(

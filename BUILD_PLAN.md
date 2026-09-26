@@ -27,7 +27,7 @@ Dit document beschrijft alleen de technische bouwvolgorde. Productstatus staat i
 - veilige reisvarianten met een naam- en impactvoorbeeld vóór het kopiëren.
 - plaatsen rond een routepunt zoeken via OpenStreetMap, met afstand, openingstijden, bron en bevestiging vóór toevoegen.
 - provider-onafhankelijke accommodatievergelijking met bestemming, data, gasten, kamers, totaalprijs, belastingen en voorwaarden.
-- afzonderlijk reisdagboek met tijdlijn, galerij en routekaart, maximaal acht afgeschermde foto's per herinnering, slepen, vervangen, bijschriften, uploadstatus, offline tekstconcepten, openbare terugblik, auteurschap, bestemming, waardering en zichtbaarheid per herinnering.
+- afzonderlijk reisdagboek met tijdlijn, galerij en routekaart, afgeschermde foto's, expliciete omslag, bijschriften bij eerste upload, volledige offline herinneringen, gekozen offline foto's, synchronisatiewachtrij, bewuste samenvatting, openbare terugblik, eigen PDF en opslaggebruik per reis/account/apparaat.
 - routeoptimalisatie met huidige/voorgestelde volgorde, afstands- en tijdschatting en verplichte bevestiging.
 
 ### Nog uitvoeren

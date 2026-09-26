@@ -15,7 +15,12 @@ test("offline packs retain practical details and exclude booking secrets and mon
   const pack = createOfflineTripPack(trip, "en-US");
   assert.equal(pack.travelItems[0]?.flightNumber, "GT123");
   assert.equal(pack.travelItems[0]?.startTime, "09:00");
-  assert.doesNotMatch(JSON.stringify(pack), /SECRET123|private|999|500|200/);
+  const serialized = JSON.stringify(pack);
+  assert.doesNotMatch(serialized, /SECRET123|private/);
+  assert.equal("budget" in pack, false);
+  assert.equal("expenses" in pack, false);
+  assert.equal("bookingReference" in (pack.travelItems[0] ?? {}), false);
+  assert.equal("amount" in (pack.travelItems[0] ?? {}), false);
   assert.equal(pack.locale, "en");
   const summary = summarizeOfflineTripPack(pack);
   assert.deepEqual({ stops: summary.stops, itineraryItems: summary.itineraryItems, bookings: summary.bookings, queuedExpenses: summary.queuedExpenses }, { stops: 1, itineraryItems: 1, bookings: 1, queuedExpenses: 0 });

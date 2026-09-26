@@ -21,6 +21,7 @@ De publieke versie staat in `src/lib/public-roadmap.ts`. Uitrolcommando’s staa
 - [ ] Bedrijfsmail: archief laden, schermvullend lezen, NL/EN vertalen en definitief verwijderen met beheerrecht testen.
 - [ ] Reisdatums vooruit en terug verschuiven; preview en ongewijzigde historische administratie controleren.
 - [ ] Mobiele controle op 320, 375 en 430 px uitvoeren.
+- [ ] Reisdagboek praktisch controleren: offline herinneringen en gekozen foto's, wachtrij, samenvatting, openbare tijdlijn/galerij, PDF en opslaggebruik.
 
 ## Bewust buiten release 1.0
 

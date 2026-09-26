@@ -19,7 +19,7 @@ export const PUBLIC_ROADMAP = [
     title: ["Nu: productieacceptatie", "Now: production acceptance"],
     description: ["De gebouwde 0.9.1-functies bewijzen met echte reizen, apparaten en rollen.", "Prove the completed 0.9.1 features with real trips, devices and roles."],
     items: [
-      ["Reisdagboek testen: fotobeheer, offline tekstconcept, zichtbaarheid en openbare reisterugblik", "Test the travel journal: photo management, offline text drafts, visibility and the public travel story"],
+      ["Reisdagboek testen: fotobeheer, offline herinneringen, synchronisatiewachtrij, samenvatting, PDF en openbare terugblik", "Test the travel journal: photo management, offline memories, sync queue, summary, PDF and public travel story"],
       ["Routevoorstel, GPX-preview, plaatsen rond de route en verblijfcontrole praktisch controleren", "Practically verify route proposals, GPX previews, places near the route and accommodation checks"],
       ["Groepsuitnodigingen, gedeelde lijsten, Reisvergelijker en veilige reisvarianten controleren", "Verify group invitations, shared lists, Trip Comparison and safe trip variants"],
       ["Mobiel, offline uitgaven, live agenda, registratie, betaling, privacy, push en ZXCS-mail accepteren", "Accept mobile use, offline expenses, live calendars, registration, payments, privacy, push and ZXCS email"],
@@ -32,7 +32,7 @@ export const PUBLIC_ROADMAP = [
     items: [
       ["Een officiële hotelprovider selecteren voor live prijzen en beschikbaarheid", "Select an official hotel provider for live prices and availability"],
       ["Routevoorstellen uitbreiden met echte wegafstanden en verkeer via een routeprovider", "Extend route proposals with real road distances and traffic through a routing provider"],
-      ["Geselecteerde documenten en dagboekfoto's veilig offline beschikbaar maken", "Make selected documents and journal photos safely available offline"],
+      ["Geselecteerde reisdocumenten veilig offline beschikbaar maken; gekozen dagboekfoto's werken al", "Make selected trip documents safely available offline; chosen journal photos already work"],
       ["Prijsalerts en zoekfuncties voor vlucht, autohuur en activiteiten onderzoeken", "Explore price alerts and search for flights, rental cars and activities"],
     ],
   },

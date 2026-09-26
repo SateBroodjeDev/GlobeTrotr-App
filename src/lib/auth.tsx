@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { clearOfflineTrips } from "@/lib/offline-trip";
+import { clearOfflineJournal } from "@/lib/journal-offline-store";
 
 type AuthCtx = {
   session: Session | null;
@@ -24,7 +25,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authEventReceived = true;
       setSession(s);
       setLoading(false);
-      if (event === "SIGNED_OUT") void clearOfflineTrips().catch(() => undefined);
+      if (event === "SIGNED_OUT") {
+        void clearOfflineTrips().catch(() => undefined);
+        void clearOfflineJournal().catch(() => undefined);
+      }
     });
     void supabase.auth.getSession().then(({ data, error }) => {
       if (!active) return;

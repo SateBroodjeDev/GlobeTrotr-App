@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -8,6 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useLocale } from "@/lib/locale";
 import { getPublicFeatureFlags } from "@/lib/corporate-governance.functions";
 import { KeyRound } from "lucide-react";
@@ -15,6 +25,7 @@ import type { Provider } from "@supabase/supabase-js";
 import { safeInternalRedirect } from "@/lib/safe-redirect";
 import { agencyHostLookup } from "@/lib/agency-domain";
 import { getPublicAgencyHostBranding, publicAgencyLogoUrl } from "@/lib/agency-host-branding";
+import { publicSiteUrl } from "@/lib/site-routing";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -54,6 +65,9 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const [oauthBusy, setOauthBusy] = useState<Provider | null>(null);
   const [emailActionBusy, setEmailActionBusy] = useState<"recovery" | "magic" | null>(null);
+  const [agencyRegistrationAction, setAgencyRegistrationAction] = useState<
+    "email" | "google" | "discord" | null
+  >(null);
   const [mfaFactorId, setMfaFactorId] = useState<string>();
   const [mfaCode, setMfaCode] = useState("");
   const [mfaBusy, setMfaBusy] = useState(false);
@@ -64,7 +78,9 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
   const [hostname] = useState(() =>
     typeof window === "undefined" ? "" : window.location.hostname.toLowerCase(),
   );
-  const agencyHost = Boolean(hostname && agencyHostLookup(hostname));
+  const agencyHostDetails = hostname ? agencyHostLookup(hostname) : null;
+  const agencyHost = Boolean(agencyHostDetails);
+  const customAgencyDomain = Boolean(agencyHostDetails?.customDomain);
   const hostBranding = useQuery({
     queryKey: ["public-agency-host-branding", hostname],
     queryFn: () => getPublicAgencyHostBranding(hostname),
@@ -128,13 +144,8 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     }
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function authenticateWithEmail() {
     setFormError("");
-    if (mode === "signup" && !captchaToken) {
-      setFormError(text("Rond eerst de spamcontrole af.", "Complete the spam check first."));
-      return;
-    }
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -197,6 +208,20 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     }
   }
 
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError("");
+    if (mode === "signup" && !captchaToken) {
+      setFormError(text("Rond eerst de spamcontrole af.", "Complete the spam check first."));
+      return;
+    }
+    if (mode === "signup" && agencyHost) {
+      setAgencyRegistrationAction("email");
+      return;
+    }
+    await authenticateWithEmail();
+  }
+
   async function signInWithPasskey() {
     setPasskeyBusy(true);
     try {
@@ -213,7 +238,11 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
     }
   }
 
-  async function signInWithProvider(provider: "google" | "discord") {
+  async function signInWithProvider(provider: "google" | "discord", agencyConfirmed = false) {
+    if (mode === "signup" && agencyHost && !agencyConfirmed) {
+      setAgencyRegistrationAction(provider);
+      return;
+    }
     setOauthBusy(provider);
     try {
       const callback = new URL("/oauth-callback", window.location.origin);
@@ -231,6 +260,13 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
           : text("Inloggen via deze aanbieder is mislukt.", "Sign-in with this provider failed."),
       );
     }
+  }
+
+  function continueAgencyRegistration() {
+    const action = agencyRegistrationAction;
+    setAgencyRegistrationAction(null);
+    if (action === "email") void authenticateWithEmail();
+    else if (action) void signInWithProvider(action, true);
   }
 
   async function sendEmailAction(action: "recovery" | "magic") {
@@ -486,7 +522,7 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                       ? text("Inloggen", "Sign in")
                       : text("Account aanmaken", "Create account")}
                 </Button>
-                {mode === "signin" && (
+                {mode === "signin" && !customAgencyDomain && (
                   <>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="h-px flex-1 bg-border" />
@@ -539,13 +575,13 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
                   "Door verder te gaan accepteer je de voorwaarden en privacyverklaring.",
                   "By continuing, you accept the terms and privacy policy.",
                 )}{" "}
-                <Link to="/terms" className="underline underline-offset-2">
+                <a href={publicSiteUrl("/terms")} className="underline underline-offset-2">
                   {text("Voorwaarden", "Terms")}
-                </Link>{" "}
+                </a>{" "}
                 ·{" "}
-                <Link to="/privacy" className="underline underline-offset-2">
+                <a href={publicSiteUrl("/privacy")} className="underline underline-offset-2">
                   Privacy
-                </Link>
+                </a>
               </p>
             </div>
           )}
@@ -570,6 +606,59 @@ export function AuthPage({ initialMode = "signin" }: { initialMode?: "signin" | 
           )}
         </CardContent>
       </Card>
+      <AlertDialog
+        open={agencyRegistrationAction !== null}
+        onOpenChange={(open) => {
+          if (!open && !busy && !oauthBusy) setAgencyRegistrationAction(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {text(`Account maken voor ${brandName}`, `Create an account for ${brandName}`)}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <span className="block">
+                {text(
+                  `${brandName} gebruikt GlobeTrotr als beveiligd reisplatform. Je maakt nu een GlobeTrotr-account aan waarmee je toegang krijgt tot de omgeving van ${brandName}.`,
+                  `${brandName} uses GlobeTrotr as its secure travel platform. You are now creating a GlobeTrotr account that gives you access to ${brandName}'s environment.`,
+                )}
+              </span>
+              <span className="block">
+                {text(
+                  "Op het account zijn de algemene voorwaarden en privacyverklaring van GlobeTrotr van toepassing. De reisorganisatie kan daarnaast eigen afspraken met je hebben.",
+                  "The GlobeTrotr terms and privacy policy apply to the account. The travel organisation may also have its own agreements with you.",
+                )}
+              </span>
+              <span className="block">
+                <a
+                  href={publicSiteUrl("/terms")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  {text("Algemene voorwaarden", "Terms and conditions")}
+                </a>{" "}
+                ·{" "}
+                <a
+                  href={publicSiteUrl("/privacy")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  {text("Privacyverklaring", "Privacy policy")}
+                </a>
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{text("Terug", "Go back")}</AlertDialogCancel>
+            <AlertDialogAction onClick={continueAgencyRegistration}>
+              {text("Akkoord en account aanmaken", "Accept and create account")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

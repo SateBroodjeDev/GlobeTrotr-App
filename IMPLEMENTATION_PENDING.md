@@ -37,6 +37,14 @@ alleen opslagmetadata vast en schakelt geen externe objectopslag in.
 
 <!-- release-preflight: confirmed-through=20260908181000_object_storage_metadata.sql -->
 
+Voer voor de webuitrol daarna een nieuwe set uit in de Supabase SQL Editor:
+
+1. `supabase/migrations/20260908182000_trip_journal_completion.sql`;
+2. `supabase/tests/trip_journal_completion.sql`.
+
+Deze set voegt reissamenvattingen en fotogroottes toe. Pas de
+`confirmed-through`-regel hierboven pas aan nadat beide bestanden slagen.
+
 ## 2. Op je eigen pc
 
 ```powershell
@@ -93,6 +101,16 @@ worden bijgewerkt of herstart.
    daar verschijnen; bedragen, codes en privéfoto's mogen nooit zichtbaar zijn.
 
 ### Routevoorstel
+
+Test bij het reisdagboek daarnaast het offline bewaren van volledige
+herinneringen en gekozen foto's, de wachtrij voor offline wijzigingen, een
+samenvatting die pas na controle wordt opgeslagen, de publieke tijdlijn en
+galerij, de eigen PDF en het getoonde opslaggebruik.
+
+Controleer ook dat **Dagboek** als zelfstandige hoofdpagina opent, dat de
+reiswisselaar de juiste reis laadt en dat de knop vanuit een reis rechtstreeks
+datzelfde dagboek opent. De ontbrekende-nachtencontrole moet op de reispagina
+zichtbaar zijn en **Ontdekken** moet plaatsen rond de route rechtstreeks openen.
 
 1. Gebruik een reis met minimaal vier geografisch verspreide routeplaatsen.
 2. Open het routevoorstel en vergelijk huidige en voorgestelde volgorde.

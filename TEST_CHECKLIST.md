@@ -22,6 +22,7 @@ Alle controles beginnen bewust leeg. Gebruik **Geslaagd**, **Mislukt** of
 | Migratie en test 1790 archiveren oude open checks zonder ze als geslaagd te markeren |  |  |
 | Migratie en test 1800 maken het afgeschermde reisdagboek beschikbaar |  |  |
 | Migratie en test 1810 leggen opslagmetadata vast zonder externe opslag te activeren |  |  |
+| Migratie en test 1820 voegen reissamenvattingen en fotogroottes met RLS toe |  |  |
 | `npm run verify` en productiebuild slagen |  |  |
 | Node-01 webcontainer is gezond |  |  |
 | Hoofddomein en portaal openen via HTTPS |  |  |
@@ -90,6 +91,16 @@ Alle controles beginnen bewust leeg. Gebruik **Geslaagd**, **Mislukt** of
 | Route blijft ongewijzigd na annuleren en verandert alleen na expliciet toepassen |  |  |
 
 ## G. Betaling en meldingen
+
+Aanvullend reisdagboek: controleer volledige herinneringen en alleen gekozen
+foto's offline, toevoegen/wijzigen/verwijderen via de zichtbare wachtrij,
+bijschriften tijdens eerste upload, expliciete omslagkeuze, samenvatting na
+bevestiging, publieke tijdlijn/galerij, eigen PDF en opslaggebruik per
+reis/account/apparaat.
+
+Navigatie: controleer de zelfstandige Dagboek-pagina en reiswisselaar, de
+Dagboek-knop vanuit een reis, de hotelnachtencontrole op de reispagina en de
+zelfstandige tab Ontdekken voor plaatsen rond de route.
 
 | Controle | Status | Resultaat/opmerking |
 | --- | --- | --- |
